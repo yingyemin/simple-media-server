@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>直播-主播端</title>
+</head>
+<body>
+<div class="container">
+    <div class="form-inline">
+        URL:
+        <input type="text" id="txt_url" class="input-xxlarge" value="">
+        <button class="btn btn-primary" id="btn_publish">开始推流</button>
+    </div>
+
+    <label></label>
+    <video id="rtc_media_player" width="320" autoplay muted></video>
+
+    <label></label>
+    SessionID: <span id='sessionid'></span>
+
+    <label></label>
+    Audio: <span id='acodecs'></span><br/>
+    Video: <span id='vcodecs'></span>
+
+    <label></label>
+    Simulator: <a href='#' id='simulator-drop'>Drop</a>
+
+    <!-- <footer>
+        <p></p>
+        <p><a href="https://github.com/ossrs/srs">SRS Team &copy; 2020</a></p>
+    </footer> -->
+</div>
+</body>
+<script src="jquery-1.12.2.min.js"></script>
+<script src="rtcpusher.js"></script>
+</html>

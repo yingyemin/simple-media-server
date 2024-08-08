@@ -1,0 +1,828 @@
+#include "HttpConnection.h"
+#include "Api/HttpApi.h"
+#include "Common/Config.h"
+#include "Log/Logger.h"
+#include "HttpUtil.h"
+#include "Util/String.h"
+#include "Rtmp/FlvMuxerWithRtmp.h"
+#include "Hls/HlsManager.h"
+#include "Common/Define.h"
+#include "Util/Base64.h"
+#include "Ssl/SHA1.h"
+
+using namespace std;
+
+extern unordered_map<string, function<void(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc)>> g_mapApi;
+
+HttpConnection::HttpConnection(const EventLoop::Ptr& loop, const Socket::Ptr& socket, bool enbaleSsl)
+    :TcpConnection(loop, socket, enbaleSsl)
+    ,_loop(loop)
+    ,_socket(socket)
+{
+    logInfo << "HttpConnection";
+}
+
+HttpConnection::~HttpConnection()
+{
+    logInfo << "~HttpConnection";
+    if (_onClose) {
+        _onClose();
+    }
+}
+
+void HttpConnection::init()
+{
+    weak_ptr<HttpConnection> wSelf = static_pointer_cast<HttpConnection>(shared_from_this());
+    logInfo << this;
+    _parser.setOnHttpRequest([wSelf](){
+        logInfo << "HttpConnection setOnHttpRequest";
+        auto self = wSelf.lock();
+        if (self) {
+            self->onHttpRequest();
+        }
+    });
+
+    _parser.setOnHttpBody([wSelf](const char* data, int len){
+        logInfo << "HttpConnection setOnHttpBody";
+        auto self = wSelf.lock();
+        if (self && self->_onHttpBody) {
+            self->_onHttpBody(data, len);
+        }
+    });
+
+    // 端口不用监听，不允许随便更改
+    // static int apiPort = Config::instance()->getAndListen([](const json& config){
+    // _apiPort = Config::instance()->get("Http", "Api", _serverId,  "port");
+    //     logInfo << "apiPort: " << apiPort;
+    // }, "Http", "Api", "Api1",  "port");
+}
+
+void HttpConnection::close()
+{
+    TcpConnection::close();
+}
+
+void HttpConnection::onManager()
+{
+    logInfo << "manager: " << this;
+}
+
+void HttpConnection::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)
+{
+    logInfo << "get a buf: " << buffer->size();
+    _parser.parse(buffer->data(), buffer->size());
+}
+
+void HttpConnection::onError()
+{
+    close();
+    logWarn << "get a error: ";
+}
+
+void HttpConnection::onError(const string& msg)
+{
+    HttpResponse rsp;
+    rsp._status = 400;
+    rsp.setContent(msg);
+    writeHttpResponse(rsp);
+
+    logWarn << "get a error: " << msg;
+}
+
+ssize_t HttpConnection::send(Buffer::Ptr pkt)
+{
+    // logInfo << "pkt size: " << pkt->size();
+    if (_isChunked) {
+        std::stringstream ss;
+        ss << hex << pkt->size();
+        string sizeStr = ss.str();
+
+        auto sizeBuffer = make_shared<StringBuffer>();
+        sizeBuffer->assign(sizeStr.data(), sizeStr.size());
+        sizeBuffer->append("\r\n");
+        TcpConnection::send(sizeBuffer);
+        TcpConnection::send(pkt);
+        
+        auto lfcf = make_shared<StringBuffer>();
+        lfcf->assign("\r\n");
+        TcpConnection::send(lfcf);
+
+        return sizeStr.size() + 4 + pkt->size();
+    }
+
+    if (_isWebsocket) {
+        WebsocketFrame frame;
+        frame.finish = 1;
+        frame.rsv1 = 0;
+        frame.rsv2 = 0;
+        frame.rsv3 = 0;
+        frame.opcode = OpcodeType_BINARY;
+        frame.mask = 0;
+        frame.payloadLen = pkt->size();
+
+        auto header = make_shared<StringBuffer>();
+        _websocket.encodeHeader(frame, header);
+
+        TcpConnection::send(header);
+
+        // 因为此处不用做掩码，payload不用encode
+        // if (pkt->size() > 0) {
+        //     _websocket.encodePayload(frame, pkt);
+        // }
+    }
+    
+    return TcpConnection::send(pkt);
+}
+
+void HttpConnection::onHttpRequest()
+{
+    try {
+        
+        logInfo << "origin _parser._url: " << _parser._url;
+
+        _parser._url = "http://" + _socket->getLocalIp() + ":" + to_string(_socket->getLocalPort())
+                        + _parser._url;
+        
+        logInfo << "_parser._url: " << _parser._url;
+        _urlParser.parse(_parser._url);
+        logInfo <<_urlParser.path_;
+
+        if (g_mapApi.find(_urlParser.path_) != g_mapApi.end() && _parser._method != "OPTIONS") {
+            weak_ptr<HttpConnection> wSelf = static_pointer_cast<HttpConnection>(shared_from_this());
+            _onHttpBody = [wSelf](const char* data, int len){
+                auto self = wSelf.lock();
+                if (!self) {
+                    return ;
+                }
+
+                if (len > 0) {
+                    self->_parser._content.append(data, len);
+                }
+                if (self->_parser._contentLen > len) {
+                    return ;
+                }
+                auto iter = self->_parser._mapHeaders.find("content-type");
+                if (iter == self->_parser._mapHeaders.end()) {
+                    logInfo << "no content-type";
+                } else if (iter->second == "application/json") {
+                    self->_parser._body = json::parse(self->_parser._content);
+                } else if (iter->second == "application/x-www-form-urlencoded") {
+                    auto body = split(self->_parser._content, "&", "=");
+                    for (auto& iter : body) {
+                        logInfo << "key: " << iter.first << ", value: " << iter.second;
+                        self->_parser._body[iter.first] = iter.second;
+                    }
+                } else {
+                    for (auto& iter : self->_urlParser.vecParam_) {
+                        self->_parser._body[iter.first] = iter.second;
+                    }
+                }
+
+                HttpApi::route(self->_parser, self->_urlParser, [wSelf](HttpResponse& rsp){
+                    auto self = wSelf.lock();
+                    if (self) {
+                        self->writeHttpResponse(rsp);
+                    }
+                });
+            };
+        } else {
+            auto method = _parser._method;
+            static unordered_map<string, void (HttpConnection::*)()> httpHandle {
+                {"GET", &HttpConnection::handleGet},
+                {"POST", &HttpConnection::handlePost},
+                {"PUT", &HttpConnection::handlePut},
+                {"DELETE", &HttpConnection::handleDelete},
+                {"HEAD", &HttpConnection::handleHead},
+                {"OPTIONS", &HttpConnection::handleOptions}
+            };
+
+            // logInfo << _parser._method;
+            auto it = httpHandle.find(_parser._method);
+            if (it != httpHandle.end()) {
+                (this->*(it->second))();
+            } else {
+                HttpResponse rsp;
+                rsp._status = 400;
+                json value;
+                value["msg"] = "unsupport method: " + method;
+                rsp.setContent(value.dump());
+                writeHttpResponse(rsp);
+            }                   
+        }
+    } catch (exception& ex) {
+        HttpResponse rsp;
+        rsp._status = 400;
+        rsp.setContent(ex.what());
+        writeHttpResponse(rsp);
+    }
+}
+
+void HttpConnection::writeHttpResponse(HttpResponse& rsp) // 将要素按照HttpResponse协议进行组织，再发送
+{
+    // 完善头部字段
+    if(_parser._mapHeaders["connection"] == "keep-alive"){
+        logInfo << "CONNECTION IS keep-alive";
+        rsp.setHeader("Connection","keep-alive");
+    }
+    else{
+        rsp.setHeader("Connection","close");
+    }
+    if(!rsp._body.empty() && !rsp.hasHeader("Content-Length")){
+        rsp.setHeader("Content-Length",std::to_string(rsp._body.size()));
+    }
+    if(!rsp._body.empty() && !rsp.hasHeader("Content-Type")){
+        rsp.setHeader("Content-Type","application/octet-stream");
+    }
+    if(rsp._redirectFlag) {
+        rsp.setHeader("Location",rsp._redirectUrl);
+    }
+    rsp.setHeader("Server", "SimpleMediaServer");
+    rsp.setHeader("Access-Control-Allow-Origin", "*");
+    rsp.setHeader("Access-Control-Allow-Credentials", "true");
+
+    if (_isWebsocket) {
+        rsp._status = 101;
+
+        rsp._headers["Connection"] = "Upgrade";
+        rsp.setHeader("Upgrade", "websocket");
+
+        static string magic = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+        string key = _parser._mapHeaders["sec-websocket-key"];
+        auto acceptStr = Base64::encode(SHA1::encode(key + magic));
+        rsp.setHeader("Sec-WebSocket-Accept", acceptStr);
+
+        if (_parser._mapHeaders.find("sec-websocket-protocol") != _parser._mapHeaders.end()) {
+            rsp.setHeader("Sec-WebSocket-Protocol", _parser._mapHeaders["sec-websocket-protocol"]);
+        }
+
+        if (_parser._mapHeaders.find("sec-websocket-version") != _parser._mapHeaders.end()) {
+            rsp.setHeader("Sec-WebSocket-Version", _parser._mapHeaders["sec-websocket-version"]);
+        }
+    }
+    
+    // 将rsp完善，按照http协议格式进行组织
+    std::stringstream rsp_str;
+    rsp_str << _parser._version << " " << std::to_string(rsp._status) << " " << HttpUtil::getStatusDesc(rsp._status) << "\r\n";
+    for(auto &head: rsp._headers){
+        rsp_str << head.first<<": " << head.second << "\r\n";
+    }
+    rsp_str << "\r\n";
+    rsp_str << rsp._body;
+
+    logInfo << "rsp._body.size(): " << rsp._body.size();
+    logInfo << "rsp_str.str().size(): " << rsp_str.str().size();
+
+    // 发送数据
+    auto buffer = StreamBuffer::create();
+    buffer->assign(rsp_str.str().c_str(),rsp_str.str().size());
+    // logInfo << "send rsp: " << rsp_str.str();
+    send(buffer);
+
+    // _parser.clear();
+    _onHttpBody = nullptr;
+}
+
+void HttpConnection::sendFile() // 将要素按照HttpResponse协议进行组织，再发送
+{
+    HttpResponse rsp;
+    // 完善头部字段
+    if(_parser._mapHeaders["connection"] == "keep-alive"){
+        logInfo << "CONNECTION IS keep-alive";
+        rsp.setHeader("Connection","keep-alive");
+    }
+    else{
+        rsp.setHeader("Connection","close");
+    }
+    // if(!rsp._body.empty() && !rsp.hasHeader("Content-Length")){
+    //     rsp.setHeader("Content-Length",std::to_string(rsp._body.size()));
+    // }
+    rsp.setHeader("Content-Length", std::to_string(_httpFile->getFileSize()));
+    // if(!rsp._body.empty() && !rsp.hasHeader("Content-Type")){
+    //     rsp.setHeader("Content-Type","application/octet-stream");
+    // }
+    rsp.setHeader("Content-Type", HttpUtil::getMimeType(_httpFile->getFilePath()));
+    if(rsp._redirectFlag) {
+        rsp.setHeader("Location",rsp._redirectUrl);
+    }
+    rsp.setHeader("Server", "SimpleMediaServer");
+    rsp.setHeader("Access-Control-Allow-Origin", "*");
+    rsp.setHeader("Access-Control-Allow-Credentials", "true");
+
+    if (_isWebsocket) {
+        rsp._status = 101;
+
+        rsp._headers["Connection"] = "Upgrade";
+        rsp.setHeader("Upgrade", "websocket");
+
+        static string magic = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+        string key = _parser._mapHeaders["sec-websocket-key"];
+        auto acceptStr = Base64::encode(SHA1::encode(key + magic));
+        rsp.setHeader("Sec-WebSocket-Accept", acceptStr);
+
+        if (_parser._mapHeaders.find("sec-websocket-protocol") != _parser._mapHeaders.end()) {
+            rsp.setHeader("Sec-WebSocket-Protocol", _parser._mapHeaders["sec-websocket-protocol"]);
+        }
+
+        if (_parser._mapHeaders.find("sec-websocket-version") != _parser._mapHeaders.end()) {
+            rsp.setHeader("Sec-WebSocket-Version", _parser._mapHeaders["sec-websocket-version"]);
+        }
+    }
+    
+    // 将rsp完善，按照http协议格式进行组织
+    std::stringstream rsp_str;
+    rsp_str << _parser._version << " " << std::to_string(rsp._status) << " " << HttpUtil::getStatusDesc(rsp._status) << "\r\n";
+    for(auto &head: rsp._headers){
+        rsp_str << head.first<<": " << head.second << "\r\n";
+    }
+    rsp_str << "\r\n";
+
+    weak_ptr<HttpConnection> wSelf = dynamic_pointer_cast<HttpConnection>(shared_from_this());
+    _socket->setOnGetBuffer([wSelf](){
+        logInfo << "setOnGetBuffer";
+        auto self = wSelf.lock();
+        if (!self) {
+            return false;
+        }
+
+        logInfo << "read file";
+        auto buffer = self->_httpFile->read();
+        if (!buffer) {
+            // TODO 定时器停止socket？？
+            return false;
+        }
+
+        self->send(buffer);
+        return true;
+    });
+    
+    // 发送Header
+    auto buffer = StreamBuffer::create();
+    buffer->assign(rsp_str.str().c_str(),rsp_str.str().size());
+    logInfo << "send rsp: " << rsp_str.str();
+    send(buffer);
+
+    // _parser.clear();
+    _onHttpBody = nullptr;
+}
+
+void HttpConnection::handleGet()
+{
+    if (_parser._mapHeaders.find("sec-websocket-key") != _parser._mapHeaders.end()) {
+        _isWebsocket = true;
+        // 此处不设置_onhttpbody，也不decode websocket的帧数据，get请求只发不收
+    }
+
+    _parser._contentLen = 0;
+
+    if (endWith(_urlParser.path_, ".flv") && startWith(_urlParser.path_, "/live")) {
+        handleFlvStream();
+    } else if (endWith(_urlParser.path_, ".m3u8") && startWith(_urlParser.path_, "/live")) {
+        handleHlsM3u8();
+    } else if (endWith(_urlParser.path_, ".ts") && startWith(_urlParser.path_, "/live")) {
+        if (_urlParser.path_.find("_hls") != string::npos) {
+            handleHlsTs();
+        } else {
+            handleTs();
+        }
+    } else if (endWith(_urlParser.path_, ".ps") && startWith(_urlParser.path_, "/live")) {
+        handlePs();
+    } else {
+        logInfo << "download file or dir: " << _urlParser.path_;
+        _httpFile = make_shared<HttpFile>(_parser);
+        if (!_httpFile->isValid()) {
+            HttpResponse rsp;
+            rsp._status = 400;
+            json value;
+            value["msg"] = "invalid path: " + _urlParser.path_;
+            rsp.setContent(value.dump());
+            writeHttpResponse(rsp);
+        } else {
+            if (_httpFile->isFile()) {
+                sendFile();
+                logInfo << "send a file: " << _httpFile->getFilePath();
+            } else if (_httpFile->isDir()) {
+                auto indexStr = _httpFile->getIndex();
+
+                HttpResponse rsp;
+                rsp._status = 200;
+                // json value;
+                // value["msg"] = "unsupport path: " + _urlParser.path_;
+                rsp.setContent(indexStr);
+                writeHttpResponse(rsp);
+                logInfo << "send a dir: " << _httpFile->getFilePath();
+                logInfo <<"_parser _stage: " << _parser.getStage();
+            } else {
+                HttpResponse rsp;
+                rsp._status = 400;
+                json value;
+                value["msg"] = "path is not exist: " + _urlParser.path_;
+                rsp.setContent(value.dump());
+                writeHttpResponse(rsp);
+            }
+        }
+
+        // HttpResponse rsp;
+        // rsp._status = 400;
+        // json value;
+        // value["msg"] = "unsupport path: " + _urlParser.path_;
+        // rsp.setContent(value.dump());
+        // writeHttpResponse(rsp);
+    }
+}
+
+void HttpConnection::handlePost()
+{}
+
+void HttpConnection::handlePut()
+{}
+
+void HttpConnection::handleDelete()
+{}
+
+void HttpConnection::handleHead()
+{}
+
+void HttpConnection::handleOptions()
+{
+    logTrace << "HttpConnection::handleOptions()";
+
+    HttpResponse rsp;
+    rsp._status = 200;
+    rsp.setHeader("Access-Control-Allow-Headers", "origin,range,accept-encoding,referer,Cache-Control,X-Proxy-Authorization,X-Requested-With,Content-Type");
+    rsp.setHeader("Access-Control-Allow-Methods", "GET, POST, HEAD, PUT, DELETE, OPTIONS");
+    rsp.setHeader("Access-Control-Allow-Origin", "*");
+    rsp.setHeader("Access-Control-Expose-Headers", "Server,range,Content-Length,Content-Range");
+    writeHttpResponse(rsp);
+}
+
+void HttpConnection::handleFlvStream()
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    rsp.setHeader("Content-Type", HttpUtil::getMimeType(_urlParser.path_));
+    rsp.setHeader("Connection", "keep-alive");
+    writeHttpResponse(rsp);
+
+    auto flvMux = make_shared<FlvMuxerWithRtmp>(_urlParser, _socket->getLoop());
+    weak_ptr<HttpConnection> wSelf = dynamic_pointer_cast<HttpConnection>(shared_from_this());
+    logInfo << "flv mux set onwrite";
+    flvMux->setOnWrite([wSelf](const char *data, int len){
+        auto self = wSelf.lock();
+        if (!self) {
+            return ;
+        }
+
+        auto buffer = make_shared<StreamBuffer>(data, len);
+        self->send(buffer);
+    });
+
+    logInfo << "flv mux setOnDetach";
+    flvMux->setOnDetach([wSelf](){
+        auto self = wSelf.lock();
+        if (!self) {
+            return ;
+        }
+
+        self->close();
+    });
+
+    logInfo << "flv mux start";
+    flvMux->setLocalIp(_socket->getLocalIp());
+    flvMux->setLocalPort(_socket->getLocalPort());
+    flvMux->start();
+
+    logInfo << "oncolse";
+    _onClose = [flvMux](){
+        flvMux->setOnDetach(nullptr);
+    };
+}
+
+void HttpConnection::handleHlsM3u8()
+{
+    weak_ptr<HttpConnection> wSelf = dynamic_pointer_cast<HttpConnection>(shared_from_this());
+
+    if (_urlParser.vecParam_.find("uid") != _urlParser.vecParam_.end()) {
+        string strM3u8;
+        auto uid = stoi(_urlParser.vecParam_["uid"]);
+        auto hlsMuxer = HlsManager::instance()->getMuxer(uid);
+        if (!hlsMuxer) {
+            logInfo << "find hls muxer by uid(" << uid << ") failed";
+        } else {
+            strM3u8 = hlsMuxer->getM3u8WithUid(uid);
+        }
+        HttpResponse rsp;
+        rsp._status = 200;
+        rsp.setHeader("Content-Type", HttpUtil::getMimeType(_urlParser.path_));
+        // rsp.setHeader("Connection", "keep-alive");
+        rsp.setContent(strM3u8);
+        writeHttpResponse(rsp);
+
+        logInfo << "response: " << strM3u8;
+
+        return ;
+    }
+
+	_urlParser.path_ = trimBack(_urlParser.path_, ".m3u8");
+    MediaSource::getOrCreateAsync(_urlParser.path_, _urlParser.vhost_, _urlParser.protocol_, _urlParser.type_, 
+    [wSelf](const MediaSource::Ptr &src){
+        logInfo << "get a src";
+        auto self = wSelf.lock();
+        if (!self) {
+            return ;
+        }
+
+		auto hlsSrc = dynamic_pointer_cast<HlsMediaSource>(src);
+		if (!hlsSrc) {
+			self->onError("hls source is not exist");
+            return ;
+		}
+
+        // self->_source = rtmpSrc;
+
+		self->_loop->async([wSelf, hlsSrc](){
+			auto self = wSelf.lock();
+			if (!self) {
+				return ;
+			}
+
+			self->onPlayHls(hlsSrc);
+		}, true);
+    }, 
+    [wSelf]() -> MediaSource::Ptr {
+        auto self = wSelf.lock();
+        if (!self) {
+            return nullptr;
+        }
+        return make_shared<HlsMediaSource>(self->_urlParser, nullptr, true);
+    }, this);
+}
+
+void HttpConnection::onPlayHls(const HlsMediaSource::Ptr &hlsSrc)
+{
+    weak_ptr<HttpConnection> wSelf = dynamic_pointer_cast<HttpConnection>(shared_from_this());
+
+    hlsSrc->addOnReady(this, [wSelf, hlsSrc, this](){
+        auto self = wSelf.lock();
+        if (!self) {
+            return ;
+        }
+        auto strM3u8 = hlsSrc->getM3u8(this);
+
+        HttpResponse rsp;
+        rsp._status = 200;
+        rsp.setHeader("Content-Type", HttpUtil::getMimeType(self->_urlParser.path_));
+        // rsp.setHeader("Connection", "keep-alive");
+        rsp.setContent(strM3u8);
+        logInfo << "write response";
+        self->writeHttpResponse(rsp);
+
+        logInfo << "response: " << strM3u8;
+    });
+
+    _onClose = [hlsSrc, this](){
+        hlsSrc->delConnection(this);
+    };
+}
+
+void HttpConnection::handleHlsTs()
+{
+    // if (_urlParser.vecParam_.find("uid") == _urlParser.vecParam_.end()) {
+    //     HttpResponse rsp;
+    //     rsp._status = 404;
+    //     rsp.setHeader("Content-Type", HttpUtil::getMimeType(_urlParser.path_));
+    //     // rsp.setHeader("Connection", "keep-alive");
+    //     rsp.setContent("uid not exist");
+    //     writeHttpResponse(rsp);
+
+    //     return ;
+    // }
+
+    auto pos = _urlParser.path_.find_last_of("_");
+    auto path = _urlParser.path_.substr(0, pos);
+
+    auto hlsMuxer = HlsManager::instance()->getMuxer(path + "_" + DEFAULT_VHOST + "_" + DEFAULT_TYPE);
+    string tsString;
+    if (hlsMuxer) {
+        auto tsBuffer = hlsMuxer->getTsBuffer(_urlParser.path_);
+        if (tsBuffer) {
+            tsString.assign(tsBuffer->data(), tsBuffer->size());
+            logInfo << "find ts: " << _urlParser.path_;
+
+            // auto pos = _urlParser.path_.find_last_of("/");
+            // FILE* fp = fopen(_urlParser.path_.substr(pos + 1).data(), "wb");
+            // fwrite(tsBuffer->data(), tsBuffer->size(), 1, fp);
+            // fclose(fp);
+        } else {
+            logWarn << "ts is empty: " << _urlParser.path_;
+        }
+    }
+
+    HttpResponse rsp;
+    rsp._status = 200;
+    rsp.setHeader("Content-Type", HttpUtil::getMimeType(_urlParser.path_));
+    // rsp.setHeader("Connection", "keep-alive");
+    rsp.setContent(tsString);
+    writeHttpResponse(rsp);
+}
+
+void HttpConnection::handleTs()
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    rsp.setHeader("Content-Type", HttpUtil::getMimeType(_urlParser.path_));
+    rsp.setHeader("Connection", "keep-alive");
+    writeHttpResponse(rsp);
+
+    _urlParser.path_ = trimBack(_urlParser.path_, ".ts");
+
+    weak_ptr<HttpConnection> wSelf = dynamic_pointer_cast<HttpConnection>(shared_from_this());
+    MediaSource::getOrCreateAsync(_urlParser.path_, _urlParser.vhost_, PROTOCOL_TS, _urlParser.type_, 
+    [wSelf](const MediaSource::Ptr &src){
+        logInfo << "get a src";
+        auto self = wSelf.lock();
+        if (!self) {
+            return ;
+        }
+
+		auto tsSrc = dynamic_pointer_cast<TsMediaSource>(src);
+		if (!tsSrc) {
+			self->onError("hls source is not exist");
+            return ;
+		}
+
+        // self->_source = rtmpSrc;
+
+		self->_loop->async([wSelf, tsSrc](){
+			auto self = wSelf.lock();
+			if (!self) {
+				return ;
+			}
+
+			self->onPlayTs(tsSrc);
+		}, true);
+    }, 
+    [wSelf]() -> MediaSource::Ptr {
+        auto self = wSelf.lock();
+        if (!self) {
+            return nullptr;
+        }
+        return make_shared<TsMediaSource>(self->_urlParser, nullptr, true);
+    }, this);
+}
+
+void HttpConnection::onPlayTs(const TsMediaSource::Ptr &tsSrc)
+{
+    weak_ptr<HttpConnection> wSelf = dynamic_pointer_cast<HttpConnection>(shared_from_this());
+
+    if (!_playTsReader) {
+		logInfo << "set _playTsReader";
+		_playTsReader = tsSrc->getRing()->attach(EventLoop::getCurrentLoop(), true);
+		_playTsReader->setGetInfoCB([wSelf]() {
+			auto self = wSelf.lock();
+			ClientInfo ret;
+			if (!self) {
+				return ret;
+			}
+			ret.ip_ = self->_socket->getLocalIp();
+			ret.port_ = self->_socket->getLocalPort();
+			ret.protocol_ = PROTOCOL_TS;
+			return ret;
+		});
+		_playTsReader->setDetachCB([wSelf]() {
+			auto strong_self = wSelf.lock();
+			if (!strong_self) {
+				return;
+			}
+			// strong_self->shutdown(SockException(Err_shutdown, "rtsp ring buffer detached"));
+			strong_self->onError("ring buffer detach");
+		});
+		logInfo << "setReadCB =================";
+		_playTsReader->setReadCB([wSelf](const TsMediaSource::RingDataType &pack) {
+			auto self = wSelf.lock();
+			if (!self/* || pack->empty()*/) {
+				return;
+			}
+			// logInfo << "send rtmp msg";
+			auto pktList = *(pack.get());
+			for (auto& pkt : pktList) {
+                self->send(pkt);
+				// uint8_t frame_type = (pkt->payload.get()[0] >> 4) & 0x0f;
+				// uint8_t codec_id = pkt->payload.get()[0] & 0x0f;
+
+				// FILE* fp = fopen("testflv.rtmp", "ab+");
+				// fwrite(pkt->payload.get(), pkt->length, 1, fp);
+				// fclose(fp);
+
+				// logInfo << "frame_type : " << (int)frame_type << ", codec_id: " << (int)codec_id
+				// 		<< "pkt->payload.get()[0]: " << (int)(pkt->payload.get()[0]);
+				// self->sendMediaData(pkt->type_id, pkt->abs_timestamp, pkt->payload, pkt->length);
+			}
+		});
+
+        _onClose = [tsSrc, this](){
+            tsSrc->delConnection(this);
+        };
+	}
+} 
+
+void HttpConnection::handlePs()
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    rsp.setHeader("Content-Type", HttpUtil::getMimeType(_urlParser.path_));
+    rsp.setHeader("Connection", "keep-alive");
+    writeHttpResponse(rsp);
+
+    _urlParser.path_ = trimBack(_urlParser.path_, ".ps");
+
+    weak_ptr<HttpConnection> wSelf = dynamic_pointer_cast<HttpConnection>(shared_from_this());
+    MediaSource::getOrCreateAsync(_urlParser.path_, _urlParser.vhost_, PROTOCOL_PS, _urlParser.type_, 
+    [wSelf](const MediaSource::Ptr &src){
+        logInfo << "get a src";
+        auto self = wSelf.lock();
+        if (!self) {
+            return ;
+        }
+
+		auto psSrc = dynamic_pointer_cast<PsMediaSource>(src);
+		if (!psSrc) {
+			self->onError("hls source is not exist");
+            return ;
+		}
+
+        // self->_source = rtmpSrc;
+
+		self->_loop->async([wSelf, psSrc](){
+			auto self = wSelf.lock();
+			if (!self) {
+				return ;
+			}
+
+			self->onPlayPs(psSrc);
+		}, true);
+    }, 
+    [wSelf]() -> MediaSource::Ptr {
+        auto self = wSelf.lock();
+        if (!self) {
+            return nullptr;
+        }
+        return make_shared<PsMediaSource>(self->_urlParser, nullptr, true);
+    }, this);
+}
+
+void HttpConnection::onPlayPs(const PsMediaSource::Ptr &psSrc)
+{
+    weak_ptr<HttpConnection> wSelf = dynamic_pointer_cast<HttpConnection>(shared_from_this());
+
+    if (!_playPsReader) {
+		logInfo << "set _playPsReader";
+		_playPsReader = psSrc->getRing()->attach(EventLoop::getCurrentLoop(), true);
+		_playPsReader->setGetInfoCB([wSelf]() {
+			auto self = wSelf.lock();
+			ClientInfo ret;
+			if (!self) {
+				return ret;
+			}
+			ret.ip_ = self->_socket->getLocalIp();
+			ret.port_ = self->_socket->getLocalPort();
+			ret.protocol_ = PROTOCOL_PS;
+			return ret;
+		});
+		_playPsReader->setDetachCB([wSelf]() {
+			auto strong_self = wSelf.lock();
+			if (!strong_self) {
+				return;
+			}
+			// strong_self->shutdown(SockException(Err_shutdown, "rtsp ring buffer detached"));
+			strong_self->onError("ring buffer detach");
+		});
+		logInfo << "setReadCB =================";
+		_playPsReader->setReadCB([wSelf](const PsMediaSource::RingDataType &pack) {
+			auto self = wSelf.lock();
+			if (!self/* || pack->empty()*/) {
+				return;
+			}
+			// logInfo << "send rtmp msg";
+			auto pktList = *(pack.get());
+			for (auto& pkt : pktList) {
+                auto buffer = StreamBuffer::create();
+                buffer->assign(pkt->data(), pkt->size());
+                self->send(buffer);
+				// uint8_t frame_type = (pkt->payload.get()[0] >> 4) & 0x0f;
+				// uint8_t codec_id = pkt->payload.get()[0] & 0x0f;
+
+				// FILE* fp = fopen("testflv.rtmp", "ab+");
+				// fwrite(pkt->payload.get(), pkt->length, 1, fp);
+				// fclose(fp);
+
+				// logInfo << "frame_type : " << (int)frame_type << ", codec_id: " << (int)codec_id
+				// 		<< "pkt->payload.get()[0]: " << (int)(pkt->payload.get()[0]);
+				// self->sendMediaData(pkt->type_id, pkt->abs_timestamp, pkt->payload, pkt->length);
+			}
+		});
+        _onClose = [psSrc, this](){
+            psSrc->delConnection(this);
+        };
+	}
+} 

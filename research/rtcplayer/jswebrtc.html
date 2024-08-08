@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>webrtc 视频播放</title>
+</head>
+<body>
+    <video id="video_webrtc" controls></video>
+	<script type="text/javascript" src="./jswebrtc.min.js"></script>
+	<script type="text/javascript">
+		var video = document.getElementById('video_webrtc');
+		var url = 'webrtc://172.24.6.238/live/test';
+		var option={ 
+			video: video, 
+			autoplay: true 
+		}
+		var player = new JSWebrtc.Player(url,option);
+	</script>
+</body>
+</html>

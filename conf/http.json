@@ -1,0 +1,26 @@
+{
+    "LocalIp" : "172.24.6.38",
+    "EventLoopPool" : {
+        "size" : 0
+    },
+    "Http" : {
+        "Api" : [
+            {
+                "ip" : "0.0.0.0",
+                "port" : 80,
+                "sslPort" : 443,
+                "timeout" : 5000,
+                "threads" : 1
+            }
+        ],
+        "Server" : [
+            {
+                "ip" : "0.0.0.0",
+                "port" : 80,
+                "sslPort" : 443,
+                "timeout" : 5000,
+                "threads" : 1
+            }
+        ]
+    }
+}

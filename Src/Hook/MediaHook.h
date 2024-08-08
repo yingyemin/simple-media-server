@@ -1,0 +1,48 @@
+﻿#ifndef MediaHook_H
+#define MediaHook_H
+
+#include <mutex>
+#include <string>
+#include <memory>
+#include <vector>
+#include <unordered_map>
+
+#include "Net/Buffer.h"
+#include "Common/json.hpp"
+
+using namespace std;
+
+class StreamStatusInfo
+{
+public:
+    string protocol;
+    string uri;
+    string vhost;
+    string type;
+    string status;
+    string errorCode;
+};
+
+class MediaHook : public enable_shared_from_this<MediaHook>
+{
+public:
+    using Ptr = shared_ptr<MediaHook>;
+
+    MediaHook() {}
+    ~MediaHook() {}
+
+public:
+    static MediaHook::Ptr instance();
+    void init();
+    void reportByHttp(const string& url, const string&method, const string& msg, const function<void(const string& err, 
+                const nlohmann::json& res)>& cb = [](const string& err, const nlohmann::json& res){});
+    void onStreamStatus(const StreamStatusInfo& info);
+    void onNonePlayer(const string& protocol, const string& uri, 
+                        const string& vhost, const string& type);
+
+private:
+    string _type = "http";
+};
+
+
+#endif //MediaHook_H

@@ -1,0 +1,166 @@
+@charset "utf-8"; /*样式重置*/
+/* 防止用户自定义背景颜色对网页的影响，添加让用户可以自定义字体 */
+html {
+  color: #000;
+  background: #fff;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  font-size: 100%;
+}
+
+/* IE6对positon:fixed的单独处理修正IE6滚动抖动的bug */
+* html, * html body {
+  background-image: url(about:blank); /*修正IE6滚动抖动的bug*/
+  background-attachment: fixed; /*根据自己实际，非必需*/
+  font-family: 'MicrosoftYaHei', serif;
+}
+
+/* 内外边距通常让各个浏览器样式的表现位置不同 */
+body, div, dl, dt, dd, ul, li, pre, form, fieldset, select, input, textarea, button, p, blockquote, th, td, img, iframe, canvas {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 要注意表单元素并不继承父级 font 的问题 */
+body, button, input, select, textarea {
+  font: 12px/1.5 "微软雅黑", "Microsoft YaHei", "\5b8b\4f53", "Tahoma", "Arial";
+  color: #333;
+  outline: none;
+}
+
+input, select, textarea {
+  font-size: 100%;
+}
+
+/* 重置button边框 */
+button {
+  border: none;
+}
+
+/* 去掉各Table cell 的边距并让其边重合 */
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+/* IE bug fixed: th 不继承 text-align*/
+th {
+  text-align: inherit;
+}
+
+/* 对齐是排版最重要的因素, 别让什么都居中 */
+caption, th {
+  text-align: left;
+}
+
+/* 去除默认边框 */
+fieldset, img {
+  border: none;
+  outline: none;
+  -moz-outline: none;
+}
+
+/* ie6 7 8(q) bug 显示为行内表现 */
+iframe {
+  display: block;
+}
+
+/* 去掉列表前的标识, li 会继承 */
+ol, ul, li {
+  list-style: none;
+}
+
+/* 来自yahoo, 让标题都自定义, 适应多个系统应用 */
+h1, h2, h3, h4, h5, h6 {
+  font-size: 100%;
+  font-weight: 500;
+  margin: 0;
+  padding: 0;
+}
+
+/* 让链接默认不显示下划线，在hover状态下显示下划线 */
+
+a:hover {
+  /*text-decoration: underline;*/
+  text-decoration: none !important;
+}
+
+a {
+  text-decoration: none !important;;
+}
+
+/* 清理浮动 */
+.clearfix:before, .clearfix:after {
+  display: block;
+  content: " ";
+  clear: both;
+  zoom: 1; /* for ie67*/
+}
+
+/* 重设 HTML5 标签, IE 需要在 js 中 createElement(TAG) */
+article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
+  display: block;
+}
+
+/* HTML5 媒体文件跟 img 保持一致 */
+audio, canvas, video {
+  display: inline-block;
+  *display: inline;
+  *zoom: 1;
+}
+
+address, caption, cite, code, dfn, em, i {
+  font-style: normal;
+  font-weight: normal;
+}
+
+/*解决盒模型问题css3属性也可用来统一FORM元素风格*/
+.box-sizing {
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -o-box-sizing: border-box;
+  -ms-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.disabled {
+  pointer-events: none;
+}
+
+.hidden {
+  display: none;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+input::-ms-clear {
+  display: none;
+}
+
+input::-ms-reveal {
+  display: none;
+}
+
+/*
+禁止复制*/
+/*body{*/
+/*-moz-user-select:none; !* Firefox私有属性 *!*/
+/*-webkit-user-select:none; !* WebKit内核私有属性 *!*/
+/*-ms-user-select:none; !* IE私有属性(IE10及以后) *!*/
+/*-khtml-user-select:none; !* KHTML内核私有属性 *!*/
+/*-o-user-select:none; !* Opera私有属性 *!*/
+/*user-select:none; !* CSS3属性 *!*/
+/*}*/

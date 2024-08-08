@@ -1,0 +1,12 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib64
+includedir=${prefix}/include
+
+Name: srt
+Description: SRT library set
+Version: 1.5.3
+Libs: -L${libdir} -lsrt   
+Libs.private:  pthread -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc
+Cflags: -I${includedir} -I${includedir}/srt
+Requires.private: openssl libcrypto

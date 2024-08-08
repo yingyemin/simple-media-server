@@ -1,0 +1,287 @@
+Performing C SOURCE FILE Test CMAKE_HAVE_LIBC_PTHREAD failed with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_a5036/fast && /usr/bin/gmake -f CMakeFiles/cmTC_a5036.dir/build.make CMakeFiles/cmTC_a5036.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building C object CMakeFiles/cmTC_a5036.dir/src.c.o
+/opt/rh/devtoolset-8/root/usr/bin/cc   -DCMAKE_HAVE_LIBC_PTHREAD   -o CMakeFiles/cmTC_a5036.dir/src.c.o   -c /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTC_a5036
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a5036.dir/link.txt --verbose=1
+/opt/rh/devtoolset-8/root/usr/bin/cc  -DCMAKE_HAVE_LIBC_PTHREAD    -rdynamic CMakeFiles/cmTC_a5036.dir/src.c.o  -o cmTC_a5036 
+CMakeFiles/cmTC_a5036.dir/src.c.o：在函数‘main’中：
+src.c:(.text+0x2d)：对‘pthread_create’未定义的引用
+src.c:(.text+0x39)：对‘pthread_detach’未定义的引用
+src.c:(.text+0x4a)：对‘pthread_join’未定义的引用
+src.c:(.text+0x5e)：对‘pthread_atfork’未定义的引用
+collect2: error: ld returned 1 exit status
+gmake[1]: *** [cmTC_a5036] 错误 1
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+gmake: *** [cmTC_a5036/fast] 错误 2
+
+
+Source file was:
+#include <pthread.h>
+
+void* test_func(void* data)
+{
+  return data;
+}
+
+int main(void)
+{
+  pthread_t thread;
+  pthread_create(&thread, NULL, test_func, NULL);
+  pthread_detach(thread);
+  pthread_join(thread, NULL);
+  pthread_atfork(NULL, NULL, NULL);
+  pthread_exit(NULL);
+
+  return 0;
+}
+
+Determining if the function pthread_create exists in the pthreads failed with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_2ec20/fast && /usr/bin/gmake -f CMakeFiles/cmTC_2ec20.dir/build.make CMakeFiles/cmTC_2ec20.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building C object CMakeFiles/cmTC_2ec20.dir/CheckFunctionExists.c.o
+/opt/rh/devtoolset-8/root/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_2ec20.dir/CheckFunctionExists.c.o   -c /usr/local/share/cmake-3.16/Modules/CheckFunctionExists.c
+Linking C executable cmTC_2ec20
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2ec20.dir/link.txt --verbose=1
+/opt/rh/devtoolset-8/root/usr/bin/cc  -DCHECK_FUNCTION_EXISTS=pthread_create    -rdynamic CMakeFiles/cmTC_2ec20.dir/CheckFunctionExists.c.o  -o cmTC_2ec20  -lpthreads 
+/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/ld: 找不到 -lpthreads
+collect2: error: ld returned 1 exit status
+gmake[1]: *** [cmTC_2ec20] 错误 1
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+gmake: *** [cmTC_2ec20/fast] 错误 2
+
+
+
+Determining if the pthread_getname_np exist failed with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_c8803/fast && /usr/bin/gmake -f CMakeFiles/cmTC_c8803.dir/build.make CMakeFiles/cmTC_c8803.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building C object CMakeFiles/cmTC_c8803.dir/CheckSymbolExists.c.o
+/opt/rh/devtoolset-8/root/usr/bin/cc -D_DARWIN_C_SOURCE -D_GNU_SOURCE -D_POSIX_SOURCE=1  -pthread   -o CMakeFiles/cmTC_c8803.dir/CheckSymbolExists.c.o   -c /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/CheckSymbolExists.c:2:10: fatal error: pthread_np.h: 没有那个文件或目录
+ #include <pthread_np.h>
+          ^~~~~~~~~~~~~~
+compilation terminated.
+gmake[1]: *** [CMakeFiles/cmTC_c8803.dir/CheckSymbolExists.c.o] 错误 1
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+gmake: *** [cmTC_c8803/fast] 错误 2
+
+
+File /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <pthread_np.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_getname_np
+  return ((int*)(&pthread_getname_np))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Determining if the pthread_setname_np exist failed with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_03f38/fast && /usr/bin/gmake -f CMakeFiles/cmTC_03f38.dir/build.make CMakeFiles/cmTC_03f38.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building C object CMakeFiles/cmTC_03f38.dir/CheckSymbolExists.c.o
+/opt/rh/devtoolset-8/root/usr/bin/cc -D_DARWIN_C_SOURCE -D_GNU_SOURCE -D_POSIX_SOURCE=1  -pthread   -o CMakeFiles/cmTC_03f38.dir/CheckSymbolExists.c.o   -c /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/CheckSymbolExists.c:2:10: fatal error: pthread_np.h: 没有那个文件或目录
+ #include <pthread_np.h>
+          ^~~~~~~~~~~~~~
+compilation terminated.
+gmake[1]: *** [CMakeFiles/cmTC_03f38.dir/CheckSymbolExists.c.o] 错误 1
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+gmake: *** [cmTC_03f38/fast] 错误 2
+
+
+File /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <pthread_np.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_setname_np
+  return ((int*)(&pthread_setname_np))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Performing C SOURCE FILE Test HAVE_LIBATOMIC_COMPILES_STATIC failed with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_d7d89/fast && /usr/bin/gmake -f CMakeFiles/cmTC_d7d89.dir/build.make CMakeFiles/cmTC_d7d89.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building C object CMakeFiles/cmTC_d7d89.dir/src.c.o
+/opt/rh/devtoolset-8/root/usr/bin/cc   -DHAVE_LIBATOMIC_COMPILES_STATIC -static   -o CMakeFiles/cmTC_d7d89.dir/src.c.o   -c /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTC_d7d89
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_d7d89.dir/link.txt --verbose=1
+/opt/rh/devtoolset-8/root/usr/bin/cc  -DHAVE_LIBATOMIC_COMPILES_STATIC -static    -rdynamic CMakeFiles/cmTC_d7d89.dir/src.c.o  -o cmTC_d7d89  -latomic 
+/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/ld: 找不到 -lc
+collect2: error: ld returned 1 exit status
+gmake[1]: *** [cmTC_d7d89] 错误 1
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+gmake: *** [cmTC_d7d89/fast] 错误 2
+
+
+Source file was:
+
+		int main(void)
+		{
+			const int result = 0;
+			return result;
+		}
+	
+Performing C++ SOURCE FILE Test HAVE_CXX_ATOMIC_STATIC failed with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_5a592/fast && /usr/bin/gmake -f CMakeFiles/cmTC_5a592.dir/build.make CMakeFiles/cmTC_5a592.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building CXX object CMakeFiles/cmTC_5a592.dir/src.cxx.o
+/opt/rh/devtoolset-8/root/usr/bin/c++    -DHAVE_CXX_ATOMIC_STATIC -std=c++11 -static   -o CMakeFiles/cmTC_5a592.dir/src.cxx.o -c /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_5a592
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5a592.dir/link.txt --verbose=1
+/opt/rh/devtoolset-8/root/usr/bin/c++   -DHAVE_CXX_ATOMIC_STATIC -std=c++11 -static    -rdynamic CMakeFiles/cmTC_5a592.dir/src.cxx.o  -o cmTC_5a592 
+/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/ld: 找不到 -lm
+/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/ld: 找不到 -lc
+collect2: error: ld returned 1 exit status
+gmake[1]: *** [cmTC_5a592] 错误 1
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+gmake: *** [cmTC_5a592/fast] 错误 2
+
+
+Source file was:
+
+      #include<cstdint>
+      #include<atomic>
+      int main(void)
+      {
+         std::atomic<std::ptrdiff_t> x(0);
+         std::atomic<std::intmax_t> y(0);
+         return x + y;
+      }
+      
+Determining if the pthread_getname_np exist failed with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_27ec6/fast && /usr/bin/gmake -f CMakeFiles/cmTC_27ec6.dir/build.make CMakeFiles/cmTC_27ec6.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building C object CMakeFiles/cmTC_27ec6.dir/CheckSymbolExists.c.o
+/opt/rh/devtoolset-8/root/usr/bin/cc -D_DARWIN_C_SOURCE -D_GNU_SOURCE -D_POSIX_SOURCE=1  -pthread   -o CMakeFiles/cmTC_27ec6.dir/CheckSymbolExists.c.o   -c /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/CheckSymbolExists.c:2:10: fatal error: pthread_np.h: 没有那个文件或目录
+ #include <pthread_np.h>
+          ^~~~~~~~~~~~~~
+compilation terminated.
+gmake[1]: *** [CMakeFiles/cmTC_27ec6.dir/CheckSymbolExists.c.o] 错误 1
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+gmake: *** [cmTC_27ec6/fast] 错误 2
+
+
+File /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <pthread_np.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_getname_np
+  return ((int*)(&pthread_getname_np))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Determining if the pthread_setname_np exist failed with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_1736b/fast && /usr/bin/gmake -f CMakeFiles/cmTC_1736b.dir/build.make CMakeFiles/cmTC_1736b.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building C object CMakeFiles/cmTC_1736b.dir/CheckSymbolExists.c.o
+/opt/rh/devtoolset-8/root/usr/bin/cc -D_DARWIN_C_SOURCE -D_GNU_SOURCE -D_POSIX_SOURCE=1  -pthread   -o CMakeFiles/cmTC_1736b.dir/CheckSymbolExists.c.o   -c /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/CheckSymbolExists.c:2:10: fatal error: pthread_np.h: 没有那个文件或目录
+ #include <pthread_np.h>
+          ^~~~~~~~~~~~~~
+compilation terminated.
+gmake[1]: *** [CMakeFiles/cmTC_1736b.dir/CheckSymbolExists.c.o] 错误 1
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+gmake: *** [cmTC_1736b/fast] 错误 2
+
+
+File /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <pthread_np.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_setname_np
+  return ((int*)(&pthread_setname_np))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Performing C SOURCE FILE Test HAVE_LIBATOMIC_COMPILES_STATIC failed with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_51889/fast && /usr/bin/gmake -f CMakeFiles/cmTC_51889.dir/build.make CMakeFiles/cmTC_51889.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building C object CMakeFiles/cmTC_51889.dir/src.c.o
+/opt/rh/devtoolset-8/root/usr/bin/cc   -DHAVE_LIBATOMIC_COMPILES_STATIC -static   -o CMakeFiles/cmTC_51889.dir/src.c.o   -c /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTC_51889
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_51889.dir/link.txt --verbose=1
+/opt/rh/devtoolset-8/root/usr/bin/cc  -DHAVE_LIBATOMIC_COMPILES_STATIC -static    -rdynamic CMakeFiles/cmTC_51889.dir/src.c.o  -o cmTC_51889  -latomic 
+/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/ld: 找不到 -lc
+collect2: error: ld returned 1 exit status
+gmake[1]: *** [cmTC_51889] 错误 1
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+gmake: *** [cmTC_51889/fast] 错误 2
+
+
+Source file was:
+
+		int main(void)
+		{
+			const int result = 0;
+			return result;
+		}
+	
+Performing C++ SOURCE FILE Test HAVE_CXX_ATOMIC_STATIC failed with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_0fe47/fast && /usr/bin/gmake -f CMakeFiles/cmTC_0fe47.dir/build.make CMakeFiles/cmTC_0fe47.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building CXX object CMakeFiles/cmTC_0fe47.dir/src.cxx.o
+/opt/rh/devtoolset-8/root/usr/bin/c++    -DHAVE_CXX_ATOMIC_STATIC -std=c++11 -static   -o CMakeFiles/cmTC_0fe47.dir/src.cxx.o -c /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_0fe47
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0fe47.dir/link.txt --verbose=1
+/opt/rh/devtoolset-8/root/usr/bin/c++   -DHAVE_CXX_ATOMIC_STATIC -std=c++11 -static    -rdynamic CMakeFiles/cmTC_0fe47.dir/src.cxx.o  -o cmTC_0fe47 
+/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/ld: 找不到 -lm
+/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/ld: 找不到 -lc
+collect2: error: ld returned 1 exit status
+gmake[1]: *** [cmTC_0fe47] 错误 1
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+gmake: *** [cmTC_0fe47/fast] 错误 2
+
+
+Source file was:
+
+      #include<cstdint>
+      #include<atomic>
+      int main(void)
+      {
+         std::atomic<std::ptrdiff_t> x(0);
+         std::atomic<std::intmax_t> y(0);
+         return x + y;
+      }
+      

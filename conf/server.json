@@ -1,0 +1,156 @@
+{
+    "LocalIp" : "172.24.6.38",
+    "Ssl" : {
+        "key" : "./sms.com.key",
+        "cert" : "./sms.com.crt"
+    },
+    "Log" : { 
+        "logLevel" : 0,
+        "console" : 1,
+        "maxDay" : 7,
+        "maxSize" : 1024,
+        "maxCount" : 100
+    },
+    "EventLoopPool" : {
+        "size" : 0
+    },
+    "Util" : {
+        "stopNonePlayerStream" : true,
+        "nonePlayerWaitTime" : 5000,
+        "enableLoadFromFile" : true
+    },
+    "Hook" : {
+        "Type" : "http",
+        "Http" : {
+            "timeout" : 10,
+            "onStreamStatus" : "http://127.0.0.1/api/v1/onStreamStatus",
+            "onNonePlayer" : "http://127.0.0.1/api/v1/onNonePlayer"
+        },
+        "Kafka" : {
+            "endpoint" : "127.0.0.1:9092",
+            "broker" : "streamStatus"
+        }
+    },
+    "Record" : {
+        "rootPath" : "./"
+    },
+    "Rtsp" : {
+        "Server" : {
+            "Server1" : {
+                "ip" : "0.0.0.0",
+                "port" : 554,
+                "sslPort" : 1554,
+                "timeout" : 5000,
+                "threads" : 1,
+                "udpPortMin" : 10000,
+                "udpPortMax" : 20000
+            }
+        }
+    },
+    "Http" : {
+        "Api" : {
+            "Api1" : {
+                "ip" : "0.0.0.0",
+                "port" : 80,
+                "sslPort" : 443,
+                "timeout" : 5000,
+                "threads" : 1
+            }
+        },
+        "Server" : {
+            "Server1" : {
+                "rootPath" : "./",
+                "ip" : "0.0.0.0",
+                "port" : 80,
+                "sslPort" : 443,
+                "timeout" : 5000,
+                "threads" : 1,
+                "enableViewDir" : 1
+            }
+        }
+    },
+    "GB28181" : {
+        "Server" : {
+            "timeout" : 5000,
+            "Server1" : {
+                "ip" : "0.0.0.0",
+                "port" : 6000,
+                "threads" : 1,
+                "sockType" : 3,
+                "udpPortMax" : 10000,
+                "udpPortMin" : 6000
+            }
+        }
+    },
+    "Ehome2" : {
+        "Server" : {
+            "timeout" : 5000,
+            "Server1" : {
+                "ip" : "0.0.0.0",
+                "port" : 16000,
+                "threads" : 1,
+                "sockType" : 3,
+                "udpPortMax" : 20000,
+                "udpPortMin" : 16000
+            }
+        }
+    },
+    "JT1078" : {
+        "Server" : {
+            "timeout" : 5000,
+            "Server1" : {
+                "ip" : "0.0.0.0",
+                "port" : 17000,
+                "threads" : 1,
+                "sockType" : 3,
+                "udpPortMax" : 20000,
+                "udpPortMin" : 16000
+            }
+        }
+    },
+    "Rtmp" : {
+        "Server" : {
+            "Server1" : {
+                "ip" : "0.0.0.0",
+                "port" : 1935,
+                "sslPort" : 11935,
+                "timeout" : 5000,
+                "threads" : 1
+            }
+        }
+    },
+    "Webrtc" : {
+        "Server" : {
+            "timeout" : 5000,
+            "Server1" : {
+                "timeout" : 5000,
+                "ip" : "0.0.0.0",
+                "candidateIp" : "172.24.6.238",
+                "port" : 7000,
+                "threads" : 1,
+                "sockType" : 3,
+                "enableTcp" : 1,
+                "udpPortMax" : 10000,
+                "udpPortMin" : 6000
+            }
+        }
+    },
+    "Srt" : {
+        "Server" : {
+            "timeout" : 5000,
+            "Server1" : {
+                "ip" : "0.0.0.0",
+                "port" : 6666,
+                "threads" : 2,
+                "udpPortMax" : 10000,
+                "udpPortMin" : 6000
+            }
+        }
+    },
+    "Hls" : {
+        "Server" : {
+            "duration" : 5000,
+            "segNum" : 5
+        }
+    }
+}

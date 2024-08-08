@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width,initial-scale=1.0,user-scalable=no,maximum-scale=1.0,minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,IE=IE9">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>SkeyeWebPlayer播放器测试 v2.0.1</title>
+  <link rel="shortcut icon" href="./favicon.ico">
+  <link rel="stylesheet" href="./styles/reset.css">
+  <link rel="stylesheet" href="./static/element-ui/index.css">
+  <link rel="stylesheet" href="./styles/index.css">
+  <style>
+    .play-url-view {
+      margin-top: 30px;
+      margin-bottom: 30px;
+    }
+
+    .play-url-item {
+      display: flex;
+      align-items: center;
+    }
+
+    .play-url-item + .play-url-item {
+      margin-top: 10px;
+    }
+
+    .play-url {
+      width: 100%;
+    }
+
+    .play-btn {
+      flex-shrink: 0;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="header-view">
+    <div class="header-bar">
+      <div class="container header-group">
+        <div class="head-title">SkeyeWebPlayer播放器测试 v2.0.1</div>
+      </div>
+    </div>
+  </div>
+  <section v-cloak class="container">
+    <div class="doc margin-top">
+      <a href="https://openskeye.blog.csdn.net/article/details/124581886" target="_blank">
+        在线使用文档 https://openskeye.blog.csdn.net/article/details/124581886
+      </a>
+    </div>
+    <div class="margin-top"></div>
+
+    <!--播放器容器-->
+    <div id="WebMediaPlayer"></div>
+
+    <div class="play-url-view">
+      <div class="play-url-item" v-for="(item,index) in lists">
+        <div class="play-url">
+          <el-input v-model="item.url" size="medium" placeholder="请输入播放地址" clearable></el-input>
+        </div>
+        <div class="play-btn">
+          <el-button type="primary" size="medium" @click="handlePlay(item.url)" :disabled="!item.url">播放</el-button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+<!-- [if lt IE 9]>
+<script src="https://cdn.staticfile.org/html5shiv/r29/html5.min.js"></script>
+<script src="https://cdn.staticfile.org/respond.js/1.4.2/respond.min.js"></script>
+<![endif]-->
+<script src="./static/vue.min.js"></script>
+<script src="./static/element-ui/index.js"></script>
+<script src="./static/SkeyeWebPlayer/SkeyeWebPlayer.js"></script>
+<script>
+new Vue({
+  el: '#app',
+  data () {
+    return {
+      lists: [
+        {url: 'http://114.116.122.72:8000/flv/live/34020000001320000104_34020000001320000104_0200000104.flv'},
+      ]
+    }
+  },
+  created () {
+
+  },
+  mounted () {
+    this.$nextTick(() => {
+      this.initPlayer()
+    })
+  },
+  methods: {
+    initPlayer () {
+      // new WebMediaPlayer（url,domId,callback,options）
+      this.player = new WebMediaPlayer('', `WebMediaPlayer`, this.callbackFunc, {
+        cbUserPtr: this,
+        decodeType: 'auto',
+        height: true,
+        openAudio: true
+      });
+    },
+    // 播放器回调方法
+    callbackFunc (cbType, cbParams) {
+      if (cbType === 'playbackTime') {
+        //console.log("当前回放时间: " + cbParams);
+      } else if (cbType === 'ended') {
+        console.log("播放结束");
+      }
+      console.log("Callback " + cbType + ":  " + cbParams);
+    },
+    // 播放
+    handlePlay (url) {
+      if (this.player) {
+        this.player.destroy()
+        this.initPlayer()
+        this.player.play(url, 1, 0);
+      }
+    },
+    handleClick (type) {
+      if (type === 'stop') {
+        this.player.stop()
+      }
+    }
+  }
+})
+</script>
+</body>
+</html>

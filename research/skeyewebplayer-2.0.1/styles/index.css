@@ -1,0 +1,65 @@
+[v-cloak] {
+    display: none;
+}
+
+.header-view {
+    height: 60px;
+    position: relative;
+    z-index: 1000;
+}
+
+.header-bar {
+    height: 60px;
+    background-color: #032C43;
+    box-shadow: 0 6px 10px -3px rgba(0, 0, 0, 0.5);
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1;
+}
+
+.header-group {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    color: #ffffff;
+}
+
+.head-title {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.head-home {
+    color: #ffffff;
+    font-size: 18px;
+}
+
+.content-view {
+    padding: 30px 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-right: 15px;
+    padding-left: 15px;
+}
+
+.doc {
+    font-size: 15px;
+}
+
+.doc a {
+    color: #000;
+}
+
+.margin-top {
+    margin-top: 15px;
+}
+
+.margin-top-xxl {
+    margin-top: 30px;
+}

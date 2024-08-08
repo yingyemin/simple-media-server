@@ -1,0 +1,13 @@
+/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/install/local.dir
+/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/install.dir
+/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/srt_virtual.dir
+/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/srt_shared.dir
+/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/install/strip.dir
+/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/srt-tunnel.dir
+/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/srt_static.dir
+/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/list_install_components.dir
+/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/srtsupport_virtual.dir
+/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/edit_cache.dir
+/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/srt-live-transmit.dir
+/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/srt-file-transmit.dir
+/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/rebuild_cache.dir

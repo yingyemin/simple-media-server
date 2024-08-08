@@ -1,0 +1,153 @@
+﻿#include <cstdlib>
+#include <string>
+#include <algorithm>
+#include <cctype>
+
+#include "StampAdjust.h"
+#include "Logger.h"
+#include "Util/String.h"
+#include "Util/TimeClock.h"
+#include "Common/Config.h"
+
+using namespace std;
+
+AudioStampAdjust::AudioStampAdjust(int samplerate)
+    :_samplerate(samplerate)
+{
+
+}
+
+AudioStampAdjust::~AudioStampAdjust()
+{
+
+}
+
+void AudioStampAdjust::inputStamp(uint64_t& pts, uint64_t& dts, int samples)
+{
+    if (_startTime == 0) {
+        _startTime = TimeClock::now();
+        _lastPts = pts;
+
+        pts = 0;
+        dts = pts - dts;
+
+        _adjustPts = 0;
+
+        return ;
+    }
+
+    int step = pts - _lastPts;
+    // TODO: 从配置里读
+    logInfo << "audio step: " << step;
+    if ((step < -500 || step > 500) && _samplerate) {
+        step = (samples * 1.0 / _samplerate) * 1000;
+    }
+    
+    _totalSysTime = TimeClock::now() - _startTime;
+    _totalStamp += step;
+    ++_count;
+    _avgStep = _totalStamp / _count;
+
+    logInfo << "audio pts: " << pts;
+    logInfo << "audio _adjustPts: " << _adjustPts;
+    _adjustPts += step;
+    _lastPts = pts;
+    if (pts > dts && pts - dts < 10000) {
+        dts = _adjustPts + pts - dts;
+    } else {
+        dts = (_adjustPts > (dts - pts)) ? (_adjustPts - (dts - pts)) : 0;
+    }
+    pts = _adjustPts;
+
+    if (_totalSysTime > _totalStamp && ((_totalSysTime - _totalStamp) > 5000)) {
+        auto diff = _totalSysTime - _totalStamp;
+        auto diffTmp = diff % step;
+
+        _adjustPts += diff - diffTmp;
+    }
+}
+
+////////////////VideoStampAdjust///////////////////////////
+
+VideoStampAdjust::VideoStampAdjust(int fps)
+    :_fps(fps)
+{
+
+}
+
+VideoStampAdjust::~VideoStampAdjust()
+{
+
+}
+
+void VideoStampAdjust::inputStamp(uint64_t& pts, uint64_t& dts, int samples)
+{
+    // 第一次，简单赋值后返回
+    if (_startTime == 0) {
+        _startTime = TimeClock::now();
+        _lastPts = pts;
+
+        pts = 0;
+        dts = pts - dts;
+
+        _adjustPts = 0;
+
+        return ;
+    }
+
+    // 每隔100个包，计算一下fps
+    if (_count > 0 && _count % 100 == 0) {
+        // sps里的fps可能是实际fps的两倍
+        auto avgFps = (_count * 1000.0 / _totalSysTime);
+        if (_fps > 30 && _fps / avgFps == 2.0) {
+            _guessFps = _fps / 2;
+        } else if (_fps > 0) {
+            _guessFps = _fps;
+        } else {
+            // 平均帧率
+            _guessFps = avgFps;
+        }
+    }
+
+    // 当前帧与上一帧的增量
+    int step = pts - _lastPts;
+    // logInfo << "video step: " << step;
+    // TODO: 从配置里读
+    // 增量太大或者太小或者为0，认为不合理，通过计算的帧率重新算一下
+    if ((step < -500 || step > 500 || step == 0) && _guessFps) {
+        step = (samples * 1.0 / _guessFps) * 1000;
+    }
+    
+    // 系统时间过了多久
+    _totalSysTime = TimeClock::now() - _startTime;
+    // pts计算的时长
+    _totalStamp += step;
+    // 总帧数
+    ++_count;
+    // 平均增量
+    _avgStep = _totalStamp / _count;
+
+    // logInfo << "video pts: " << pts;
+    // logInfo << "video dts: " << dts;
+    // logInfo << "video _adjustPts: " << _adjustPts;
+    // 将增量加到_adjustPts（从0开始往上加增量）
+    _adjustPts += step;
+    
+    _lastPts = pts;
+    if (pts > dts && pts - dts < 10000) {
+        dts = _adjustPts + pts - dts;
+    } else {
+        dts = (_adjustPts > (dts - pts)) ? (_adjustPts - (dts - pts)) : 0;
+    }
+    pts = _adjustPts;
+    // logInfo << "video adjust pts: " << pts;
+    // logInfo << "video adjust dts: " << dts;
+
+    // 系统时间计算的总时间大于pts计算的总时间，超过5秒
+    if (_totalSysTime > _totalStamp && ((_totalSysTime - _totalStamp) > 5000)) {
+        auto diff = _totalSysTime - _totalStamp;
+        auto diffTmp = diff % step;
+
+        _adjustPts += diff - diffTmp;
+    }
+}

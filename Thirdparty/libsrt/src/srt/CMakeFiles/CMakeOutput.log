@@ -1,0 +1,835 @@
+The system is: Linux - 3.10.0-1160.15.2.el7.x86_64 - x86_64
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler: /opt/rh/devtoolset-8/root/usr/bin/cc 
+Build flags: 
+Id flags:  
+
+The output was:
+0
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
+
+The C compiler identification is GNU, found in "/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/3.16.0-rc2/CompilerIdC/a.out"
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+Compiler: /opt/rh/devtoolset-8/root/usr/bin/c++ 
+Build flags: 
+Id flags:  
+
+The output was:
+0
+
+
+Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
+
+The CXX compiler identification is GNU, found in "/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/3.16.0-rc2/CompilerIdCXX/a.out"
+
+Determining if the C compiler works passed with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_eba76/fast && /usr/bin/gmake -f CMakeFiles/cmTC_eba76.dir/build.make CMakeFiles/cmTC_eba76.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building C object CMakeFiles/cmTC_eba76.dir/testCCompiler.c.o
+/opt/rh/devtoolset-8/root/usr/bin/cc    -o CMakeFiles/cmTC_eba76.dir/testCCompiler.c.o   -c /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/testCCompiler.c
+Linking C executable cmTC_eba76
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_eba76.dir/link.txt --verbose=1
+/opt/rh/devtoolset-8/root/usr/bin/cc      -rdynamic CMakeFiles/cmTC_eba76.dir/testCCompiler.c.o  -o cmTC_eba76 
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+
+
+
+Detecting C compiler ABI info compiled with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_f1206/fast && /usr/bin/gmake -f CMakeFiles/cmTC_f1206.dir/build.make CMakeFiles/cmTC_f1206.dir/build
+gmake[1]: Entering directory `/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_f1206.dir/CMakeCCompilerABI.c.o
+/opt/rh/devtoolset-8/root/usr/bin/cc   -v -o CMakeFiles/cmTC_f1206.dir/CMakeCCompilerABI.c.o   -c /usr/local/share/cmake-3.16/Modules/CMakeCCompilerABI.c
+Using built-in specs.
+COLLECT_GCC=/opt/rh/devtoolset-8/root/usr/bin/cc
+Target: x86_64-redhat-linux
+Configured with: ../configure --enable-bootstrap --enable-languages=c,c++,fortran,lto --prefix=/opt/rh/devtoolset-8/root/usr --mandir=/opt/rh/devtoolset-8/root/usr/share/man --infodir=/opt/rh/devtoolset-8/root/usr/share/info --with-bugurl=http://bugzilla.redhat.com/bugzilla --enable-shared --enable-threads=posix --enable-checking=release --enable-multilib --with-system-zlib --enable-__cxa_atexit --disable-libunwind-exceptions --enable-gnu-unique-object --enable-linker-build-id --with-gcc-major-version-only --with-linker-hash-style=gnu --with-default-libstdcxx-abi=gcc4-compatible --enable-plugin --enable-initfini-array --with-isl=/builddir/build/BUILD/gcc-8.3.1-20190311/obj-x86_64-redhat-linux/isl-install --disable-libmpx --enable-gnu-indirect-function --with-tune=generic --with-arch_32=x86-64 --build=x86_64-redhat-linux
+Thread model: posix
+gcc version 8.3.1 20190311 (Red Hat 8.3.1-3) (GCC) 
+COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_f1206.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64'
+ /opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/cc1 -quiet -v /usr/local/share/cmake-3.16/Modules/CMakeCCompilerABI.c -quiet -dumpbase CMakeCCompilerABI.c -mtune=generic -march=x86-64 -auxbase-strip CMakeFiles/cmTC_f1206.dir/CMakeCCompilerABI.c.o -version -o /tmp/cc1rwa4k.s
+GNU C17 (GCC) version 8.3.1 20190311 (Red Hat 8.3.1-3) (x86_64-redhat-linux)
+	compiled by GNU C version 8.3.1 20190311 (Red Hat 8.3.1-3), GMP version 6.0.0, MPFR version 3.1.1, MPC version 1.0.1, isl version isl-0.16.1-GMP
+
+GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+ignoring nonexistent directory "/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/include-fixed"
+ignoring nonexistent directory "/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../x86_64-redhat-linux/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/include
+ /usr/local/include
+ /opt/rh/devtoolset-8/root/usr/include
+ /usr/include
+End of search list.
+GNU C17 (GCC) version 8.3.1 20190311 (Red Hat 8.3.1-3) (x86_64-redhat-linux)
+	compiled by GNU C version 8.3.1 20190311 (Red Hat 8.3.1-3), GMP version 6.0.0, MPFR version 3.1.1, MPC version 1.0.1, isl version isl-0.16.1-GMP
+
+GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+Compiler executable checksum: 44fd30fd0fdcf2e8887a67e69c89caa4
+COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_f1206.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64'
+ /opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/as -v --64 -o CMakeFiles/cmTC_f1206.dir/CMakeCCompilerABI.c.o /tmp/cc1rwa4k.s
+GNU assembler version 2.30 (x86_64-redhat-linux) using BFD version version 2.30-55.el7.2
+COMPILER_PATH=/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/
+LIBRARY_PATH=/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../:/lib/:/usr/lib/
+COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_f1206.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64'
+Linking C executable cmTC_f1206
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f1206.dir/link.txt --verbose=1
+/opt/rh/devtoolset-8/root/usr/bin/cc     -v -rdynamic CMakeFiles/cmTC_f1206.dir/CMakeCCompilerABI.c.o  -o cmTC_f1206 
+Using built-in specs.
+COLLECT_GCC=/opt/rh/devtoolset-8/root/usr/bin/cc
+COLLECT_LTO_WRAPPER=/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/lto-wrapper
+Target: x86_64-redhat-linux
+Configured with: ../configure --enable-bootstrap --enable-languages=c,c++,fortran,lto --prefix=/opt/rh/devtoolset-8/root/usr --mandir=/opt/rh/devtoolset-8/root/usr/share/man --infodir=/opt/rh/devtoolset-8/root/usr/share/info --with-bugurl=http://bugzilla.redhat.com/bugzilla --enable-shared --enable-threads=posix --enable-checking=release --enable-multilib --with-system-zlib --enable-__cxa_atexit --disable-libunwind-exceptions --enable-gnu-unique-object --enable-linker-build-id --with-gcc-major-version-only --with-linker-hash-style=gnu --with-default-libstdcxx-abi=gcc4-compatible --enable-plugin --enable-initfini-array --with-isl=/builddir/build/BUILD/gcc-8.3.1-20190311/obj-x86_64-redhat-linux/isl-install --disable-libmpx --enable-gnu-indirect-function --with-tune=generic --with-arch_32=x86-64 --build=x86_64-redhat-linux
+Thread model: posix
+gcc version 8.3.1 20190311 (Red Hat 8.3.1-3) (GCC) 
+COMPILER_PATH=/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/
+LIBRARY_PATH=/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../:/lib/:/usr/lib/
+COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_f1206' '-mtune=generic' '-march=x86-64'
+ /opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/collect2 -plugin /opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/liblto_plugin.so -plugin-opt=/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/lto-wrapper -plugin-opt=-fresolution=/tmp/ccOejlkw.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --no-add-needed --eh-frame-hdr --hash-style=gnu -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_f1206 /lib/../lib64/crt1.o /lib/../lib64/crti.o /opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/crtbegin.o -L/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8 -L/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../.. CMakeFiles/cmTC_f1206.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/crtend.o /lib/../lib64/crtn.o
+COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_f1206' '-mtune=generic' '-march=x86-64'
+gmake[1]: Leaving directory `/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp'
+
+
+
+Parsed C implicit include dir info from above output: rv=done
+  found start of include info
+  found start of implicit include info
+    add: [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/include]
+    add: [/usr/local/include]
+    add: [/opt/rh/devtoolset-8/root/usr/include]
+    add: [/usr/include]
+  end of search list found
+  collapse include dir [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/include] ==> [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/include]
+  collapse include dir [/usr/local/include] ==> [/usr/local/include]
+  collapse include dir [/opt/rh/devtoolset-8/root/usr/include] ==> [/opt/rh/devtoolset-8/root/usr/include]
+  collapse include dir [/usr/include] ==> [/usr/include]
+  implicit include dirs: [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/include;/usr/local/include;/opt/rh/devtoolset-8/root/usr/include;/usr/include]
+
+
+Parsed C implicit link information from above output:
+  link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp]
+  ignore line: []
+  ignore line: [Run Build Command(s):/usr/bin/gmake cmTC_f1206/fast && /usr/bin/gmake -f CMakeFiles/cmTC_f1206.dir/build.make CMakeFiles/cmTC_f1206.dir/build]
+  ignore line: [gmake[1]: Entering directory `/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp']
+  ignore line: [Building C object CMakeFiles/cmTC_f1206.dir/CMakeCCompilerABI.c.o]
+  ignore line: [/opt/rh/devtoolset-8/root/usr/bin/cc   -v -o CMakeFiles/cmTC_f1206.dir/CMakeCCompilerABI.c.o   -c /usr/local/share/cmake-3.16/Modules/CMakeCCompilerABI.c]
+  ignore line: [Using built-in specs.]
+  ignore line: [COLLECT_GCC=/opt/rh/devtoolset-8/root/usr/bin/cc]
+  ignore line: [Target: x86_64-redhat-linux]
+  ignore line: [Configured with: ../configure --enable-bootstrap --enable-languages=c c++ fortran lto --prefix=/opt/rh/devtoolset-8/root/usr --mandir=/opt/rh/devtoolset-8/root/usr/share/man --infodir=/opt/rh/devtoolset-8/root/usr/share/info --with-bugurl=http://bugzilla.redhat.com/bugzilla --enable-shared --enable-threads=posix --enable-checking=release --enable-multilib --with-system-zlib --enable-__cxa_atexit --disable-libunwind-exceptions --enable-gnu-unique-object --enable-linker-build-id --with-gcc-major-version-only --with-linker-hash-style=gnu --with-default-libstdcxx-abi=gcc4-compatible --enable-plugin --enable-initfini-array --with-isl=/builddir/build/BUILD/gcc-8.3.1-20190311/obj-x86_64-redhat-linux/isl-install --disable-libmpx --enable-gnu-indirect-function --with-tune=generic --with-arch_32=x86-64 --build=x86_64-redhat-linux]
+  ignore line: [Thread model: posix]
+  ignore line: [gcc version 8.3.1 20190311 (Red Hat 8.3.1-3) (GCC) ]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_f1206.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64']
+  ignore line: [ /opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/cc1 -quiet -v /usr/local/share/cmake-3.16/Modules/CMakeCCompilerABI.c -quiet -dumpbase CMakeCCompilerABI.c -mtune=generic -march=x86-64 -auxbase-strip CMakeFiles/cmTC_f1206.dir/CMakeCCompilerABI.c.o -version -o /tmp/cc1rwa4k.s]
+  ignore line: [GNU C17 (GCC) version 8.3.1 20190311 (Red Hat 8.3.1-3) (x86_64-redhat-linux)]
+  ignore line: [	compiled by GNU C version 8.3.1 20190311 (Red Hat 8.3.1-3)  GMP version 6.0.0  MPFR version 3.1.1  MPC version 1.0.1  isl version isl-0.16.1-GMP]
+  ignore line: []
+  ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
+  ignore line: [ignoring nonexistent directory "/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/include-fixed"]
+  ignore line: [ignoring nonexistent directory "/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../x86_64-redhat-linux/include"]
+  ignore line: [#include "..." search starts here:]
+  ignore line: [#include <...> search starts here:]
+  ignore line: [ /opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/include]
+  ignore line: [ /usr/local/include]
+  ignore line: [ /opt/rh/devtoolset-8/root/usr/include]
+  ignore line: [ /usr/include]
+  ignore line: [End of search list.]
+  ignore line: [GNU C17 (GCC) version 8.3.1 20190311 (Red Hat 8.3.1-3) (x86_64-redhat-linux)]
+  ignore line: [	compiled by GNU C version 8.3.1 20190311 (Red Hat 8.3.1-3)  GMP version 6.0.0  MPFR version 3.1.1  MPC version 1.0.1  isl version isl-0.16.1-GMP]
+  ignore line: []
+  ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
+  ignore line: [Compiler executable checksum: 44fd30fd0fdcf2e8887a67e69c89caa4]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_f1206.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64']
+  ignore line: [ /opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/as -v --64 -o CMakeFiles/cmTC_f1206.dir/CMakeCCompilerABI.c.o /tmp/cc1rwa4k.s]
+  ignore line: [GNU assembler version 2.30 (x86_64-redhat-linux) using BFD version version 2.30-55.el7.2]
+  ignore line: [COMPILER_PATH=/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/]
+  ignore line: [LIBRARY_PATH=/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../:/lib/:/usr/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_f1206.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64']
+  ignore line: [Linking C executable cmTC_f1206]
+  ignore line: [/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f1206.dir/link.txt --verbose=1]
+  ignore line: [/opt/rh/devtoolset-8/root/usr/bin/cc     -v -rdynamic CMakeFiles/cmTC_f1206.dir/CMakeCCompilerABI.c.o  -o cmTC_f1206 ]
+  ignore line: [Using built-in specs.]
+  ignore line: [COLLECT_GCC=/opt/rh/devtoolset-8/root/usr/bin/cc]
+  ignore line: [COLLECT_LTO_WRAPPER=/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/lto-wrapper]
+  ignore line: [Target: x86_64-redhat-linux]
+  ignore line: [Configured with: ../configure --enable-bootstrap --enable-languages=c c++ fortran lto --prefix=/opt/rh/devtoolset-8/root/usr --mandir=/opt/rh/devtoolset-8/root/usr/share/man --infodir=/opt/rh/devtoolset-8/root/usr/share/info --with-bugurl=http://bugzilla.redhat.com/bugzilla --enable-shared --enable-threads=posix --enable-checking=release --enable-multilib --with-system-zlib --enable-__cxa_atexit --disable-libunwind-exceptions --enable-gnu-unique-object --enable-linker-build-id --with-gcc-major-version-only --with-linker-hash-style=gnu --with-default-libstdcxx-abi=gcc4-compatible --enable-plugin --enable-initfini-array --with-isl=/builddir/build/BUILD/gcc-8.3.1-20190311/obj-x86_64-redhat-linux/isl-install --disable-libmpx --enable-gnu-indirect-function --with-tune=generic --with-arch_32=x86-64 --build=x86_64-redhat-linux]
+  ignore line: [Thread model: posix]
+  ignore line: [gcc version 8.3.1 20190311 (Red Hat 8.3.1-3) (GCC) ]
+  ignore line: [COMPILER_PATH=/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/]
+  ignore line: [LIBRARY_PATH=/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../:/lib/:/usr/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_f1206' '-mtune=generic' '-march=x86-64']
+  link line: [ /opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/collect2 -plugin /opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/liblto_plugin.so -plugin-opt=/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/lto-wrapper -plugin-opt=-fresolution=/tmp/ccOejlkw.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --no-add-needed --eh-frame-hdr --hash-style=gnu -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_f1206 /lib/../lib64/crt1.o /lib/../lib64/crti.o /opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/crtbegin.o -L/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8 -L/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../.. CMakeFiles/cmTC_f1206.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/crtend.o /lib/../lib64/crtn.o]
+    arg [/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/collect2] ==> ignore
+    arg [-plugin] ==> ignore
+    arg [/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/liblto_plugin.so] ==> ignore
+    arg [-plugin-opt=/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/lto-wrapper] ==> ignore
+    arg [-plugin-opt=-fresolution=/tmp/ccOejlkw.res] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [-plugin-opt=-pass-through=-lc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [--build-id] ==> ignore
+    arg [--no-add-needed] ==> ignore
+    arg [--eh-frame-hdr] ==> ignore
+    arg [--hash-style=gnu] ==> ignore
+    arg [-m] ==> ignore
+    arg [elf_x86_64] ==> ignore
+    arg [-export-dynamic] ==> ignore
+    arg [-dynamic-linker] ==> ignore
+    arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+    arg [-o] ==> ignore
+    arg [cmTC_f1206] ==> ignore
+    arg [/lib/../lib64/crt1.o] ==> ignore
+    arg [/lib/../lib64/crti.o] ==> ignore
+    arg [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/crtbegin.o] ==> ignore
+    arg [-L/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8] ==> dir [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8]
+    arg [-L/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../lib64] ==> dir [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../lib64]
+    arg [-L/lib/../lib64] ==> dir [/lib/../lib64]
+    arg [-L/usr/lib/../lib64] ==> dir [/usr/lib/../lib64]
+    arg [-L/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../..] ==> dir [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../..]
+    arg [CMakeFiles/cmTC_f1206.dir/CMakeCCompilerABI.c.o] ==> ignore
+    arg [-lgcc] ==> lib [gcc]
+    arg [--as-needed] ==> ignore
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [--no-as-needed] ==> ignore
+    arg [-lc] ==> lib [c]
+    arg [-lgcc] ==> lib [gcc]
+    arg [--as-needed] ==> ignore
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [--no-as-needed] ==> ignore
+    arg [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/crtend.o] ==> ignore
+    arg [/lib/../lib64/crtn.o] ==> ignore
+  collapse library dir [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8] ==> [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8]
+  collapse library dir [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../lib64] ==> [/opt/rh/devtoolset-8/root/usr/lib64]
+  collapse library dir [/lib/../lib64] ==> [/lib64]
+  collapse library dir [/usr/lib/../lib64] ==> [/usr/lib64]
+  collapse library dir [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../..] ==> [/opt/rh/devtoolset-8/root/usr/lib]
+  implicit libs: [gcc;gcc_s;c;gcc;gcc_s]
+  implicit dirs: [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8;/opt/rh/devtoolset-8/root/usr/lib64;/lib64;/usr/lib64;/opt/rh/devtoolset-8/root/usr/lib]
+  implicit fwks: []
+
+
+Determining if the CXX compiler works passed with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_bb823/fast && /usr/bin/gmake -f CMakeFiles/cmTC_bb823.dir/build.make CMakeFiles/cmTC_bb823.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building CXX object CMakeFiles/cmTC_bb823.dir/testCXXCompiler.cxx.o
+/opt/rh/devtoolset-8/root/usr/bin/c++     -o CMakeFiles/cmTC_bb823.dir/testCXXCompiler.cxx.o -c /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/testCXXCompiler.cxx
+Linking CXX executable cmTC_bb823
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_bb823.dir/link.txt --verbose=1
+/opt/rh/devtoolset-8/root/usr/bin/c++       -rdynamic CMakeFiles/cmTC_bb823.dir/testCXXCompiler.cxx.o  -o cmTC_bb823 
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+
+
+
+Detecting CXX compiler ABI info compiled with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_6871d/fast && /usr/bin/gmake -f CMakeFiles/cmTC_6871d.dir/build.make CMakeFiles/cmTC_6871d.dir/build
+gmake[1]: Entering directory `/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_6871d.dir/CMakeCXXCompilerABI.cpp.o
+/opt/rh/devtoolset-8/root/usr/bin/c++    -v -o CMakeFiles/cmTC_6871d.dir/CMakeCXXCompilerABI.cpp.o -c /usr/local/share/cmake-3.16/Modules/CMakeCXXCompilerABI.cpp
+Using built-in specs.
+COLLECT_GCC=/opt/rh/devtoolset-8/root/usr/bin/c++
+Target: x86_64-redhat-linux
+Configured with: ../configure --enable-bootstrap --enable-languages=c,c++,fortran,lto --prefix=/opt/rh/devtoolset-8/root/usr --mandir=/opt/rh/devtoolset-8/root/usr/share/man --infodir=/opt/rh/devtoolset-8/root/usr/share/info --with-bugurl=http://bugzilla.redhat.com/bugzilla --enable-shared --enable-threads=posix --enable-checking=release --enable-multilib --with-system-zlib --enable-__cxa_atexit --disable-libunwind-exceptions --enable-gnu-unique-object --enable-linker-build-id --with-gcc-major-version-only --with-linker-hash-style=gnu --with-default-libstdcxx-abi=gcc4-compatible --enable-plugin --enable-initfini-array --with-isl=/builddir/build/BUILD/gcc-8.3.1-20190311/obj-x86_64-redhat-linux/isl-install --disable-libmpx --enable-gnu-indirect-function --with-tune=generic --with-arch_32=x86-64 --build=x86_64-redhat-linux
+Thread model: posix
+gcc version 8.3.1 20190311 (Red Hat 8.3.1-3) (GCC) 
+COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_6871d.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+ /opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/cc1plus -quiet -v -D_GNU_SOURCE /usr/local/share/cmake-3.16/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpbase CMakeCXXCompilerABI.cpp -mtune=generic -march=x86-64 -auxbase-strip CMakeFiles/cmTC_6871d.dir/CMakeCXXCompilerABI.cpp.o -version -o /tmp/cco5MmOp.s
+GNU C++14 (GCC) version 8.3.1 20190311 (Red Hat 8.3.1-3) (x86_64-redhat-linux)
+	compiled by GNU C version 8.3.1 20190311 (Red Hat 8.3.1-3), GMP version 6.0.0, MPFR version 3.1.1, MPC version 1.0.1, isl version isl-0.16.1-GMP
+
+GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+ignoring nonexistent directory "/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/include-fixed"
+ignoring nonexistent directory "/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../x86_64-redhat-linux/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../include/c++/8
+ /opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../include/c++/8/x86_64-redhat-linux
+ /opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../include/c++/8/backward
+ /opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/include
+ /usr/local/include
+ /opt/rh/devtoolset-8/root/usr/include
+ /usr/include
+End of search list.
+GNU C++14 (GCC) version 8.3.1 20190311 (Red Hat 8.3.1-3) (x86_64-redhat-linux)
+	compiled by GNU C version 8.3.1 20190311 (Red Hat 8.3.1-3), GMP version 6.0.0, MPFR version 3.1.1, MPC version 1.0.1, isl version isl-0.16.1-GMP
+
+GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+Compiler executable checksum: 7f7bfebac998692a8c6049d3da01a54f
+COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_6871d.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+ /opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/as -v --64 -o CMakeFiles/cmTC_6871d.dir/CMakeCXXCompilerABI.cpp.o /tmp/cco5MmOp.s
+GNU assembler version 2.30 (x86_64-redhat-linux) using BFD version version 2.30-55.el7.2
+COMPILER_PATH=/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/
+LIBRARY_PATH=/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../:/lib/:/usr/lib/
+COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_6871d.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+Linking CXX executable cmTC_6871d
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_6871d.dir/link.txt --verbose=1
+/opt/rh/devtoolset-8/root/usr/bin/c++      -v -rdynamic CMakeFiles/cmTC_6871d.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_6871d 
+Using built-in specs.
+COLLECT_GCC=/opt/rh/devtoolset-8/root/usr/bin/c++
+COLLECT_LTO_WRAPPER=/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/lto-wrapper
+Target: x86_64-redhat-linux
+Configured with: ../configure --enable-bootstrap --enable-languages=c,c++,fortran,lto --prefix=/opt/rh/devtoolset-8/root/usr --mandir=/opt/rh/devtoolset-8/root/usr/share/man --infodir=/opt/rh/devtoolset-8/root/usr/share/info --with-bugurl=http://bugzilla.redhat.com/bugzilla --enable-shared --enable-threads=posix --enable-checking=release --enable-multilib --with-system-zlib --enable-__cxa_atexit --disable-libunwind-exceptions --enable-gnu-unique-object --enable-linker-build-id --with-gcc-major-version-only --with-linker-hash-style=gnu --with-default-libstdcxx-abi=gcc4-compatible --enable-plugin --enable-initfini-array --with-isl=/builddir/build/BUILD/gcc-8.3.1-20190311/obj-x86_64-redhat-linux/isl-install --disable-libmpx --enable-gnu-indirect-function --with-tune=generic --with-arch_32=x86-64 --build=x86_64-redhat-linux
+Thread model: posix
+gcc version 8.3.1 20190311 (Red Hat 8.3.1-3) (GCC) 
+COMPILER_PATH=/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/
+LIBRARY_PATH=/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../:/lib/:/usr/lib/
+COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_6871d' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+ /opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/collect2 -plugin /opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/liblto_plugin.so -plugin-opt=/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/lto-wrapper -plugin-opt=-fresolution=/tmp/ccFAW8ou.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --no-add-needed --eh-frame-hdr --hash-style=gnu -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_6871d /lib/../lib64/crt1.o /lib/../lib64/crti.o /opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/crtbegin.o -L/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8 -L/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../.. CMakeFiles/cmTC_6871d.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/crtend.o /lib/../lib64/crtn.o
+COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_6871d' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+gmake[1]: Leaving directory `/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp'
+
+
+
+Parsed CXX implicit include dir info from above output: rv=done
+  found start of include info
+  found start of implicit include info
+    add: [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../include/c++/8]
+    add: [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../include/c++/8/x86_64-redhat-linux]
+    add: [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../include/c++/8/backward]
+    add: [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/include]
+    add: [/usr/local/include]
+    add: [/opt/rh/devtoolset-8/root/usr/include]
+    add: [/usr/include]
+  end of search list found
+  collapse include dir [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../include/c++/8] ==> [/opt/rh/devtoolset-8/root/usr/include/c++/8]
+  collapse include dir [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../include/c++/8/x86_64-redhat-linux] ==> [/opt/rh/devtoolset-8/root/usr/include/c++/8/x86_64-redhat-linux]
+  collapse include dir [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../include/c++/8/backward] ==> [/opt/rh/devtoolset-8/root/usr/include/c++/8/backward]
+  collapse include dir [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/include] ==> [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/include]
+  collapse include dir [/usr/local/include] ==> [/usr/local/include]
+  collapse include dir [/opt/rh/devtoolset-8/root/usr/include] ==> [/opt/rh/devtoolset-8/root/usr/include]
+  collapse include dir [/usr/include] ==> [/usr/include]
+  implicit include dirs: [/opt/rh/devtoolset-8/root/usr/include/c++/8;/opt/rh/devtoolset-8/root/usr/include/c++/8/x86_64-redhat-linux;/opt/rh/devtoolset-8/root/usr/include/c++/8/backward;/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/include;/usr/local/include;/opt/rh/devtoolset-8/root/usr/include;/usr/include]
+
+
+Parsed CXX implicit link information from above output:
+  link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp]
+  ignore line: []
+  ignore line: [Run Build Command(s):/usr/bin/gmake cmTC_6871d/fast && /usr/bin/gmake -f CMakeFiles/cmTC_6871d.dir/build.make CMakeFiles/cmTC_6871d.dir/build]
+  ignore line: [gmake[1]: Entering directory `/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp']
+  ignore line: [Building CXX object CMakeFiles/cmTC_6871d.dir/CMakeCXXCompilerABI.cpp.o]
+  ignore line: [/opt/rh/devtoolset-8/root/usr/bin/c++    -v -o CMakeFiles/cmTC_6871d.dir/CMakeCXXCompilerABI.cpp.o -c /usr/local/share/cmake-3.16/Modules/CMakeCXXCompilerABI.cpp]
+  ignore line: [Using built-in specs.]
+  ignore line: [COLLECT_GCC=/opt/rh/devtoolset-8/root/usr/bin/c++]
+  ignore line: [Target: x86_64-redhat-linux]
+  ignore line: [Configured with: ../configure --enable-bootstrap --enable-languages=c c++ fortran lto --prefix=/opt/rh/devtoolset-8/root/usr --mandir=/opt/rh/devtoolset-8/root/usr/share/man --infodir=/opt/rh/devtoolset-8/root/usr/share/info --with-bugurl=http://bugzilla.redhat.com/bugzilla --enable-shared --enable-threads=posix --enable-checking=release --enable-multilib --with-system-zlib --enable-__cxa_atexit --disable-libunwind-exceptions --enable-gnu-unique-object --enable-linker-build-id --with-gcc-major-version-only --with-linker-hash-style=gnu --with-default-libstdcxx-abi=gcc4-compatible --enable-plugin --enable-initfini-array --with-isl=/builddir/build/BUILD/gcc-8.3.1-20190311/obj-x86_64-redhat-linux/isl-install --disable-libmpx --enable-gnu-indirect-function --with-tune=generic --with-arch_32=x86-64 --build=x86_64-redhat-linux]
+  ignore line: [Thread model: posix]
+  ignore line: [gcc version 8.3.1 20190311 (Red Hat 8.3.1-3) (GCC) ]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_6871d.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
+  ignore line: [ /opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/cc1plus -quiet -v -D_GNU_SOURCE /usr/local/share/cmake-3.16/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpbase CMakeCXXCompilerABI.cpp -mtune=generic -march=x86-64 -auxbase-strip CMakeFiles/cmTC_6871d.dir/CMakeCXXCompilerABI.cpp.o -version -o /tmp/cco5MmOp.s]
+  ignore line: [GNU C++14 (GCC) version 8.3.1 20190311 (Red Hat 8.3.1-3) (x86_64-redhat-linux)]
+  ignore line: [	compiled by GNU C version 8.3.1 20190311 (Red Hat 8.3.1-3)  GMP version 6.0.0  MPFR version 3.1.1  MPC version 1.0.1  isl version isl-0.16.1-GMP]
+  ignore line: []
+  ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
+  ignore line: [ignoring nonexistent directory "/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/include-fixed"]
+  ignore line: [ignoring nonexistent directory "/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../x86_64-redhat-linux/include"]
+  ignore line: [#include "..." search starts here:]
+  ignore line: [#include <...> search starts here:]
+  ignore line: [ /opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../include/c++/8]
+  ignore line: [ /opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../include/c++/8/x86_64-redhat-linux]
+  ignore line: [ /opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../include/c++/8/backward]
+  ignore line: [ /opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/include]
+  ignore line: [ /usr/local/include]
+  ignore line: [ /opt/rh/devtoolset-8/root/usr/include]
+  ignore line: [ /usr/include]
+  ignore line: [End of search list.]
+  ignore line: [GNU C++14 (GCC) version 8.3.1 20190311 (Red Hat 8.3.1-3) (x86_64-redhat-linux)]
+  ignore line: [	compiled by GNU C version 8.3.1 20190311 (Red Hat 8.3.1-3)  GMP version 6.0.0  MPFR version 3.1.1  MPC version 1.0.1  isl version isl-0.16.1-GMP]
+  ignore line: []
+  ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
+  ignore line: [Compiler executable checksum: 7f7bfebac998692a8c6049d3da01a54f]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_6871d.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
+  ignore line: [ /opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/as -v --64 -o CMakeFiles/cmTC_6871d.dir/CMakeCXXCompilerABI.cpp.o /tmp/cco5MmOp.s]
+  ignore line: [GNU assembler version 2.30 (x86_64-redhat-linux) using BFD version version 2.30-55.el7.2]
+  ignore line: [COMPILER_PATH=/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/]
+  ignore line: [LIBRARY_PATH=/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../:/lib/:/usr/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_6871d.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
+  ignore line: [Linking CXX executable cmTC_6871d]
+  ignore line: [/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_6871d.dir/link.txt --verbose=1]
+  ignore line: [/opt/rh/devtoolset-8/root/usr/bin/c++      -v -rdynamic CMakeFiles/cmTC_6871d.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_6871d ]
+  ignore line: [Using built-in specs.]
+  ignore line: [COLLECT_GCC=/opt/rh/devtoolset-8/root/usr/bin/c++]
+  ignore line: [COLLECT_LTO_WRAPPER=/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/lto-wrapper]
+  ignore line: [Target: x86_64-redhat-linux]
+  ignore line: [Configured with: ../configure --enable-bootstrap --enable-languages=c c++ fortran lto --prefix=/opt/rh/devtoolset-8/root/usr --mandir=/opt/rh/devtoolset-8/root/usr/share/man --infodir=/opt/rh/devtoolset-8/root/usr/share/info --with-bugurl=http://bugzilla.redhat.com/bugzilla --enable-shared --enable-threads=posix --enable-checking=release --enable-multilib --with-system-zlib --enable-__cxa_atexit --disable-libunwind-exceptions --enable-gnu-unique-object --enable-linker-build-id --with-gcc-major-version-only --with-linker-hash-style=gnu --with-default-libstdcxx-abi=gcc4-compatible --enable-plugin --enable-initfini-array --with-isl=/builddir/build/BUILD/gcc-8.3.1-20190311/obj-x86_64-redhat-linux/isl-install --disable-libmpx --enable-gnu-indirect-function --with-tune=generic --with-arch_32=x86-64 --build=x86_64-redhat-linux]
+  ignore line: [Thread model: posix]
+  ignore line: [gcc version 8.3.1 20190311 (Red Hat 8.3.1-3) (GCC) ]
+  ignore line: [COMPILER_PATH=/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/]
+  ignore line: [LIBRARY_PATH=/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../:/lib/:/usr/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_6871d' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
+  link line: [ /opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/collect2 -plugin /opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/liblto_plugin.so -plugin-opt=/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/lto-wrapper -plugin-opt=-fresolution=/tmp/ccFAW8ou.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --no-add-needed --eh-frame-hdr --hash-style=gnu -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_6871d /lib/../lib64/crt1.o /lib/../lib64/crti.o /opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/crtbegin.o -L/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8 -L/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../.. CMakeFiles/cmTC_6871d.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/crtend.o /lib/../lib64/crtn.o]
+    arg [/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/collect2] ==> ignore
+    arg [-plugin] ==> ignore
+    arg [/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/liblto_plugin.so] ==> ignore
+    arg [-plugin-opt=/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/lto-wrapper] ==> ignore
+    arg [-plugin-opt=-fresolution=/tmp/ccFAW8ou.res] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [--build-id] ==> ignore
+    arg [--no-add-needed] ==> ignore
+    arg [--eh-frame-hdr] ==> ignore
+    arg [--hash-style=gnu] ==> ignore
+    arg [-m] ==> ignore
+    arg [elf_x86_64] ==> ignore
+    arg [-export-dynamic] ==> ignore
+    arg [-dynamic-linker] ==> ignore
+    arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+    arg [-o] ==> ignore
+    arg [cmTC_6871d] ==> ignore
+    arg [/lib/../lib64/crt1.o] ==> ignore
+    arg [/lib/../lib64/crti.o] ==> ignore
+    arg [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/crtbegin.o] ==> ignore
+    arg [-L/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8] ==> dir [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8]
+    arg [-L/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../lib64] ==> dir [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../lib64]
+    arg [-L/lib/../lib64] ==> dir [/lib/../lib64]
+    arg [-L/usr/lib/../lib64] ==> dir [/usr/lib/../lib64]
+    arg [-L/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../..] ==> dir [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../..]
+    arg [CMakeFiles/cmTC_6871d.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+    arg [-lstdc++] ==> lib [stdc++]
+    arg [-lm] ==> lib [m]
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [-lgcc] ==> lib [gcc]
+    arg [-lc] ==> lib [c]
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [-lgcc] ==> lib [gcc]
+    arg [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/crtend.o] ==> ignore
+    arg [/lib/../lib64/crtn.o] ==> ignore
+  collapse library dir [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8] ==> [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8]
+  collapse library dir [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../../../lib64] ==> [/opt/rh/devtoolset-8/root/usr/lib64]
+  collapse library dir [/lib/../lib64] ==> [/lib64]
+  collapse library dir [/usr/lib/../lib64] ==> [/usr/lib64]
+  collapse library dir [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/../../..] ==> [/opt/rh/devtoolset-8/root/usr/lib]
+  implicit libs: [stdc++;m;gcc_s;gcc;c;gcc_s;gcc]
+  implicit dirs: [/opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8;/opt/rh/devtoolset-8/root/usr/lib64;/lib64;/usr/lib64;/opt/rh/devtoolset-8/root/usr/lib]
+  implicit fwks: []
+
+
+Determining if the include file pthread.h exists passed with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_566eb/fast && /usr/bin/gmake -f CMakeFiles/cmTC_566eb.dir/build.make CMakeFiles/cmTC_566eb.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building C object CMakeFiles/cmTC_566eb.dir/CheckIncludeFile.c.o
+/opt/rh/devtoolset-8/root/usr/bin/cc    -o CMakeFiles/cmTC_566eb.dir/CheckIncludeFile.c.o   -c /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_566eb
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_566eb.dir/link.txt --verbose=1
+/opt/rh/devtoolset-8/root/usr/bin/cc      -rdynamic CMakeFiles/cmTC_566eb.dir/CheckIncludeFile.c.o  -o cmTC_566eb 
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+
+
+
+Determining if the function pthread_create exists in the pthread passed with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_1289a/fast && /usr/bin/gmake -f CMakeFiles/cmTC_1289a.dir/build.make CMakeFiles/cmTC_1289a.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building C object CMakeFiles/cmTC_1289a.dir/CheckFunctionExists.c.o
+/opt/rh/devtoolset-8/root/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_1289a.dir/CheckFunctionExists.c.o   -c /usr/local/share/cmake-3.16/Modules/CheckFunctionExists.c
+Linking C executable cmTC_1289a
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_1289a.dir/link.txt --verbose=1
+/opt/rh/devtoolset-8/root/usr/bin/cc  -DCHECK_FUNCTION_EXISTS=pthread_create    -rdynamic CMakeFiles/cmTC_1289a.dir/CheckFunctionExists.c.o  -o cmTC_1289a  -lpthread 
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+
+
+
+Performing C++ SOURCE FILE Test HAVE_CLOCK_GETTIME_IN succeeded with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_21c18/fast && /usr/bin/gmake -f CMakeFiles/cmTC_21c18.dir/build.make CMakeFiles/cmTC_21c18.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building CXX object CMakeFiles/cmTC_21c18.dir/src.cxx.o
+/opt/rh/devtoolset-8/root/usr/bin/c++    -DHAVE_CLOCK_GETTIME_IN   -o CMakeFiles/cmTC_21c18.dir/src.cxx.o -c /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_21c18
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_21c18.dir/link.txt --verbose=1
+/opt/rh/devtoolset-8/root/usr/bin/c++   -DHAVE_CLOCK_GETTIME_IN    -rdynamic CMakeFiles/cmTC_21c18.dir/src.cxx.o  -o cmTC_21c18 
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+
+
+Source file was:
+
+		#include <time.h>
+		int main() {
+		  timespec res;
+		  int result = clock_gettime(CLOCK_MONOTONIC, &res);
+		  return result == 0;
+		}
+	
+Determining if the function inet_pton exists passed with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_c4255/fast && /usr/bin/gmake -f CMakeFiles/cmTC_c4255.dir/build.make CMakeFiles/cmTC_c4255.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building C object CMakeFiles/cmTC_c4255.dir/CheckFunctionExists.c.o
+/opt/rh/devtoolset-8/root/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=inet_pton   -o CMakeFiles/cmTC_c4255.dir/CheckFunctionExists.c.o   -c /usr/local/share/cmake-3.16/Modules/CheckFunctionExists.c
+Linking C executable cmTC_c4255
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c4255.dir/link.txt --verbose=1
+/opt/rh/devtoolset-8/root/usr/bin/cc  -DCHECK_FUNCTION_EXISTS=inet_pton    -rdynamic CMakeFiles/cmTC_c4255.dir/CheckFunctionExists.c.o  -o cmTC_c4255 
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+
+
+
+Determining if the pthread_getname_np exist passed with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_8353e/fast && /usr/bin/gmake -f CMakeFiles/cmTC_8353e.dir/build.make CMakeFiles/cmTC_8353e.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building C object CMakeFiles/cmTC_8353e.dir/CheckSymbolExists.c.o
+/opt/rh/devtoolset-8/root/usr/bin/cc -D_DARWIN_C_SOURCE -D_GNU_SOURCE -D_POSIX_SOURCE=1  -pthread   -o CMakeFiles/cmTC_8353e.dir/CheckSymbolExists.c.o   -c /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_8353e
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_8353e.dir/link.txt --verbose=1
+/opt/rh/devtoolset-8/root/usr/bin/cc  -pthread    -rdynamic CMakeFiles/cmTC_8353e.dir/CheckSymbolExists.c.o  -o cmTC_8353e 
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+
+
+File /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <pthread.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_getname_np
+  return ((int*)(&pthread_getname_np))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Determining if the pthread_setname_np exist passed with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_e4e7c/fast && /usr/bin/gmake -f CMakeFiles/cmTC_e4e7c.dir/build.make CMakeFiles/cmTC_e4e7c.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building C object CMakeFiles/cmTC_e4e7c.dir/CheckSymbolExists.c.o
+/opt/rh/devtoolset-8/root/usr/bin/cc -D_DARWIN_C_SOURCE -D_GNU_SOURCE -D_POSIX_SOURCE=1  -pthread   -o CMakeFiles/cmTC_e4e7c.dir/CheckSymbolExists.c.o   -c /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_e4e7c
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e4e7c.dir/link.txt --verbose=1
+/opt/rh/devtoolset-8/root/usr/bin/cc  -pthread    -rdynamic CMakeFiles/cmTC_e4e7c.dir/CheckSymbolExists.c.o  -o cmTC_e4e7c 
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+
+
+File /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <pthread.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_setname_np
+  return ((int*)(&pthread_setname_np))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Determining if the function __atomic_fetch_add_8 exists in the atomic passed with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_5a3bd/fast && /usr/bin/gmake -f CMakeFiles/cmTC_5a3bd.dir/build.make CMakeFiles/cmTC_5a3bd.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building C object CMakeFiles/cmTC_5a3bd.dir/CheckFunctionExists.c.o
+/opt/rh/devtoolset-8/root/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=__atomic_fetch_add_8   -o CMakeFiles/cmTC_5a3bd.dir/CheckFunctionExists.c.o   -c /usr/local/share/cmake-3.16/Modules/CheckFunctionExists.c
+<command-line>: warning: conflicting types for built-in function ‘__atomic_fetch_add_8’ [-Wbuiltin-declaration-mismatch]
+/usr/local/share/cmake-3.16/Modules/CheckFunctionExists.c:7:3: note: in expansion of macro ‘CHECK_FUNCTION_EXISTS’
+   CHECK_FUNCTION_EXISTS(void);
+   ^~~~~~~~~~~~~~~~~~~~~
+Linking C executable cmTC_5a3bd
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5a3bd.dir/link.txt --verbose=1
+/opt/rh/devtoolset-8/root/usr/bin/cc  -DCHECK_FUNCTION_EXISTS=__atomic_fetch_add_8    -rdynamic CMakeFiles/cmTC_5a3bd.dir/CheckFunctionExists.c.o  -o cmTC_5a3bd  -latomic 
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+
+
+
+Performing C SOURCE FILE Test HAVE_LIBATOMIC_COMPILES succeeded with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_8e17c/fast && /usr/bin/gmake -f CMakeFiles/cmTC_8e17c.dir/build.make CMakeFiles/cmTC_8e17c.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building C object CMakeFiles/cmTC_8e17c.dir/src.c.o
+/opt/rh/devtoolset-8/root/usr/bin/cc   -DHAVE_LIBATOMIC_COMPILES   -o CMakeFiles/cmTC_8e17c.dir/src.c.o   -c /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTC_8e17c
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_8e17c.dir/link.txt --verbose=1
+/opt/rh/devtoolset-8/root/usr/bin/cc  -DHAVE_LIBATOMIC_COMPILES    -rdynamic CMakeFiles/cmTC_8e17c.dir/src.c.o  -o cmTC_8e17c  -latomic 
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+
+
+Source file was:
+
+		int main(void)
+		{
+			const int result = 0;
+			return result;
+		}
+	
+Performing C SOURCE FILE Test HAVE_GCCATOMIC_INTRINSICS succeeded with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_45ca9/fast && /usr/bin/gmake -f CMakeFiles/cmTC_45ca9.dir/build.make CMakeFiles/cmTC_45ca9.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building C object CMakeFiles/cmTC_45ca9.dir/src.c.o
+/opt/rh/devtoolset-8/root/usr/bin/cc   -DHAVE_GCCATOMIC_INTRINSICS   -o CMakeFiles/cmTC_45ca9.dir/src.c.o   -c /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTC_45ca9
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_45ca9.dir/link.txt --verbose=1
+/opt/rh/devtoolset-8/root/usr/bin/cc  -DHAVE_GCCATOMIC_INTRINSICS    -rdynamic CMakeFiles/cmTC_45ca9.dir/src.c.o  -o cmTC_45ca9 
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+
+
+Source file was:
+
+		#include<stddef.h>
+		#include<stdint.h>
+		int main(void)
+		{
+			ptrdiff_t x = 0;
+			intmax_t y = 0;
+			__atomic_add_fetch(&x, 1, __ATOMIC_SEQ_CST);
+			__atomic_add_fetch(&y, 1, __ATOMIC_SEQ_CST);
+			return __atomic_sub_fetch(&x, 1, __ATOMIC_SEQ_CST)
+				+ __atomic_sub_fetch(&y, 1, __ATOMIC_SEQ_CST);
+		}
+	
+Performing C++ SOURCE FILE Test HAVE_CXX_ATOMIC succeeded with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_7132c/fast && /usr/bin/gmake -f CMakeFiles/cmTC_7132c.dir/build.make CMakeFiles/cmTC_7132c.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building CXX object CMakeFiles/cmTC_7132c.dir/src.cxx.o
+/opt/rh/devtoolset-8/root/usr/bin/c++    -DHAVE_CXX_ATOMIC -std=c++11   -o CMakeFiles/cmTC_7132c.dir/src.cxx.o -c /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_7132c
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_7132c.dir/link.txt --verbose=1
+/opt/rh/devtoolset-8/root/usr/bin/c++   -DHAVE_CXX_ATOMIC -std=c++11    -rdynamic CMakeFiles/cmTC_7132c.dir/src.cxx.o  -o cmTC_7132c 
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+
+
+Source file was:
+
+      #include<cstdint>
+      #include<atomic>
+      int main(void)
+      {
+         std::atomic<std::ptrdiff_t> x(0);
+         std::atomic<std::intmax_t> y(0);
+         return x + y;
+      }
+      
+Performing C++ SOURCE FILE Test HAVE_CXX_STD_PUT_TIME succeeded with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_86157/fast && /usr/bin/gmake -f CMakeFiles/cmTC_86157.dir/build.make CMakeFiles/cmTC_86157.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building CXX object CMakeFiles/cmTC_86157.dir/src.cxx.o
+/opt/rh/devtoolset-8/root/usr/bin/c++    -DHAVE_CXX_STD_PUT_TIME -std=c++11   -o CMakeFiles/cmTC_86157.dir/src.cxx.o -c /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_86157
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_86157.dir/link.txt --verbose=1
+/opt/rh/devtoolset-8/root/usr/bin/c++   -DHAVE_CXX_STD_PUT_TIME -std=c++11    -rdynamic CMakeFiles/cmTC_86157.dir/src.cxx.o  -o cmTC_86157 
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+
+
+Source file was:
+
+      #include <iostream>
+      #include <iomanip>
+      #include <ctime>
+      int main(void)
+      {
+         const int result = 0;
+         std::time_t t = std::time(nullptr);
+         std::tm tm = *std::localtime(&t);
+         std::cout
+            << std::put_time(&tm, "%FT%T")
+            << std::setfill('0')
+            << std::setw(6)
+            << std::endl;
+         return result;
+      }
+      
+Determining if the pthread_getname_np exist passed with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_3ccea/fast && /usr/bin/gmake -f CMakeFiles/cmTC_3ccea.dir/build.make CMakeFiles/cmTC_3ccea.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building C object CMakeFiles/cmTC_3ccea.dir/CheckSymbolExists.c.o
+/opt/rh/devtoolset-8/root/usr/bin/cc -D_DARWIN_C_SOURCE -D_GNU_SOURCE -D_POSIX_SOURCE=1  -pthread   -o CMakeFiles/cmTC_3ccea.dir/CheckSymbolExists.c.o   -c /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_3ccea
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_3ccea.dir/link.txt --verbose=1
+/opt/rh/devtoolset-8/root/usr/bin/cc  -pthread    -rdynamic CMakeFiles/cmTC_3ccea.dir/CheckSymbolExists.c.o  -o cmTC_3ccea 
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+
+
+File /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <pthread.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_getname_np
+  return ((int*)(&pthread_getname_np))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Determining if the pthread_setname_np exist passed with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_618e9/fast && /usr/bin/gmake -f CMakeFiles/cmTC_618e9.dir/build.make CMakeFiles/cmTC_618e9.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building C object CMakeFiles/cmTC_618e9.dir/CheckSymbolExists.c.o
+/opt/rh/devtoolset-8/root/usr/bin/cc -D_DARWIN_C_SOURCE -D_GNU_SOURCE -D_POSIX_SOURCE=1  -pthread   -o CMakeFiles/cmTC_618e9.dir/CheckSymbolExists.c.o   -c /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_618e9
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_618e9.dir/link.txt --verbose=1
+/opt/rh/devtoolset-8/root/usr/bin/cc  -pthread    -rdynamic CMakeFiles/cmTC_618e9.dir/CheckSymbolExists.c.o  -o cmTC_618e9 
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+
+
+File /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <pthread.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_setname_np
+  return ((int*)(&pthread_setname_np))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Determining if the function __atomic_fetch_add_8 exists in the atomic passed with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_0c0a1/fast && /usr/bin/gmake -f CMakeFiles/cmTC_0c0a1.dir/build.make CMakeFiles/cmTC_0c0a1.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building C object CMakeFiles/cmTC_0c0a1.dir/CheckFunctionExists.c.o
+/opt/rh/devtoolset-8/root/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=__atomic_fetch_add_8   -o CMakeFiles/cmTC_0c0a1.dir/CheckFunctionExists.c.o   -c /usr/local/share/cmake-3.16/Modules/CheckFunctionExists.c
+<command-line>: warning: conflicting types for built-in function ‘__atomic_fetch_add_8’ [-Wbuiltin-declaration-mismatch]
+/usr/local/share/cmake-3.16/Modules/CheckFunctionExists.c:7:3: note: in expansion of macro ‘CHECK_FUNCTION_EXISTS’
+   CHECK_FUNCTION_EXISTS(void);
+   ^~~~~~~~~~~~~~~~~~~~~
+Linking C executable cmTC_0c0a1
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0c0a1.dir/link.txt --verbose=1
+/opt/rh/devtoolset-8/root/usr/bin/cc  -DCHECK_FUNCTION_EXISTS=__atomic_fetch_add_8    -rdynamic CMakeFiles/cmTC_0c0a1.dir/CheckFunctionExists.c.o  -o cmTC_0c0a1  -latomic 
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+
+
+
+Performing C SOURCE FILE Test HAVE_LIBATOMIC_COMPILES succeeded with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_bc585/fast && /usr/bin/gmake -f CMakeFiles/cmTC_bc585.dir/build.make CMakeFiles/cmTC_bc585.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building C object CMakeFiles/cmTC_bc585.dir/src.c.o
+/opt/rh/devtoolset-8/root/usr/bin/cc   -DHAVE_LIBATOMIC_COMPILES   -o CMakeFiles/cmTC_bc585.dir/src.c.o   -c /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTC_bc585
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_bc585.dir/link.txt --verbose=1
+/opt/rh/devtoolset-8/root/usr/bin/cc  -DHAVE_LIBATOMIC_COMPILES    -rdynamic CMakeFiles/cmTC_bc585.dir/src.c.o  -o cmTC_bc585  -latomic 
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+
+
+Source file was:
+
+		int main(void)
+		{
+			const int result = 0;
+			return result;
+		}
+	
+Performing C SOURCE FILE Test HAVE_GCCATOMIC_INTRINSICS succeeded with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_3b7c1/fast && /usr/bin/gmake -f CMakeFiles/cmTC_3b7c1.dir/build.make CMakeFiles/cmTC_3b7c1.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building C object CMakeFiles/cmTC_3b7c1.dir/src.c.o
+/opt/rh/devtoolset-8/root/usr/bin/cc   -DHAVE_GCCATOMIC_INTRINSICS   -o CMakeFiles/cmTC_3b7c1.dir/src.c.o   -c /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTC_3b7c1
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_3b7c1.dir/link.txt --verbose=1
+/opt/rh/devtoolset-8/root/usr/bin/cc  -DHAVE_GCCATOMIC_INTRINSICS    -rdynamic CMakeFiles/cmTC_3b7c1.dir/src.c.o  -o cmTC_3b7c1 
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+
+
+Source file was:
+
+		#include<stddef.h>
+		#include<stdint.h>
+		int main(void)
+		{
+			ptrdiff_t x = 0;
+			intmax_t y = 0;
+			__atomic_add_fetch(&x, 1, __ATOMIC_SEQ_CST);
+			__atomic_add_fetch(&y, 1, __ATOMIC_SEQ_CST);
+			return __atomic_sub_fetch(&x, 1, __ATOMIC_SEQ_CST)
+				+ __atomic_sub_fetch(&y, 1, __ATOMIC_SEQ_CST);
+		}
+	
+Performing C++ SOURCE FILE Test HAVE_CXX_ATOMIC succeeded with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_4abc1/fast && /usr/bin/gmake -f CMakeFiles/cmTC_4abc1.dir/build.make CMakeFiles/cmTC_4abc1.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building CXX object CMakeFiles/cmTC_4abc1.dir/src.cxx.o
+/opt/rh/devtoolset-8/root/usr/bin/c++    -DHAVE_CXX_ATOMIC -std=c++11   -o CMakeFiles/cmTC_4abc1.dir/src.cxx.o -c /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_4abc1
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_4abc1.dir/link.txt --verbose=1
+/opt/rh/devtoolset-8/root/usr/bin/c++   -DHAVE_CXX_ATOMIC -std=c++11    -rdynamic CMakeFiles/cmTC_4abc1.dir/src.cxx.o  -o cmTC_4abc1 
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+
+
+Source file was:
+
+      #include<cstdint>
+      #include<atomic>
+      int main(void)
+      {
+         std::atomic<std::ptrdiff_t> x(0);
+         std::atomic<std::intmax_t> y(0);
+         return x + y;
+      }
+      
+Performing C++ SOURCE FILE Test HAVE_CXX_STD_PUT_TIME succeeded with the following output:
+Change Dir: /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_237ab/fast && /usr/bin/gmake -f CMakeFiles/cmTC_237ab.dir/build.make CMakeFiles/cmTC_237ab.dir/build
+gmake[1]: 进入目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+Building CXX object CMakeFiles/cmTC_237ab.dir/src.cxx.o
+/opt/rh/devtoolset-8/root/usr/bin/c++    -DHAVE_CXX_STD_PUT_TIME -std=c++11   -o CMakeFiles/cmTC_237ab.dir/src.cxx.o -c /mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_237ab
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_237ab.dir/link.txt --verbose=1
+/opt/rh/devtoolset-8/root/usr/bin/c++   -DHAVE_CXX_STD_PUT_TIME -std=c++11    -rdynamic CMakeFiles/cmTC_237ab.dir/src.cxx.o  -o cmTC_237ab 
+gmake[1]: 离开目录“/mnt/hgfs/code/SimpleMediaServer/Thirdparty/libsrt/src/srt/CMakeFiles/CMakeTmp”
+
+
+Source file was:
+
+      #include <iostream>
+      #include <iomanip>
+      #include <ctime>
+      int main(void)
+      {
+         const int result = 0;
+         std::time_t t = std::time(nullptr);
+         std::tm tm = *std::localtime(&t);
+         std::cout
+            << std::put_time(&tm, "%FT%T")
+            << std::setfill('0')
+            << std::setw(6)
+            << std::endl;
+         return result;
+      }
+      
