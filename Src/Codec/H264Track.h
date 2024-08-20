@@ -24,6 +24,7 @@ public:
     void setSps(const FrameBuffer::Ptr& sps) {_sps = sps;}
     void setPps(const FrameBuffer::Ptr& pps) {_pps = pps;}
     string getSdp() override;
+    string getConfig() override;
     void getWidthAndHeight(int& width, int& height, int& fps);
 
 public:

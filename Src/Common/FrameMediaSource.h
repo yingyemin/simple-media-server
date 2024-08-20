@@ -24,9 +24,7 @@
 class FrameMediaSource : public MediaSource {
 public:
     using Ptr = std::shared_ptr<FrameMediaSource>;
-    // using RingDataType = shared_ptr<list<FrameBuffer::Ptr> >;
-    // using RingDataType = FrameBuffer::Ptr;
-    // using RingType = DataQue<RingDataType>;
+    using Wptr = weak_ptr<FrameMediaSource>;
     
     FrameMediaSource(const UrlParser& urlParser, const EventLoop::Ptr& loop = nullptr);
     virtual ~FrameMediaSource();
@@ -37,6 +35,7 @@ public:
     void addSink(const MediaSource::Ptr &src) override;
     void delSink(const MediaSource::Ptr& sink) override;
     void onFrame(const FrameBuffer::Ptr& frame) override;
+    FrameRingType::Ptr getRing() {return _ring;}
 
 private:
     int _ring_size = 25;

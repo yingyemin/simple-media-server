@@ -437,7 +437,7 @@ struct mov_track_t
 	// 8.8 Movie Fragments
 	struct mov_trex_t trex;
 	struct mov_tfhd_t tfhd;
-	struct mov_fragment_t* frags;
+	vector<shared_ptr<mov_fragment_t>> frags;
 	uint32_t frag_count, frag_capacity;
 
 	struct mov_stsd_t stsd;
@@ -446,7 +446,7 @@ struct mov_track_t
 	size_t elst_count;
 	
 	vector<shared_ptr<mov_sample_t>> samples;
-	uint32_t sample_count;
+	uint32_t sample_count = 0;
 	size_t sample_offset; // sample_capacity
 
     int64_t tfdt_dts; // tfdt baseMediaDecodeTime

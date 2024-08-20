@@ -12,6 +12,7 @@
 
 using namespace std;
 
+// 流上下线的参数
 class StreamStatusInfo
 {
 public:
@@ -21,6 +22,25 @@ public:
     string type;
     string status;
     string errorCode;
+};
+
+// 鉴权请求参数
+class PublishInfo
+{
+public:
+    string protocol;
+    string uri;
+    string vhost;
+    string type;
+    string params;
+};
+
+// 鉴权的返回参数
+class PublishResponse
+{
+public:
+    bool authResult = false;
+    string err;
 };
 
 class MediaHook : public enable_shared_from_this<MediaHook>
@@ -37,6 +57,7 @@ public:
     void reportByHttp(const string& url, const string&method, const string& msg, const function<void(const string& err, 
                 const nlohmann::json& res)>& cb = [](const string& err, const nlohmann::json& res){});
     void onStreamStatus(const StreamStatusInfo& info);
+    void onPublish(const PublishInfo& info, const function<void(const PublishResponse& rsp)>& cb);
     void onNonePlayer(const string& protocol, const string& uri, 
                         const string& vhost, const string& type);
 

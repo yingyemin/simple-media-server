@@ -2,6 +2,7 @@
 #include "Http/HttpServer.h"
 #include "GB28181/GB28181Server.h"
 #include "Ehome2/Ehome2Server.h"
+#include "Ehome5/Ehome5Server.h"
 #include "Rtmp/RtmpServer.h"
 #include "Webrtc/WebrtcServer.h"
 #include "Srt/SrtServer.h"
@@ -202,6 +203,30 @@ int main(int argc, char** argv)
         logInfo << "start ehome2 server, port: " << port;
         if (port) {
             Ehome2Server::instance()->start(ip, port, count, sockType);
+        }
+        // logInfo << "start rtsps server, sslPort: " << sslPort;
+        // if (sslPort) {
+        //     RtspServer::instance()->start(ip, sslPort, count);
+        // }
+    }
+
+    auto ehome5ConfigVec = configJson["Ehome5"]["Server"];
+    for (auto server : ehome5ConfigVec.items()) {
+        string serverId = server.key();
+        auto ehomeConfig = server.value();
+
+        if (!ehomeConfig.is_object()) {
+            continue;
+        }
+
+        const string ip = ehomeConfig["ip"];
+        int port = ehomeConfig["port"];
+        int count = ehomeConfig["threads"];
+        int sockType = ehomeConfig["sockType"];
+
+        logInfo << "start ehome5 server, port: " << port;
+        if (port) {
+            Ehome5Server::instance()->start(ip, port, count, sockType);
         }
         // logInfo << "start rtsps server, sslPort: " << sslPort;
         // if (sslPort) {

@@ -10,6 +10,7 @@
 #include "Hls/HlsMediaSource.h"
 #include "Mpeg/TsMediaSource.h"
 #include "Mpeg/PsMediaSource.h"
+#include "Mp4/Fmp4MediaSource.h"
 
 #include <string>
 #include <unordered_map>
@@ -50,6 +51,7 @@ private:
     void handleOptions();
 
     void handleFlvStream();
+    void handleSmsHlsM3u8();
     void handleHlsM3u8();
     void onPlayHls(const HlsMediaSource::Ptr &hlsSrc);
     void handleHlsTs();
@@ -57,6 +59,8 @@ private:
     void onPlayTs(const TsMediaSource::Ptr &TsSrc);
     void handlePs();
     void onPlayPs(const PsMediaSource::Ptr &psSrc);
+    void handleFmp4();
+    void onPlayFmp4(const Fmp4MediaSource::Ptr &fmp4Src);
 
     void onError(const string& msg);
 
@@ -64,6 +68,7 @@ private:
     bool _isChunked = false;
     bool _isWebsocket = false;
     int _apiPort = 0;
+    string _mimeType;
     string _serverId;
     HttpParser _parser;
     UrlParser _urlParser;
@@ -71,6 +76,7 @@ private:
     shared_ptr<HttpFile> _httpFile;
     TsMediaSource::RingType::DataQueReaderT::Ptr _playTsReader;
     PsMediaSource::RingType::DataQueReaderT::Ptr _playPsReader;
+    Fmp4MediaSource::RingType::DataQueReaderT::Ptr _playFmp4Reader;
     EventLoop::Ptr _loop;
     Socket::Ptr _socket;
     function<void()> _onClose;

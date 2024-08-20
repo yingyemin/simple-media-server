@@ -46,9 +46,13 @@ void HttpApi::initApi()
 {
     g_mapApi.emplace("/api/v1/config", HttpApi::handleConfig);
     g_mapApi.emplace("/api/v1/onStreamStatus", HttpApi::onStreamStatus);
+    g_mapApi.emplace("/api/v1/onPublish", HttpApi::onPublish);
+    g_mapApi.emplace("/api/v1/onPlay", HttpApi::onPlay);
     g_mapApi.emplace("/api/v1/onNonePlayer", HttpApi::onNonePlayer);
     g_mapApi.emplace("/api/v1/getSourceList", HttpApi::getSourceList);
     g_mapApi.emplace("/api/v1/getSourceInfo", HttpApi::getSourceInfo);
+    g_mapApi.emplace("/api/v1/getClientList", HttpApi::getClientList);
+    g_mapApi.emplace("/api/v1/closeClient", HttpApi::closeClient);
     g_mapApi.emplace("/api/v1/getLoopList", HttpApi::getLoopList);
     g_mapApi.emplace("/api/v1/exitServer", HttpApi::exitServer);
 }
@@ -97,6 +101,32 @@ void HttpApi::onStreamStatus(const HttpParser& parser, const UrlParser& urlParse
     rspFunc(rsp);
 }
 
+void HttpApi::onPublish(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+    value["code"] = "200";
+    value["msg"] = "success";
+    value["authResult"] = true;
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void HttpApi::onPlay(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+    value["code"] = "200";
+    value["msg"] = "success";
+    value["authResult"] = true;
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
 void HttpApi::onNonePlayer(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc)
 {
@@ -137,6 +167,8 @@ void HttpApi::getSourceList(const HttpParser& parser, const UrlParser& urlParser
 
         auto loop = source->getLoop();
         item["epollFd"] = loop->getEpollFd();
+        item["playerCount"] = source->playerCount();
+        int totalPlayerCount = source->playerCount();
 
         auto muxerSource = source->getMuxerSource();
         for (auto& mIt : muxerSource) {
@@ -150,11 +182,14 @@ void HttpApi::getSourceList(const HttpParser& parser, const UrlParser& urlParser
                 json mItem;
                 mItem["protocol"] = mSource->getProtocol();
                 mItem["type"] = mSource->getType();
+                mItem["playerCount"] = mSource->playerCount();
+                totalPlayerCount += mSource->playerCount();
 
-                item.push_back(mItem);
+                item["muxer"].push_back(mItem);
             }
         }
 
+        item["totalPlayerCount"] = totalPlayerCount;
         value["sources"].push_back(item);
     }
 
@@ -179,6 +214,8 @@ void HttpApi::getSourceInfo(const HttpParser& parser, const UrlParser& urlParser
         value["type"] = source->getType();
         value["protocol"] = source->getProtocol();
         value["vhost"] = source->getVhost();
+        value["playerCount"] = source->playerCount();
+        int totalPlayerCount = source->playerCount();
 
         auto loop = source->getLoop();
         value["epollFd"] = loop->getEpollFd();
@@ -195,12 +232,99 @@ void HttpApi::getSourceInfo(const HttpParser& parser, const UrlParser& urlParser
                 json mItem;
                 mItem["protocol"] = mSource->getProtocol();
                 mItem["type"] = mSource->getType();
+                mItem["playerCount"] = mSource->playerCount();
+                totalPlayerCount += mSource->playerCount();
 
-                value.push_back(mItem);
+                value["muxer"].push_back(mItem);
             }
         }
         value["code"] = "200";
         value["msg"] = "success";
+    } else {
+        rsp._status = 404;
+        value["code"] = "404";
+        value["msg"] = "source is not exist";
+    }
+
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void HttpApi::getClientList(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    json body = parser._body;
+    checkArgs(body, {"path", "protocol"});
+
+    auto source = MediaSource::get(body["path"], body.value("vhost", DEFAULT_VHOST), body["protocol"], DEFAULT_TYPE);
+    if (source) {
+        value["path"] = source->getPath();
+        value["type"] = source->getType();
+        value["protocol"] = source->getProtocol();
+        value["vhost"] = source->getVhost();
+        value["playerCount"] = source->playerCount();
+
+        auto loop = source->getLoop();
+        value["epollFd"] = loop->getEpollFd();
+        value["code"] = "200";
+        value["msg"] = "success";
+
+        source->getClientList([value, rsp, rspFunc](const list<ClientInfo> &list){
+            for (auto& data : list) {
+                json client;
+                client["ip"] = data.ip_;
+                client["port"] = data.port_;
+
+                const_cast<json &>(value)["client"].push_back(client);
+            }
+            const_cast<HttpResponse &>(rsp).setContent(value.dump());
+            rspFunc(const_cast<HttpResponse &>(rsp));
+        });
+
+        return ;
+    } else {
+        rsp._status = 404;
+        value["code"] = "404";
+        value["msg"] = "source is not exist";
+    }
+
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void HttpApi::closeClient(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    json body = parser._body;
+    checkArgs(body, {"path", "protocol", "clientIp", "clientPort"});
+
+    auto source = MediaSource::get(body["path"], body.value("vhost", DEFAULT_VHOST), body["protocol"], DEFAULT_TYPE);
+    if (source) {
+        value["code"] = "200";
+        value["msg"] = "success";
+
+        source->getClientList([value, rsp, rspFunc, body](const list<ClientInfo> &list){
+            for (auto& data : list) {
+                if (data.ip_ == body["clientIp"].get<string>() && data.port_ == toInt(body["clientPort"])) {
+                    if (data.close_) {
+                        data.close_();
+                    }
+                    break;
+                }
+            }
+            const_cast<HttpResponse &>(rsp).setContent(value.dump());
+            rspFunc(const_cast<HttpResponse &>(rsp));
+        });
+
+        return ;
     } else {
         rsp._status = 404;
         value["code"] = "404";

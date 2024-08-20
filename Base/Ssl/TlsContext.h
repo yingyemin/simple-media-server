@@ -27,6 +27,7 @@ public:
     void shutdown();
     void unprotect();
     void protect();
+    void handshake();
 
     void setOnConnRead(const function<void(const StreamBuffer::Ptr& buffer)>& cb);
     void setOnConnSend(const function<void(const Buffer::Ptr& buffer)>& cb);

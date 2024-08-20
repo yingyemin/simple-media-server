@@ -16,6 +16,7 @@
 #define PROTOCOL_JT1078 "jt1078"
 #define PROTOCOL_TS "ts"
 #define PROTOCOL_PS "ps"
+#define PROTOCOL_MP4 "mp4"
 #define PROTOCOL_SRT "SRT"
 
 #define DEFAULT_TYPE "normal"

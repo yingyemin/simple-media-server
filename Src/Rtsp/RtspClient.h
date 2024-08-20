@@ -42,6 +42,7 @@ public:
     void stop() override;
     void pause() override;
     void setOnClose(const function<void()>& cb) override;
+    void addOnReady(void* key, const function<void()>& onReady) override;
 
 protected:
     // override TcpClient
@@ -88,6 +89,8 @@ private:
     unordered_map<int, RtspRtcpTransport::Ptr> _mapRtcpTransport;
 
     function<void()> _onClose;
+    mutex _mtx;
+    unordered_map<void*, function<void()>> _mapOnReady;
 };
 
 #endif // RtspClient_h

@@ -12,6 +12,10 @@ struct Variant: public string {
     {
     }
 
+    Variant(const bool &t) : Variant(t ? to_string(1) : to_string(0))
+    {
+    }
+
     template<size_t N>
     Variant(const char (&s)[N]) : string(s, N) 
     {

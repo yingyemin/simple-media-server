@@ -15,6 +15,7 @@
     1. 作为服务端，支持客户端推拉流
     2. 作为客户端，支持向其他服务器推拉流
     3. 支持rtp over udp、tcp
+    4. 支持rtp封装ps
 
 - RTMP
     1. 作为服务端，支持客户端推拉流
@@ -37,6 +38,7 @@
 - HLS
     1. 作为服务端，支持客户端拉流
     2. 作为客户端，向其他服务拉流
+    3. 支持实时hls（本人魔改的hls；Android微信可播；）
 
 - HTTP-TS
     1. 作为服务端，支持客户端拉流
@@ -62,11 +64,21 @@
 
 
 - WEBSOCKET(ws/wss)
-    1. websocket协议拉流
+    1. 作为服务端，支持客户端拉流，如flv，ts等
 
 
 - JT1078
     1. 作为服务端，支持客户端推流
+
+
+- 点播
+    1. ps
+    2. MP4
+
+
+- 录制
+    1. ps
+    2. MP4
 
 #### 安装教程
 
@@ -79,30 +91,15 @@
 
 #### 使用说明
 
-1.  检查配置，如 server.conf
+1.  检查配置，如 server.conf,将其拷贝到build目录
 2.  运行程序：./SimpleMediaServer
 3.  用ffmpeg推流：ffmpeg -re -i inputfile -c copy -f flv rtmp://ip:port/live/test
 4.  用vlc播放
 - rtsp地址：rtsp://ip:port/live/test
+- rtsp地址：rtsp://ip:port/live/test?type=ps（rtp封装ps）
 - rtmp地址：rtmp://ip:port/live/test
 - http-flv地址：http://ip:port/live/test.flv
 - hls地址：http://ip:port/live/test.m3u8
+- 实时hls地址: http://ip:port/live/test.sms.m3u8
 - webrtc获取sdp：http://ip:port/api/v1/rtc/play
 - srt: srt://ip:port?steamid=|path:/live/test|request:pull|
-
-#### 参与贡献
-
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
-
-
-#### 特技
-
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)

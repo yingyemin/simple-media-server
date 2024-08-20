@@ -232,6 +232,13 @@ void GB28181MediaSource::addSink(const MediaSource::Ptr &src)
     if (_status == SourceStatus::AVAILABLE) {
         src->onReady();
     }
+    if (_mapSink.size() == 1 && _status == SourceStatus::AVAILABLE) {
+        lock_guard<mutex> lck(_mtxTrack);
+        for (auto& track : _mapGB28181DecodeTrack) {
+            // src->addTrack(track.second->getTrackInfo());
+            track.second->startDecode();
+        }
+    }
     weak_ptr<GB28181MediaSource> weakSelf = std::static_pointer_cast<GB28181MediaSource>(shared_from_this());
     _ring->addOnWrite(src.get(), [weakSelf](RingDataType in, bool is_key){
         auto strongSelf = weakSelf.lock();
@@ -245,13 +252,6 @@ void GB28181MediaSource::addSink(const MediaSource::Ptr &src)
             track->decodeRtp(rtp);
         }
     });
-    if (_mapSink.size() == 1 && _status == SourceStatus::AVAILABLE) {
-        lock_guard<mutex> lck(_mtxTrack);
-        for (auto& track : _mapGB28181DecodeTrack) {
-            // src->addTrack(track.second->getTrackInfo());
-            track.second->startDecode();
-        }
-    }
 }
 
 void GB28181MediaSource::delSink(const MediaSource::Ptr &src)
@@ -286,4 +286,21 @@ void GB28181MediaSource::onFrame(const FrameBuffer::Ptr& frame)
     }
     // logInfo << "on muxer a frame";
     _gB28181EncodeTrack->onFrame(frame);
+}
+
+int GB28181MediaSource::playerCount()
+{
+    int count = _ring->readerCount();
+    lock_guard<mutex> lck(_mtxTrack);
+    count -= _mapSink.size();
+
+    return count;
+}
+
+void GB28181MediaSource::getClientList(const function<void(const list<ClientInfo>& info)>& func)
+{
+    list<ClientInfo> clientInfo;
+    _ring->getInfoList([func](list<ClientInfo> &infoList){
+        func(infoList);
+    });
 }

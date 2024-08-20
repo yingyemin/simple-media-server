@@ -57,8 +57,19 @@ bool GB28181Context::init()
     }
     gbSrc->setOrigin();
 
-    _track = make_shared<GB28181DecodeTrack>(0);
-    gbSrc->addTrack(_track);
+    if (_payloadType == "ps") {
+        _videoTrack = make_shared<GB28181DecodeTrack>(0);
+        gbSrc->addTrack(_videoTrack);
+    } else {
+        if (_videoTrack) {
+            gbSrc->addTrack(_videoTrack);
+            gbSrc->addDecodeTrack(_videoTrack->getTrackInfo());
+        }
+        if (_audioTrack) {
+            gbSrc->addTrack(_audioTrack);
+            gbSrc->addDecodeTrack(_audioTrack->getTrackInfo());
+        }
+    }
 
     weak_ptr<GB28181Context> wSelf = shared_from_this();
     gbSrc->addOnDetach(this, [wSelf](){
@@ -87,7 +98,13 @@ bool GB28181Context::init()
         // logInfo << "decode rtp seq: " << rtp->getSeq() << ", rtp size: " << rtp->size() << ", rtp time: " << rtp->getStamp();
         auto self = wSelf.lock();
         if (self) {
-            self->_track->onRtpPacket(rtp);
+            if (rtp->getHeader()->pt == 104 || rtp->getHeader()->pt == 8 || rtp->getHeader()->pt == 0) {
+                rtp->trackIndex_ = AudioTrackType;
+                self->_audioTrack->onRtpPacket(rtp);
+            } else if (rtp->getHeader()->pt == 96) {
+                rtp->trackIndex_ = VideoTrackType;
+                self->_videoTrack->onRtpPacket(rtp);
+            }
         }
     });
 
@@ -113,7 +130,13 @@ void GB28181Context::onRtpPacket(const RtpPacket::Ptr& rtp, struct sockaddr* add
     if (sort) {
         _sort->onRtpPacket(rtp);
     } else {
-        _track->onRtpPacket(rtp);
+        if (rtp->getHeader()->pt == 104 || rtp->getHeader()->pt == 8 || rtp->getHeader()->pt == 0) {
+            rtp->trackIndex_ = AudioTrackType;
+            _audioTrack->onRtpPacket(rtp);
+        } else if (rtp->getHeader()->pt == 96) {
+            rtp->trackIndex_ = VideoTrackType;
+            _videoTrack->onRtpPacket(rtp);
+        }
     }
 
     _timeClock.update();
@@ -131,4 +154,21 @@ void GB28181Context::heartbeat()
         logInfo << "alive is false";
         _alive = false;
     }
+}
+
+void GB28181Context::setPayloadType(const string& payloadType)
+{
+    _payloadType = payloadType;
+}
+
+void GB28181Context::createVideoTrack(const string& videoCodec)
+{
+    _videoTrack = make_shared<GB28181DecodeTrack>(0, false);
+    _videoTrack->createVideoTrack(videoCodec);
+}
+
+void GB28181Context::createAudioTrack(const string& audioCodec, int channel, int sampleBit, int sampleRate)
+{
+    _audioTrack = make_shared<GB28181DecodeTrack>(1, false);
+    _audioTrack->createAudioTrack(audioCodec, channel, sampleBit, sampleRate);
 }

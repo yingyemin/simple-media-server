@@ -33,6 +33,8 @@ public:
     void delSink(const MediaSource::Ptr &src) override;
     void onFrame(const FrameBuffer::Ptr& frame) override;
     void onReady() override;
+    int playerCount() override;
+    void getClientList(const function<void(const list<ClientInfo>& info)>& func) override;
     unordered_map<int/*index*/, PsDemuxer::Ptr> getDecodeTrack()
     {
         return _mapPsDecodeTrack;

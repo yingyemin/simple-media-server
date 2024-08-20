@@ -4,6 +4,7 @@
 #include "Logger.h"
 #include "Common/Config.h"
 #include "Http/HttpClientApi.h"
+#include "Util/String.h"
 
 using namespace std;
 
@@ -32,7 +33,12 @@ void MediaHook::reportByHttp(const string& url, const string&method, const strin
         timeout = Config::instance()->get("Hook", "Http", "timeout");
     }, "Hook", "Http", "timeout");
     
-    shared_ptr<HttpClientApi> client = make_shared<HttpClientApi>(EventLoop::getCurrentLoop());
+    shared_ptr<HttpClientApi> client;
+    if (startWith(url, "https://")) {
+        client = make_shared<HttpClientApi>(EventLoop::getCurrentLoop(), true);
+    } else {
+        client = make_shared<HttpClientApi>(EventLoop::getCurrentLoop());
+    }
     client->addHeader("Content-Type", "application/json;charset=UTF-8");
     client->setMethod(method);
     client->setContent(msg);
@@ -55,7 +61,9 @@ void MediaHook::reportByHttp(const string& url, const string&method, const strin
         const_cast<shared_ptr<HttpClientApi> &>(client).reset();
     });
     logInfo << "connect to utl: " << url;
-    client->sendHeader(url, timeout);
+    if (client->sendHeader(url, timeout) != 0) {
+        cb("connect to url: " + url + " failed", nullptr);
+    }
 }
 
 void MediaHook::onStreamStatus(const StreamStatusInfo& info)
@@ -80,6 +88,52 @@ void MediaHook::onStreamStatus(const StreamStatusInfo& info)
         }, "Hook", "Http", "onStreamStatus");
 
         reportByHttp(url, "GET", value.dump());
+    }
+}
+
+// 使用类作为参数，好处是以后修改参数没那么麻烦，坏处是有地方漏了，编译的时候也发现不了
+// 本项目使用类主要是图方便，谨慎用之
+void MediaHook::onPublish(const PublishInfo& info, const function<void(const PublishResponse& rsp)>& cb)
+{
+    json value;
+    value["protocol"] = info.protocol;
+    value["type"] = info.type;
+    value["uri"] = info.uri;
+    value["vhost"] = info.vhost;
+    value["params"] = info.params;
+
+    // static string type = Config::instance()->getAndListen([](const json& config){
+    //     type = Config::instance()->get("Hook", "Type");
+    //     logInfo << "Hook type: " << type;
+    // }, "Hook", "Type");
+
+    if (_type == "http") {
+        static string url = Config::instance()->getAndListen([](const json& config){
+            url = Config::instance()->get("Hook", "Http", "onPublish");
+            logInfo << "Hook url: " << url;
+        }, "Hook", "Http", "onPublish");
+
+        reportByHttp(url, "GET", value.dump(), [cb](const string& err, const nlohmann::json& res){
+            PublishResponse rsp;
+            if (!err.empty()) {
+                rsp.authResult = false;
+                rsp.err = err;
+                cb(rsp);
+
+                return ;
+            }
+
+            if (res.find("authResult") == res.end()) {
+                rsp.authResult = false;
+                rsp.err = "authResult is empty";
+                cb(rsp);
+
+                return ;
+            }
+            
+            rsp.authResult = res["authResult"];
+            cb(rsp);
+        });
     }
 }
 

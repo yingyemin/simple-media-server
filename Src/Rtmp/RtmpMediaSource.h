@@ -47,6 +47,9 @@ public:
     }
     RingType::Ptr getRing() {return _ring;}
 
+    int playerCount();
+    void getClientList(const function<void(const list<ClientInfo>& info)>& func) override;
+
 public:
     int _aacHeaderSize = 0;
     shared_ptr<char> _aacHeader;

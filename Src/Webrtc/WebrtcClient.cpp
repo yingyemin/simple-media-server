@@ -108,6 +108,17 @@ void WebrtcClient::setOnClose(const function<void()>& cb)
     _onClose = cb;
 }
 
+void WebrtcClient::addOnReady(void* key, const function<void()>& onReady)
+{
+    lock_guard<mutex> lck(_mtx);
+    auto rtcSrc =_source.lock();
+    if (rtcSrc) {
+        rtcSrc->addOnReady(key, onReady);
+        return ;
+    }
+    _mapOnReady.emplace(key, onReady);
+}
+
 void WebrtcClient::close()
 {
     if (_onClose) {
@@ -158,6 +169,13 @@ void WebrtcClient::initPuller()
     }
     _source = rtcSource;
     rtcSource->setOrigin();
+    {
+        lock_guard<mutex> lck(_mtx);
+        for (auto &iter : _mapOnReady) {
+            rtcSource->addOnReady(iter.first, iter.second);
+        }
+        _mapOnReady.clear();
+    }
 
     shared_ptr<TrackInfo> videoInfo = make_shared<H264Track>();
     shared_ptr<TrackInfo> audioInfo = make_shared<TrackInfo>();

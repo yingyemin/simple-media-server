@@ -23,11 +23,13 @@ public:
     virtual void stop() {}
     virtual void pause() {}
     virtual void setOnClose(const function<void()>& cb) {}
+    virtual void addOnReady(void* key, const function<void()>& onReady) {}
 
 public:
     static void addMediaClient(const string& key, const MediaClient::Ptr& client);
     static void delMediaClient(const string& key);
     static MediaClient::Ptr getMediaClient(const string& key);
+    static MediaClient::Ptr createClient(const string& protocol, const string& path, MediaClientType type);
 
 private:
     static mutex _mapMtx;

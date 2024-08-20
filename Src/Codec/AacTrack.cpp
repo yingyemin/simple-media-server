@@ -216,6 +216,31 @@ void getSampleFromConfig(const string& config, int& samplerate, int& channel)
 	channel = (cfg2 & 0x7F) >> 3;
 }
 
+int match_by_switch(int sampleRate) {
+	static unordered_map<int, int> mapSampleRate = {{96000, 0}, {88200, 1}, {64000, 2}, {48000, 3}, 
+				{44100, 4}, {32000, 5}, {24000, 6}, {22050, 7}, {16000, 8}, {12000, 9}, {11025, 10}, 
+				{8000, 11}, {0, 12}};
+
+	auto iter = mapSampleRate.find(sampleRate);
+    if (iter == mapSampleRate.end()) {
+		return -1;
+	}
+
+	return iter->second;
+}
+
+string makeAacConfig(int profile, int channel, int sampleRate)
+{
+    unsigned char sampling_frequency_index = match_by_switch(sampleRate);
+    unsigned char channel_configuration = channel;
+    unsigned char audioSpecificConfig[2];
+    unsigned char const audioObjectType = profile;
+
+    audioSpecificConfig[0] = (audioObjectType << 3) | (sampling_frequency_index >> 1);
+    audioSpecificConfig[1] = (sampling_frequency_index << 7) | (channel_configuration << 3);
+    return string((char *)audioSpecificConfig,2);
+}
+
 
 AacTrack::AacTrack()
 {
@@ -252,6 +277,11 @@ void AacTrack::setAacInfo(const string& aacConfig)
 {
 	_aacConfig = aacConfig;
 	getSampleFromConfig(_aacConfig, samplerate_, channel_);
+}
+
+void AacTrack::setAacInfo(int profile, int channel, int sampleRate)
+{
+	_aacConfig = makeAacConfig(profile, channel, sampleRate);
 }
 
 void AacTrack::setAacInfoByAdts(const char* data, int len)

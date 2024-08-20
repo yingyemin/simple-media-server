@@ -16,6 +16,8 @@ using namespace std;
 
 recursive_mutex MediaSource::_mtxTotalSource;
 unordered_map<string/*uri*/ , MediaSource::Ptr> MediaSource::_totalSource;
+MediaClient::Ptr MediaSource::_player;
+unordered_map<MediaClient*, MediaClient::Ptr> MediaSource::_mapPusher;
 
 MediaSource::MediaSource(const UrlParser& urlParser, const EventLoop::Ptr& loop)
     :_urlParser(urlParser)
@@ -58,6 +60,10 @@ MediaSource::Ptr MediaSource::get(const string& uri, const string& vhost, const 
             source = _totalSource[key];
         }
     }
+    if (protocol == source->getProtocol() && type == source->getType()) {
+        return source;
+    }
+    
     if (source) {
         return source->getFromOrigin(protocol, type);
     }
@@ -141,10 +147,17 @@ void MediaSource::getOrCreateAsync(const string& uri, const string& vhost, const
                 enableLoadFromFile = Config::instance()->get("Util", "enableLoadFromFile");
             }, "Util", "enableLoadFromFile");
 
+            static string mode = Config::instance()->getAndListen([](const json &config){
+                mode = Config::instance()->get("Cdn", "mode");
+            }, "Cdn", "mode");
+
             lock_guard<recursive_mutex> lck(_mtxTotalSource);
             if (_totalSource.find(key) == _totalSource.end()) {
                 if (enableLoadFromFile) {
                     loadFromFile(uri, vhost, protocol, type, cb, create, connKey);
+                    return ;
+                } else if (mode == "edge") {
+                    pullStreamFromOrigin(uri, vhost, protocol, type, cb, create, connKey);
                     return ;
                 } else {
                     break;
@@ -156,6 +169,9 @@ void MediaSource::getOrCreateAsync(const string& uri, const string& vhost, const
             if (!src) {
                 if (enableLoadFromFile) {
                     loadFromFile(uri, vhost, protocol, type, cb, create, connKey);
+                    return ;
+                } else if (mode == "edge") {
+                    pullStreamFromOrigin(uri, vhost, protocol, type, cb, create, connKey);
                     return ;
                 } else {
                     break;
@@ -175,7 +191,7 @@ void MediaSource::getOrCreateAsync(const string& uri, const string& vhost, const
                 }
             } else {
                 logInfo << "source is not ready";
-                src->addOnReady(src.get(), [uri, vhost, protocol, type, cb, create, connKey](){
+                src->addOnReady(connKey, [uri, vhost, protocol, type, cb, create, connKey](){
                     MediaSource::getOrCreateAsync(uri, vhost, protocol, type, cb, create, connKey);
                 });
                 return ;
@@ -193,10 +209,6 @@ void MediaSource::getOrCreateAsync(const string& uri, const string& vhost, const
 
     logInfo << "getOrCreateAsync don't find src";
     cb(nullptr);
-
-    // TODO 增加player拉流的逻辑
-
-    
 }
 
 bool MediaSource::getOrCreateAsync(const string &protocol, const string& type, 
@@ -208,7 +220,6 @@ bool MediaSource::getOrCreateAsync(const string &protocol, const string& type,
     lock_guard<recursive_mutex> lck(_mtxStreamSource);
     auto& wsrc = _streamSource[protocol][type];
     auto src = wsrc.lock();
-    // TODO 这里加一个引用计数，删除的时候判断一下计数是否为0，为0才删除
     if (src && src->getStatus() >= SourceStatus::AVAILABLE) {
         cb(src);
         // src->setStatus(SourceStatus::AVAILABLE);
@@ -338,15 +349,54 @@ void MediaSource::loadFromFile(const string& uri, const string& vhost, const str
     frameSource->_recordReader = reader;
 }
 
+void MediaSource::pullStreamFromOrigin(const string& uri, const string& vhost, const string &protocol, 
+            const string& type, const function<void(const MediaSource::Ptr &src)> &cb, 
+            const std::function<MediaSource::Ptr()> &create, void* connKey)
+{
+    auto tmpPlayer = MediaClient::getMediaClient(uri);
+    if (tmpPlayer) {
+        tmpPlayer->addOnReady(connKey, [uri, vhost, protocol, type, cb, create, connKey](){
+            MediaSource::getOrCreateAsync(uri, vhost, protocol, type, cb, create, connKey);
+        });
+        return ;
+    }
+    static string pullProtocol = Config::instance()->getAndListen([](const json &config){
+        pullProtocol = Config::instance()->get("Cdn", "protocol");
+    }, "Cdn", "protocol");
+    
+    static string endpoint = Config::instance()->getAndListen([](const json &config){
+        endpoint = Config::instance()->get("Cdn", "endpoint");
+    }, "Cdn", "endpoint");
+
+    string url = pullProtocol + "://" + endpoint + uri;
+
+    _player = MediaClient::createClient(pullProtocol, uri, MediaClientType_Pull);
+    _player->start("0.0.0.0", 0, url, 5);
+
+    MediaClient::addMediaClient(uri, _player);
+
+    _player->setOnClose([uri](){
+        MediaClient::delMediaClient(uri);
+    });
+
+    // TODO 
+    _player->addOnReady(connKey, [uri, vhost, protocol, type, cb, create, connKey](){
+        MediaSource::getOrCreateAsync(uri, vhost, protocol, type, cb, create, connKey);
+    });
+}
 
 MediaSource::Ptr MediaSource::getFromOrigin(const string& protocol, const string& type)
 {
-    auto origin = _originSrc.lock();
-    if (!origin) {
-        return nullptr;
+    if (!_origin) {
+        auto origin = _originSrc.lock();
+        if (!origin) {
+            return nullptr;
+        }
+        lock_guard<recursive_mutex> lck(origin->_mtxStreamSource);
+        return origin->_streamSource[protocol][type].lock();
+    } else {
+        return _streamSource[protocol][type].lock();
     }
-    lock_guard<recursive_mutex> lck(origin->_mtxStreamSource);
-    return origin->_streamSource[protocol][type].lock();
 }
 
 void MediaSource::setOrigin(const MediaSource::Ptr &src)
@@ -558,13 +608,15 @@ void MediaSource::onReaderChanged(int size)
 
 void MediaSource::addOnReady(void* key, const onReadyFunc& func)
 {
-    lock_guard<recursive_mutex> lck(_mtxStreamSource);
-    if (_status == SourceStatus::AVAILABLE) {
-        func();
-        return ;
-    }
-    if (_mapOnReadyFunc.find(key) == _mapOnReadyFunc.end()) {
-        _mapOnReadyFunc[key] = func;
+    {
+        lock_guard<recursive_mutex> lck(_mtxStreamSource);
+        if (_status == SourceStatus::AVAILABLE) {
+            func();
+            return ;
+        }
+        if (_mapOnReadyFunc.find(key) == _mapOnReadyFunc.end()) {
+            _mapOnReadyFunc[key] = func;
+        }
     }
 }
 
@@ -589,6 +641,44 @@ void MediaSource::onReady()
         // sink.second.lock()->onReady();
         sink.second->onReady();
     }
+
+    static string mode = Config::instance()->getAndListen([](const json &config){
+        mode = Config::instance()->get("Cdn", "mode");
+    }, "Cdn", "mode");
+
+    if (mode != "forward") {
+        return ;
+    }
+    
+    static string pushProtocol = Config::instance()->getAndListen([](const json &config){
+        pushProtocol = Config::instance()->get("Cdn", "protocol");
+    }, "Cdn", "protocol");
+    
+    static string endpoint = Config::instance()->getAndListen([](const json &config){
+        endpoint = Config::instance()->get("Cdn", "endpoint");
+    }, "Cdn", "endpoint");
+
+    string uri = _urlParser.path_;
+    string url = pushProtocol + "://" + endpoint + uri;
+
+    // TODO 可以指定多个endpoint进行推流
+    auto pusher = MediaClient::createClient(pushProtocol, uri, MediaClientType_Push);
+    pusher->start("0.0.0.0", 0, url, 5);
+
+    MediaClient::addMediaClient(uri, pusher);
+    auto key = pusher.get();
+
+    weak_ptr<MediaSource> wSelf = shared_from_this();
+    pusher->setOnClose([uri, key, wSelf](){
+        auto self = wSelf.lock();
+        if (!self) {
+            return ;
+        }
+        MediaClient::delMediaClient(uri);
+        self->_mapPusher.erase(key);
+    });
+
+    _mapPusher.emplace(key, pusher);
 }
 
 void MediaSource::delConnection(void* key)

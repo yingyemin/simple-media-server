@@ -30,7 +30,9 @@ void HttpTsClient::start(const string& localIp, int localPort, const string& url
     addHeader("Content-Type", "application/json;charset=UTF-8");
     setMethod("GET");
     logInfo << "connect to utl: " << url;
-    sendHeader(url, timeout);
+    if (sendHeader(url, timeout) != 0) {
+        close();
+    }
 }
 
 void HttpTsClient::stop()

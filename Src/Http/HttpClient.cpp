@@ -10,6 +10,11 @@ HttpClient::HttpClient(const EventLoop::Ptr& loop)
     ,_loop(loop)
 {}
 
+HttpClient::HttpClient(const EventLoop::Ptr& loop, bool enableTls)
+    :TcpClient(loop, enableTls)
+    ,_loop(loop)
+{}
+
 HttpClient::~HttpClient()
 {}
 
@@ -49,7 +54,7 @@ int HttpClient::start(const string& localIp, int localPort, const string& peerIp
     return 0;
 }
 
-void HttpClient::sendHeader(const string& url, int timeout)
+int HttpClient::sendHeader(const string& url, int timeout)
 {
     logInfo << "url: " << url;
     _urlParser.parse(url);
@@ -63,10 +68,11 @@ void HttpClient::sendHeader(const string& url, int timeout)
             onError("invalid protocol: " + _urlParser.protocol_);
         }
     }
-    start("", 0, _urlParser.host_, _urlParser.port_, timeout);
+
+    return start("", 0, _urlParser.host_, _urlParser.port_, timeout);
 }
 
-void HttpClient::sendHeader(const string& localIp, int localPort, const string& url, int timeout)
+int HttpClient::sendHeader(const string& localIp, int localPort, const string& url, int timeout)
 {
     logInfo << "url: " << url;
     _urlParser.parse(url);
@@ -80,7 +86,7 @@ void HttpClient::sendHeader(const string& localIp, int localPort, const string& 
             onError("invalid protocol: " + _urlParser.protocol_);
         }
     }
-    start(localIp, localPort, _urlParser.host_, _urlParser.port_, timeout);
+    return start(localIp, localPort, _urlParser.host_, _urlParser.port_, timeout);
 }
 
 void HttpClient::onConnect()

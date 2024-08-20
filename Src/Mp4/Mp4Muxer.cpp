@@ -1,5 +1,6 @@
 #include "Mp4Muxer.h"
 #include "Util/String.h"
+#include "Log/Logger.h"
 
 #include <sys/time.h>
 
@@ -159,16 +160,16 @@ void MP4Muxer::addAudioTrack(const shared_ptr<TrackInfo>& trackInfo)
     track->mdhd.duration = 0; // placeholder
 
     audio->extra_data = trackInfo->getConfig();
-    if (audio->extra_data.empty())
-        return ;
+    // if (audio->extra_data.empty())
+    //     return ;
     // memcpy(audio->extra_data, extra_data, extra_data_size);
 	audio->extra_data_size = audio->extra_data.size();
 
     _mvhd.next_track_ID++;
     _tracks.push_back(track);
+	_mapTrackInfo[trackInfo->index_] = _track_count;
     _track_count++;
     _track = track;
-    _mapTrackInfo[trackInfo->index_] = trackInfo;
 }
 
 void MP4Muxer::addVideoTrack(const shared_ptr<TrackInfo>& trackInfo)
@@ -212,24 +213,24 @@ void MP4Muxer::addVideoTrack(const shared_ptr<TrackInfo>& trackInfo)
     track->mdhd.duration = 0; // placeholder
 
 	video->extra_data = trackInfo->getConfig();
-    if (video->extra_data.empty())
-        return ;
+    // if (video->extra_data.empty())
+    //     return ;
     // memcpy(video->extra_data, extra_data, extra_data_size);
 	video->extra_data_size = video->extra_data.size();
 
     _mvhd.next_track_ID++;
     _tracks.push_back(track);
+	_mapTrackInfo[trackInfo->index_] = _track_count;
     _track_count++;
     _track = track;
-    _mapTrackInfo[trackInfo->index_] = trackInfo;
 }
 
-void MP4Muxer::inputFrame(const FrameBuffer::Ptr& frame, int track, bool keyframe)
+void MP4Muxer::inputFrame(const FrameBuffer::Ptr& frame, int trackIndex, bool keyframe)
 {
-    if (track < 0 || track >= (int)_track_count)
+    if (trackIndex < 0 || _mapTrackInfo.find(trackIndex) == _mapTrackInfo.end())
         return ;
 
-    _track = _tracks[track];
+    _track = _tracks[_mapTrackInfo[trackIndex]];
 
     // if (_track->sample_count + 1 >= _track->sample_offset) {
     //     void *ptr = realloc(mov->track->samples, sizeof(struct mov_sample_t) * (mov->track->sample_offset + 1024));
@@ -244,7 +245,7 @@ void MP4Muxer::inputFrame(const FrameBuffer::Ptr& frame, int track, bool keyfram
     auto sample = make_shared<mov_sample_t>(); 
     _track->sample_count++;
     sample->sample_description_index = 1;
-    sample->bytes = (uint32_t) frame->size() - frame->startSize();
+    sample->bytes = (uint32_t) frame->size() - frame->startSize() + 4;
     sample->flags = keyframe;
     sample->data = NULL;
     sample->pts = pts;
@@ -262,14 +263,15 @@ void MP4Muxer::inputFrame(const FrameBuffer::Ptr& frame, int track, bool keyfram
         // nalu_size_buf[1] = (uint8_t) ((nalu_size >> 16) & 0xFF);
         // nalu_size_buf[2] = (uint8_t) ((nalu_size >> 8) & 0xFF);
         // nalu_size_buf[3] = (uint8_t) ((nalu_size >> 0) & 0xFF);
-        write32BE(sample->bytes);
+        write32BE(sample->bytes - 4);
         // mov_buffer_write(nalu_size_buf, 4);
-        write(frame->data() + frame->startSize(), sample->bytes);
+        write(frame->data() + frame->startSize(), sample->bytes - 4);
     // }
 
     if (INT64_MIN == _track->start_dts)
         _track->start_dts = sample->dts;
-    _mdatSize += sample->bytes + 4; // update media data size
+    _mdatSize += sample->bytes; // update media data size
+	logInfo << "_mdatSize: =========== " << _mdatSize;
     // return mov_buffer_error(&mov->io);
 }
 
@@ -962,8 +964,10 @@ uint32_t MP4Muxer::mov_build_stts(struct mov_track_t* track)
 
     for (i = 0; i < track->sample_count; i++)
     {
-		assert(track->samples[i + 1]->dts >= track->samples[i]->dts || i + 1 == track->sample_count);
-        delta = (uint32_t)(i + 1 < track->sample_count && track->samples[i + 1]->dts > track->samples[i]->dts ? track->samples[i + 1]->dts - track->samples[i]->dts : 1);
+		if (i < (track->sample_count - 1)) {
+			assert(track->samples[i + 1]->dts >= track->samples[i]->dts || i + 1 == track->sample_count);
+		}
+        delta = (uint32_t)(i < (track->sample_count - 1) && track->samples[i + 1]->dts > track->samples[i]->dts ? track->samples[i + 1]->dts - track->samples[i]->dts : 1);
         if (NULL != sample && delta == sample->samples_per_chunk)
         {
             track->samples[i]->first_chunk = 0;

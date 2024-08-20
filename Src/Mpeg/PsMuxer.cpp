@@ -24,7 +24,7 @@ void PsMuxer::onFrame(const FrameBuffer::Ptr& frame)
         return ;
     }
     
-    _mapStampAdjust[frame->_index]->inputStamp(frame->_pts, frame->_dts, 1);
+    // _mapStampAdjust[frame->_index]->inputStamp(frame->_pts, frame->_dts, 1);
     encode(frame);
 }
 

@@ -284,14 +284,14 @@ File::~File()
     }
 }
 
-bool File::open(const string& filePath)
+bool File::open(const string& filePath, const string& mode)
 {
     if (_fp) {
         return true;
     }
 
     _filePath = filePath;
-    _fp = fopen(_filePath.data(), "ab+");
+    _fp = fopen(_filePath.data(), mode.c_str());
 
     if (!_fp) {
         logWarn << "open file failed: " << _filePath;
@@ -330,7 +330,36 @@ StreamBuffer::Ptr File::read(int size)
     return buffer;
 }
 
+int File::read(char* data, int size)
+{
+    if (_filePath.empty()) {
+        logWarn << "file path is empty";
+        return 0;
+    }
+
+    if (!_fp) {
+        _fp = fopen(_filePath.data(), "ab+");
+        if (!_fp) {
+            logWarn << "open file failed: " << _filePath;
+            return 0;
+        }
+    }
+
+    int readBytes = fread(data, 1, size, _fp);
+    logInfo << "read size: " << readBytes;
+    if (readBytes == 0) {
+        return readBytes;
+    }
+
+    return readBytes;
+}
+
 bool File::write(const Buffer::Ptr& buffer)
+{
+    return write(buffer->data(), buffer->size());
+}
+
+bool File::write(const char* data, int size)
 {
     // TODO 写失败后缓存一下，稍后重试
     if (_filePath.empty()) {
@@ -346,12 +375,22 @@ bool File::write(const Buffer::Ptr& buffer)
         }
     }
 
-    int writeBytes = fwrite(buffer->data(), 1, buffer->size(), _fp);
+    int writeBytes = fwrite(data, 1, size, _fp);
     if (!writeBytes) {
         return false;
     }
 
     return true;
+}
+
+void File::seek(uint64_t size)
+{
+    fseek(_fp, size, SEEK_SET);
+}
+
+uint64_t File::tell()
+{
+    return ftell(_fp);
 }
 
 int File::getFileSize()

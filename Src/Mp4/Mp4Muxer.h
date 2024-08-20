@@ -11,6 +11,9 @@
 
 using namespace std;
 
+int getAudioObject(const string& codec);
+int getVideoObject(const string& codec);
+
 class MP4Muxer : public enable_shared_from_this<MP4Muxer>
 {
 public:
@@ -20,7 +23,7 @@ public:
 public:
     virtual void write(const char* data, int size) {}
     virtual void read(char* data, int size) {}
-    virtual void seek(int offset) {}
+    virtual void seek(uint64_t offset) {}
     virtual size_t tell() { return 0;}
 
 public:
@@ -30,23 +33,25 @@ public:
     void addVideoTrack(const shared_ptr<TrackInfo>& trackInfo);
     void inputFrame(const FrameBuffer::Ptr& frame, int track, bool keyframe);
 
-private:
+protected:
     void write8BE(uint8_t value);
     void write16BE(uint16_t value);
     void write24BE(uint32_t value);
     void write32BE(uint32_t value);
     void write64BE(uint64_t value);
-
-private:
     size_t write_ftyp();
     void writeMdatSize(uint64_t offset, size_t size);
+    size_t mov_write_udta();
+    size_t mov_write_trak();
+    size_t mov_write_mvhd();
+
+protected:
     size_t writeMoov();
     int moveMoov(uint64_t to, uint64_t from, size_t bytes);
+
+protected:
     size_t mov_stco_size(const struct mov_track_t* track, uint64_t offset);
-    size_t mov_write_mvhd();
     size_t mov_write_iods();
-    size_t mov_write_trak();
-    size_t mov_write_udta();
     size_t mov_write_tkhd();
     size_t mov_write_edts();
     size_t mov_write_mdia();
@@ -84,8 +89,8 @@ private:
     size_t mov_write_vpcc();
     size_t mov_write_dops();
 
-private:
-    uint64_t _mdatSize;
+protected:
+    uint64_t _mdatSize = 0;
     uint64_t _mdatOffset;
 
     mov_ftyp_t _ftyp;
@@ -98,12 +103,12 @@ private:
 
     shared_ptr<mov_track_t> _track; // current stream
 	vector<shared_ptr<mov_track_t>> _tracks;
-	int _track_count;
+	int _track_count = 0;
 
-    const void* _udta;
-	uint64_t _udta_size;
+    const void* _udta = nullptr;
+	uint64_t _udta_size = 0;
 
-    unordered_map<int, shared_ptr<TrackInfo>> _mapTrackInfo;
+    unordered_map<int, int> _mapTrackInfo;
 };
 
 #endif //MP4Muxer_H

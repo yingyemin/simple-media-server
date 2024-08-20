@@ -71,10 +71,14 @@ public:
     static void scanDir(const string &path,const function<bool(const string &path,bool isDir)> &cb, bool enterSubdirectory = false);
 
 public:
-    bool open(const string& filePath);
+    bool open(const string& filePath, const string& mode);
     int getFileSize();
     StreamBuffer::Ptr read(int size = 1024 * 1024);
+    int read(char* data, int size = 1024 * 1024);
     bool write(const Buffer::Ptr& buffer);
+    bool write(const char* data, int size);
+    void seek(uint64_t size);
+    uint64_t tell();
 
 private:
     FILE* _fp = nullptr;

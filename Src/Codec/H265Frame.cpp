@@ -41,7 +41,7 @@ void H265Frame::split(const function<void(const FrameBuffer::Ptr& frame)>& cb)
             break;
         }
 
-        auto next_start = findNextNalu(start + prefix, end - start, next_prefix);
+        auto next_start = findNextNalu(start + prefix, end - start - prefix, next_prefix);
         if (next_start) {
             //找到下一帧
             

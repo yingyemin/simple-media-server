@@ -1,10 +1,12 @@
 #include "Mp4Demuxer.h"
 #include "Util/String.h"
 #include "Codec/AacTrack.h"
+#include "Codec/G711Track.h"
 #include "Codec/H264Frame.h"
 #include "Codec/H264Track.h"
 #include "Codec/H265Frame.h"
 #include "Codec/H265Track.h"
+#include "Log/Logger.h"
 
 #include <functional>
 
@@ -23,28 +25,28 @@ uint64_t MP4Demuxer::read64BE()
 
 uint32_t MP4Demuxer::read32BE()
 {
-    char value[4];
+    char value[4] = {0};
     read(value, 4);
     return readUint32BE(value);
 }
 
 uint32_t MP4Demuxer::read24BE()
 {
-    char value[3];
+    char value[3] = {0};
     read(value, 3);
     return readUint24BE(value);
 }
 
 uint16_t MP4Demuxer::read16BE()
 {
-    char value[2];
+    char value[2] = {0};
     read(value, 2);
     return readUint16BE(value);
 }
 
 uint8_t MP4Demuxer::read8BE()
 {
-    char value[1];
+    char value[1] = {0};
     read(value, 1);
     return value[0];
 }
@@ -488,7 +490,7 @@ int MP4Demuxer::mov_reader_seek(int64_t* timestamp)
 	return 0;
 }
 
-int MP4Demuxer::mov_reader_getinfo(struct mov_reader_trackinfo_t *ontrack, void* param)
+int MP4Demuxer::mov_reader_getinfo()
 {
 	int i;
 	uint32_t j;
@@ -515,6 +517,7 @@ int MP4Demuxer::mov_reader_getinfo(struct mov_reader_trackinfo_t *ontrack, void*
                     trackInfo->trackType_ = "video";
                     trackInfo->samplerate_ = 90000;
 
+					onTrackInfo(trackInfo);
                     _mapTrackInfo.emplace(trackInfo->index_, trackInfo);
                 } else if (entry->object_type_indication == MOV_OBJECT_HEVC) {
                     auto trackInfo = make_shared<H265Track>();
@@ -526,6 +529,9 @@ int MP4Demuxer::mov_reader_getinfo(struct mov_reader_trackinfo_t *ontrack, void*
                     trackInfo->payloadType_ = 96;
                     trackInfo->trackType_ = "video";
                     trackInfo->samplerate_ = 90000;
+
+					onTrackInfo(trackInfo);
+					_mapTrackInfo.emplace(trackInfo->index_, trackInfo);
                 }
 				break;
 
@@ -539,9 +545,35 @@ int MP4Demuxer::mov_reader_getinfo(struct mov_reader_trackinfo_t *ontrack, void*
                     trackInfo->trackType_ = "audio";
                     trackInfo->samplerate_ = entry->u.audio.samplerate;
                     trackInfo->bitPerSample_ = entry->u.audio.samplesize;
+					trackInfo->setAacInfo(entry->extra_data);
 
+					onTrackInfo(trackInfo);
                     _mapTrackInfo.emplace(trackInfo->index_, trackInfo);
-                }
+                } else if (entry->object_type_indication == MOV_OBJECT_G711a) {
+					auto trackInfo = make_shared<G711aTrack>();
+                    trackInfo->index_ = track->tkhd.track_ID;
+                    trackInfo->channel_ = entry->u.audio.channelcount;
+                    trackInfo->codec_ = "g711a";
+                    trackInfo->payloadType_ = 8;
+                    trackInfo->trackType_ = "audio";
+                    trackInfo->samplerate_ = entry->u.audio.samplerate;
+                    trackInfo->bitPerSample_ = entry->u.audio.samplesize;
+
+					onTrackInfo(trackInfo);
+                    _mapTrackInfo.emplace(trackInfo->index_, trackInfo);
+				} else if (entry->object_type_indication == MOV_OBJECT_G711u) {
+					auto trackInfo = make_shared<G711uTrack>();
+                    trackInfo->index_ = track->tkhd.track_ID;
+                    trackInfo->channel_ = entry->u.audio.channelcount;
+                    trackInfo->codec_ = "g711u";
+                    trackInfo->payloadType_ = 0;
+                    trackInfo->trackType_ = "audio";
+                    trackInfo->samplerate_ = entry->u.audio.samplerate;
+                    trackInfo->bitPerSample_ = entry->u.audio.samplesize;
+
+					onTrackInfo(trackInfo);
+                    _mapTrackInfo.emplace(trackInfo->index_, trackInfo);
+				}
 				break;
 
 			// case MOV_SUBT:
@@ -554,6 +586,8 @@ int MP4Demuxer::mov_reader_getinfo(struct mov_reader_trackinfo_t *ontrack, void*
 			}
 		}	
 	}
+
+	onReady();
 	return 0;
 }
 
@@ -650,6 +684,7 @@ int MP4Demuxer::mov_sample_seek(struct mov_track_t* track, int64_t timestamp)
 
 int MP4Demuxer::mov_read_av1c(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	struct mov_track_t* track = _track.get();
 	struct mov_sample_entry_t* entry = track->stsd.current.get();
 	if (entry->extra_data_size < box->size)
@@ -667,6 +702,7 @@ int MP4Demuxer::mov_read_av1c(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_avcc(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	struct mov_track_t* track = _track.get();
 	struct mov_sample_entry_t* entry = track->stsd.current.get();
 	if (entry->extra_data_size < box->size)
@@ -685,6 +721,7 @@ int MP4Demuxer::mov_read_avcc(const struct mov_box_t* box)
 // 8.6.1.3 Composition Time to Sample Box (p47)
 int MP4Demuxer::mov_read_ctts(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	uint32_t i, entry_count;
 	struct mov_stbl_t* stbl = &_track->stbl;
 
@@ -719,6 +756,7 @@ int MP4Demuxer::mov_read_ctts(const struct mov_box_t* box)
 // 8.6.1.4 Composition to Decode Box (p53)
 int MP4Demuxer::mov_read_cslg(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	uint8_t version;
 //	struct mov_stbl_t* stbl = &_track->stbl;
 
@@ -748,6 +786,7 @@ int MP4Demuxer::mov_read_cslg(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_dops(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
     struct mov_track_t* track = _track.get();
     struct mov_sample_entry_t* entry = track->stsd.current.get();
     if(box->size >= 10)
@@ -781,6 +820,7 @@ int MP4Demuxer::mov_read_dops(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_elst(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	uint32_t i, entry_count;
 	uint32_t version;
 	struct mov_track_t* track = _track.get();
@@ -827,6 +867,7 @@ int MP4Demuxer::mov_read_elst(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_base_descr(int bytes, int* tag,  int* len)
 {
+	logTrace << "get in" << __FUNCTION__;
 	int i;
 	uint32_t c;
 
@@ -879,6 +920,7 @@ class ES_Descriptor extends BaseDescriptor : bit(8) tag=ES_DescrTag {
 */
 int MP4Demuxer::mp4_read_es_descriptor(uint64_t bytes)
 {
+	logTrace << "get in" << __FUNCTION__;
 	uint64_t p1, p2;
 	p1 = tell();
 	/*uint32_t ES_ID = */read16BE();
@@ -907,6 +949,7 @@ abstract class DecoderSpecificInfo extends BaseDescriptor : bit(8)
 */
 int MP4Demuxer::mp4_read_decoder_specific_info(int len)
 {
+	logTrace << "get in" << __FUNCTION__;
 	struct mov_track_t* track = _track.get();
 	struct mov_sample_entry_t* entry = track->stsd.current.get();
 	if (entry->extra_data_size < len)
@@ -939,6 +982,7 @@ class DecoderConfigDescriptor extends BaseDescriptor : bit(8) tag=DecoderConfigD
 */
 int MP4Demuxer::mp4_read_decoder_config_descriptor(int len)
 {
+	logTrace << "get in" << __FUNCTION__;
 	struct mov_sample_entry_t* entry = _track->stsd.current.get();
 	entry->object_type_indication = (uint8_t)read8BE(); /* objectTypeIndication */
 	entry->stream_type = (uint8_t)read8BE() >> 2; /* stream type */
@@ -990,6 +1034,7 @@ tag=ExtSLConfigDescrTag {
 */
 int MP4Demuxer::mp4_read_sl_config_descriptor()
 {
+	logTrace << "get in" << __FUNCTION__;
 	int flags = 0;
 	int predefined = read8BE();
 	if (0 == predefined)
@@ -1034,6 +1079,7 @@ int MP4Demuxer::mp4_read_sl_config_descriptor()
 
 int MP4Demuxer::mp4_read_tag(uint64_t bytes)
 {
+	logTrace << "get in" << __FUNCTION__;
 	int tag, len;
 	uint64_t p1, p2, offset;
 
@@ -1077,6 +1123,7 @@ int MP4Demuxer::mp4_read_tag(uint64_t bytes)
 // ISO/IEC 14496-14:2003(E) 5.6 Sample Description Boxes (p15)
 int MP4Demuxer::mov_read_esds(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	read8BE(); /* version */
 	read24BE(); /* flags */
 	return mp4_read_tag(box->size - 4);
@@ -1084,6 +1131,7 @@ int MP4Demuxer::mov_read_esds(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_ftyp(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	if(box->size < 8) return -1;
 
 	_ftyp.major_brand = read32BE();
@@ -1101,6 +1149,7 @@ int MP4Demuxer::mov_read_ftyp(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_hdlr(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	struct mov_track_t* track = _track.get();
 
 	read8BE(); /* version */
@@ -1117,6 +1166,7 @@ int MP4Demuxer::mov_read_hdlr(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_hvcc(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	struct mov_track_t* track = _track.get();
 	struct mov_sample_entry_t* entry = track->stsd.current.get();
 	if (entry->extra_data_size < box->size)
@@ -1135,6 +1185,7 @@ int MP4Demuxer::mov_read_hvcc(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_leva(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	unsigned int i, level_count;
 	unsigned int assignment_type;
 
@@ -1167,6 +1218,7 @@ int MP4Demuxer::mov_read_leva(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_mdhd(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	uint32_t val;
 	struct mov_mdhd_t* mdhd = &_track->mdhd;
 
@@ -1199,6 +1251,7 @@ int MP4Demuxer::mov_read_mdhd(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_mehd(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
     unsigned int version;
     uint64_t fragment_duration;
     version = read8BE(); /* version */
@@ -1216,6 +1269,7 @@ int MP4Demuxer::mov_read_mehd(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_mfhd(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
     (void)box;
     read32BE(); /* version & flags */
     read32BE(); /* sequence_number */
@@ -1224,6 +1278,7 @@ int MP4Demuxer::mov_read_mfhd(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_mvhd(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	int i;
 	struct mov_mvhd_t* mvhd = &_mvhd;
 
@@ -1273,6 +1328,7 @@ int MP4Demuxer::mov_read_mvhd(const struct mov_box_t* box)
 
 int MP4Demuxer::mp4_read_extra(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	int r;
 	uint64_t p1, p2;
 	p1 = tell();
@@ -1291,6 +1347,7 @@ aligned(8) abstract class SampleEntry (unsigned int(32) format)
 */
 int MP4Demuxer::mov_read_sample_entry(struct mov_box_t* box, uint16_t* data_reference_index)
 {
+	logTrace << "get in" << __FUNCTION__;
 	box->size = read32BE();
 	box->type = read32BE();
 	skip(6); // const unsigned int(8)[6] reserved = 0;
@@ -1310,6 +1367,7 @@ class AudioSampleEntry(codingname) extends SampleEntry (codingname){
 */
 int MP4Demuxer::mov_read_audio(struct mov_sample_entry_t* entry)
 {
+	logTrace << "get in" << __FUNCTION__;
 	uint16_t qtver;
 	struct mov_box_t box;
 	mov_read_sample_entry(&box, &entry->data_reference_index);
@@ -1402,6 +1460,7 @@ class AVC2SampleEntry() extends VisualSampleEntry ('avc2'){
 */
 int MP4Demuxer::mov_read_video(struct mov_sample_entry_t* entry)
 {
+	logTrace << "get in" << __FUNCTION__;
 	struct mov_box_t box;
 	mov_read_sample_entry(&box, &entry->data_reference_index);
     entry->object_type_indication = mov_tag_to_object(box.type);
@@ -1449,6 +1508,7 @@ class PixelAspectRatioBox extends Box(�pasp�){
 */
 int MP4Demuxer::mov_read_pasp(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	read32BE();
 	read32BE();
 
@@ -1458,6 +1518,7 @@ int MP4Demuxer::mov_read_pasp(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_hint_sample_entry(struct mov_sample_entry_t* entry)
 {
+	logTrace << "get in" << __FUNCTION__;
 	struct mov_box_t box;
 	mov_read_sample_entry(&box, &entry->data_reference_index);
 	skip(box.size - 16);
@@ -1467,6 +1528,7 @@ int MP4Demuxer::mov_read_hint_sample_entry(struct mov_sample_entry_t* entry)
 
 int MP4Demuxer::mov_read_meta_sample_entry(struct mov_sample_entry_t* entry)
 {
+	logTrace << "get in" << __FUNCTION__;
 	struct mov_box_t box;
 	mov_read_sample_entry(&box, &entry->data_reference_index);
 	skip(box.size - 16);
@@ -1487,6 +1549,7 @@ class SimpleTextSampleEntry(codingname) extends PlainTextSampleEntry ('stxt') {
 */
 int MP4Demuxer::mov_read_text_sample_entry(struct mov_sample_entry_t* entry)
 {
+	logTrace << "get in" << __FUNCTION__;
 	struct mov_box_t box;
 	mov_read_sample_entry(&box, &entry->data_reference_index);
 	if (MOV_TEXT == box.type)
@@ -1549,6 +1612,7 @@ class TextSampleEntry() extends SampleEntry('tx3g') {
 
 int MP4Demuxer::mov_read_subtitle_sample_entry(struct mov_sample_entry_t* entry)
 {
+	logTrace << "get in" << __FUNCTION__;
 	struct mov_box_t box;
 	mov_read_sample_entry(&box, &entry->data_reference_index);
 	if (box.type == MOV_TAG('t', 'x', '3', 'g'))
@@ -1568,6 +1632,7 @@ int MP4Demuxer::mov_read_subtitle_sample_entry(struct mov_sample_entry_t* entry)
 
 int MP4Demuxer::mov_read_stsd(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	uint32_t i, entry_count;
 	struct mov_track_t* track = _track.get();
 
@@ -1637,6 +1702,7 @@ int MP4Demuxer::mov_read_stsd(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_sidx(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	unsigned int version;
 	unsigned int i, reference_count;
 
@@ -1671,6 +1737,7 @@ int MP4Demuxer::mov_read_sidx(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_smdm(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
     read8BE(); // version
     read24BE(); // flags
     
@@ -1690,6 +1757,7 @@ int MP4Demuxer::mov_read_smdm(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_coll(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
     read8BE(); // version
     read24BE(); // flags
     
@@ -1700,6 +1768,7 @@ int MP4Demuxer::mov_read_coll(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_vmhd(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	read8BE(); /* version */
 	read24BE(); /* flags */
 	read16BE(); /* graphicsmode */
@@ -1712,6 +1781,7 @@ int MP4Demuxer::mov_read_vmhd(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_smhd(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	read8BE(); /* version */
 	read24BE(); /* flags */
 	read16BE(); /* balance */
@@ -1735,6 +1805,7 @@ Reserved: Reserved for use by Apple. A 16-bit integer. Set this field to 0
 */
 int MP4Demuxer::mov_read_gmin(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	read8BE(); /* version */
 	read24BE(); /* flags */
 	read16BE(); /* graphics mode */
@@ -1756,6 +1827,7 @@ Matrix structure:A matrix structure associated with this text media
 */
 int MP4Demuxer::mov_read_text(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	int i;
 	// Matrix structure
 	for (i = 0; i < 9; i++)
@@ -1767,6 +1839,7 @@ int MP4Demuxer::mov_read_text(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_stco(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	uint32_t i, entry_count;
 	struct mov_stbl_t* stbl = &_track->stbl;
 
@@ -1807,6 +1880,7 @@ int MP4Demuxer::mov_read_stco(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_stsc(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	uint32_t i, entry_count;
 	struct mov_stbl_t* stbl = &_track->stbl;
 
@@ -1827,6 +1901,8 @@ int MP4Demuxer::mov_read_stsc(const struct mov_box_t* box)
         }
 	}
 	stbl->stsc_count = entry_count;
+	auto entry = make_shared<mov_stsc_t>();
+	stbl->stsc.push_back(entry);
 
 	for (i = 0; i < entry_count; i++)
 	{
@@ -1842,6 +1918,7 @@ int MP4Demuxer::mov_read_stsc(const struct mov_box_t* box)
 // 8.6.2 Sync Sample Box (p50)
 int MP4Demuxer::mov_read_stss(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	uint32_t i, entry_count;
 	struct mov_stbl_t* stbl = &_track->stbl;
 
@@ -1869,6 +1946,7 @@ int MP4Demuxer::mov_read_stss(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_stsz(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	uint32_t i = 0, sample_size, sample_count;
 	struct mov_track_t* track = _track.get();
 
@@ -1909,6 +1987,7 @@ int MP4Demuxer::mov_read_stsz(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_stts(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	uint32_t i, entry_count;
 	struct mov_stbl_t* stbl = &_track->stbl;
 
@@ -1942,6 +2021,7 @@ int MP4Demuxer::mov_read_stts(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_stz2(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	uint32_t i, v, field_size, sample_count;
 	struct mov_track_t* track = _track.get();
 
@@ -2004,6 +2084,7 @@ int MP4Demuxer::mov_read_stz2(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_tfdt(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
     unsigned int version;
     version = read8BE(); /* version */
     read24BE(); /* flags */
@@ -2022,6 +2103,7 @@ int MP4Demuxer::mov_read_tfdt(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_tfhd(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	uint32_t flags;
 	uint32_t track_ID;
 
@@ -2069,6 +2151,7 @@ int MP4Demuxer::mov_read_tfhd(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_tfra(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	unsigned int version;
 	uint32_t track_ID;
 	uint32_t length_size_of;
@@ -2115,6 +2198,7 @@ int MP4Demuxer::mov_read_tfra(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_tkhd(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	int i;
     uint8_t version;
     uint32_t flags;
@@ -2173,6 +2257,7 @@ int MP4Demuxer::mov_read_tkhd(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_trex(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	uint32_t track_ID;
 	struct mov_track_t* track;
 
@@ -2192,6 +2277,7 @@ int MP4Demuxer::mov_read_trex(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_trun(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	unsigned int version;
 	uint32_t flags;
 	uint32_t i, sample_count;
@@ -2277,6 +2363,7 @@ int MP4Demuxer::mov_read_trun(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_vpcc(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
     struct mov_track_t* track = _track.get();
     struct mov_sample_entry_t* entry = track->stsd.current.get();
     if(box->size < 4)
@@ -2299,6 +2386,7 @@ int MP4Demuxer::mov_read_vpcc(const struct mov_box_t* box)
 
 void MP4Demuxer::mov_apply_stco(struct mov_track_t* track)
 {
+	logTrace << "get in" << __FUNCTION__;
     uint32_t i, j, k;
     uint64_t n, chunk_offset;
     struct mov_stbl_t* stbl = &track->stbl;
@@ -2329,6 +2417,7 @@ void MP4Demuxer::mov_apply_stco(struct mov_track_t* track)
 
 void MP4Demuxer::mov_apply_elst(struct mov_track_t *track)
 {
+	logTrace << "get in" << __FUNCTION__;
     size_t i;
 
     // edit list
@@ -2346,6 +2435,7 @@ void MP4Demuxer::mov_apply_elst(struct mov_track_t *track)
 
 void MP4Demuxer::mov_apply_elst_tfdt(struct mov_track_t *track)
 {
+	logTrace << "get in" << __FUNCTION__;
     size_t i;
 
     for (i = 0; i < track->elst_count; i++)
@@ -2359,6 +2449,7 @@ void MP4Demuxer::mov_apply_elst_tfdt(struct mov_track_t *track)
 
 void MP4Demuxer::mov_apply_stts(struct mov_track_t* track)
 {
+	logTrace << "get in" << __FUNCTION__;
     size_t i, j, n;
     struct mov_stbl_t* stbl = &track->stbl;
 
@@ -2375,6 +2466,7 @@ void MP4Demuxer::mov_apply_stts(struct mov_track_t* track)
 
 void MP4Demuxer::mov_apply_ctts(struct mov_track_t* track)
 {
+	logTrace << "get in" << __FUNCTION__;
     size_t i, j, n;
     int32_t delta, dts_shift;
     struct mov_stbl_t* stbl = &track->stbl;
@@ -2400,6 +2492,7 @@ void MP4Demuxer::mov_apply_ctts(struct mov_track_t* track)
 
 void MP4Demuxer::mov_apply_stss(struct mov_track_t* track)
 {
+	logTrace << "get in" << __FUNCTION__;
 	size_t i, j;
 	struct mov_stbl_t* stbl = &track->stbl;
 
@@ -2413,6 +2506,7 @@ void MP4Demuxer::mov_apply_stss(struct mov_track_t* track)
 
 struct mov_track_t* MP4Demuxer::mov_find_track(uint32_t track)
 {
+	logTrace << "get in" << __FUNCTION__;
     int i;
     for (i = 0; i < _track_count; i++)
     {
@@ -2424,6 +2518,7 @@ struct mov_track_t* MP4Demuxer::mov_find_track(uint32_t track)
 
 struct mov_track_t* MP4Demuxer::mov_fetch_track(uint32_t track)
 {
+	logTrace << "get in" << __FUNCTION__;
     struct mov_track_t* t;
     t = mov_find_track(track);
     if (NULL == t)
@@ -2440,6 +2535,7 @@ struct mov_track_t* MP4Demuxer::mov_fetch_track(uint32_t track)
 
 struct mov_track_t* MP4Demuxer::mov_add_track()
 {
+	logTrace << "get in" << __FUNCTION__;
     auto track = make_shared<mov_track_t>();
     _tracks.push_back(track);
     track->start_dts = INT64_MIN;
@@ -2454,6 +2550,7 @@ struct mov_track_t* MP4Demuxer::mov_add_track()
 
 int MP4Demuxer::mov_read_tx3g(const struct mov_box_t* box)
 {
+	logTrace << "get in" << __FUNCTION__;
 	struct mov_track_t* track = _track.get();
 	struct mov_sample_entry_t* entry = track->stsd.current.get();
 	if (entry->extra_data_size < box->size)

@@ -40,7 +40,9 @@ void HttpHlsClient::start(const string& localIp, int localPort, const string& ur
     //     const_cast<shared_ptr<HttpClientApi> &>(client).reset();
     // });
     logInfo << "connect to utl: " << url;
-    sendHeader(url, timeout);
+    if (sendHeader(url, timeout) != 0) {
+        close();
+    }
 }
 
 void HttpHlsClient::onHttpRequest()

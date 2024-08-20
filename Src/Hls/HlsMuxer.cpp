@@ -201,8 +201,9 @@ void HlsMuxer::updateM3u8()
 			if (ts.second->dts() > maxDuration) {
 				maxDuration = ts.second->dts();
 			}
+			auto pos = ts.first.find_last_of("/");
 			ss << "#EXTINF:" << ts.second->dts() / 1000.0 << "\n"
-			   << ts.first + "\n";
+			   << ts.first.substr(pos + 1) + "\n";
 		}
 
 	}
@@ -225,9 +226,9 @@ void HlsMuxer::updateM3u8()
 	_m3u8 = ssHeader.str() + ss.str();
 
 	
-	FILE* mfp = fopen("test.m3u8", "wb");
-	fwrite(_m3u8.data(), _m3u8.size(), 1, mfp);
-	fclose(mfp);
+	// FILE* mfp = fopen("test.m3u8", "wb");
+	// fwrite(_m3u8.data(), _m3u8.size(), 1, mfp);
+	// fclose(mfp);
 
 	if (_onReady) {
 		logInfo << "hls onready";
@@ -253,7 +254,8 @@ string HlsMuxer::getM3u8(void* key)
 	   << "#EXT-X-STREAM-INF:BANDWIDTH=1280000\n";
 	{
 		// lock_guard<mutex> lck(_tsMtx);
-		ss << _parse.path_ << ".m3u8?uid=" << uid;
+		auto pos = _parse.path_.find_last_of("/");
+		ss << _parse.path_.substr(pos + 1) << ".m3u8?uid=" << uid;
 	}
 
 	return ss.str();

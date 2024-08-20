@@ -16,11 +16,12 @@ class HttpClient : public TcpClient
 {
 public:
     HttpClient(const EventLoop::Ptr& loop);
+    HttpClient(const EventLoop::Ptr& loop, bool enableTls);
     ~HttpClient();
 
 public:
     int start(const string& localIp, int localPort, const string& peerIp, int peerPort, int timeout);
-    void sendHeader(const string& localIp, int localPort, const string& url, int timeout);
+    int sendHeader(const string& localIp, int localPort, const string& url, int timeout);
 
     void onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len) override;
     void onError(const string& err) override;
@@ -31,7 +32,7 @@ public:
     void setContent(const string& content);
     void setMethod(const string& method);
 
-    void sendHeader(const string& url, int timeout);
+    int sendHeader(const string& url, int timeout);
     void sendContent(const char* data, int len);
     void send(const string& msg);
 

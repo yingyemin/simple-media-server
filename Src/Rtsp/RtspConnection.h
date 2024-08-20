@@ -68,6 +68,7 @@ private:
     string _baseUrl;
     string _authNonce;
     string _sessionId;
+    string _payloadType;
     EventLoop::Ptr _loop;
     Socket::Ptr _socket;
     RtspParser _parser;

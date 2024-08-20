@@ -10,6 +10,11 @@ HttpClientApi::HttpClientApi(const EventLoop::Ptr& loop)
     ,_loop(loop)
 {}
 
+HttpClientApi::HttpClientApi(const EventLoop::Ptr& loop, bool enableTls)
+    :HttpClient(loop, enableTls)
+    ,_loop(loop)
+{}
+
 HttpClientApi::~HttpClientApi()
 {}
 

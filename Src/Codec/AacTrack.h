@@ -22,8 +22,10 @@ public:
 
 public:
     string getSdp() override;
+    string getConfig() override {return _aacConfig;};
     string getAacInfo();
     void setAacInfo(const string& aacConfig);
+    void setAacInfo(int profile, int channel, int sampleRate);
     string getAdtsHeader(int frameSize);
     void setAacInfoByAdts(const char* data, int len);
 

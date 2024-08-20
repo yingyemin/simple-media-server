@@ -34,6 +34,7 @@ public:
     void stop() override;
     void pause() override;
     void setOnClose(const function<void()>& cb) override;
+    void addOnReady(void* key, const function<void()>& onReady) override;
 
 public:
     void close();
@@ -86,6 +87,8 @@ private:
     shared_ptr<TimerTask> _dtlsTimeTask;
     WebrtcMediaSource::QueType::DataQueReaderT::Ptr _playReader;
     function<void()> _onClose;
+    mutex _mtx;
+    unordered_map<void*, function<void()>> _mapOnReady;
     unordered_map<string, string> _mapParam;
 };
 

@@ -94,8 +94,38 @@ void TlsContext::initSsl()
     SSL_set_bio(_ssl.get(), _bioIn, _bioOut);
 
     // SSL setup active, as server role.
-    SSL_set_accept_state(_ssl.get());
+    if (_server) {
+        SSL_set_accept_state(_ssl.get());
+    } else {
+        SSL_set_connect_state(_ssl.get());
+    }
     SSL_set_mode(_ssl.get(), SSL_MODE_ENABLE_PARTIAL_WRITE);
+}
+
+void TlsContext::handshake()
+{
+    int r0 = SSL_do_handshake(_ssl.get()); int r1 = SSL_get_error(_ssl.get(), r0); ERR_clear_error();
+    if (r0 != -1 || r1 != SSL_ERROR_WANT_READ) {
+        logError << "handshake failed: " << getSslError();
+        return ;
+    }
+
+    uint8_t* data = NULL;
+    int size = BIO_get_mem_data(_bioOut, &data);
+    if (!data || size <= 0) {
+        logError << "BIO_get_mem_data failed: " << getSslError();
+        return ;
+    }
+    auto buffer = make_shared<StreamBuffer>();
+    buffer->setCapacity(size + 1);
+    buffer->assign((char*)data, size);
+    if (_socket) {
+        _socket->send(buffer);
+    }
+    if ((r0 = BIO_reset(_bioOut)) != 1) {
+        logError << "BIO_reset r0=" << r0 << " " << getSslError();
+        return ;
+    }
 }
 
 void TlsContext::onRead(const StreamBuffer::Ptr &buffer) {
@@ -120,8 +150,11 @@ void TlsContext::onRead(const StreamBuffer::Ptr &buffer) {
             logWarn << "handshake r0: " << r0;
 
             if (r0 == 1 && r1 == SSL_ERROR_NONE) {
-                logInfo << "handshake success =================== ";
+                logInfo << "handshake success =================== " << _server;
                 handshakeFlag = 2;
+                if (!_server) {
+                    send(nullptr);
+                }
                 break;
             } else {
                 uint8_t* data = nullptr;
@@ -209,17 +242,21 @@ ssize_t TlsContext::send(Buffer::Ptr buffer)
 {
     int totalSendSize = 0;
 
-    if (!buffer->size()) {
-        return 0;
+    if (buffer && buffer->size()) {
+        _buffer_send.emplace_back(buffer);
     }
     
-    if (!_server && !_hasHandshake) {
-        _hasHandshake = true;
-        SSL_do_handshake(_ssl.get());
+    // if (!_server && !_hasHandshake) {
+    //     _hasHandshake = true;
+    //     SSL_do_handshake(_ssl.get());
+    // }
+    
+    logInfo << "buffer list size: " << _buffer_send.size() << this << ", thresd: " << Thread::getThreadName() << endl;
+    // logInfo << "buffer size: " << buffer->size() << this << ", thresd: " << Thread::getThreadName() << endl;
+
+    if (!SSL_is_init_finished(_ssl.get()) && !_server) {
+        return 0;
     }
-    _buffer_send.emplace_back(buffer);
-    cout << "buffer list size: " << _buffer_send.size() << this << ", thresd: " << Thread::getThreadName() << endl;
-    cout << "buffer size: " << buffer->size() << this << ", thresd: " << Thread::getThreadName() << endl;
 
     if (!SSL_is_init_finished(_ssl.get()) || _buffer_send.empty()) {
         //ssl未握手结束或没有需要发送的数据

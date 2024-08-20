@@ -18,6 +18,7 @@ class GB28181DecodeTrack : public enable_shared_from_this<GB28181DecodeTrack>
 public:
     using Ptr = shared_ptr<GB28181DecodeTrack>;
     GB28181DecodeTrack(int trackIndex);
+    GB28181DecodeTrack(int trackIndex, bool isPs);
     virtual ~GB28181DecodeTrack()  {}
 
 public:
@@ -45,10 +46,18 @@ public:
     void setOnTrackInfo(const function<void(const shared_ptr<TrackInfo>& trackInfo)>& cb);
     void setOnReady(const function<void()>& cb);
 
+    void createVideoTrack(const string& videoCodec);
+    void createAudioTrack(const string& audioCodec, int channel, int sampleBit, int sampleRate);
+
 private:
     bool _startDemuxer = false;
     bool _startdecode = false;
     bool _setup = false;
+    bool _isPs = false;
+    bool _firstVps = true;
+    bool _firstSps = true;
+    bool _firstPps = true;
+    bool _hasReady = false;
     uint16_t _seq;
     uint32_t _ssrc;
     uint32_t _timestap;

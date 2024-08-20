@@ -15,6 +15,7 @@
 #include "RecordReader.h"
 #include "EventPoller/EventLoop.h"
 #include "Net/TcpConnection.h"
+#include "MediaClient.h"
 
 using namespace std;
 
@@ -54,6 +55,10 @@ public:
             const string& type, const function<void(const MediaSource::Ptr &src)> &cb, 
             const std::function<MediaSource::Ptr()> &create, void* connKey);
 
+    static void pullStreamFromOrigin(const string& uri, const string& vhost, const string &protocol, 
+            const string& type, const function<void(const MediaSource::Ptr &src)> &cb, 
+            const std::function<MediaSource::Ptr()> &create, void* connKey);
+
     static void release(const string &uri, const string& vhost);
 
     static MediaSource::Ptr get(const string& uri, const string& vhost);
@@ -88,6 +93,8 @@ public:
     virtual void addConnection(void* key);
     virtual void delConnection(void* key);
     virtual unordered_map<int, shared_ptr<TrackInfo>> getTrackInfo() {return _mapTrackInfo;}
+    virtual int playerCount() {return 0;}
+    virtual void getClientList(const function<void(const list<ClientInfo>& info)>& func) {}
     
     void setStatus(const SourceStatus status) {_status = status;}
     int getStatus() {return _status;}
@@ -119,6 +126,8 @@ protected:
 private:
     static recursive_mutex _mtxTotalSource;
     static unordered_map<string/*uri_vhost*/ , MediaSource::Ptr> _totalSource;
+    static MediaClient::Ptr _player;
+    static unordered_map<MediaClient*, MediaClient::Ptr> _mapPusher;
 
 private:
     shared_ptr<TimerTask> _task;
@@ -130,8 +139,6 @@ private:
 
     recursive_mutex _mtxOnDetachFunc;
     unordered_map<void*, onDetachFunc> _mapOnDetachFunc;
-    // unordered_map<Player*, Player::Ptr> _mapPlayer;
-    // unordered_map<Pusher*, Pusher::Ptr> _mapPusher;
 };
 
 

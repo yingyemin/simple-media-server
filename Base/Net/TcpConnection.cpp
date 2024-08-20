@@ -21,7 +21,6 @@ TcpConnection::TcpConnection(const EventLoop::Ptr& loop, const Socket::Ptr& sock
 {
     if (enableTls) {
         _tlsCtx = make_shared<TlsContext>(true, socket);
-        _tlsCtx->initSsl();
 
         _tlsCtx->setOnConnRead([this](const StreamBuffer::Ptr& buffer){
             onRead(buffer, nullptr, 0);
@@ -30,6 +29,8 @@ TcpConnection::TcpConnection(const EventLoop::Ptr& loop, const Socket::Ptr& sock
         _tlsCtx->setOnConnSend([this](const Buffer::Ptr& buffer){
             send(buffer);
         });
+        
+        _tlsCtx->initSsl();
     }
 }
 

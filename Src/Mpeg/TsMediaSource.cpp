@@ -306,3 +306,20 @@ void TsMediaSource::inputTs(const StreamBuffer::Ptr& buffer)
         demuxer->onTsPacket(buffer->data(), buffer->size(), 0);
     }
 }
+
+int TsMediaSource::playerCount()
+{
+    int count = _ring->readerCount();
+    lock_guard<mutex> lck(_mtxTrack);
+    count -= _mapSink.size();
+
+    return count;
+}
+
+void TsMediaSource::getClientList(const function<void(const list<ClientInfo>& info)>& func)
+{
+    list<ClientInfo> clientInfo;
+    _ring->getInfoList([func](list<ClientInfo> &infoList){
+        func(infoList);
+    });
+}

@@ -63,7 +63,9 @@ Variant Config::get(json& value)
         string str = value;
         return str;
     } else {
-        return value;
+        logInfo << "get a value: " << value;
+        float i = value;
+        return i;
     }
 }
 

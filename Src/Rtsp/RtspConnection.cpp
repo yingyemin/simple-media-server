@@ -7,6 +7,9 @@
 #include "Util/String.h"
 #include "RtspAuth.h"
 #include "Common/Define.h"
+#include "RtspPsMediaSource.h"
+#include "Common/Config.h"
+#include "Hook/MediaHook.h"
 
 #include <sstream>
 
@@ -204,7 +207,11 @@ void RtspConnection::handleDescribe_l()
         if (!self) {
             return nullptr;
         }
-        return make_shared<RtspMediaSource>(self->_urlParser, nullptr, true);
+        if (self->_urlParser.type_ == "ps") {
+            return make_shared<RtspPsMediaSource>(self->_urlParser, nullptr, true);
+        } else {
+            return make_shared<RtspMediaSource>(self->_urlParser, nullptr, true);
+        }
     }, this);
 }
 
@@ -217,18 +224,41 @@ void RtspConnection::handleDescribe()
     // _baseUrl = _parser._url;
     _urlParser.parse(_baseUrl);
     // 配置读取
-    // bool needAuth = true;
-    // if (needAuth) {
+    static int needAuth = Config::instance()->getAndListen([](const json &config){
+        needAuth = Config::instance()->get("Rtsp", "Server", "Server1", "rtspAuth");
+    }, "Rtsp", "Server", "Server1", "rtspAuth");
+
+    if (needAuth) {
         if (RtspAuth::rtspAuth(_authNonce, _parser)) {
             handleDescribe_l();
         } else {
             authFailed();
-            return ;
         }
-    // } else {
-        // RtspPublishHook::publishAuth(bind(&RtspConnection::handleDescribe_l, shared_from_this()));
-        // return ;
-    // }
+    } else {
+        // PlayInfo info;
+        // info.protocol = _urlParser.protocol_;
+        // info.type = _urlParser.type_;
+        // info.uri = _urlParser.path_;
+        // info.vhost = _urlParser.vhost_;
+        // info.params = _urlParser.param_;
+
+        // weak_ptr<RtspConnection> wSelf = shared_from_this();
+        // MediaHook::onPlay(info, [wSelf](const PlayResponse &rsp){
+        //     auto self = wSelf.lock();
+        //     if (!self) {
+        //         return ;
+        //     }
+
+        //     if (!rsp.authResult) {
+        //         self->sendBadRequst("on publish failed" + rsp.err);
+        //         return ;
+        //     }
+
+        //     handleDescribe_l();
+        // });
+
+        handleDescribe_l();
+    }
 
     // 查找源，获取sdp
     // string sdp = "";
@@ -281,7 +311,11 @@ void RtspConnection::handleAnnounce_l() {
     auto source = MediaSource::getOrCreate(_urlParser.path_, _urlParser.vhost_
                         , _urlParser.protocol_, _urlParser.type_
                         , [this](){
-                            return make_shared<RtspMediaSource>(_urlParser, _loop);
+                            if (_urlParser.type_ == "ps") {
+                                return dynamic_pointer_cast<RtspMediaSource>(make_shared<RtspPsMediaSource>(_urlParser, _loop));
+                            } else {
+                                return make_shared<RtspMediaSource>(_urlParser, _loop);
+                            }
                         });
     if (!source) {
         string err = "publish repeat";
@@ -314,7 +348,12 @@ void RtspConnection::handleAnnounce_l() {
     _sdpParser.parse(_parser._content);
     int trackIndex = 0;
     for (auto& media : _sdpParser._vecSdpMedia) {
-        auto track = make_shared<RtspDecodeTrack>(trackIndex++, media);
+        RtspTrack::Ptr track;
+        if (_payloadType == "ps") {
+            track = make_shared<RtspPsDecodeTrack>(trackIndex++, media);
+        } else {
+            track = make_shared<RtspDecodeTrack>(trackIndex++, media);
+        }
         // logInfo << "type: " << track->getTrackType();
         logInfo << "index: " << track->getTrackIndex() << ", codec : " << media->codec_
                     << ", control: " << media->control_;
@@ -342,17 +381,39 @@ void RtspConnection::handleAnnounce()
     // _baseUrl = _parser._url;
     _urlParser.parse(_baseUrl);
     // 配置读取
-    // bool needAuth = true;
-    // if (needAuth) {
-    //     if (RtspAuth::rtspAuth(_authNonce, _parser)) {
+    static int needAuth = Config::instance()->getAndListen([](const json &config){
+        needAuth = Config::instance()->get("Rtsp", "Server", "Server1", "rtspAuth");
+    }, "Rtsp", "Server", "Server1", "rtspAuth");
+
+    if (needAuth) {
+        if (RtspAuth::rtspAuth(_authNonce, _parser)) {
             handleAnnounce_l();
-    //     } else {
-            //     authFailed();
-            // }
-    // } else {
-        // RtspPublishHook::publishAuth(bind(&RtspConnection::handleAnnounce_l, shared_from_this()));
-        // return ;
-    // }
+        } else {
+            authFailed();
+        }
+    } else {
+        PublishInfo info;
+        info.protocol = _urlParser.protocol_;
+        info.type = _urlParser.type_;
+        info.uri = _urlParser.path_;
+        info.vhost = _urlParser.vhost_;
+        info.params = _urlParser.param_;
+
+        weak_ptr<RtspConnection> wSelf = dynamic_pointer_cast<RtspConnection>(shared_from_this());
+        MediaHook::instance()->onPublish(info, [wSelf](const PublishResponse &rsp){
+            auto self = wSelf.lock();
+            if (!self) {
+                return ;
+            }
+
+            if (!rsp.authResult) {
+                self->sendBadRequst("on publish failed" + rsp.err);
+                return ;
+            }
+
+            self->handleAnnounce_l();
+        });
+    }
 }
 
 void RtspConnection::handleRecord()
@@ -617,7 +678,7 @@ void RtspConnection::handlePlay()
         }
     }
 
-    auto tracks = rtspSrc->getTrack();
+    // auto tracks = rtspSrc->getTrack();
     string rtpInfo;
     string controlUrl;
     for (auto& media : _sdpParser._vecSdpMedia) {
@@ -678,9 +739,15 @@ void RtspConnection::handlePlay()
             if (!self) {
                 return ret;
             }
-            ret.ip_ = self->_socket->getLocalIp();
-            ret.port_ = self->_socket->getLocalPort();
+            ret.ip_ = self->_socket->getPeerIp();
+            ret.port_ = self->_socket->getPeerPort();
             ret.protocol_ = PROTOCOL_RTSP;
+            ret.close_ = [weak_self](){
+                auto self = weak_self.lock();
+                if (self) {
+                    self->onError();
+                }
+            };
             return ret;
         });
         _playReader->setDetachCB([weak_self]() {

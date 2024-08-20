@@ -15,16 +15,17 @@
         "size" : 0
     },
     "Util" : {
-        "stopNonePlayerStream" : true,
+        "stopNonePlayerStream" : 1,
         "nonePlayerWaitTime" : 5000,
-        "enableLoadFromFile" : true
+        "enableLoadFromFile" : 1
     },
     "Hook" : {
         "Type" : "http",
         "Http" : {
             "timeout" : 10,
             "onStreamStatus" : "http://127.0.0.1/api/v1/onStreamStatus",
-            "onNonePlayer" : "http://127.0.0.1/api/v1/onNonePlayer"
+            "onNonePlayer" : "http://127.0.0.1/api/v1/onNonePlayer",
+            "onPublish" : "http://127.0.0.1/api/v1/onPublish"
         },
         "Kafka" : {
             "endpoint" : "127.0.0.1:9092",
@@ -33,6 +34,11 @@
     },
     "Record" : {
         "rootPath" : "./"
+    },
+    "Cdn" : {
+        "mode" : "forward",
+        "endpoint" : "122.51.204.244:1935",
+        "protocol" : "rtmp"
     },
     "Rtsp" : {
         "Server" : {
@@ -43,7 +49,8 @@
                 "timeout" : 5000,
                 "threads" : 1,
                 "udpPortMin" : 10000,
-                "udpPortMax" : 20000
+                "udpPortMax" : 20000,
+                "rtspAuth" : 0
             }
         }
     },
@@ -65,7 +72,7 @@
                 "sslPort" : 443,
                 "timeout" : 5000,
                 "threads" : 1,
-                "enableViewDir" : 1
+                "enableViewDir" : true
             }
         }
     },
@@ -92,6 +99,19 @@
                 "sockType" : 3,
                 "udpPortMax" : 20000,
                 "udpPortMin" : 16000
+            }
+        }
+    },
+    "Ehome5" : {
+        "Server" : {
+            "timeout" : 5000,
+            "Server1" : {
+                "ip" : "0.0.0.0",
+                "port" : 26000,
+                "threads" : 1,
+                "sockType" : 3,
+                "udpPortMax" : 30000,
+                "udpPortMin" : 26000
             }
         }
     },
@@ -129,7 +149,7 @@
                 "port" : 7000,
                 "threads" : 1,
                 "sockType" : 3,
-                "enableTcp" : 1,
+                "enableTcp" : true,
                 "udpPortMax" : 10000,
                 "udpPortMin" : 6000
             }

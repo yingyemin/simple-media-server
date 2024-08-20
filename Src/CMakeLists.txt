@@ -44,6 +44,9 @@ aux_source_directory("GB28181" SRC_GB28181)
 ###Ehome2########
 aux_source_directory("Ehome2" SRC_Ehome2)
 
+###Ehome5########
+aux_source_directory("Ehome5" SRC_Ehome5)
+
 ###JT1078########
 aux_source_directory("JT1078" SRC_JT1078)
 
@@ -77,6 +80,7 @@ add_library(src STATIC
     ${SRC_MP4}
     ${SRC_GB28181}
     ${SRC_Ehome2}
+    ${SRC_Ehome5}
     ${SRC_JT1078}
     ${SRC_Flv}
     ${SRC_Hls}

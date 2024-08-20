@@ -34,6 +34,9 @@ public:
     void setOnClose(const function<void()>& cb);
 
 private:
+    void readMp4(const string& path);
+
+private:
     uint64_t _lastFrameTime = 0;
     string _filePath;
     File _file;

@@ -26,17 +26,23 @@ public:
     void heartbeat();
     bool isAlive() {return _alive;}
 
+    void setPayloadType(const string& payloadType);
+    void createVideoTrack(const string& videoCodec);
+    void createAudioTrack(const string& audioCodec, int channel, int sampleBit, int sampleRate);
+
 private:
     bool _alive = true;
     string _uri;
     string _vhost;
     string _protocol;
     string _type;
+    string _payloadType = "ps";
     TimeClock _timeClock;
     shared_ptr<sockaddr> _addr;
     EventLoop::Ptr _loop;
     RtpSort::Ptr _sort;
-    GB28181DecodeTrack::Ptr _track;
+    GB28181DecodeTrack::Ptr _videoTrack;
+    GB28181DecodeTrack::Ptr _audioTrack;
     GB28181MediaSource::Wptr _source;
 };
 

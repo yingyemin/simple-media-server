@@ -199,6 +199,12 @@ void RtspMediaSource::addSink(const MediaSource::Ptr &src)
     if (_status == SourceStatus::AVAILABLE) {
         src->onReady();
     }
+    if (_mapSink.size() == 1) {
+        lock_guard<mutex> lck(_mtxTrack);
+        for (auto& track : _mapRtspTrack) {
+            track.second->startDecode();
+        }
+    }
     weak_ptr<RtspMediaSource> weakSelf = std::static_pointer_cast<RtspMediaSource>(shared_from_this());
     _ring->addOnWrite(src.get(), [weakSelf](DataType in, bool is_key){
         auto strongSelf = weakSelf.lock();
@@ -214,12 +220,6 @@ void RtspMediaSource::addSink(const MediaSource::Ptr &src)
             }
         }
     });
-    if (_mapSink.size() == 1) {
-        lock_guard<mutex> lck(_mtxTrack);
-        for (auto& track : _mapRtspTrack) {
-            track.second->startDecode();
-        }
-    }
 }
 
 void RtspMediaSource::delSink(const MediaSource::Ptr &src)
@@ -248,9 +248,9 @@ void RtspMediaSource::delSink(const MediaSource::Ptr &src)
 
 void RtspMediaSource::onFrame(const FrameBuffer::Ptr& frame)
 {
-    // logInfo << "on get a frame: index : " << frame->getTrackIndex()
-    //           << ", codec: " << frame->codec() << ", size: " << frame->size()
-    //           << ", nal type: " << (int)frame->getNalType() << ", start size: " << frame->startSize();
+    logInfo << "on get a frame: index : " << frame->getTrackIndex()
+              << ", codec: " << frame->codec() << ", size: " << frame->size()
+              << ", nal type: " << (int)frame->getNalType() << ", start size: " << frame->startSize();
     auto it = _mapRtspTrack.find(frame->getTrackIndex());
     if (it == _mapRtspTrack.end()) {
         return ;
@@ -277,4 +277,21 @@ string RtspMediaSource::getSdp()
 {
     lock_guard<mutex> lck(_mtxSdp);
     return _sdp;
+}
+
+int RtspMediaSource::playerCount()
+{
+    int count = _ring->readerCount();
+    lock_guard<mutex> lck(_mtxTrack);
+    count -= _mapSink.size();
+
+    return count;
+}
+
+void RtspMediaSource::getClientList(const function<void(const list<ClientInfo>& info)>& func)
+{
+    list<ClientInfo> clientInfo;
+    _ring->getInfoList([func](list<ClientInfo> &infoList){
+        func(infoList);
+    });
 }

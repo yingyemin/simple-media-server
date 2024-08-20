@@ -452,6 +452,12 @@ bool RtmpClient::handlePlay()
 
     _source = rtmpSrc; 
 
+    lock_guard<mutex> lck(_mtx);
+    for (auto &iter : _mapOnReady) {
+        rtmpSrc->addOnReady(iter.first, iter.second);
+    }
+    _mapOnReady.clear();
+
     return true;
 }
 
@@ -762,4 +768,15 @@ void RtmpClient::sendRtmpChunks(uint32_t csid, RtmpMessage& rtmp_msg)
 void RtmpClient::setOnClose(const function<void()>& cb)
 {
     _onClose = cb;
+}
+
+void RtmpClient::addOnReady(void* key, const function<void()>& onReady)
+{
+    lock_guard<mutex> lck(_mtx);
+    auto rtmpSrc =_source.lock();
+    if (rtmpSrc) {
+        rtmpSrc->addOnReady(key, onReady);
+        return ;
+    }
+    _mapOnReady.emplace(key, onReady);
 }

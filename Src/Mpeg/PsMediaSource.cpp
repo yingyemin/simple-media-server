@@ -301,3 +301,20 @@ void PsMediaSource::inputPs(const FrameBuffer::Ptr& buffer)
         demuxer->onPsStream(buffer->data(), buffer->size(), 0, 0);
     }
 }
+
+int PsMediaSource::playerCount()
+{
+    int count = _ring->readerCount();
+    lock_guard<mutex> lck(_mtxTrack);
+    count -= _mapSink.size();
+
+    return count;
+}
+
+void PsMediaSource::getClientList(const function<void(const list<ClientInfo>& info)>& func)
+{
+    list<ClientInfo> clientInfo;
+    _ring->getInfoList([func](list<ClientInfo> &infoList){
+        func(infoList);
+    });
+}

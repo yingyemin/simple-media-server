@@ -377,6 +377,8 @@ void HttpConnection::handleGet()
 
     if (endWith(_urlParser.path_, ".flv") && startWith(_urlParser.path_, "/live")) {
         handleFlvStream();
+    } else if (endWith(_urlParser.path_, "sms.m3u8") && startWith(_urlParser.path_, "/live")) {
+        handleSmsHlsM3u8();
     } else if (endWith(_urlParser.path_, ".m3u8") && startWith(_urlParser.path_, "/live")) {
         handleHlsM3u8();
     } else if (endWith(_urlParser.path_, ".ts") && startWith(_urlParser.path_, "/live")) {
@@ -387,6 +389,8 @@ void HttpConnection::handleGet()
         }
     } else if (endWith(_urlParser.path_, ".ps") && startWith(_urlParser.path_, "/live")) {
         handlePs();
+    } else if (endWith(_urlParser.path_, ".mp4") && startWith(_urlParser.path_, "/live")) {
+        handleFmp4();
     } else {
         logInfo << "download file or dir: " << _urlParser.path_;
         _httpFile = make_shared<HttpFile>(_parser);
@@ -498,6 +502,36 @@ void HttpConnection::handleFlvStream()
     };
 }
 
+void HttpConnection::handleSmsHlsM3u8()
+{
+    string path = _urlParser.path_;
+    trimBack(path, ".sms.m3u8");
+    auto pos = path.find_last_of("/");
+    auto streamName = path.substr(pos + 1);
+
+    stringstream ss;
+    ss << "#EXTM3U\n"
+	   << "#EXT-X-VERSION:3\n"
+       << "#EXT-X-ALLOW-CACHE:NO\n"
+	   << "#EXT-X-TARGETDURATION:" << 1 /*maxDuration / 1000.0*/ << "\n"
+	   << "#EXT-X-MEDIA-SEQUENCE:" << 0 << "\n"
+       << "#EXTINF:" << 1 << "\n"
+       << streamName << ".ts\n"
+       << "#EXTINF:" << 1 << "\n"
+       << streamName << ".ts\n"
+       << "#EXTINF:" << 1 << "\n"
+       << streamName << ".ts\n";
+
+    logInfo << "ts path : " << streamName;
+
+    HttpResponse rsp;
+    rsp._status = 200;
+    rsp.setHeader("Content-Type", HttpUtil::getMimeType(_urlParser.path_));
+    // rsp.setHeader("Connection", "keep-alive");
+    rsp.setContent(ss.str());
+    writeHttpResponse(rsp);
+}
+
 void HttpConnection::handleHlsM3u8()
 {
     weak_ptr<HttpConnection> wSelf = dynamic_pointer_cast<HttpConnection>(shared_from_this());
@@ -523,6 +557,7 @@ void HttpConnection::handleHlsM3u8()
         return ;
     }
 
+    _mimeType = HttpUtil::getMimeType(_urlParser.path_);
 	_urlParser.path_ = trimBack(_urlParser.path_, ".m3u8");
     MediaSource::getOrCreateAsync(_urlParser.path_, _urlParser.vhost_, _urlParser.protocol_, _urlParser.type_, 
     [wSelf](const MediaSource::Ptr &src){
@@ -571,7 +606,7 @@ void HttpConnection::onPlayHls(const HlsMediaSource::Ptr &hlsSrc)
 
         HttpResponse rsp;
         rsp._status = 200;
-        rsp.setHeader("Content-Type", HttpUtil::getMimeType(self->_urlParser.path_));
+        rsp.setHeader("Content-Type", _mimeType);
         // rsp.setHeader("Connection", "keep-alive");
         rsp.setContent(strM3u8);
         logInfo << "write response";
@@ -823,6 +858,110 @@ void HttpConnection::onPlayPs(const PsMediaSource::Ptr &psSrc)
 		});
         _onClose = [psSrc, this](){
             psSrc->delConnection(this);
+        };
+	}
+} 
+
+void HttpConnection::handleFmp4()
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    rsp.setHeader("Content-Type", HttpUtil::getMimeType(_urlParser.path_));
+    rsp.setHeader("Connection", "keep-alive");
+    writeHttpResponse(rsp);
+
+    _urlParser.path_ = trimBack(_urlParser.path_, ".mp4");
+
+    weak_ptr<HttpConnection> wSelf = dynamic_pointer_cast<HttpConnection>(shared_from_this());
+    MediaSource::getOrCreateAsync(_urlParser.path_, _urlParser.vhost_, PROTOCOL_HTTP_FMP4, _urlParser.type_, 
+    [wSelf](const MediaSource::Ptr &src){
+        logInfo << "get a src";
+        auto self = wSelf.lock();
+        if (!self) {
+            return ;
+        }
+
+		auto fmp4Src = dynamic_pointer_cast<Fmp4MediaSource>(src);
+		if (!fmp4Src) {
+			self->onError("fmp4 source is not exist");
+            return ;
+		}
+
+        // self->_source = rtmpSrc;
+
+		self->_loop->async([wSelf, fmp4Src](){
+			auto self = wSelf.lock();
+			if (!self) {
+				return ;
+			}
+
+			self->onPlayFmp4(fmp4Src);
+		}, true);
+    }, 
+    [wSelf]() -> MediaSource::Ptr {
+        auto self = wSelf.lock();
+        if (!self) {
+            return nullptr;
+        }
+        return make_shared<Fmp4MediaSource>(self->_urlParser, nullptr, true);
+    }, this);
+}
+
+void HttpConnection::onPlayFmp4(const Fmp4MediaSource::Ptr &fmp4Src)
+{
+    weak_ptr<HttpConnection> wSelf = dynamic_pointer_cast<HttpConnection>(shared_from_this());
+
+    auto fmp4Header = fmp4Src->getFmp4Header();
+    send(fmp4Header);
+
+    if (!_playFmp4Reader) {
+		logInfo << "set _playFmp4Reader";
+		_playFmp4Reader = fmp4Src->getRing()->attach(EventLoop::getCurrentLoop(), true);
+		_playFmp4Reader->setGetInfoCB([wSelf]() {
+			auto self = wSelf.lock();
+			ClientInfo ret;
+			if (!self) {
+				return ret;
+			}
+			ret.ip_ = self->_socket->getLocalIp();
+			ret.port_ = self->_socket->getLocalPort();
+			ret.protocol_ = PROTOCOL_PS;
+			return ret;
+		});
+		_playFmp4Reader->setDetachCB([wSelf]() {
+			auto strong_self = wSelf.lock();
+			if (!strong_self) {
+				return;
+			}
+			// strong_self->shutdown(SockException(Err_shutdown, "rtsp ring buffer detached"));
+			strong_self->onError("ring buffer detach");
+		});
+		logInfo << "setReadCB =================";
+		_playFmp4Reader->setReadCB([wSelf](const Fmp4MediaSource::RingDataType &pack) {
+			auto self = wSelf.lock();
+			if (!self/* || pack->empty()*/) {
+				return;
+			}
+			logInfo << "send fmp4 segment";
+			// auto pktList = *(pack.get());
+			// for (auto& pkt : pktList) {
+            //     auto buffer = StreamBuffer::create();
+            //     buffer->assign(pkt->data(), pkt->size());
+                self->send(pack);
+				// uint8_t frame_type = (pkt->payload.get()[0] >> 4) & 0x0f;
+				// uint8_t codec_id = pkt->payload.get()[0] & 0x0f;
+
+				// FILE* fp = fopen("testflv.rtmp", "ab+");
+				// fwrite(pkt->payload.get(), pkt->length, 1, fp);
+				// fclose(fp);
+
+				// logInfo << "frame_type : " << (int)frame_type << ", codec_id: " << (int)codec_id
+				// 		<< "pkt->payload.get()[0]: " << (int)(pkt->payload.get()[0]);
+				// self->sendMediaData(pkt->type_id, pkt->abs_timestamp, pkt->payload, pkt->length);
+			// }
+		});
+        _onClose = [fmp4Src, this](){
+            fmp4Src->delConnection(this);
         };
 	}
 } 

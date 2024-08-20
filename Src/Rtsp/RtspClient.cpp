@@ -91,6 +91,17 @@ void RtspClient::setOnClose(const function<void()>& cb)
     _onClose = cb;
 }
 
+void RtspClient::addOnReady(void* key, const function<void()>& onReady)
+{
+    lock_guard<mutex> lck(_mtx);
+    auto rtspSrc =_source.lock();
+    if (rtspSrc) {
+        rtspSrc->addOnReady(key, onReady);
+        return ;
+    }
+    _mapOnReady.emplace(key, onReady);
+}
+
 void RtspClient::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)
 {
     // logInfo << "get a buffer: " << buffer->size();
@@ -323,6 +334,12 @@ void RtspClient::sendSetup()
 
             _source = rtspSource;
             sendSetup(rtspSource);
+
+            lock_guard<mutex> lck(_mtx);
+            for (auto &iter : _mapOnReady) {
+                rtspSource->addOnReady(iter.first, iter.second);
+            }
+            _mapOnReady.clear();
         } else {
             sendSetup(_source.lock());
         }

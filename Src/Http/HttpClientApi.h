@@ -15,6 +15,7 @@ class HttpClientApi : public HttpClient
 {
 public:
     HttpClientApi(const EventLoop::Ptr& loop);
+    HttpClientApi(const EventLoop::Ptr& loop, bool enableTls);
     ~HttpClientApi();
 
 public:

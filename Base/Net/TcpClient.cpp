@@ -19,6 +19,17 @@ TcpClient::TcpClient(const EventLoop::Ptr& loop)
     }
 }
 
+TcpClient::TcpClient(const EventLoop::Ptr& loop, bool enableTls)
+{
+    _enableTls = enableTls;
+
+    if (loop) {
+        _loop = loop;
+    } else {
+        _loop = EventLoop::getCurrentLoop();
+    }
+}
+
 TcpClient::~TcpClient()
 {
 
@@ -55,7 +66,7 @@ int TcpClient::create(const string& localIp, int localPort)
         if (!self) {
             return -1;
         }
-        self->onRead(buffer, addr, len);
+        self->onRecv(buffer, addr, len);
         return 0;
     });
     _socket->setErrorCb([wSelf](){
@@ -82,6 +93,21 @@ int TcpClient::create(const string& localIp, int localPort)
     _localIp = localIp;
     _localPort = _socket->getLocalPort();
 
+    if (_enableTls) {
+        _tlsCtx = make_shared<TlsContext>(false, _socket);
+
+        _tlsCtx->setOnConnRead([this](const StreamBuffer::Ptr& buffer){
+            onRead(buffer, nullptr, 0);
+        });
+
+        _tlsCtx->setOnConnSend([this](const Buffer::Ptr& buffer){
+            send(buffer);
+        });
+
+        _tlsCtx->initSsl();
+        _tlsCtx->handshake();
+    }
+
     return 0;
 }
 
@@ -91,6 +117,16 @@ int TcpClient::connect(const string& peerIp, int peerPort, int timeout)
     _peerPort = peerPort;
 
     return _socket->connect(peerIp, peerPort, timeout);
+}
+
+void TcpClient::onRecv(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)
+{
+    if (_tlsCtx) {
+        logInfo << "read a packet with ssl";
+        _tlsCtx->onRead(buffer);
+    } else {
+        onRead(buffer, addr, len);
+    }
 }
 
 void TcpClient::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)
@@ -122,5 +158,13 @@ void TcpClient::close()
 
 ssize_t TcpClient::send(Buffer::Ptr pkt)
 {
-    return _socket->send(pkt);
+    if (!_socket) {
+        return 0;
+    }
+    
+    if (_tlsCtx) {
+        return _tlsCtx->send(pkt);
+    } else {
+        return _socket->send(pkt);
+    }
 }

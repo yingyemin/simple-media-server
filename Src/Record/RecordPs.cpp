@@ -34,7 +34,7 @@ bool RecordPs::start()
 
     auto abpath = File::absolutePath(_urlParser.path_, rootPath) + ".ps";
     logInfo << "get record path: " << abpath;
-    if (!_file.open(abpath)) {
+    if (!_file.open(abpath, "wb+")) {
         return false;
     }
 

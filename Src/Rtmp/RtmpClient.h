@@ -43,6 +43,7 @@ public:
     void stop() override;
     void pause() override;
     void setOnClose(const function<void()>& cb) override;
+    void addOnReady(void* key, const function<void()>& onReady) override;
 
     // static void addRtmpClient(const string& key, const RtmpClient::Ptr& client);
     // static void delRtmpClient(const string& key);
@@ -119,6 +120,8 @@ private:
     RtmpMediaSource::RingType::DataQueReaderT::Ptr _playReader;
 
     function<void()> _onClose;
+    mutex _mtx;
+    unordered_map<void*, function<void()>> _mapOnReady;
 };
 
 #endif //RtmpClient_h

@@ -34,6 +34,7 @@ public:
     string ip_;
     string protocol_;
     unordered_map<string, string> info_;
+    function<void()> close_;
 };
 
 template <typename T>
@@ -282,7 +283,12 @@ void DataQueReader<T>::onDetach() const
 template <typename T>
 ClientInfo DataQueReader<T>::getInfo()
 { 
-    return _info_cb();
+    if (_info_cb) {
+        return _info_cb();
+    }
+
+    ClientInfo info;
+    return info;
 }
 
 template <typename T>
@@ -507,7 +513,7 @@ std::list<ClientInfo> DataQueReaderDispatcher<T>::getInfoList(const onChangeInfo
             continue;
         }
         auto info = reader->getInfo();
-        if (!info) {
+        if (info.ip_.empty()) {
             continue;
         }
         ret.emplace_back(on_change(std::move(info)));
@@ -663,7 +669,7 @@ void DataQue<T>::getInfoList(const onGetInfoCB &cb, const typename DataQueReader
         auto &second = pr.second;
         pr.first->async([second, info_vec, on_finished, i, on_change]() { 
             (*info_vec)[i] = second->getInfoList(on_change); 
-        });
+        }, true);
         ++i;
     }
 }

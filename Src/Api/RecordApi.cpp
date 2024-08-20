@@ -5,6 +5,7 @@
 #include "WorkPoller/WorkLoopPool.h"
 #include "RecordApi.h"
 #include "Record/RecordPs.h"
+#include "Record/RecordMp4.h"
 #include "Common/Define.h"
 
 using namespace std;
@@ -21,14 +22,24 @@ void RecordApi::initApi()
 void RecordApi::startRecord(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc)
 {
-    checkArgs(parser._body, {"appName", "streamName"});
+    checkArgs(parser._body, {"appName", "streamName", "format"});
+
+    string format = parser._body["format"];
+
     UrlParser recordUrlParser;
     recordUrlParser.path_ = "/" + parser._body["appName"].get<string>() + "/" + parser._body["streamName"].get<string>();
-    recordUrlParser.protocol_ = PROTOCOL_PS;
     recordUrlParser.vhost_ = DEFAULT_VHOST;
     recordUrlParser.type_ = DEFAULT_TYPE;
-    Record::Ptr record = make_shared<RecordPs>(recordUrlParser);
 
+    Record::Ptr record;
+    if (format == "ps") {
+        recordUrlParser.protocol_ = PROTOCOL_PS;
+        record = make_shared<RecordPs>(recordUrlParser);
+    } else if (format == "mp4") {
+        recordUrlParser.protocol_ = PROTOCOL_MP4;
+        record = make_shared<RecordMp4>(recordUrlParser);
+    }
+    
     string taskId = randomStr(8);
     Record::addRecord(recordUrlParser.path_, taskId, record);
 

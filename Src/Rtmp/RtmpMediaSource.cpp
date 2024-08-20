@@ -195,12 +195,20 @@ void RtmpMediaSource::addSink(const MediaSource::Ptr &src)
     if (_status == SourceStatus::AVAILABLE) {
         src->onReady();
     }
+    if (_mapSink.size() == 1) {
+        lock_guard<mutex> lck(_mtxTrack);
+        for (auto& track : _mapRtmpDecodeTrack) {
+            // src->addTrack(track.second->getTrackInfo());
+            track.second->startDecode();
+        }
+    }
     weak_ptr<RtmpMediaSource> weakSelf = std::static_pointer_cast<RtmpMediaSource>(shared_from_this());
     _ring->addOnWrite(src.get(), [weakSelf](RingDataType in, bool is_key){
         auto strongSelf = weakSelf.lock();
         if (!strongSelf) {
             return;
         }
+        logInfo << "is key: " << is_key;
         auto pktList = *(in.get());
         for (auto& pkt : pktList) {
             int index = pkt->trackIndex_;
@@ -210,13 +218,6 @@ void RtmpMediaSource::addSink(const MediaSource::Ptr &src)
             }
         }
     });
-    if (_mapSink.size() == 1) {
-        lock_guard<mutex> lck(_mtxTrack);
-        for (auto& track : _mapRtmpDecodeTrack) {
-            // src->addTrack(track.second->getTrackInfo());
-            track.second->startDecode();
-        }
-    }
 }
 
 void RtmpMediaSource::delSink(const MediaSource::Ptr &src)
@@ -244,8 +245,8 @@ void RtmpMediaSource::delSink(const MediaSource::Ptr &src)
 
 void RtmpMediaSource::onFrame(const FrameBuffer::Ptr& frame)
 {
-    // logInfo << "on get a frame: index : " << frame->getTrackIndex()
-    //           << ", codec: " << frame->codec();
+    logInfo << "on get a frame: index : " << frame->getTrackIndex()
+              << ", codec: " << frame->codec() << ", nalu type: " << frame->getNalType();
     auto it = _mapRtmpEncodeTrack.find(frame->getTrackType());
     if (it == _mapRtmpEncodeTrack.end()) {
         return ;
@@ -267,4 +268,21 @@ AmfObjects RtmpMediaSource::getMetadata()
 {
     lock_guard<mutex> lck(_mtxMeta);
     return _metaData;
+}
+
+int RtmpMediaSource::playerCount()
+{
+    int count = _ring->readerCount();
+    lock_guard<mutex> lck(_mtxTrack);
+    count -= _mapSink.size();
+
+    return count;
+}
+
+void RtmpMediaSource::getClientList(const function<void(const list<ClientInfo>& info)>& func)
+{
+    list<ClientInfo> clientInfo;
+    _ring->getInfoList([func](list<ClientInfo> &infoList){
+        func(infoList);
+    });
 }

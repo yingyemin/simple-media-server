@@ -172,7 +172,7 @@ string HttpFile::getIndex()
 
 StreamBuffer::Ptr HttpFile::read(int size)
 {
-    if (!_file.open(_filePath)) {
+    if (!_file.open(_filePath, "rb+")) {
         return nullptr;
     }
 
@@ -186,7 +186,7 @@ string HttpFile::getFilePath()
 
 int HttpFile::getFileSize()
 {
-    if (!_file.open(_filePath)) {
+    if (!_file.open(_filePath, "rb+")) {
         return 0;
     }
 

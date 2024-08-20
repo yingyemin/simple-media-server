@@ -5,6 +5,7 @@
 #include<string.h>
 
 #include "H265Track.h"
+#include "H265Frame.h"
 #include "Logger.h"
 #include "Util/String.h"
 #include "Util/Base64.h"
@@ -275,4 +276,119 @@ void H265Track::getWidthAndHeight(int& width, int& height)
     _height = params.height;
     width = _width;
     height = _height;
+}
+
+string H265Track::getConfig()
+{
+    if (!_vps || !_sps || !_pps) {
+        return "";
+    }
+
+    string config;
+
+    auto spsSize = _sps->startSize();
+    auto vpsSize = _vps->startSize();
+    auto ppsSize = _pps->startSize();
+
+    auto vpsBuffer = _vps->_buffer;
+    int vpsLen = _vps->size() - vpsSize;
+    auto spsBuffer = _sps->_buffer;
+    int spsLen = _sps->size() - spsSize;
+    auto ppsBuffer = _pps->_buffer;
+    int ppsLen = _pps->size() - ppsSize;
+
+    config.resize(38  + vpsLen + spsLen + ppsLen);
+    auto data = (char*)config.data();
+
+    // *data++ = 0x1c; //key frame, AVC
+    // *data++ = 0x00; //avc sequence header
+    // *data++ = 0x00; //composit time 
+    // *data++ = 0x00; //composit time
+    // *data++ = 0x00; //composit time
+    *data++ = 0x01;   //configurationversion
+    // 6 byte
+
+    *data++ = spsBuffer[spsSize + 5];  //general_profile_space(2), general_tier_flag(1), general_profile_idc(5)
+
+    *data++ = spsBuffer[spsSize + 6]; //general_profile_compatibility_flags
+    *data++ = spsBuffer[spsSize + 7]; 
+    *data++ = spsBuffer[spsSize + 8]; 
+    *data++ = spsBuffer[spsSize + 9]; 
+
+    *data++ = spsBuffer[spsSize + 10]; //general_constraint_indicator_flags
+    *data++ = spsBuffer[spsSize + 11]; 
+    *data++ = spsBuffer[spsSize + 12]; 
+    *data++ = spsBuffer[spsSize + 13]; 
+    *data++ = spsBuffer[spsSize + 14]; 
+    *data++ = spsBuffer[spsSize + 15]; 
+
+    *data++ = spsBuffer[spsSize + 16]; // general_level_idc
+
+    *data++ = spsBuffer[spsSize + 17]; // reserved(4),min_spatial_segmentation_idc(12)
+    *data++ = spsBuffer[spsSize + 18]; 
+
+    *data++ = spsBuffer[spsSize + 19]; // reserved(6),parallelismType(2)
+
+    *data++ = spsBuffer[spsSize + 20]; // reserved(6),chromaFormat(2)
+    // 22 byte 
+
+    // 下面几个0xff乱填的，貌似不影响播放
+    *data++ = 0xf << 4 | 0xf; //// reserved(5),bitDepthLumaMinus8(3)
+
+    *data++ = 0xff; // reserved(5),bitDepthChromaMinus8(3)
+
+    *data++ = 0xff; //avgFrameRate
+    *data++ = 0xff;
+
+    *data++ = 0xff; //constantFrameRate(2),numTemporalLayers(3),temporalIdNested(1),lengthSizeMinusOne(2)
+
+    // *data++ = 0xff;
+
+    // *data++ = 0xff;
+    // *data++ = 0xff;
+    // *data++ = 0xff;
+    // 默认vps，sps，pps 各一个
+    *data++ = 3; //numOfArrays
+    //28 byte
+
+    *data++ = 1 << 7 | H265NalType::H265_VPS & 0x3f; //array_completeness(1),reserved(1),NAL_unit_type(6)
+
+    // 一个vps
+    *data++ = 0; //numNalus
+    *data++ = 1;
+
+    *data++ = (uint8_t)(vpsLen >> 8); //sequence parameter set length high 8 bits
+    *data++ = (uint8_t)(vpsLen); //sequence parameter set  length low 8 bits
+
+    memcpy(data, vpsBuffer.data() + vpsSize, vpsLen); //H264 sequence parameter set
+    data += vpsLen; 
+    // 37 + vpsLen
+
+    *data++ = 1 << 7 | H265NalType::H265_SPS & 0x3f;
+
+    // 一个sps
+    *data++ = 0;
+    *data++ = 1;
+
+    *data++ = (uint8_t)(spsLen >> 8); //sequence parameter set length high 8 bits
+    *data++ = (uint8_t)(spsLen); //sequence parameter set  length low 8 bits
+
+    memcpy(data, spsBuffer.data() + spsSize, spsLen); //H264 sequence parameter set
+    data += spsLen; 
+    // 38 + vpsLen + spsLen
+
+    *data++ = 1 << 7 | H265NalType::H265_PPS & 0x3f;
+
+    // 一个pps
+    *data++ = 0;
+    *data++ = 1;
+
+    *data++ = (uint8_t)(ppsLen >> 8); //sequence parameter set length high 8 bits
+    *data++ = (uint8_t)(ppsLen); //sequence parameter set  length low 8 bits
+
+    memcpy(data, ppsBuffer.data() + ppsSize, ppsLen); //H264 sequence parameter set
+    data += ppsLen; 
+    // 43  + vpsLen + spsLen + ppsLen
+
+    return config;
 }

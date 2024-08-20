@@ -18,9 +18,11 @@ public:
 public:
     virtual void write(const char* data, int size) {}
     virtual void read(char* data, int size) {}
-    virtual void seek(int offset) {}
+    virtual void seek(uint64_t offset) {}
     virtual size_t tell() { return 0;}
     virtual void onFrame(const StreamBuffer::Ptr& frame, int trackIndex, int pts, int dts, bool keyframe) {}
+    virtual void onTrackInfo(const TrackInfo::Ptr& trackInfo) {}
+    virtual void onReady() {}
 
     void skip(int size);
 
@@ -33,8 +35,11 @@ public:
 public:
     void init();
     int mov_reader_box(const struct mov_box_t* parent);
+    int mov_reader_getinfo();
+    int mov_reader_read(void* buffer, size_t bytes);
+    int mov_reader_read2();
 
-private:
+protected:
     int mov_index_build(struct mov_track_t* track);
     int mov_read_mdat(const struct mov_box_t* box);
     int mov_read_free(const struct mov_box_t* box);
@@ -47,10 +52,7 @@ private:
     int mov_read_default(const struct mov_box_t* box);
     void mov_reader_destroy();
     struct mov_track_t* mov_reader_next();
-    int mov_reader_read(void* buffer, size_t bytes);
-    int mov_reader_read2();
     int mov_reader_seek(int64_t* timestamp);
-    int mov_reader_getinfo(struct mov_reader_trackinfo_t *ontrack, void* param);
     uint64_t mov_reader_getduration();
     int mov_stss_seek(struct mov_track_t* track, int64_t *timestamp);
     int mov_sample_seek(struct mov_track_t* track, int64_t timestamp);
@@ -123,14 +125,14 @@ private:
 private:
     mov_ftyp_t _ftyp;
 	struct mov_mvhd_t _mvhd;
-    int _header;
+    int _header = 0;
 
-    uint64_t _moof_offset;
-    uint64_t _implicit_offset;
+    uint64_t _moof_offset = 0;
+    uint64_t _implicit_offset = 0;
     
     shared_ptr<mov_track_t> _track; // current stream
 	vector<shared_ptr<mov_track_t>> _tracks;
-	int _track_count;
+	int _track_count = 0;
 
     unordered_map<int, shared_ptr<TrackInfo>> _mapTrackInfo;
 };
