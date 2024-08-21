@@ -29,10 +29,10 @@ RtspConnection::~RtspConnection()
     auto rtspSrc = _source.lock();
     if (_isPublish && rtspSrc) {
         rtspSrc->release();
-        // _source->delOnDetach(this);
+        // rtspSrc->delOnDetach(this);
     } else if (rtspSrc) {
         rtspSrc->delConnection(this);
-        // _source->delOnDetach(this);
+        // rtspSrc->delOnDetach(this);
     }
 }
 
@@ -235,29 +235,29 @@ void RtspConnection::handleDescribe()
             authFailed();
         }
     } else {
-        // PlayInfo info;
-        // info.protocol = _urlParser.protocol_;
-        // info.type = _urlParser.type_;
-        // info.uri = _urlParser.path_;
-        // info.vhost = _urlParser.vhost_;
-        // info.params = _urlParser.param_;
+        PlayInfo info;
+        info.protocol = _urlParser.protocol_;
+        info.type = _urlParser.type_;
+        info.uri = _urlParser.path_;
+        info.vhost = _urlParser.vhost_;
+        info.params = _urlParser.param_;
 
-        // weak_ptr<RtspConnection> wSelf = shared_from_this();
-        // MediaHook::onPlay(info, [wSelf](const PlayResponse &rsp){
-        //     auto self = wSelf.lock();
-        //     if (!self) {
-        //         return ;
-        //     }
+        weak_ptr<RtspConnection> wSelf = dynamic_pointer_cast<RtspConnection>(shared_from_this());
+        MediaHook::instance()->onPlay(info, [wSelf](const PlayResponse &rsp){
+            auto self = wSelf.lock();
+            if (!self) {
+                return ;
+            }
 
-        //     if (!rsp.authResult) {
-        //         self->sendBadRequst("on publish failed" + rsp.err);
-        //         return ;
-        //     }
+            if (!rsp.authResult) {
+                self->sendBadRequst("on publish failed" + rsp.err);
+                return ;
+            }
 
-        //     handleDescribe_l();
-        // });
+            self->handleDescribe_l();
+        });
 
-        handleDescribe_l();
+        // handleDescribe_l();
     }
 
     // 查找源，获取sdp
@@ -336,14 +336,15 @@ void RtspConnection::handleAnnounce_l() {
     // _source = dynamic_pointer_cast<RtspMediaSource>(source);
     rtspSource->setSdp(_parser._content);
     rtspSource->setOrigin();
-    // weak_ptr<RtspConnection> wSelf = dynamic_pointer_cast<RtspConnection>(shared_from_this());
-    // rtspSource->addOnDetach(this, [wSelf](){
-    //     auto self = wSelf.lock();
-    //     if (!self) {
-    //         return ;
-    //     }
-    //     self->close();
-    // });
+    rtspSource->setOriginSocket(_socket);
+    weak_ptr<RtspConnection> wSelf = dynamic_pointer_cast<RtspConnection>(shared_from_this());
+    rtspSource->addOnDetach(this, [wSelf](){
+        auto self = wSelf.lock();
+        if (!self) {
+            return ;
+        }
+        self->close();
+    });
 
     _sdpParser.parse(_parser._content);
     int trackIndex = 0;
@@ -732,6 +733,28 @@ void RtspConnection::handlePlay()
         //         return true;
         //     }, getPoller());
         // }
+        static int interval = Config::instance()->getAndListen([](const json &config){
+            interval = Config::instance()->get("Rtsp", "Server", "Server1", "interval");
+            if (interval == 0) {
+                interval = 5000;
+            }
+        }, "Rtsp", "Server", "Server1", "interval");
+
+        if (interval == 0) {
+            interval = 5000;
+        }
+        weak_ptr<RtspConnection> wSelf = static_pointer_cast<RtspConnection>(shared_from_this());
+        _loop->addTimerTask(interval, [wSelf](){
+            auto self = wSelf.lock();
+            if (!self) {
+                return 0;
+            }
+            self->_lastBitrate = self->_intervalSendBytes / (interval / 1000.0);
+            self->_intervalSendBytes = 0;
+
+            return interval;
+        }, nullptr);
+        
         _playReader = rtspSrc->getRing()->attach(_loop, true);
         _playReader->setGetInfoCB([weak_self]() {
             auto self = weak_self.lock();
@@ -748,6 +771,7 @@ void RtspConnection::handlePlay()
                     self->onError();
                 }
             };
+            ret.bitrate_ = self->_lastBitrate;
             return ret;
         });
         _playReader->setDetachCB([weak_self]() {
@@ -773,7 +797,9 @@ void RtspConnection::handlePlay()
             // logInfo << "index: " << index;
             if (transport) {
                 // logInfo << "sendRtpPacket: " << index;
-                transport->sendRtpPacket(pack);
+                int bytes = transport->sendRtpPacket(pack);
+                strong_self->_intervalSendBytes += bytes;
+                strong_self->_totalSendBytes += bytes;
             }
             // strong_self->_rtpList.push_back(pack);
         });

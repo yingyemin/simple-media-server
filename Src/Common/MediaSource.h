@@ -94,7 +94,10 @@ public:
     virtual void delConnection(void* key);
     virtual unordered_map<int, shared_ptr<TrackInfo>> getTrackInfo() {return _mapTrackInfo;}
     virtual int playerCount() {return 0;}
+    virtual uint64_t getBytes() {return 0;}
     virtual void getClientList(const function<void(const list<ClientInfo>& info)>& func) {}
+    virtual void setOriginSocket(const Socket::Ptr& socket) {_originSocket = socket;}
+    virtual Socket::Ptr getOriginSocket() {return _originSocket.lock();}
     
     void setStatus(const SourceStatus status) {_status = status;}
     int getStatus() {return _status;}
@@ -108,9 +111,11 @@ public:
     string getType() {return _urlParser.type_;}
     string getPath() {return _urlParser.path_;}
     string getVhost() {return _urlParser.vhost_;}
+    uint64_t getCreateTime() { return _createTime; }
 
 protected:
     bool _origin = false;
+    uint64_t _createTime = 0;
     SourceStatus _status;
     UrlParser _urlParser;
     EventLoop::Ptr _loop;
@@ -130,6 +135,7 @@ private:
     static unordered_map<MediaClient*, MediaClient::Ptr> _mapPusher;
 
 private:
+    Socket::Wptr _originSocket;
     shared_ptr<TimerTask> _task;
     mutex _mtxConnection;
     unordered_map<void*, int> _mapConnection;
@@ -137,7 +143,7 @@ private:
     mutex _mtxOnReadyFunc;
     unordered_map<void*, onReadyFunc> _mapOnReadyFunc;
 
-    recursive_mutex _mtxOnDetachFunc;
+    mutex _mtxOnDetachFunc;
     unordered_map<void*, onDetachFunc> _mapOnDetachFunc;
 };
 

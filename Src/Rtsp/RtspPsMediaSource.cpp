@@ -59,6 +59,7 @@ void RtspPsMediaSource::addTrack(const RtspTrack::Ptr& track)
         if (start) {
             strongSelf->_start = start;
         }
+        strongSelf->_ring->addBytes(rtp->size());
         // logInfo << "on rtp seq: " << rtp->getSeq() << ", size: " << rtp->size() << ", type: " << rtp->type_;
         if (rtp->getHeader()->mark) {
             strongSelf->_cache->emplace_back(std::move(rtp));

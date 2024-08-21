@@ -37,7 +37,7 @@ public:
 public:
     void start();
     void onRtpPacket(const StreamBuffer::Ptr& buffer);
-    void sendRtpPacket(const shared_ptr<deque<RtpPacket::Ptr>> &pkt);
+    int sendRtpPacket(const shared_ptr<deque<RtpPacket::Ptr>> &pkt);
     void bindPeerAddr(struct sockaddr* addr);
     Socket::Ptr getSocket() {return _socket;}
 

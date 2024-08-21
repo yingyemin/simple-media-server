@@ -7,6 +7,8 @@
 #include "Util/String.h"
 #include "Common/Define.h"
 #include "Rtmp.h"
+#include "Common/Config.h"
+#include "Hook/MediaHook.h"
 
 #include <sstream>
 
@@ -27,8 +29,10 @@ RtmpConnection::~RtmpConnection()
     if (_isPublish && rtmpSrc) {
         rtmpSrc->delConnection(this);
         rtmpSrc->release();
+        // rtmpSrc->delOnDetach(this);
     } else if (rtmpSrc) {
         rtmpSrc->delConnection(this);
+        // rtmpSrc->delOnDetach(this);
     }
 }
 
@@ -190,11 +194,51 @@ bool RtmpConnection::handleInvoke(RtmpMessage& rtmp_msg)
             bytes_used += _amfDecoder.decode((const char *)rtmp_msg.payload.get()+bytes_used, rtmp_msg.length-bytes_used);                      
         }
             
-        if(method == "publish" || method == "FCPublish") {            
-            ret = handlePublish();
+        if(method == "publish" || method == "FCPublish") {
+            PublishInfo info;
+            info.protocol = _urlParser.protocol_;
+            info.type = _urlParser.type_;
+            info.uri = _urlParser.path_;
+            info.vhost = _urlParser.vhost_;
+
+            weak_ptr<RtmpConnection> wSelf = dynamic_pointer_cast<RtmpConnection>(shared_from_this());
+            MediaHook::instance()->onPublish(info, [wSelf](const PublishResponse &rsp){
+                auto self = wSelf.lock();
+                if (!self) {
+                    return ;
+                }
+
+                if (!rsp.authResult) {
+                    self->onError();
+                    return ;
+                }
+
+                self->handlePublish();
+            });
+            ret = true;
         }
-        else if(method == "play") {          
-            ret = handlePlay();
+        else if(method == "play") {   
+            PlayInfo info;
+            info.protocol = _urlParser.protocol_;
+            info.type = _urlParser.type_;
+            info.uri = _urlParser.path_;
+            info.vhost = _urlParser.vhost_;
+
+            weak_ptr<RtmpConnection> wSelf = dynamic_pointer_cast<RtmpConnection>(shared_from_this());
+            MediaHook::instance()->onPlay(info, [wSelf](const PlayResponse &rsp){
+                auto self = wSelf.lock();
+                if (!self) {
+                    return ;
+                }
+
+                if (!rsp.authResult) {
+                    self->onError();
+                    return ;
+                }
+
+                self->handlePlay();
+            });       
+            ret = true;
         }
         else if(method == "play2") {         
             ret = handlePlay2();
@@ -555,7 +599,15 @@ bool RtmpConnection::handlePublish()
         auto rtmpSrc = dynamic_pointer_cast<RtmpMediaSource>(source);
         // rtmpSrc->setSdp(_parser._content);
         rtmpSrc->setOrigin();
-        // weak_ptr<RtmpConnection> wSelf = dynamic_pointer_cast<RtmpConnection>(shared_from_this());
+        rtmpSrc->setOriginSocket(_socket);
+        weak_ptr<RtmpConnection> wSelf = dynamic_pointer_cast<RtmpConnection>(shared_from_this());
+        rtmpSrc->addOnDetach(this, [wSelf](){
+            auto self = wSelf.lock();
+            if (!self) {
+                return ;
+            }
+            self->close();
+        });
 
         _source = rtmpSrc;
         // _rtmpDecodeTrack = make_shared<RtmpDecodeTrack>(0);
@@ -689,7 +741,28 @@ void RtmpConnection::responsePlay(const MediaSource::Ptr &src)
 
     if (!_playReader) {
         logInfo << "set _playReader";
+        static int interval = Config::instance()->getAndListen([](const json &config){
+            interval = Config::instance()->get("Rtmp", "Server", "Server1", "interval");
+            if (interval == 0) {
+                interval = 5000;
+            }
+        }, "Rtmp", "Server", "Server1", "interval");
+
+        if (interval == 0) {
+            interval = 5000;
+        }
         weak_ptr<RtmpConnection> wSelf = static_pointer_cast<RtmpConnection>(shared_from_this());
+        _loop->addTimerTask(interval, [wSelf](){
+            auto self = wSelf.lock();
+            if (!self) {
+                return 0;
+            }
+            self->_lastBitrate = self->_intervalSendBytes / (interval / 1000.0);
+            self->_intervalSendBytes = 0;
+
+            return interval;
+        }, nullptr);
+
         _playReader = rtmpSrc->getRing()->attach(_loop, true);
         _playReader->setGetInfoCB([wSelf]() {
             auto self = wSelf.lock();
@@ -700,6 +773,13 @@ void RtmpConnection::responsePlay(const MediaSource::Ptr &src)
             ret.ip_ = self->_socket->getLocalIp();
             ret.port_ = self->_socket->getLocalPort();
             ret.protocol_ = PROTOCOL_RTMP;
+            ret.bitrate_ = self->_lastBitrate;
+            ret.close_ = [wSelf](){
+                auto self = wSelf.lock();
+                if (self) {
+                    self->onError();
+                }
+            };
             return ret;
         });
         _playReader->setDetachCB([wSelf]() {
@@ -721,6 +801,9 @@ void RtmpConnection::responsePlay(const MediaSource::Ptr &src)
             for (auto& pkt : pktList) {
                 uint8_t frame_type = (pkt->payload.get()[0] >> 4) & 0x0f;
 				uint8_t codec_id = pkt->payload.get()[0] & 0x0f;
+
+                self->_totalSendBytes += pkt->length;
+                self->_intervalSendBytes += pkt->length;
 
                 // logInfo << "send rtmp msg,time: " << pkt->abs_timestamp << ", type: " << (int)(pkt->type_id)
                 //             << ", length: " << pkt->length;

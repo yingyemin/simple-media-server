@@ -31,6 +31,7 @@ class ClientInfo
 {
 public:
     int port_;
+    float bitrate_;
     string ip_;
     string protocol_;
     unordered_map<string, string> info_;
@@ -176,7 +177,7 @@ public:
 
     DataQue(size_t max_size = 1024, onReaderChanged cb = nullptr, size_t max_gop_size = 1);
 
-    ~DataQue() = default;
+    ~DataQue();
 
     void write(T in, bool is_key = true);
 
@@ -185,6 +186,10 @@ public:
     void addOnWrite(void* key, onWriteFunc onWrite);
 
     void delOnWrite(void* key);
+
+    void addBytes(int bytes);
+
+    uint64_t getBytes();
 
     std::shared_ptr<DataQueReaderT> attach(const EventLoop::Ptr &loop, bool use_cache = true);
 
@@ -205,6 +210,7 @@ private:
 private:
     std::mutex _mtx_map;
     std::atomic_int _total_count { 0 };
+    std::atomic_int _total_bytes { 0 };
     typename DataQueStorageT::Ptr _storage;
     std::unordered_map<void*, onWriteFunc> _on_write_map;
     onReaderChanged _on_reader_changed;
@@ -408,6 +414,7 @@ void DataQueStorage<T>::popFrontGop()
 template <typename T>
 DataQueReaderDispatcher<T>::~DataQueReaderDispatcher() 
 {
+    logInfo << "DataQueReaderDispatcher<T>::~DataQueReaderDispatcher() ";
     decltype(_reader_map) reader_map;
     reader_map.swap(_reader_map);
     for (auto &pr : reader_map) {
@@ -533,6 +540,12 @@ DataQue<T>::DataQue(size_t max_size, onReaderChanged cb, size_t max_gop_size)
 }
 
 template <typename T>
+DataQue<T>::~DataQue() 
+{
+    logInfo << "DataQue<T>::~DataQue() ";
+}
+
+template <typename T>
 void DataQue<T>::write(T in, bool is_key) 
 {
     // logInfo << "write =================: " << this;
@@ -595,6 +608,18 @@ void DataQue<T>::delOnWrite(void* key)
     _on_write_map.erase(key);
     onSizeChanged(nullptr, 1, false);
 } 
+
+template <typename T>
+void DataQue<T>::addBytes(int bytes)
+{
+    _total_bytes += bytes;
+}
+
+template <typename T>
+uint64_t DataQue<T>::getBytes()
+{
+    return _total_bytes;
+}
 
 template <typename T>
 std::shared_ptr<DataQueReader<T>> DataQue<T>::attach(const EventLoop::Ptr &loop, bool use_cache) 

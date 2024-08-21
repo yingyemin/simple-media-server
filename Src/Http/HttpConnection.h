@@ -68,6 +68,9 @@ private:
     bool _isChunked = false;
     bool _isWebsocket = false;
     int _apiPort = 0;
+    uint64_t _totalSendBytes = 0;
+    uint64_t _intervalSendBytes = 0;
+    float _lastBitrate = 0;
     string _mimeType;
     string _serverId;
     HttpParser _parser;

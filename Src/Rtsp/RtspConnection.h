@@ -65,6 +65,9 @@ private:
 
 private:
     bool _isPublish = false;
+    uint64_t _totalSendBytes = 0;
+    uint64_t _intervalSendBytes = 0;
+    float _lastBitrate = 0;
     string _baseUrl;
     string _authNonce;
     string _sessionId;

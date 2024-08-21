@@ -92,7 +92,7 @@ bool RtpDecodeH264::isStartGop(const RtpPacket::Ptr& rtp)
             break;
         }
         default : {
-            logInfo << "unknown nal type";
+            // logInfo << "unknown nal type";
             
             break;
         }

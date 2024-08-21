@@ -854,6 +854,60 @@ Util/Variant.cpp.s:
 	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Base/CMakeFiles/base.dir/build.make Base/CMakeFiles/base.dir/Util/Variant.cpp.s
 .PHONY : Util/Variant.cpp.s
 
+WorkPoller/WorkLoop.o: WorkPoller/WorkLoop.cpp.o
+
+.PHONY : WorkPoller/WorkLoop.o
+
+# target to build an object file
+WorkPoller/WorkLoop.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Base/CMakeFiles/base.dir/build.make Base/CMakeFiles/base.dir/WorkPoller/WorkLoop.cpp.o
+.PHONY : WorkPoller/WorkLoop.cpp.o
+
+WorkPoller/WorkLoop.i: WorkPoller/WorkLoop.cpp.i
+
+.PHONY : WorkPoller/WorkLoop.i
+
+# target to preprocess a source file
+WorkPoller/WorkLoop.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Base/CMakeFiles/base.dir/build.make Base/CMakeFiles/base.dir/WorkPoller/WorkLoop.cpp.i
+.PHONY : WorkPoller/WorkLoop.cpp.i
+
+WorkPoller/WorkLoop.s: WorkPoller/WorkLoop.cpp.s
+
+.PHONY : WorkPoller/WorkLoop.s
+
+# target to generate assembly for a file
+WorkPoller/WorkLoop.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Base/CMakeFiles/base.dir/build.make Base/CMakeFiles/base.dir/WorkPoller/WorkLoop.cpp.s
+.PHONY : WorkPoller/WorkLoop.cpp.s
+
+WorkPoller/WorkLoopPool.o: WorkPoller/WorkLoopPool.cpp.o
+
+.PHONY : WorkPoller/WorkLoopPool.o
+
+# target to build an object file
+WorkPoller/WorkLoopPool.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Base/CMakeFiles/base.dir/build.make Base/CMakeFiles/base.dir/WorkPoller/WorkLoopPool.cpp.o
+.PHONY : WorkPoller/WorkLoopPool.cpp.o
+
+WorkPoller/WorkLoopPool.i: WorkPoller/WorkLoopPool.cpp.i
+
+.PHONY : WorkPoller/WorkLoopPool.i
+
+# target to preprocess a source file
+WorkPoller/WorkLoopPool.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Base/CMakeFiles/base.dir/build.make Base/CMakeFiles/base.dir/WorkPoller/WorkLoopPool.cpp.i
+.PHONY : WorkPoller/WorkLoopPool.cpp.i
+
+WorkPoller/WorkLoopPool.s: WorkPoller/WorkLoopPool.cpp.s
+
+.PHONY : WorkPoller/WorkLoopPool.s
+
+# target to generate assembly for a file
+WorkPoller/WorkLoopPool.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Base/CMakeFiles/base.dir/build.make Base/CMakeFiles/base.dir/WorkPoller/WorkLoopPool.cpp.s
+.PHONY : WorkPoller/WorkLoopPool.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -944,6 +998,12 @@ help:
 	@echo "... Util/Variant.o"
 	@echo "... Util/Variant.i"
 	@echo "... Util/Variant.s"
+	@echo "... WorkPoller/WorkLoop.o"
+	@echo "... WorkPoller/WorkLoop.i"
+	@echo "... WorkPoller/WorkLoop.s"
+	@echo "... WorkPoller/WorkLoopPool.o"
+	@echo "... WorkPoller/WorkLoopPool.i"
+	@echo "... WorkPoller/WorkLoopPool.s"
 .PHONY : help
 
 

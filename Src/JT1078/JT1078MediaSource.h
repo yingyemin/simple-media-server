@@ -33,6 +33,7 @@ public:
     void delSink(const MediaSource::Ptr &src) override;
     // void onFrame(const FrameBuffer::Ptr& frame) override;
     void onReady() override;
+    uint64_t getBytes() override { return _ring ? _ring->getBytes() : 0;}
     unordered_map<int/*index*/, JT1078DecodeTrack::Ptr> getDecodeTrack()
     {
         return _mapJT1078DecodeTrack;

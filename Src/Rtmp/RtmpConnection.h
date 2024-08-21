@@ -63,6 +63,9 @@ private:
     bool _validVideoTrack = true;
     bool _validAudioTrack = true;
     uint32_t _streamId = 0;
+    uint64_t _totalSendBytes = 0;
+    uint64_t _intervalSendBytes = 0;
+    float _lastBitrate = 0;
     int _avcHeaderSize = 0;
     shared_ptr<char> _avcHeader;
     int _aacHeaderSize = 0;

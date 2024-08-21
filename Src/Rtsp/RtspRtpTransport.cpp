@@ -79,10 +79,10 @@ void RtspRtpTransport::onRtpPacket(const StreamBuffer::Ptr& buffer)
     }
 }
 
-void RtspRtpTransport::sendRtpPacket(const shared_ptr<deque<RtpPacket::Ptr>> &pkt)
+int RtspRtpTransport::sendRtpPacket(const shared_ptr<deque<RtpPacket::Ptr>> &pkt)
 {
     // static int lastStamp = 0;
-    
+    int bytes = 0;
     switch (_transType) {
         case Transport_TCP: {
             // setSendFlushFlag(false);
@@ -121,6 +121,7 @@ void RtspRtpTransport::sendRtpPacket(const shared_ptr<deque<RtpPacket::Ptr>> &pk
                     //     _socket->send(packet->buffer(), 1);
                     // } else {
                         _socket->send(packet->buffer(), 0);
+                        bytes += packet->size();
                     // }
                     // if (++i == len) {
                     //     break;
@@ -158,6 +159,7 @@ void RtspRtpTransport::sendRtpPacket(const shared_ptr<deque<RtpPacket::Ptr>> &pk
                     // logInfo << "send rtp time: " << packet->getStamp() << ", mark:" << packet->getHeader()->mark;
                     
                     _socket->send(packet->buffer(), 1, 4);
+                    bytes += packet->size();
                     // if (++i == len) {
                     //     break;
                     // }
@@ -173,4 +175,6 @@ void RtspRtpTransport::sendRtpPacket(const shared_ptr<deque<RtpPacket::Ptr>> &pk
         default:
             break;
     }
+
+    return bytes;
 }

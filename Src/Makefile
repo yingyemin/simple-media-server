@@ -233,6 +233,33 @@ Api/HttpStreamApi.cpp.s:
 	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Api/HttpStreamApi.cpp.s
 .PHONY : Api/HttpStreamApi.cpp.s
 
+Api/RecordApi.o: Api/RecordApi.cpp.o
+
+.PHONY : Api/RecordApi.o
+
+# target to build an object file
+Api/RecordApi.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Api/RecordApi.cpp.o
+.PHONY : Api/RecordApi.cpp.o
+
+Api/RecordApi.i: Api/RecordApi.cpp.i
+
+.PHONY : Api/RecordApi.i
+
+# target to preprocess a source file
+Api/RecordApi.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Api/RecordApi.cpp.i
+.PHONY : Api/RecordApi.cpp.i
+
+Api/RecordApi.s: Api/RecordApi.cpp.s
+
+.PHONY : Api/RecordApi.s
+
+# target to generate assembly for a file
+Api/RecordApi.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Api/RecordApi.cpp.s
+.PHONY : Api/RecordApi.cpp.s
+
 Api/RtmpApi.o: Api/RtmpApi.cpp.o
 
 .PHONY : Api/RtmpApi.o
@@ -314,6 +341,33 @@ Api/SrtApi.cpp.s:
 	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Api/SrtApi.cpp.s
 .PHONY : Api/SrtApi.cpp.s
 
+Api/TestApi.o: Api/TestApi.cpp.o
+
+.PHONY : Api/TestApi.o
+
+# target to build an object file
+Api/TestApi.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Api/TestApi.cpp.o
+.PHONY : Api/TestApi.cpp.o
+
+Api/TestApi.i: Api/TestApi.cpp.i
+
+.PHONY : Api/TestApi.i
+
+# target to preprocess a source file
+Api/TestApi.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Api/TestApi.cpp.i
+.PHONY : Api/TestApi.cpp.i
+
+Api/TestApi.s: Api/TestApi.cpp.s
+
+.PHONY : Api/TestApi.s
+
+# target to generate assembly for a file
+Api/TestApi.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Api/TestApi.cpp.s
+.PHONY : Api/TestApi.cpp.s
+
 Api/WebrtcApi.o: Api/WebrtcApi.cpp.o
 
 .PHONY : Api/WebrtcApi.o
@@ -367,6 +421,33 @@ Codec/AacTrack.s: Codec/AacTrack.cpp.s
 Codec/AacTrack.cpp.s:
 	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Codec/AacTrack.cpp.s
 .PHONY : Codec/AacTrack.cpp.s
+
+Codec/G711Track.o: Codec/G711Track.cpp.o
+
+.PHONY : Codec/G711Track.o
+
+# target to build an object file
+Codec/G711Track.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Codec/G711Track.cpp.o
+.PHONY : Codec/G711Track.cpp.o
+
+Codec/G711Track.i: Codec/G711Track.cpp.i
+
+.PHONY : Codec/G711Track.i
+
+# target to preprocess a source file
+Codec/G711Track.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Codec/G711Track.cpp.i
+.PHONY : Codec/G711Track.cpp.i
+
+Codec/G711Track.s: Codec/G711Track.cpp.s
+
+.PHONY : Codec/G711Track.s
+
+# target to generate assembly for a file
+Codec/G711Track.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Codec/G711Track.cpp.s
+.PHONY : Codec/G711Track.cpp.s
 
 Codec/H264Frame.o: Codec/H264Frame.cpp.o
 
@@ -665,6 +746,33 @@ Common/MediaSource.cpp.s:
 	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Common/MediaSource.cpp.s
 .PHONY : Common/MediaSource.cpp.s
 
+Common/RecordReader.o: Common/RecordReader.cpp.o
+
+.PHONY : Common/RecordReader.o
+
+# target to build an object file
+Common/RecordReader.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Common/RecordReader.cpp.o
+.PHONY : Common/RecordReader.cpp.o
+
+Common/RecordReader.i: Common/RecordReader.cpp.i
+
+.PHONY : Common/RecordReader.i
+
+# target to preprocess a source file
+Common/RecordReader.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Common/RecordReader.cpp.i
+.PHONY : Common/RecordReader.cpp.i
+
+Common/RecordReader.s: Common/RecordReader.cpp.s
+
+.PHONY : Common/RecordReader.s
+
+# target to generate assembly for a file
+Common/RecordReader.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Common/RecordReader.cpp.s
+.PHONY : Common/RecordReader.cpp.s
+
 Common/StampAdjust.o: Common/StampAdjust.cpp.o
 
 .PHONY : Common/StampAdjust.o
@@ -826,6 +934,87 @@ Ehome2/Ehome2Server.s: Ehome2/Ehome2Server.cpp.s
 Ehome2/Ehome2Server.cpp.s:
 	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Ehome2/Ehome2Server.cpp.s
 .PHONY : Ehome2/Ehome2Server.cpp.s
+
+Ehome5/Ehome5Connection.o: Ehome5/Ehome5Connection.cpp.o
+
+.PHONY : Ehome5/Ehome5Connection.o
+
+# target to build an object file
+Ehome5/Ehome5Connection.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Ehome5/Ehome5Connection.cpp.o
+.PHONY : Ehome5/Ehome5Connection.cpp.o
+
+Ehome5/Ehome5Connection.i: Ehome5/Ehome5Connection.cpp.i
+
+.PHONY : Ehome5/Ehome5Connection.i
+
+# target to preprocess a source file
+Ehome5/Ehome5Connection.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Ehome5/Ehome5Connection.cpp.i
+.PHONY : Ehome5/Ehome5Connection.cpp.i
+
+Ehome5/Ehome5Connection.s: Ehome5/Ehome5Connection.cpp.s
+
+.PHONY : Ehome5/Ehome5Connection.s
+
+# target to generate assembly for a file
+Ehome5/Ehome5Connection.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Ehome5/Ehome5Connection.cpp.s
+.PHONY : Ehome5/Ehome5Connection.cpp.s
+
+Ehome5/Ehome5Parser.o: Ehome5/Ehome5Parser.cpp.o
+
+.PHONY : Ehome5/Ehome5Parser.o
+
+# target to build an object file
+Ehome5/Ehome5Parser.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Ehome5/Ehome5Parser.cpp.o
+.PHONY : Ehome5/Ehome5Parser.cpp.o
+
+Ehome5/Ehome5Parser.i: Ehome5/Ehome5Parser.cpp.i
+
+.PHONY : Ehome5/Ehome5Parser.i
+
+# target to preprocess a source file
+Ehome5/Ehome5Parser.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Ehome5/Ehome5Parser.cpp.i
+.PHONY : Ehome5/Ehome5Parser.cpp.i
+
+Ehome5/Ehome5Parser.s: Ehome5/Ehome5Parser.cpp.s
+
+.PHONY : Ehome5/Ehome5Parser.s
+
+# target to generate assembly for a file
+Ehome5/Ehome5Parser.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Ehome5/Ehome5Parser.cpp.s
+.PHONY : Ehome5/Ehome5Parser.cpp.s
+
+Ehome5/Ehome5Server.o: Ehome5/Ehome5Server.cpp.o
+
+.PHONY : Ehome5/Ehome5Server.o
+
+# target to build an object file
+Ehome5/Ehome5Server.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Ehome5/Ehome5Server.cpp.o
+.PHONY : Ehome5/Ehome5Server.cpp.o
+
+Ehome5/Ehome5Server.i: Ehome5/Ehome5Server.cpp.i
+
+.PHONY : Ehome5/Ehome5Server.i
+
+# target to preprocess a source file
+Ehome5/Ehome5Server.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Ehome5/Ehome5Server.cpp.i
+.PHONY : Ehome5/Ehome5Server.cpp.i
+
+Ehome5/Ehome5Server.s: Ehome5/Ehome5Server.cpp.s
+
+.PHONY : Ehome5/Ehome5Server.s
+
+# target to generate assembly for a file
+Ehome5/Ehome5Server.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Ehome5/Ehome5Server.cpp.s
+.PHONY : Ehome5/Ehome5Server.cpp.s
 
 Flv/FlvDemuxer.o: Flv/FlvDemuxer.cpp.o
 
@@ -1907,1382 +2096,491 @@ JT1078/JT1078Server.cpp.s:
 	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/JT1078/JT1078Server.cpp.s
 .PHONY : JT1078/JT1078Server.cpp.s
 
-MP4/Mp4Box.o: MP4/Mp4Box.cpp.o
+Mp4/Fmp4Demuxer.o: Mp4/Fmp4Demuxer.cpp.o
 
-.PHONY : MP4/Mp4Box.o
-
-# target to build an object file
-MP4/Mp4Box.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MP4/Mp4Box.cpp.o
-.PHONY : MP4/Mp4Box.cpp.o
-
-MP4/Mp4Box.i: MP4/Mp4Box.cpp.i
-
-.PHONY : MP4/Mp4Box.i
-
-# target to preprocess a source file
-MP4/Mp4Box.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MP4/Mp4Box.cpp.i
-.PHONY : MP4/Mp4Box.cpp.i
-
-MP4/Mp4Box.s: MP4/Mp4Box.cpp.s
-
-.PHONY : MP4/Mp4Box.s
-
-# target to generate assembly for a file
-MP4/Mp4Box.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MP4/Mp4Box.cpp.s
-.PHONY : MP4/Mp4Box.cpp.s
-
-MP4/Mp4Demuxer.o: MP4/Mp4Demuxer.cpp.o
-
-.PHONY : MP4/Mp4Demuxer.o
+.PHONY : Mp4/Fmp4Demuxer.o
 
 # target to build an object file
-MP4/Mp4Demuxer.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MP4/Mp4Demuxer.cpp.o
-.PHONY : MP4/Mp4Demuxer.cpp.o
+Mp4/Fmp4Demuxer.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mp4/Fmp4Demuxer.cpp.o
+.PHONY : Mp4/Fmp4Demuxer.cpp.o
 
-MP4/Mp4Demuxer.i: MP4/Mp4Demuxer.cpp.i
+Mp4/Fmp4Demuxer.i: Mp4/Fmp4Demuxer.cpp.i
 
-.PHONY : MP4/Mp4Demuxer.i
+.PHONY : Mp4/Fmp4Demuxer.i
 
 # target to preprocess a source file
-MP4/Mp4Demuxer.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MP4/Mp4Demuxer.cpp.i
-.PHONY : MP4/Mp4Demuxer.cpp.i
+Mp4/Fmp4Demuxer.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mp4/Fmp4Demuxer.cpp.i
+.PHONY : Mp4/Fmp4Demuxer.cpp.i
 
-MP4/Mp4Demuxer.s: MP4/Mp4Demuxer.cpp.s
+Mp4/Fmp4Demuxer.s: Mp4/Fmp4Demuxer.cpp.s
 
-.PHONY : MP4/Mp4Demuxer.s
+.PHONY : Mp4/Fmp4Demuxer.s
 
 # target to generate assembly for a file
-MP4/Mp4Demuxer.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MP4/Mp4Demuxer.cpp.s
-.PHONY : MP4/Mp4Demuxer.cpp.s
+Mp4/Fmp4Demuxer.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mp4/Fmp4Demuxer.cpp.s
+.PHONY : Mp4/Fmp4Demuxer.cpp.s
 
-MP4/Mp4Muxer.o: MP4/Mp4Muxer.cpp.o
+Mp4/Fmp4MediaSource.o: Mp4/Fmp4MediaSource.cpp.o
 
-.PHONY : MP4/Mp4Muxer.o
+.PHONY : Mp4/Fmp4MediaSource.o
 
 # target to build an object file
-MP4/Mp4Muxer.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MP4/Mp4Muxer.cpp.o
-.PHONY : MP4/Mp4Muxer.cpp.o
+Mp4/Fmp4MediaSource.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mp4/Fmp4MediaSource.cpp.o
+.PHONY : Mp4/Fmp4MediaSource.cpp.o
 
-MP4/Mp4Muxer.i: MP4/Mp4Muxer.cpp.i
+Mp4/Fmp4MediaSource.i: Mp4/Fmp4MediaSource.cpp.i
 
-.PHONY : MP4/Mp4Muxer.i
+.PHONY : Mp4/Fmp4MediaSource.i
 
 # target to preprocess a source file
-MP4/Mp4Muxer.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MP4/Mp4Muxer.cpp.i
-.PHONY : MP4/Mp4Muxer.cpp.i
+Mp4/Fmp4MediaSource.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mp4/Fmp4MediaSource.cpp.i
+.PHONY : Mp4/Fmp4MediaSource.cpp.i
 
-MP4/Mp4Muxer.s: MP4/Mp4Muxer.cpp.s
+Mp4/Fmp4MediaSource.s: Mp4/Fmp4MediaSource.cpp.s
 
-.PHONY : MP4/Mp4Muxer.s
+.PHONY : Mp4/Fmp4MediaSource.s
 
 # target to generate assembly for a file
-MP4/Mp4Muxer.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MP4/Mp4Muxer.cpp.s
-.PHONY : MP4/Mp4Muxer.cpp.s
+Mp4/Fmp4MediaSource.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mp4/Fmp4MediaSource.cpp.s
+.PHONY : Mp4/Fmp4MediaSource.cpp.s
 
-MPEG/Mpeg.o: MPEG/Mpeg.cpp.o
+Mp4/Fmp4Muxer.o: Mp4/Fmp4Muxer.cpp.o
 
-.PHONY : MPEG/Mpeg.o
+.PHONY : Mp4/Fmp4Muxer.o
 
 # target to build an object file
-MPEG/Mpeg.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MPEG/Mpeg.cpp.o
-.PHONY : MPEG/Mpeg.cpp.o
+Mp4/Fmp4Muxer.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mp4/Fmp4Muxer.cpp.o
+.PHONY : Mp4/Fmp4Muxer.cpp.o
 
-MPEG/Mpeg.i: MPEG/Mpeg.cpp.i
+Mp4/Fmp4Muxer.i: Mp4/Fmp4Muxer.cpp.i
 
-.PHONY : MPEG/Mpeg.i
+.PHONY : Mp4/Fmp4Muxer.i
 
 # target to preprocess a source file
-MPEG/Mpeg.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MPEG/Mpeg.cpp.i
-.PHONY : MPEG/Mpeg.cpp.i
+Mp4/Fmp4Muxer.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mp4/Fmp4Muxer.cpp.i
+.PHONY : Mp4/Fmp4Muxer.cpp.i
 
-MPEG/Mpeg.s: MPEG/Mpeg.cpp.s
+Mp4/Fmp4Muxer.s: Mp4/Fmp4Muxer.cpp.s
 
-.PHONY : MPEG/Mpeg.s
+.PHONY : Mp4/Fmp4Muxer.s
 
 # target to generate assembly for a file
-MPEG/Mpeg.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MPEG/Mpeg.cpp.s
-.PHONY : MPEG/Mpeg.cpp.s
+Mp4/Fmp4Muxer.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mp4/Fmp4Muxer.cpp.s
+.PHONY : Mp4/Fmp4Muxer.cpp.s
 
-MPEG/PsDemuxer.o: MPEG/PsDemuxer.cpp.o
+Mp4/Mp4Box.o: Mp4/Mp4Box.cpp.o
 
-.PHONY : MPEG/PsDemuxer.o
+.PHONY : Mp4/Mp4Box.o
 
 # target to build an object file
-MPEG/PsDemuxer.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MPEG/PsDemuxer.cpp.o
-.PHONY : MPEG/PsDemuxer.cpp.o
+Mp4/Mp4Box.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mp4/Mp4Box.cpp.o
+.PHONY : Mp4/Mp4Box.cpp.o
 
-MPEG/PsDemuxer.i: MPEG/PsDemuxer.cpp.i
+Mp4/Mp4Box.i: Mp4/Mp4Box.cpp.i
 
-.PHONY : MPEG/PsDemuxer.i
+.PHONY : Mp4/Mp4Box.i
 
 # target to preprocess a source file
-MPEG/PsDemuxer.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MPEG/PsDemuxer.cpp.i
-.PHONY : MPEG/PsDemuxer.cpp.i
+Mp4/Mp4Box.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mp4/Mp4Box.cpp.i
+.PHONY : Mp4/Mp4Box.cpp.i
 
-MPEG/PsDemuxer.s: MPEG/PsDemuxer.cpp.s
+Mp4/Mp4Box.s: Mp4/Mp4Box.cpp.s
 
-.PHONY : MPEG/PsDemuxer.s
+.PHONY : Mp4/Mp4Box.s
 
 # target to generate assembly for a file
-MPEG/PsDemuxer.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MPEG/PsDemuxer.cpp.s
-.PHONY : MPEG/PsDemuxer.cpp.s
+Mp4/Mp4Box.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mp4/Mp4Box.cpp.s
+.PHONY : Mp4/Mp4Box.cpp.s
 
-MPEG/PsMediaSource.o: MPEG/PsMediaSource.cpp.o
+Mp4/Mp4Demuxer.o: Mp4/Mp4Demuxer.cpp.o
 
-.PHONY : MPEG/PsMediaSource.o
+.PHONY : Mp4/Mp4Demuxer.o
 
 # target to build an object file
-MPEG/PsMediaSource.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MPEG/PsMediaSource.cpp.o
-.PHONY : MPEG/PsMediaSource.cpp.o
+Mp4/Mp4Demuxer.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mp4/Mp4Demuxer.cpp.o
+.PHONY : Mp4/Mp4Demuxer.cpp.o
 
-MPEG/PsMediaSource.i: MPEG/PsMediaSource.cpp.i
+Mp4/Mp4Demuxer.i: Mp4/Mp4Demuxer.cpp.i
 
-.PHONY : MPEG/PsMediaSource.i
+.PHONY : Mp4/Mp4Demuxer.i
 
 # target to preprocess a source file
-MPEG/PsMediaSource.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MPEG/PsMediaSource.cpp.i
-.PHONY : MPEG/PsMediaSource.cpp.i
+Mp4/Mp4Demuxer.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mp4/Mp4Demuxer.cpp.i
+.PHONY : Mp4/Mp4Demuxer.cpp.i
 
-MPEG/PsMediaSource.s: MPEG/PsMediaSource.cpp.s
+Mp4/Mp4Demuxer.s: Mp4/Mp4Demuxer.cpp.s
 
-.PHONY : MPEG/PsMediaSource.s
+.PHONY : Mp4/Mp4Demuxer.s
 
 # target to generate assembly for a file
-MPEG/PsMediaSource.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MPEG/PsMediaSource.cpp.s
-.PHONY : MPEG/PsMediaSource.cpp.s
+Mp4/Mp4Demuxer.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mp4/Mp4Demuxer.cpp.s
+.PHONY : Mp4/Mp4Demuxer.cpp.s
 
-MPEG/PsMuxer.o: MPEG/PsMuxer.cpp.o
+Mp4/Mp4FileReader.o: Mp4/Mp4FileReader.cpp.o
 
-.PHONY : MPEG/PsMuxer.o
+.PHONY : Mp4/Mp4FileReader.o
 
 # target to build an object file
-MPEG/PsMuxer.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MPEG/PsMuxer.cpp.o
-.PHONY : MPEG/PsMuxer.cpp.o
+Mp4/Mp4FileReader.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mp4/Mp4FileReader.cpp.o
+.PHONY : Mp4/Mp4FileReader.cpp.o
 
-MPEG/PsMuxer.i: MPEG/PsMuxer.cpp.i
+Mp4/Mp4FileReader.i: Mp4/Mp4FileReader.cpp.i
 
-.PHONY : MPEG/PsMuxer.i
+.PHONY : Mp4/Mp4FileReader.i
 
 # target to preprocess a source file
-MPEG/PsMuxer.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MPEG/PsMuxer.cpp.i
-.PHONY : MPEG/PsMuxer.cpp.i
+Mp4/Mp4FileReader.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mp4/Mp4FileReader.cpp.i
+.PHONY : Mp4/Mp4FileReader.cpp.i
 
-MPEG/PsMuxer.s: MPEG/PsMuxer.cpp.s
+Mp4/Mp4FileReader.s: Mp4/Mp4FileReader.cpp.s
 
-.PHONY : MPEG/PsMuxer.s
+.PHONY : Mp4/Mp4FileReader.s
 
 # target to generate assembly for a file
-MPEG/PsMuxer.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MPEG/PsMuxer.cpp.s
-.PHONY : MPEG/PsMuxer.cpp.s
+Mp4/Mp4FileReader.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mp4/Mp4FileReader.cpp.s
+.PHONY : Mp4/Mp4FileReader.cpp.s
 
-MPEG/TsDemuxer.o: MPEG/TsDemuxer.cpp.o
+Mp4/Mp4FileWriter.o: Mp4/Mp4FileWriter.cpp.o
 
-.PHONY : MPEG/TsDemuxer.o
+.PHONY : Mp4/Mp4FileWriter.o
 
 # target to build an object file
-MPEG/TsDemuxer.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MPEG/TsDemuxer.cpp.o
-.PHONY : MPEG/TsDemuxer.cpp.o
+Mp4/Mp4FileWriter.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mp4/Mp4FileWriter.cpp.o
+.PHONY : Mp4/Mp4FileWriter.cpp.o
 
-MPEG/TsDemuxer.i: MPEG/TsDemuxer.cpp.i
+Mp4/Mp4FileWriter.i: Mp4/Mp4FileWriter.cpp.i
 
-.PHONY : MPEG/TsDemuxer.i
+.PHONY : Mp4/Mp4FileWriter.i
 
 # target to preprocess a source file
-MPEG/TsDemuxer.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MPEG/TsDemuxer.cpp.i
-.PHONY : MPEG/TsDemuxer.cpp.i
+Mp4/Mp4FileWriter.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mp4/Mp4FileWriter.cpp.i
+.PHONY : Mp4/Mp4FileWriter.cpp.i
 
-MPEG/TsDemuxer.s: MPEG/TsDemuxer.cpp.s
+Mp4/Mp4FileWriter.s: Mp4/Mp4FileWriter.cpp.s
 
-.PHONY : MPEG/TsDemuxer.s
+.PHONY : Mp4/Mp4FileWriter.s
 
 # target to generate assembly for a file
-MPEG/TsDemuxer.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MPEG/TsDemuxer.cpp.s
-.PHONY : MPEG/TsDemuxer.cpp.s
+Mp4/Mp4FileWriter.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mp4/Mp4FileWriter.cpp.s
+.PHONY : Mp4/Mp4FileWriter.cpp.s
 
-MPEG/TsMediaSource.o: MPEG/TsMediaSource.cpp.o
+Mp4/Mp4Muxer.o: Mp4/Mp4Muxer.cpp.o
 
-.PHONY : MPEG/TsMediaSource.o
+.PHONY : Mp4/Mp4Muxer.o
 
 # target to build an object file
-MPEG/TsMediaSource.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MPEG/TsMediaSource.cpp.o
-.PHONY : MPEG/TsMediaSource.cpp.o
+Mp4/Mp4Muxer.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mp4/Mp4Muxer.cpp.o
+.PHONY : Mp4/Mp4Muxer.cpp.o
 
-MPEG/TsMediaSource.i: MPEG/TsMediaSource.cpp.i
+Mp4/Mp4Muxer.i: Mp4/Mp4Muxer.cpp.i
 
-.PHONY : MPEG/TsMediaSource.i
+.PHONY : Mp4/Mp4Muxer.i
 
 # target to preprocess a source file
-MPEG/TsMediaSource.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MPEG/TsMediaSource.cpp.i
-.PHONY : MPEG/TsMediaSource.cpp.i
+Mp4/Mp4Muxer.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mp4/Mp4Muxer.cpp.i
+.PHONY : Mp4/Mp4Muxer.cpp.i
 
-MPEG/TsMediaSource.s: MPEG/TsMediaSource.cpp.s
+Mp4/Mp4Muxer.s: Mp4/Mp4Muxer.cpp.s
 
-.PHONY : MPEG/TsMediaSource.s
+.PHONY : Mp4/Mp4Muxer.s
 
 # target to generate assembly for a file
-MPEG/TsMediaSource.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MPEG/TsMediaSource.cpp.s
-.PHONY : MPEG/TsMediaSource.cpp.s
+Mp4/Mp4Muxer.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mp4/Mp4Muxer.cpp.s
+.PHONY : Mp4/Mp4Muxer.cpp.s
 
-MPEG/TsMuxer.o: MPEG/TsMuxer.cpp.o
+Mpeg/Mpeg.o: Mpeg/Mpeg.cpp.o
 
-.PHONY : MPEG/TsMuxer.o
+.PHONY : Mpeg/Mpeg.o
 
 # target to build an object file
-MPEG/TsMuxer.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MPEG/TsMuxer.cpp.o
-.PHONY : MPEG/TsMuxer.cpp.o
+Mpeg/Mpeg.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mpeg/Mpeg.cpp.o
+.PHONY : Mpeg/Mpeg.cpp.o
 
-MPEG/TsMuxer.i: MPEG/TsMuxer.cpp.i
+Mpeg/Mpeg.i: Mpeg/Mpeg.cpp.i
 
-.PHONY : MPEG/TsMuxer.i
+.PHONY : Mpeg/Mpeg.i
 
 # target to preprocess a source file
-MPEG/TsMuxer.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MPEG/TsMuxer.cpp.i
-.PHONY : MPEG/TsMuxer.cpp.i
+Mpeg/Mpeg.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mpeg/Mpeg.cpp.i
+.PHONY : Mpeg/Mpeg.cpp.i
 
-MPEG/TsMuxer.s: MPEG/TsMuxer.cpp.s
+Mpeg/Mpeg.s: Mpeg/Mpeg.cpp.s
 
-.PHONY : MPEG/TsMuxer.s
+.PHONY : Mpeg/Mpeg.s
 
 # target to generate assembly for a file
-MPEG/TsMuxer.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/MPEG/TsMuxer.cpp.s
-.PHONY : MPEG/TsMuxer.cpp.s
+Mpeg/Mpeg.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mpeg/Mpeg.cpp.s
+.PHONY : Mpeg/Mpeg.cpp.s
 
-RTMP/Amf.o: RTMP/Amf.cpp.o
+Mpeg/PsDemuxer.o: Mpeg/PsDemuxer.cpp.o
 
-.PHONY : RTMP/Amf.o
+.PHONY : Mpeg/PsDemuxer.o
 
 # target to build an object file
-RTMP/Amf.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/Amf.cpp.o
-.PHONY : RTMP/Amf.cpp.o
+Mpeg/PsDemuxer.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mpeg/PsDemuxer.cpp.o
+.PHONY : Mpeg/PsDemuxer.cpp.o
 
-RTMP/Amf.i: RTMP/Amf.cpp.i
+Mpeg/PsDemuxer.i: Mpeg/PsDemuxer.cpp.i
 
-.PHONY : RTMP/Amf.i
+.PHONY : Mpeg/PsDemuxer.i
 
 # target to preprocess a source file
-RTMP/Amf.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/Amf.cpp.i
-.PHONY : RTMP/Amf.cpp.i
+Mpeg/PsDemuxer.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mpeg/PsDemuxer.cpp.i
+.PHONY : Mpeg/PsDemuxer.cpp.i
 
-RTMP/Amf.s: RTMP/Amf.cpp.s
+Mpeg/PsDemuxer.s: Mpeg/PsDemuxer.cpp.s
 
-.PHONY : RTMP/Amf.s
+.PHONY : Mpeg/PsDemuxer.s
 
 # target to generate assembly for a file
-RTMP/Amf.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/Amf.cpp.s
-.PHONY : RTMP/Amf.cpp.s
+Mpeg/PsDemuxer.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mpeg/PsDemuxer.cpp.s
+.PHONY : Mpeg/PsDemuxer.cpp.s
 
-RTMP/Decode/RtmpDecode.o: RTMP/Decode/RtmpDecode.cpp.o
+Mpeg/PsMediaSource.o: Mpeg/PsMediaSource.cpp.o
 
-.PHONY : RTMP/Decode/RtmpDecode.o
+.PHONY : Mpeg/PsMediaSource.o
 
 # target to build an object file
-RTMP/Decode/RtmpDecode.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/Decode/RtmpDecode.cpp.o
-.PHONY : RTMP/Decode/RtmpDecode.cpp.o
+Mpeg/PsMediaSource.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mpeg/PsMediaSource.cpp.o
+.PHONY : Mpeg/PsMediaSource.cpp.o
 
-RTMP/Decode/RtmpDecode.i: RTMP/Decode/RtmpDecode.cpp.i
+Mpeg/PsMediaSource.i: Mpeg/PsMediaSource.cpp.i
 
-.PHONY : RTMP/Decode/RtmpDecode.i
+.PHONY : Mpeg/PsMediaSource.i
 
 # target to preprocess a source file
-RTMP/Decode/RtmpDecode.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/Decode/RtmpDecode.cpp.i
-.PHONY : RTMP/Decode/RtmpDecode.cpp.i
+Mpeg/PsMediaSource.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mpeg/PsMediaSource.cpp.i
+.PHONY : Mpeg/PsMediaSource.cpp.i
 
-RTMP/Decode/RtmpDecode.s: RTMP/Decode/RtmpDecode.cpp.s
+Mpeg/PsMediaSource.s: Mpeg/PsMediaSource.cpp.s
 
-.PHONY : RTMP/Decode/RtmpDecode.s
+.PHONY : Mpeg/PsMediaSource.s
 
 # target to generate assembly for a file
-RTMP/Decode/RtmpDecode.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/Decode/RtmpDecode.cpp.s
-.PHONY : RTMP/Decode/RtmpDecode.cpp.s
+Mpeg/PsMediaSource.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mpeg/PsMediaSource.cpp.s
+.PHONY : Mpeg/PsMediaSource.cpp.s
 
-RTMP/Decode/RtmpDecodeAac.o: RTMP/Decode/RtmpDecodeAac.cpp.o
+Mpeg/PsMuxer.o: Mpeg/PsMuxer.cpp.o
 
-.PHONY : RTMP/Decode/RtmpDecodeAac.o
+.PHONY : Mpeg/PsMuxer.o
 
 # target to build an object file
-RTMP/Decode/RtmpDecodeAac.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/Decode/RtmpDecodeAac.cpp.o
-.PHONY : RTMP/Decode/RtmpDecodeAac.cpp.o
+Mpeg/PsMuxer.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mpeg/PsMuxer.cpp.o
+.PHONY : Mpeg/PsMuxer.cpp.o
 
-RTMP/Decode/RtmpDecodeAac.i: RTMP/Decode/RtmpDecodeAac.cpp.i
+Mpeg/PsMuxer.i: Mpeg/PsMuxer.cpp.i
 
-.PHONY : RTMP/Decode/RtmpDecodeAac.i
+.PHONY : Mpeg/PsMuxer.i
 
 # target to preprocess a source file
-RTMP/Decode/RtmpDecodeAac.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/Decode/RtmpDecodeAac.cpp.i
-.PHONY : RTMP/Decode/RtmpDecodeAac.cpp.i
+Mpeg/PsMuxer.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mpeg/PsMuxer.cpp.i
+.PHONY : Mpeg/PsMuxer.cpp.i
 
-RTMP/Decode/RtmpDecodeAac.s: RTMP/Decode/RtmpDecodeAac.cpp.s
+Mpeg/PsMuxer.s: Mpeg/PsMuxer.cpp.s
 
-.PHONY : RTMP/Decode/RtmpDecodeAac.s
+.PHONY : Mpeg/PsMuxer.s
 
 # target to generate assembly for a file
-RTMP/Decode/RtmpDecodeAac.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/Decode/RtmpDecodeAac.cpp.s
-.PHONY : RTMP/Decode/RtmpDecodeAac.cpp.s
+Mpeg/PsMuxer.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mpeg/PsMuxer.cpp.s
+.PHONY : Mpeg/PsMuxer.cpp.s
 
-RTMP/Decode/RtmpDecodeH264.o: RTMP/Decode/RtmpDecodeH264.cpp.o
+Mpeg/TsDemuxer.o: Mpeg/TsDemuxer.cpp.o
 
-.PHONY : RTMP/Decode/RtmpDecodeH264.o
+.PHONY : Mpeg/TsDemuxer.o
 
 # target to build an object file
-RTMP/Decode/RtmpDecodeH264.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/Decode/RtmpDecodeH264.cpp.o
-.PHONY : RTMP/Decode/RtmpDecodeH264.cpp.o
+Mpeg/TsDemuxer.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mpeg/TsDemuxer.cpp.o
+.PHONY : Mpeg/TsDemuxer.cpp.o
 
-RTMP/Decode/RtmpDecodeH264.i: RTMP/Decode/RtmpDecodeH264.cpp.i
+Mpeg/TsDemuxer.i: Mpeg/TsDemuxer.cpp.i
 
-.PHONY : RTMP/Decode/RtmpDecodeH264.i
+.PHONY : Mpeg/TsDemuxer.i
 
 # target to preprocess a source file
-RTMP/Decode/RtmpDecodeH264.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/Decode/RtmpDecodeH264.cpp.i
-.PHONY : RTMP/Decode/RtmpDecodeH264.cpp.i
+Mpeg/TsDemuxer.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mpeg/TsDemuxer.cpp.i
+.PHONY : Mpeg/TsDemuxer.cpp.i
 
-RTMP/Decode/RtmpDecodeH264.s: RTMP/Decode/RtmpDecodeH264.cpp.s
+Mpeg/TsDemuxer.s: Mpeg/TsDemuxer.cpp.s
 
-.PHONY : RTMP/Decode/RtmpDecodeH264.s
+.PHONY : Mpeg/TsDemuxer.s
 
 # target to generate assembly for a file
-RTMP/Decode/RtmpDecodeH264.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/Decode/RtmpDecodeH264.cpp.s
-.PHONY : RTMP/Decode/RtmpDecodeH264.cpp.s
+Mpeg/TsDemuxer.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mpeg/TsDemuxer.cpp.s
+.PHONY : Mpeg/TsDemuxer.cpp.s
 
-RTMP/Decode/RtmpDecodeH265.o: RTMP/Decode/RtmpDecodeH265.cpp.o
+Mpeg/TsMediaSource.o: Mpeg/TsMediaSource.cpp.o
 
-.PHONY : RTMP/Decode/RtmpDecodeH265.o
+.PHONY : Mpeg/TsMediaSource.o
 
 # target to build an object file
-RTMP/Decode/RtmpDecodeH265.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/Decode/RtmpDecodeH265.cpp.o
-.PHONY : RTMP/Decode/RtmpDecodeH265.cpp.o
+Mpeg/TsMediaSource.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mpeg/TsMediaSource.cpp.o
+.PHONY : Mpeg/TsMediaSource.cpp.o
 
-RTMP/Decode/RtmpDecodeH265.i: RTMP/Decode/RtmpDecodeH265.cpp.i
+Mpeg/TsMediaSource.i: Mpeg/TsMediaSource.cpp.i
 
-.PHONY : RTMP/Decode/RtmpDecodeH265.i
+.PHONY : Mpeg/TsMediaSource.i
 
 # target to preprocess a source file
-RTMP/Decode/RtmpDecodeH265.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/Decode/RtmpDecodeH265.cpp.i
-.PHONY : RTMP/Decode/RtmpDecodeH265.cpp.i
+Mpeg/TsMediaSource.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mpeg/TsMediaSource.cpp.i
+.PHONY : Mpeg/TsMediaSource.cpp.i
 
-RTMP/Decode/RtmpDecodeH265.s: RTMP/Decode/RtmpDecodeH265.cpp.s
+Mpeg/TsMediaSource.s: Mpeg/TsMediaSource.cpp.s
 
-.PHONY : RTMP/Decode/RtmpDecodeH265.s
+.PHONY : Mpeg/TsMediaSource.s
 
 # target to generate assembly for a file
-RTMP/Decode/RtmpDecodeH265.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/Decode/RtmpDecodeH265.cpp.s
-.PHONY : RTMP/Decode/RtmpDecodeH265.cpp.s
+Mpeg/TsMediaSource.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mpeg/TsMediaSource.cpp.s
+.PHONY : Mpeg/TsMediaSource.cpp.s
 
-RTMP/Encode/RtmpEncode.o: RTMP/Encode/RtmpEncode.cpp.o
+Mpeg/TsMuxer.o: Mpeg/TsMuxer.cpp.o
 
-.PHONY : RTMP/Encode/RtmpEncode.o
+.PHONY : Mpeg/TsMuxer.o
 
 # target to build an object file
-RTMP/Encode/RtmpEncode.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/Encode/RtmpEncode.cpp.o
-.PHONY : RTMP/Encode/RtmpEncode.cpp.o
+Mpeg/TsMuxer.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mpeg/TsMuxer.cpp.o
+.PHONY : Mpeg/TsMuxer.cpp.o
 
-RTMP/Encode/RtmpEncode.i: RTMP/Encode/RtmpEncode.cpp.i
+Mpeg/TsMuxer.i: Mpeg/TsMuxer.cpp.i
 
-.PHONY : RTMP/Encode/RtmpEncode.i
+.PHONY : Mpeg/TsMuxer.i
 
 # target to preprocess a source file
-RTMP/Encode/RtmpEncode.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/Encode/RtmpEncode.cpp.i
-.PHONY : RTMP/Encode/RtmpEncode.cpp.i
+Mpeg/TsMuxer.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mpeg/TsMuxer.cpp.i
+.PHONY : Mpeg/TsMuxer.cpp.i
 
-RTMP/Encode/RtmpEncode.s: RTMP/Encode/RtmpEncode.cpp.s
+Mpeg/TsMuxer.s: Mpeg/TsMuxer.cpp.s
 
-.PHONY : RTMP/Encode/RtmpEncode.s
+.PHONY : Mpeg/TsMuxer.s
 
 # target to generate assembly for a file
-RTMP/Encode/RtmpEncode.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/Encode/RtmpEncode.cpp.s
-.PHONY : RTMP/Encode/RtmpEncode.cpp.s
+Mpeg/TsMuxer.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Mpeg/TsMuxer.cpp.s
+.PHONY : Mpeg/TsMuxer.cpp.s
 
-RTMP/Encode/RtmpEncodeAac.o: RTMP/Encode/RtmpEncodeAac.cpp.o
+Record/Record.o: Record/Record.cpp.o
 
-.PHONY : RTMP/Encode/RtmpEncodeAac.o
+.PHONY : Record/Record.o
 
 # target to build an object file
-RTMP/Encode/RtmpEncodeAac.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/Encode/RtmpEncodeAac.cpp.o
-.PHONY : RTMP/Encode/RtmpEncodeAac.cpp.o
+Record/Record.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Record/Record.cpp.o
+.PHONY : Record/Record.cpp.o
 
-RTMP/Encode/RtmpEncodeAac.i: RTMP/Encode/RtmpEncodeAac.cpp.i
+Record/Record.i: Record/Record.cpp.i
 
-.PHONY : RTMP/Encode/RtmpEncodeAac.i
+.PHONY : Record/Record.i
 
 # target to preprocess a source file
-RTMP/Encode/RtmpEncodeAac.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/Encode/RtmpEncodeAac.cpp.i
-.PHONY : RTMP/Encode/RtmpEncodeAac.cpp.i
+Record/Record.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Record/Record.cpp.i
+.PHONY : Record/Record.cpp.i
 
-RTMP/Encode/RtmpEncodeAac.s: RTMP/Encode/RtmpEncodeAac.cpp.s
+Record/Record.s: Record/Record.cpp.s
 
-.PHONY : RTMP/Encode/RtmpEncodeAac.s
+.PHONY : Record/Record.s
 
 # target to generate assembly for a file
-RTMP/Encode/RtmpEncodeAac.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/Encode/RtmpEncodeAac.cpp.s
-.PHONY : RTMP/Encode/RtmpEncodeAac.cpp.s
+Record/Record.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Record/Record.cpp.s
+.PHONY : Record/Record.cpp.s
 
-RTMP/Encode/RtmpEncodeH264.o: RTMP/Encode/RtmpEncodeH264.cpp.o
+Record/RecordMp4.o: Record/RecordMp4.cpp.o
 
-.PHONY : RTMP/Encode/RtmpEncodeH264.o
+.PHONY : Record/RecordMp4.o
 
 # target to build an object file
-RTMP/Encode/RtmpEncodeH264.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/Encode/RtmpEncodeH264.cpp.o
-.PHONY : RTMP/Encode/RtmpEncodeH264.cpp.o
+Record/RecordMp4.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Record/RecordMp4.cpp.o
+.PHONY : Record/RecordMp4.cpp.o
 
-RTMP/Encode/RtmpEncodeH264.i: RTMP/Encode/RtmpEncodeH264.cpp.i
+Record/RecordMp4.i: Record/RecordMp4.cpp.i
 
-.PHONY : RTMP/Encode/RtmpEncodeH264.i
+.PHONY : Record/RecordMp4.i
 
 # target to preprocess a source file
-RTMP/Encode/RtmpEncodeH264.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/Encode/RtmpEncodeH264.cpp.i
-.PHONY : RTMP/Encode/RtmpEncodeH264.cpp.i
+Record/RecordMp4.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Record/RecordMp4.cpp.i
+.PHONY : Record/RecordMp4.cpp.i
 
-RTMP/Encode/RtmpEncodeH264.s: RTMP/Encode/RtmpEncodeH264.cpp.s
+Record/RecordMp4.s: Record/RecordMp4.cpp.s
 
-.PHONY : RTMP/Encode/RtmpEncodeH264.s
+.PHONY : Record/RecordMp4.s
 
 # target to generate assembly for a file
-RTMP/Encode/RtmpEncodeH264.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/Encode/RtmpEncodeH264.cpp.s
-.PHONY : RTMP/Encode/RtmpEncodeH264.cpp.s
+Record/RecordMp4.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Record/RecordMp4.cpp.s
+.PHONY : Record/RecordMp4.cpp.s
 
-RTMP/Encode/RtmpEncodeH265.o: RTMP/Encode/RtmpEncodeH265.cpp.o
+Record/RecordPs.o: Record/RecordPs.cpp.o
 
-.PHONY : RTMP/Encode/RtmpEncodeH265.o
+.PHONY : Record/RecordPs.o
 
 # target to build an object file
-RTMP/Encode/RtmpEncodeH265.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/Encode/RtmpEncodeH265.cpp.o
-.PHONY : RTMP/Encode/RtmpEncodeH265.cpp.o
+Record/RecordPs.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Record/RecordPs.cpp.o
+.PHONY : Record/RecordPs.cpp.o
 
-RTMP/Encode/RtmpEncodeH265.i: RTMP/Encode/RtmpEncodeH265.cpp.i
+Record/RecordPs.i: Record/RecordPs.cpp.i
 
-.PHONY : RTMP/Encode/RtmpEncodeH265.i
-
-# target to preprocess a source file
-RTMP/Encode/RtmpEncodeH265.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/Encode/RtmpEncodeH265.cpp.i
-.PHONY : RTMP/Encode/RtmpEncodeH265.cpp.i
-
-RTMP/Encode/RtmpEncodeH265.s: RTMP/Encode/RtmpEncodeH265.cpp.s
-
-.PHONY : RTMP/Encode/RtmpEncodeH265.s
-
-# target to generate assembly for a file
-RTMP/Encode/RtmpEncodeH265.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/Encode/RtmpEncodeH265.cpp.s
-.PHONY : RTMP/Encode/RtmpEncodeH265.cpp.s
-
-RTMP/FlvMuxerWithRtmp.o: RTMP/FlvMuxerWithRtmp.cpp.o
-
-.PHONY : RTMP/FlvMuxerWithRtmp.o
-
-# target to build an object file
-RTMP/FlvMuxerWithRtmp.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/FlvMuxerWithRtmp.cpp.o
-.PHONY : RTMP/FlvMuxerWithRtmp.cpp.o
-
-RTMP/FlvMuxerWithRtmp.i: RTMP/FlvMuxerWithRtmp.cpp.i
-
-.PHONY : RTMP/FlvMuxerWithRtmp.i
+.PHONY : Record/RecordPs.i
 
 # target to preprocess a source file
-RTMP/FlvMuxerWithRtmp.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/FlvMuxerWithRtmp.cpp.i
-.PHONY : RTMP/FlvMuxerWithRtmp.cpp.i
+Record/RecordPs.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Record/RecordPs.cpp.i
+.PHONY : Record/RecordPs.cpp.i
 
-RTMP/FlvMuxerWithRtmp.s: RTMP/FlvMuxerWithRtmp.cpp.s
+Record/RecordPs.s: Record/RecordPs.cpp.s
 
-.PHONY : RTMP/FlvMuxerWithRtmp.s
-
-# target to generate assembly for a file
-RTMP/FlvMuxerWithRtmp.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/FlvMuxerWithRtmp.cpp.s
-.PHONY : RTMP/FlvMuxerWithRtmp.cpp.s
-
-RTMP/RtmpChunk.o: RTMP/RtmpChunk.cpp.o
-
-.PHONY : RTMP/RtmpChunk.o
-
-# target to build an object file
-RTMP/RtmpChunk.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/RtmpChunk.cpp.o
-.PHONY : RTMP/RtmpChunk.cpp.o
-
-RTMP/RtmpChunk.i: RTMP/RtmpChunk.cpp.i
-
-.PHONY : RTMP/RtmpChunk.i
-
-# target to preprocess a source file
-RTMP/RtmpChunk.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/RtmpChunk.cpp.i
-.PHONY : RTMP/RtmpChunk.cpp.i
-
-RTMP/RtmpChunk.s: RTMP/RtmpChunk.cpp.s
-
-.PHONY : RTMP/RtmpChunk.s
+.PHONY : Record/RecordPs.s
 
 # target to generate assembly for a file
-RTMP/RtmpChunk.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/RtmpChunk.cpp.s
-.PHONY : RTMP/RtmpChunk.cpp.s
-
-RTMP/RtmpClient.o: RTMP/RtmpClient.cpp.o
-
-.PHONY : RTMP/RtmpClient.o
-
-# target to build an object file
-RTMP/RtmpClient.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/RtmpClient.cpp.o
-.PHONY : RTMP/RtmpClient.cpp.o
-
-RTMP/RtmpClient.i: RTMP/RtmpClient.cpp.i
-
-.PHONY : RTMP/RtmpClient.i
-
-# target to preprocess a source file
-RTMP/RtmpClient.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/RtmpClient.cpp.i
-.PHONY : RTMP/RtmpClient.cpp.i
-
-RTMP/RtmpClient.s: RTMP/RtmpClient.cpp.s
-
-.PHONY : RTMP/RtmpClient.s
-
-# target to generate assembly for a file
-RTMP/RtmpClient.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/RtmpClient.cpp.s
-.PHONY : RTMP/RtmpClient.cpp.s
-
-RTMP/RtmpConnection.o: RTMP/RtmpConnection.cpp.o
-
-.PHONY : RTMP/RtmpConnection.o
-
-# target to build an object file
-RTMP/RtmpConnection.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/RtmpConnection.cpp.o
-.PHONY : RTMP/RtmpConnection.cpp.o
-
-RTMP/RtmpConnection.i: RTMP/RtmpConnection.cpp.i
-
-.PHONY : RTMP/RtmpConnection.i
-
-# target to preprocess a source file
-RTMP/RtmpConnection.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/RtmpConnection.cpp.i
-.PHONY : RTMP/RtmpConnection.cpp.i
-
-RTMP/RtmpConnection.s: RTMP/RtmpConnection.cpp.s
-
-.PHONY : RTMP/RtmpConnection.s
-
-# target to generate assembly for a file
-RTMP/RtmpConnection.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/RtmpConnection.cpp.s
-.PHONY : RTMP/RtmpConnection.cpp.s
-
-RTMP/RtmpDecodeTrack.o: RTMP/RtmpDecodeTrack.cpp.o
-
-.PHONY : RTMP/RtmpDecodeTrack.o
-
-# target to build an object file
-RTMP/RtmpDecodeTrack.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/RtmpDecodeTrack.cpp.o
-.PHONY : RTMP/RtmpDecodeTrack.cpp.o
-
-RTMP/RtmpDecodeTrack.i: RTMP/RtmpDecodeTrack.cpp.i
-
-.PHONY : RTMP/RtmpDecodeTrack.i
-
-# target to preprocess a source file
-RTMP/RtmpDecodeTrack.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/RtmpDecodeTrack.cpp.i
-.PHONY : RTMP/RtmpDecodeTrack.cpp.i
-
-RTMP/RtmpDecodeTrack.s: RTMP/RtmpDecodeTrack.cpp.s
-
-.PHONY : RTMP/RtmpDecodeTrack.s
-
-# target to generate assembly for a file
-RTMP/RtmpDecodeTrack.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/RtmpDecodeTrack.cpp.s
-.PHONY : RTMP/RtmpDecodeTrack.cpp.s
-
-RTMP/RtmpEncodeTrack.o: RTMP/RtmpEncodeTrack.cpp.o
-
-.PHONY : RTMP/RtmpEncodeTrack.o
-
-# target to build an object file
-RTMP/RtmpEncodeTrack.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/RtmpEncodeTrack.cpp.o
-.PHONY : RTMP/RtmpEncodeTrack.cpp.o
-
-RTMP/RtmpEncodeTrack.i: RTMP/RtmpEncodeTrack.cpp.i
-
-.PHONY : RTMP/RtmpEncodeTrack.i
-
-# target to preprocess a source file
-RTMP/RtmpEncodeTrack.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/RtmpEncodeTrack.cpp.i
-.PHONY : RTMP/RtmpEncodeTrack.cpp.i
-
-RTMP/RtmpEncodeTrack.s: RTMP/RtmpEncodeTrack.cpp.s
-
-.PHONY : RTMP/RtmpEncodeTrack.s
-
-# target to generate assembly for a file
-RTMP/RtmpEncodeTrack.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/RtmpEncodeTrack.cpp.s
-.PHONY : RTMP/RtmpEncodeTrack.cpp.s
-
-RTMP/RtmpHandshake.o: RTMP/RtmpHandshake.cpp.o
-
-.PHONY : RTMP/RtmpHandshake.o
-
-# target to build an object file
-RTMP/RtmpHandshake.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/RtmpHandshake.cpp.o
-.PHONY : RTMP/RtmpHandshake.cpp.o
-
-RTMP/RtmpHandshake.i: RTMP/RtmpHandshake.cpp.i
-
-.PHONY : RTMP/RtmpHandshake.i
-
-# target to preprocess a source file
-RTMP/RtmpHandshake.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/RtmpHandshake.cpp.i
-.PHONY : RTMP/RtmpHandshake.cpp.i
-
-RTMP/RtmpHandshake.s: RTMP/RtmpHandshake.cpp.s
-
-.PHONY : RTMP/RtmpHandshake.s
-
-# target to generate assembly for a file
-RTMP/RtmpHandshake.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/RtmpHandshake.cpp.s
-.PHONY : RTMP/RtmpHandshake.cpp.s
-
-RTMP/RtmpMediaSource.o: RTMP/RtmpMediaSource.cpp.o
-
-.PHONY : RTMP/RtmpMediaSource.o
-
-# target to build an object file
-RTMP/RtmpMediaSource.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/RtmpMediaSource.cpp.o
-.PHONY : RTMP/RtmpMediaSource.cpp.o
-
-RTMP/RtmpMediaSource.i: RTMP/RtmpMediaSource.cpp.i
-
-.PHONY : RTMP/RtmpMediaSource.i
-
-# target to preprocess a source file
-RTMP/RtmpMediaSource.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/RtmpMediaSource.cpp.i
-.PHONY : RTMP/RtmpMediaSource.cpp.i
-
-RTMP/RtmpMediaSource.s: RTMP/RtmpMediaSource.cpp.s
-
-.PHONY : RTMP/RtmpMediaSource.s
-
-# target to generate assembly for a file
-RTMP/RtmpMediaSource.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/RtmpMediaSource.cpp.s
-.PHONY : RTMP/RtmpMediaSource.cpp.s
-
-RTMP/RtmpServer.o: RTMP/RtmpServer.cpp.o
-
-.PHONY : RTMP/RtmpServer.o
-
-# target to build an object file
-RTMP/RtmpServer.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/RtmpServer.cpp.o
-.PHONY : RTMP/RtmpServer.cpp.o
-
-RTMP/RtmpServer.i: RTMP/RtmpServer.cpp.i
-
-.PHONY : RTMP/RtmpServer.i
-
-# target to preprocess a source file
-RTMP/RtmpServer.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/RtmpServer.cpp.i
-.PHONY : RTMP/RtmpServer.cpp.i
-
-RTMP/RtmpServer.s: RTMP/RtmpServer.cpp.s
-
-.PHONY : RTMP/RtmpServer.s
-
-# target to generate assembly for a file
-RTMP/RtmpServer.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTMP/RtmpServer.cpp.s
-.PHONY : RTMP/RtmpServer.cpp.s
-
-RTP/Decoder/RtpDecodeAac.o: RTP/Decoder/RtpDecodeAac.cpp.o
-
-.PHONY : RTP/Decoder/RtpDecodeAac.o
-
-# target to build an object file
-RTP/Decoder/RtpDecodeAac.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Decoder/RtpDecodeAac.cpp.o
-.PHONY : RTP/Decoder/RtpDecodeAac.cpp.o
-
-RTP/Decoder/RtpDecodeAac.i: RTP/Decoder/RtpDecodeAac.cpp.i
-
-.PHONY : RTP/Decoder/RtpDecodeAac.i
-
-# target to preprocess a source file
-RTP/Decoder/RtpDecodeAac.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Decoder/RtpDecodeAac.cpp.i
-.PHONY : RTP/Decoder/RtpDecodeAac.cpp.i
-
-RTP/Decoder/RtpDecodeAac.s: RTP/Decoder/RtpDecodeAac.cpp.s
-
-.PHONY : RTP/Decoder/RtpDecodeAac.s
-
-# target to generate assembly for a file
-RTP/Decoder/RtpDecodeAac.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Decoder/RtpDecodeAac.cpp.s
-.PHONY : RTP/Decoder/RtpDecodeAac.cpp.s
-
-RTP/Decoder/RtpDecodeCommon.o: RTP/Decoder/RtpDecodeCommon.cpp.o
-
-.PHONY : RTP/Decoder/RtpDecodeCommon.o
-
-# target to build an object file
-RTP/Decoder/RtpDecodeCommon.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Decoder/RtpDecodeCommon.cpp.o
-.PHONY : RTP/Decoder/RtpDecodeCommon.cpp.o
-
-RTP/Decoder/RtpDecodeCommon.i: RTP/Decoder/RtpDecodeCommon.cpp.i
-
-.PHONY : RTP/Decoder/RtpDecodeCommon.i
-
-# target to preprocess a source file
-RTP/Decoder/RtpDecodeCommon.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Decoder/RtpDecodeCommon.cpp.i
-.PHONY : RTP/Decoder/RtpDecodeCommon.cpp.i
-
-RTP/Decoder/RtpDecodeCommon.s: RTP/Decoder/RtpDecodeCommon.cpp.s
-
-.PHONY : RTP/Decoder/RtpDecodeCommon.s
-
-# target to generate assembly for a file
-RTP/Decoder/RtpDecodeCommon.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Decoder/RtpDecodeCommon.cpp.s
-.PHONY : RTP/Decoder/RtpDecodeCommon.cpp.s
-
-RTP/Decoder/RtpDecodeH264.o: RTP/Decoder/RtpDecodeH264.cpp.o
-
-.PHONY : RTP/Decoder/RtpDecodeH264.o
-
-# target to build an object file
-RTP/Decoder/RtpDecodeH264.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Decoder/RtpDecodeH264.cpp.o
-.PHONY : RTP/Decoder/RtpDecodeH264.cpp.o
-
-RTP/Decoder/RtpDecodeH264.i: RTP/Decoder/RtpDecodeH264.cpp.i
-
-.PHONY : RTP/Decoder/RtpDecodeH264.i
-
-# target to preprocess a source file
-RTP/Decoder/RtpDecodeH264.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Decoder/RtpDecodeH264.cpp.i
-.PHONY : RTP/Decoder/RtpDecodeH264.cpp.i
-
-RTP/Decoder/RtpDecodeH264.s: RTP/Decoder/RtpDecodeH264.cpp.s
-
-.PHONY : RTP/Decoder/RtpDecodeH264.s
-
-# target to generate assembly for a file
-RTP/Decoder/RtpDecodeH264.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Decoder/RtpDecodeH264.cpp.s
-.PHONY : RTP/Decoder/RtpDecodeH264.cpp.s
-
-RTP/Decoder/RtpDecodeH265.o: RTP/Decoder/RtpDecodeH265.cpp.o
-
-.PHONY : RTP/Decoder/RtpDecodeH265.o
-
-# target to build an object file
-RTP/Decoder/RtpDecodeH265.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Decoder/RtpDecodeH265.cpp.o
-.PHONY : RTP/Decoder/RtpDecodeH265.cpp.o
-
-RTP/Decoder/RtpDecodeH265.i: RTP/Decoder/RtpDecodeH265.cpp.i
-
-.PHONY : RTP/Decoder/RtpDecodeH265.i
-
-# target to preprocess a source file
-RTP/Decoder/RtpDecodeH265.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Decoder/RtpDecodeH265.cpp.i
-.PHONY : RTP/Decoder/RtpDecodeH265.cpp.i
-
-RTP/Decoder/RtpDecodeH265.s: RTP/Decoder/RtpDecodeH265.cpp.s
-
-.PHONY : RTP/Decoder/RtpDecodeH265.s
-
-# target to generate assembly for a file
-RTP/Decoder/RtpDecodeH265.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Decoder/RtpDecodeH265.cpp.s
-.PHONY : RTP/Decoder/RtpDecodeH265.cpp.s
-
-RTP/Decoder/RtpDecoder.o: RTP/Decoder/RtpDecoder.cpp.o
-
-.PHONY : RTP/Decoder/RtpDecoder.o
-
-# target to build an object file
-RTP/Decoder/RtpDecoder.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Decoder/RtpDecoder.cpp.o
-.PHONY : RTP/Decoder/RtpDecoder.cpp.o
-
-RTP/Decoder/RtpDecoder.i: RTP/Decoder/RtpDecoder.cpp.i
-
-.PHONY : RTP/Decoder/RtpDecoder.i
-
-# target to preprocess a source file
-RTP/Decoder/RtpDecoder.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Decoder/RtpDecoder.cpp.i
-.PHONY : RTP/Decoder/RtpDecoder.cpp.i
-
-RTP/Decoder/RtpDecoder.s: RTP/Decoder/RtpDecoder.cpp.s
-
-.PHONY : RTP/Decoder/RtpDecoder.s
-
-# target to generate assembly for a file
-RTP/Decoder/RtpDecoder.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Decoder/RtpDecoder.cpp.s
-.PHONY : RTP/Decoder/RtpDecoder.cpp.s
-
-RTP/Encoder/RtpEncodeAac.o: RTP/Encoder/RtpEncodeAac.cpp.o
-
-.PHONY : RTP/Encoder/RtpEncodeAac.o
-
-# target to build an object file
-RTP/Encoder/RtpEncodeAac.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Encoder/RtpEncodeAac.cpp.o
-.PHONY : RTP/Encoder/RtpEncodeAac.cpp.o
-
-RTP/Encoder/RtpEncodeAac.i: RTP/Encoder/RtpEncodeAac.cpp.i
-
-.PHONY : RTP/Encoder/RtpEncodeAac.i
-
-# target to preprocess a source file
-RTP/Encoder/RtpEncodeAac.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Encoder/RtpEncodeAac.cpp.i
-.PHONY : RTP/Encoder/RtpEncodeAac.cpp.i
-
-RTP/Encoder/RtpEncodeAac.s: RTP/Encoder/RtpEncodeAac.cpp.s
-
-.PHONY : RTP/Encoder/RtpEncodeAac.s
-
-# target to generate assembly for a file
-RTP/Encoder/RtpEncodeAac.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Encoder/RtpEncodeAac.cpp.s
-.PHONY : RTP/Encoder/RtpEncodeAac.cpp.s
-
-RTP/Encoder/RtpEncodeCommon.o: RTP/Encoder/RtpEncodeCommon.cpp.o
-
-.PHONY : RTP/Encoder/RtpEncodeCommon.o
-
-# target to build an object file
-RTP/Encoder/RtpEncodeCommon.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Encoder/RtpEncodeCommon.cpp.o
-.PHONY : RTP/Encoder/RtpEncodeCommon.cpp.o
-
-RTP/Encoder/RtpEncodeCommon.i: RTP/Encoder/RtpEncodeCommon.cpp.i
-
-.PHONY : RTP/Encoder/RtpEncodeCommon.i
-
-# target to preprocess a source file
-RTP/Encoder/RtpEncodeCommon.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Encoder/RtpEncodeCommon.cpp.i
-.PHONY : RTP/Encoder/RtpEncodeCommon.cpp.i
-
-RTP/Encoder/RtpEncodeCommon.s: RTP/Encoder/RtpEncodeCommon.cpp.s
-
-.PHONY : RTP/Encoder/RtpEncodeCommon.s
-
-# target to generate assembly for a file
-RTP/Encoder/RtpEncodeCommon.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Encoder/RtpEncodeCommon.cpp.s
-.PHONY : RTP/Encoder/RtpEncodeCommon.cpp.s
-
-RTP/Encoder/RtpEncodeH264.o: RTP/Encoder/RtpEncodeH264.cpp.o
-
-.PHONY : RTP/Encoder/RtpEncodeH264.o
-
-# target to build an object file
-RTP/Encoder/RtpEncodeH264.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Encoder/RtpEncodeH264.cpp.o
-.PHONY : RTP/Encoder/RtpEncodeH264.cpp.o
-
-RTP/Encoder/RtpEncodeH264.i: RTP/Encoder/RtpEncodeH264.cpp.i
-
-.PHONY : RTP/Encoder/RtpEncodeH264.i
-
-# target to preprocess a source file
-RTP/Encoder/RtpEncodeH264.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Encoder/RtpEncodeH264.cpp.i
-.PHONY : RTP/Encoder/RtpEncodeH264.cpp.i
-
-RTP/Encoder/RtpEncodeH264.s: RTP/Encoder/RtpEncodeH264.cpp.s
-
-.PHONY : RTP/Encoder/RtpEncodeH264.s
-
-# target to generate assembly for a file
-RTP/Encoder/RtpEncodeH264.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Encoder/RtpEncodeH264.cpp.s
-.PHONY : RTP/Encoder/RtpEncodeH264.cpp.s
-
-RTP/Encoder/RtpEncodeH265.o: RTP/Encoder/RtpEncodeH265.cpp.o
-
-.PHONY : RTP/Encoder/RtpEncodeH265.o
-
-# target to build an object file
-RTP/Encoder/RtpEncodeH265.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Encoder/RtpEncodeH265.cpp.o
-.PHONY : RTP/Encoder/RtpEncodeH265.cpp.o
-
-RTP/Encoder/RtpEncodeH265.i: RTP/Encoder/RtpEncodeH265.cpp.i
-
-.PHONY : RTP/Encoder/RtpEncodeH265.i
-
-# target to preprocess a source file
-RTP/Encoder/RtpEncodeH265.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Encoder/RtpEncodeH265.cpp.i
-.PHONY : RTP/Encoder/RtpEncodeH265.cpp.i
-
-RTP/Encoder/RtpEncodeH265.s: RTP/Encoder/RtpEncodeH265.cpp.s
-
-.PHONY : RTP/Encoder/RtpEncodeH265.s
-
-# target to generate assembly for a file
-RTP/Encoder/RtpEncodeH265.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Encoder/RtpEncodeH265.cpp.s
-.PHONY : RTP/Encoder/RtpEncodeH265.cpp.s
-
-RTP/Encoder/RtpEncoder.o: RTP/Encoder/RtpEncoder.cpp.o
-
-.PHONY : RTP/Encoder/RtpEncoder.o
-
-# target to build an object file
-RTP/Encoder/RtpEncoder.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Encoder/RtpEncoder.cpp.o
-.PHONY : RTP/Encoder/RtpEncoder.cpp.o
-
-RTP/Encoder/RtpEncoder.i: RTP/Encoder/RtpEncoder.cpp.i
-
-.PHONY : RTP/Encoder/RtpEncoder.i
-
-# target to preprocess a source file
-RTP/Encoder/RtpEncoder.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Encoder/RtpEncoder.cpp.i
-.PHONY : RTP/Encoder/RtpEncoder.cpp.i
-
-RTP/Encoder/RtpEncoder.s: RTP/Encoder/RtpEncoder.cpp.s
-
-.PHONY : RTP/Encoder/RtpEncoder.s
-
-# target to generate assembly for a file
-RTP/Encoder/RtpEncoder.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/Encoder/RtpEncoder.cpp.s
-.PHONY : RTP/Encoder/RtpEncoder.cpp.s
-
-RTP/RtpConnection.o: RTP/RtpConnection.cpp.o
-
-.PHONY : RTP/RtpConnection.o
-
-# target to build an object file
-RTP/RtpConnection.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/RtpConnection.cpp.o
-.PHONY : RTP/RtpConnection.cpp.o
-
-RTP/RtpConnection.i: RTP/RtpConnection.cpp.i
-
-.PHONY : RTP/RtpConnection.i
-
-# target to preprocess a source file
-RTP/RtpConnection.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/RtpConnection.cpp.i
-.PHONY : RTP/RtpConnection.cpp.i
-
-RTP/RtpConnection.s: RTP/RtpConnection.cpp.s
-
-.PHONY : RTP/RtpConnection.s
-
-# target to generate assembly for a file
-RTP/RtpConnection.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/RtpConnection.cpp.s
-.PHONY : RTP/RtpConnection.cpp.s
-
-RTP/RtpPacket.o: RTP/RtpPacket.cpp.o
-
-.PHONY : RTP/RtpPacket.o
-
-# target to build an object file
-RTP/RtpPacket.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/RtpPacket.cpp.o
-.PHONY : RTP/RtpPacket.cpp.o
-
-RTP/RtpPacket.i: RTP/RtpPacket.cpp.i
-
-.PHONY : RTP/RtpPacket.i
-
-# target to preprocess a source file
-RTP/RtpPacket.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/RtpPacket.cpp.i
-.PHONY : RTP/RtpPacket.cpp.i
-
-RTP/RtpPacket.s: RTP/RtpPacket.cpp.s
-
-.PHONY : RTP/RtpPacket.s
-
-# target to generate assembly for a file
-RTP/RtpPacket.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/RtpPacket.cpp.s
-.PHONY : RTP/RtpPacket.cpp.s
-
-RTP/RtpSort.o: RTP/RtpSort.cpp.o
-
-.PHONY : RTP/RtpSort.o
-
-# target to build an object file
-RTP/RtpSort.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/RtpSort.cpp.o
-.PHONY : RTP/RtpSort.cpp.o
-
-RTP/RtpSort.i: RTP/RtpSort.cpp.i
-
-.PHONY : RTP/RtpSort.i
-
-# target to preprocess a source file
-RTP/RtpSort.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/RtpSort.cpp.i
-.PHONY : RTP/RtpSort.cpp.i
-
-RTP/RtpSort.s: RTP/RtpSort.cpp.s
-
-.PHONY : RTP/RtpSort.s
-
-# target to generate assembly for a file
-RTP/RtpSort.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTP/RtpSort.cpp.s
-.PHONY : RTP/RtpSort.cpp.s
-
-RTSP/RtspAuth.o: RTSP/RtspAuth.cpp.o
-
-.PHONY : RTSP/RtspAuth.o
-
-# target to build an object file
-RTSP/RtspAuth.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspAuth.cpp.o
-.PHONY : RTSP/RtspAuth.cpp.o
-
-RTSP/RtspAuth.i: RTSP/RtspAuth.cpp.i
-
-.PHONY : RTSP/RtspAuth.i
-
-# target to preprocess a source file
-RTSP/RtspAuth.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspAuth.cpp.i
-.PHONY : RTSP/RtspAuth.cpp.i
-
-RTSP/RtspAuth.s: RTSP/RtspAuth.cpp.s
-
-.PHONY : RTSP/RtspAuth.s
-
-# target to generate assembly for a file
-RTSP/RtspAuth.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspAuth.cpp.s
-.PHONY : RTSP/RtspAuth.cpp.s
-
-RTSP/RtspClient.o: RTSP/RtspClient.cpp.o
-
-.PHONY : RTSP/RtspClient.o
-
-# target to build an object file
-RTSP/RtspClient.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspClient.cpp.o
-.PHONY : RTSP/RtspClient.cpp.o
-
-RTSP/RtspClient.i: RTSP/RtspClient.cpp.i
-
-.PHONY : RTSP/RtspClient.i
-
-# target to preprocess a source file
-RTSP/RtspClient.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspClient.cpp.i
-.PHONY : RTSP/RtspClient.cpp.i
-
-RTSP/RtspClient.s: RTSP/RtspClient.cpp.s
-
-.PHONY : RTSP/RtspClient.s
-
-# target to generate assembly for a file
-RTSP/RtspClient.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspClient.cpp.s
-.PHONY : RTSP/RtspClient.cpp.s
-
-RTSP/RtspConnection.o: RTSP/RtspConnection.cpp.o
-
-.PHONY : RTSP/RtspConnection.o
-
-# target to build an object file
-RTSP/RtspConnection.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspConnection.cpp.o
-.PHONY : RTSP/RtspConnection.cpp.o
-
-RTSP/RtspConnection.i: RTSP/RtspConnection.cpp.i
-
-.PHONY : RTSP/RtspConnection.i
-
-# target to preprocess a source file
-RTSP/RtspConnection.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspConnection.cpp.i
-.PHONY : RTSP/RtspConnection.cpp.i
-
-RTSP/RtspConnection.s: RTSP/RtspConnection.cpp.s
-
-.PHONY : RTSP/RtspConnection.s
-
-# target to generate assembly for a file
-RTSP/RtspConnection.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspConnection.cpp.s
-.PHONY : RTSP/RtspConnection.cpp.s
-
-RTSP/RtspMediaSource.o: RTSP/RtspMediaSource.cpp.o
-
-.PHONY : RTSP/RtspMediaSource.o
-
-# target to build an object file
-RTSP/RtspMediaSource.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspMediaSource.cpp.o
-.PHONY : RTSP/RtspMediaSource.cpp.o
-
-RTSP/RtspMediaSource.i: RTSP/RtspMediaSource.cpp.i
-
-.PHONY : RTSP/RtspMediaSource.i
-
-# target to preprocess a source file
-RTSP/RtspMediaSource.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspMediaSource.cpp.i
-.PHONY : RTSP/RtspMediaSource.cpp.i
-
-RTSP/RtspMediaSource.s: RTSP/RtspMediaSource.cpp.s
-
-.PHONY : RTSP/RtspMediaSource.s
-
-# target to generate assembly for a file
-RTSP/RtspMediaSource.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspMediaSource.cpp.s
-.PHONY : RTSP/RtspMediaSource.cpp.s
-
-RTSP/RtspParser.o: RTSP/RtspParser.cpp.o
-
-.PHONY : RTSP/RtspParser.o
-
-# target to build an object file
-RTSP/RtspParser.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspParser.cpp.o
-.PHONY : RTSP/RtspParser.cpp.o
-
-RTSP/RtspParser.i: RTSP/RtspParser.cpp.i
-
-.PHONY : RTSP/RtspParser.i
-
-# target to preprocess a source file
-RTSP/RtspParser.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspParser.cpp.i
-.PHONY : RTSP/RtspParser.cpp.i
-
-RTSP/RtspParser.s: RTSP/RtspParser.cpp.s
-
-.PHONY : RTSP/RtspParser.s
-
-# target to generate assembly for a file
-RTSP/RtspParser.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspParser.cpp.s
-.PHONY : RTSP/RtspParser.cpp.s
-
-RTSP/RtspRtcpTransport.o: RTSP/RtspRtcpTransport.cpp.o
-
-.PHONY : RTSP/RtspRtcpTransport.o
-
-# target to build an object file
-RTSP/RtspRtcpTransport.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspRtcpTransport.cpp.o
-.PHONY : RTSP/RtspRtcpTransport.cpp.o
-
-RTSP/RtspRtcpTransport.i: RTSP/RtspRtcpTransport.cpp.i
-
-.PHONY : RTSP/RtspRtcpTransport.i
-
-# target to preprocess a source file
-RTSP/RtspRtcpTransport.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspRtcpTransport.cpp.i
-.PHONY : RTSP/RtspRtcpTransport.cpp.i
-
-RTSP/RtspRtcpTransport.s: RTSP/RtspRtcpTransport.cpp.s
-
-.PHONY : RTSP/RtspRtcpTransport.s
-
-# target to generate assembly for a file
-RTSP/RtspRtcpTransport.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspRtcpTransport.cpp.s
-.PHONY : RTSP/RtspRtcpTransport.cpp.s
-
-RTSP/RtspRtpTransport.o: RTSP/RtspRtpTransport.cpp.o
-
-.PHONY : RTSP/RtspRtpTransport.o
-
-# target to build an object file
-RTSP/RtspRtpTransport.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspRtpTransport.cpp.o
-.PHONY : RTSP/RtspRtpTransport.cpp.o
-
-RTSP/RtspRtpTransport.i: RTSP/RtspRtpTransport.cpp.i
-
-.PHONY : RTSP/RtspRtpTransport.i
-
-# target to preprocess a source file
-RTSP/RtspRtpTransport.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspRtpTransport.cpp.i
-.PHONY : RTSP/RtspRtpTransport.cpp.i
-
-RTSP/RtspRtpTransport.s: RTSP/RtspRtpTransport.cpp.s
-
-.PHONY : RTSP/RtspRtpTransport.s
-
-# target to generate assembly for a file
-RTSP/RtspRtpTransport.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspRtpTransport.cpp.s
-.PHONY : RTSP/RtspRtpTransport.cpp.s
-
-RTSP/RtspSdpParser.o: RTSP/RtspSdpParser.cpp.o
-
-.PHONY : RTSP/RtspSdpParser.o
-
-# target to build an object file
-RTSP/RtspSdpParser.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspSdpParser.cpp.o
-.PHONY : RTSP/RtspSdpParser.cpp.o
-
-RTSP/RtspSdpParser.i: RTSP/RtspSdpParser.cpp.i
-
-.PHONY : RTSP/RtspSdpParser.i
-
-# target to preprocess a source file
-RTSP/RtspSdpParser.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspSdpParser.cpp.i
-.PHONY : RTSP/RtspSdpParser.cpp.i
-
-RTSP/RtspSdpParser.s: RTSP/RtspSdpParser.cpp.s
-
-.PHONY : RTSP/RtspSdpParser.s
-
-# target to generate assembly for a file
-RTSP/RtspSdpParser.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspSdpParser.cpp.s
-.PHONY : RTSP/RtspSdpParser.cpp.s
-
-RTSP/RtspServer.o: RTSP/RtspServer.cpp.o
-
-.PHONY : RTSP/RtspServer.o
-
-# target to build an object file
-RTSP/RtspServer.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspServer.cpp.o
-.PHONY : RTSP/RtspServer.cpp.o
-
-RTSP/RtspServer.i: RTSP/RtspServer.cpp.i
-
-.PHONY : RTSP/RtspServer.i
-
-# target to preprocess a source file
-RTSP/RtspServer.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspServer.cpp.i
-.PHONY : RTSP/RtspServer.cpp.i
-
-RTSP/RtspServer.s: RTSP/RtspServer.cpp.s
-
-.PHONY : RTSP/RtspServer.s
-
-# target to generate assembly for a file
-RTSP/RtspServer.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspServer.cpp.s
-.PHONY : RTSP/RtspServer.cpp.s
-
-RTSP/RtspTrack.o: RTSP/RtspTrack.cpp.o
-
-.PHONY : RTSP/RtspTrack.o
-
-# target to build an object file
-RTSP/RtspTrack.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspTrack.cpp.o
-.PHONY : RTSP/RtspTrack.cpp.o
-
-RTSP/RtspTrack.i: RTSP/RtspTrack.cpp.i
-
-.PHONY : RTSP/RtspTrack.i
-
-# target to preprocess a source file
-RTSP/RtspTrack.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspTrack.cpp.i
-.PHONY : RTSP/RtspTrack.cpp.i
-
-RTSP/RtspTrack.s: RTSP/RtspTrack.cpp.s
-
-.PHONY : RTSP/RtspTrack.s
-
-# target to generate assembly for a file
-RTSP/RtspTrack.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/RTSP/RtspTrack.cpp.s
-.PHONY : RTSP/RtspTrack.cpp.s
+Record/RecordPs.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Record/RecordPs.cpp.s
+.PHONY : Record/RecordPs.cpp.s
 
 Rtcp/RtcpPacket.o: Rtcp/RtcpPacket.cpp.o
 
@@ -3310,6 +2608,1248 @@ Rtcp/RtcpPacket.s: Rtcp/RtcpPacket.cpp.s
 Rtcp/RtcpPacket.cpp.s:
 	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtcp/RtcpPacket.cpp.s
 .PHONY : Rtcp/RtcpPacket.cpp.s
+
+Rtmp/Amf.o: Rtmp/Amf.cpp.o
+
+.PHONY : Rtmp/Amf.o
+
+# target to build an object file
+Rtmp/Amf.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Amf.cpp.o
+.PHONY : Rtmp/Amf.cpp.o
+
+Rtmp/Amf.i: Rtmp/Amf.cpp.i
+
+.PHONY : Rtmp/Amf.i
+
+# target to preprocess a source file
+Rtmp/Amf.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Amf.cpp.i
+.PHONY : Rtmp/Amf.cpp.i
+
+Rtmp/Amf.s: Rtmp/Amf.cpp.s
+
+.PHONY : Rtmp/Amf.s
+
+# target to generate assembly for a file
+Rtmp/Amf.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Amf.cpp.s
+.PHONY : Rtmp/Amf.cpp.s
+
+Rtmp/Decode/RtmpDecode.o: Rtmp/Decode/RtmpDecode.cpp.o
+
+.PHONY : Rtmp/Decode/RtmpDecode.o
+
+# target to build an object file
+Rtmp/Decode/RtmpDecode.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Decode/RtmpDecode.cpp.o
+.PHONY : Rtmp/Decode/RtmpDecode.cpp.o
+
+Rtmp/Decode/RtmpDecode.i: Rtmp/Decode/RtmpDecode.cpp.i
+
+.PHONY : Rtmp/Decode/RtmpDecode.i
+
+# target to preprocess a source file
+Rtmp/Decode/RtmpDecode.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Decode/RtmpDecode.cpp.i
+.PHONY : Rtmp/Decode/RtmpDecode.cpp.i
+
+Rtmp/Decode/RtmpDecode.s: Rtmp/Decode/RtmpDecode.cpp.s
+
+.PHONY : Rtmp/Decode/RtmpDecode.s
+
+# target to generate assembly for a file
+Rtmp/Decode/RtmpDecode.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Decode/RtmpDecode.cpp.s
+.PHONY : Rtmp/Decode/RtmpDecode.cpp.s
+
+Rtmp/Decode/RtmpDecodeAac.o: Rtmp/Decode/RtmpDecodeAac.cpp.o
+
+.PHONY : Rtmp/Decode/RtmpDecodeAac.o
+
+# target to build an object file
+Rtmp/Decode/RtmpDecodeAac.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Decode/RtmpDecodeAac.cpp.o
+.PHONY : Rtmp/Decode/RtmpDecodeAac.cpp.o
+
+Rtmp/Decode/RtmpDecodeAac.i: Rtmp/Decode/RtmpDecodeAac.cpp.i
+
+.PHONY : Rtmp/Decode/RtmpDecodeAac.i
+
+# target to preprocess a source file
+Rtmp/Decode/RtmpDecodeAac.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Decode/RtmpDecodeAac.cpp.i
+.PHONY : Rtmp/Decode/RtmpDecodeAac.cpp.i
+
+Rtmp/Decode/RtmpDecodeAac.s: Rtmp/Decode/RtmpDecodeAac.cpp.s
+
+.PHONY : Rtmp/Decode/RtmpDecodeAac.s
+
+# target to generate assembly for a file
+Rtmp/Decode/RtmpDecodeAac.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Decode/RtmpDecodeAac.cpp.s
+.PHONY : Rtmp/Decode/RtmpDecodeAac.cpp.s
+
+Rtmp/Decode/RtmpDecodeCommon.o: Rtmp/Decode/RtmpDecodeCommon.cpp.o
+
+.PHONY : Rtmp/Decode/RtmpDecodeCommon.o
+
+# target to build an object file
+Rtmp/Decode/RtmpDecodeCommon.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Decode/RtmpDecodeCommon.cpp.o
+.PHONY : Rtmp/Decode/RtmpDecodeCommon.cpp.o
+
+Rtmp/Decode/RtmpDecodeCommon.i: Rtmp/Decode/RtmpDecodeCommon.cpp.i
+
+.PHONY : Rtmp/Decode/RtmpDecodeCommon.i
+
+# target to preprocess a source file
+Rtmp/Decode/RtmpDecodeCommon.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Decode/RtmpDecodeCommon.cpp.i
+.PHONY : Rtmp/Decode/RtmpDecodeCommon.cpp.i
+
+Rtmp/Decode/RtmpDecodeCommon.s: Rtmp/Decode/RtmpDecodeCommon.cpp.s
+
+.PHONY : Rtmp/Decode/RtmpDecodeCommon.s
+
+# target to generate assembly for a file
+Rtmp/Decode/RtmpDecodeCommon.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Decode/RtmpDecodeCommon.cpp.s
+.PHONY : Rtmp/Decode/RtmpDecodeCommon.cpp.s
+
+Rtmp/Decode/RtmpDecodeH264.o: Rtmp/Decode/RtmpDecodeH264.cpp.o
+
+.PHONY : Rtmp/Decode/RtmpDecodeH264.o
+
+# target to build an object file
+Rtmp/Decode/RtmpDecodeH264.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Decode/RtmpDecodeH264.cpp.o
+.PHONY : Rtmp/Decode/RtmpDecodeH264.cpp.o
+
+Rtmp/Decode/RtmpDecodeH264.i: Rtmp/Decode/RtmpDecodeH264.cpp.i
+
+.PHONY : Rtmp/Decode/RtmpDecodeH264.i
+
+# target to preprocess a source file
+Rtmp/Decode/RtmpDecodeH264.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Decode/RtmpDecodeH264.cpp.i
+.PHONY : Rtmp/Decode/RtmpDecodeH264.cpp.i
+
+Rtmp/Decode/RtmpDecodeH264.s: Rtmp/Decode/RtmpDecodeH264.cpp.s
+
+.PHONY : Rtmp/Decode/RtmpDecodeH264.s
+
+# target to generate assembly for a file
+Rtmp/Decode/RtmpDecodeH264.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Decode/RtmpDecodeH264.cpp.s
+.PHONY : Rtmp/Decode/RtmpDecodeH264.cpp.s
+
+Rtmp/Decode/RtmpDecodeH265.o: Rtmp/Decode/RtmpDecodeH265.cpp.o
+
+.PHONY : Rtmp/Decode/RtmpDecodeH265.o
+
+# target to build an object file
+Rtmp/Decode/RtmpDecodeH265.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Decode/RtmpDecodeH265.cpp.o
+.PHONY : Rtmp/Decode/RtmpDecodeH265.cpp.o
+
+Rtmp/Decode/RtmpDecodeH265.i: Rtmp/Decode/RtmpDecodeH265.cpp.i
+
+.PHONY : Rtmp/Decode/RtmpDecodeH265.i
+
+# target to preprocess a source file
+Rtmp/Decode/RtmpDecodeH265.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Decode/RtmpDecodeH265.cpp.i
+.PHONY : Rtmp/Decode/RtmpDecodeH265.cpp.i
+
+Rtmp/Decode/RtmpDecodeH265.s: Rtmp/Decode/RtmpDecodeH265.cpp.s
+
+.PHONY : Rtmp/Decode/RtmpDecodeH265.s
+
+# target to generate assembly for a file
+Rtmp/Decode/RtmpDecodeH265.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Decode/RtmpDecodeH265.cpp.s
+.PHONY : Rtmp/Decode/RtmpDecodeH265.cpp.s
+
+Rtmp/Encode/RtmpEncode.o: Rtmp/Encode/RtmpEncode.cpp.o
+
+.PHONY : Rtmp/Encode/RtmpEncode.o
+
+# target to build an object file
+Rtmp/Encode/RtmpEncode.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Encode/RtmpEncode.cpp.o
+.PHONY : Rtmp/Encode/RtmpEncode.cpp.o
+
+Rtmp/Encode/RtmpEncode.i: Rtmp/Encode/RtmpEncode.cpp.i
+
+.PHONY : Rtmp/Encode/RtmpEncode.i
+
+# target to preprocess a source file
+Rtmp/Encode/RtmpEncode.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Encode/RtmpEncode.cpp.i
+.PHONY : Rtmp/Encode/RtmpEncode.cpp.i
+
+Rtmp/Encode/RtmpEncode.s: Rtmp/Encode/RtmpEncode.cpp.s
+
+.PHONY : Rtmp/Encode/RtmpEncode.s
+
+# target to generate assembly for a file
+Rtmp/Encode/RtmpEncode.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Encode/RtmpEncode.cpp.s
+.PHONY : Rtmp/Encode/RtmpEncode.cpp.s
+
+Rtmp/Encode/RtmpEncodeAac.o: Rtmp/Encode/RtmpEncodeAac.cpp.o
+
+.PHONY : Rtmp/Encode/RtmpEncodeAac.o
+
+# target to build an object file
+Rtmp/Encode/RtmpEncodeAac.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Encode/RtmpEncodeAac.cpp.o
+.PHONY : Rtmp/Encode/RtmpEncodeAac.cpp.o
+
+Rtmp/Encode/RtmpEncodeAac.i: Rtmp/Encode/RtmpEncodeAac.cpp.i
+
+.PHONY : Rtmp/Encode/RtmpEncodeAac.i
+
+# target to preprocess a source file
+Rtmp/Encode/RtmpEncodeAac.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Encode/RtmpEncodeAac.cpp.i
+.PHONY : Rtmp/Encode/RtmpEncodeAac.cpp.i
+
+Rtmp/Encode/RtmpEncodeAac.s: Rtmp/Encode/RtmpEncodeAac.cpp.s
+
+.PHONY : Rtmp/Encode/RtmpEncodeAac.s
+
+# target to generate assembly for a file
+Rtmp/Encode/RtmpEncodeAac.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Encode/RtmpEncodeAac.cpp.s
+.PHONY : Rtmp/Encode/RtmpEncodeAac.cpp.s
+
+Rtmp/Encode/RtmpEncodeCommon.o: Rtmp/Encode/RtmpEncodeCommon.cpp.o
+
+.PHONY : Rtmp/Encode/RtmpEncodeCommon.o
+
+# target to build an object file
+Rtmp/Encode/RtmpEncodeCommon.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Encode/RtmpEncodeCommon.cpp.o
+.PHONY : Rtmp/Encode/RtmpEncodeCommon.cpp.o
+
+Rtmp/Encode/RtmpEncodeCommon.i: Rtmp/Encode/RtmpEncodeCommon.cpp.i
+
+.PHONY : Rtmp/Encode/RtmpEncodeCommon.i
+
+# target to preprocess a source file
+Rtmp/Encode/RtmpEncodeCommon.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Encode/RtmpEncodeCommon.cpp.i
+.PHONY : Rtmp/Encode/RtmpEncodeCommon.cpp.i
+
+Rtmp/Encode/RtmpEncodeCommon.s: Rtmp/Encode/RtmpEncodeCommon.cpp.s
+
+.PHONY : Rtmp/Encode/RtmpEncodeCommon.s
+
+# target to generate assembly for a file
+Rtmp/Encode/RtmpEncodeCommon.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Encode/RtmpEncodeCommon.cpp.s
+.PHONY : Rtmp/Encode/RtmpEncodeCommon.cpp.s
+
+Rtmp/Encode/RtmpEncodeH264.o: Rtmp/Encode/RtmpEncodeH264.cpp.o
+
+.PHONY : Rtmp/Encode/RtmpEncodeH264.o
+
+# target to build an object file
+Rtmp/Encode/RtmpEncodeH264.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Encode/RtmpEncodeH264.cpp.o
+.PHONY : Rtmp/Encode/RtmpEncodeH264.cpp.o
+
+Rtmp/Encode/RtmpEncodeH264.i: Rtmp/Encode/RtmpEncodeH264.cpp.i
+
+.PHONY : Rtmp/Encode/RtmpEncodeH264.i
+
+# target to preprocess a source file
+Rtmp/Encode/RtmpEncodeH264.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Encode/RtmpEncodeH264.cpp.i
+.PHONY : Rtmp/Encode/RtmpEncodeH264.cpp.i
+
+Rtmp/Encode/RtmpEncodeH264.s: Rtmp/Encode/RtmpEncodeH264.cpp.s
+
+.PHONY : Rtmp/Encode/RtmpEncodeH264.s
+
+# target to generate assembly for a file
+Rtmp/Encode/RtmpEncodeH264.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Encode/RtmpEncodeH264.cpp.s
+.PHONY : Rtmp/Encode/RtmpEncodeH264.cpp.s
+
+Rtmp/Encode/RtmpEncodeH265.o: Rtmp/Encode/RtmpEncodeH265.cpp.o
+
+.PHONY : Rtmp/Encode/RtmpEncodeH265.o
+
+# target to build an object file
+Rtmp/Encode/RtmpEncodeH265.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Encode/RtmpEncodeH265.cpp.o
+.PHONY : Rtmp/Encode/RtmpEncodeH265.cpp.o
+
+Rtmp/Encode/RtmpEncodeH265.i: Rtmp/Encode/RtmpEncodeH265.cpp.i
+
+.PHONY : Rtmp/Encode/RtmpEncodeH265.i
+
+# target to preprocess a source file
+Rtmp/Encode/RtmpEncodeH265.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Encode/RtmpEncodeH265.cpp.i
+.PHONY : Rtmp/Encode/RtmpEncodeH265.cpp.i
+
+Rtmp/Encode/RtmpEncodeH265.s: Rtmp/Encode/RtmpEncodeH265.cpp.s
+
+.PHONY : Rtmp/Encode/RtmpEncodeH265.s
+
+# target to generate assembly for a file
+Rtmp/Encode/RtmpEncodeH265.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/Encode/RtmpEncodeH265.cpp.s
+.PHONY : Rtmp/Encode/RtmpEncodeH265.cpp.s
+
+Rtmp/FlvMuxerWithRtmp.o: Rtmp/FlvMuxerWithRtmp.cpp.o
+
+.PHONY : Rtmp/FlvMuxerWithRtmp.o
+
+# target to build an object file
+Rtmp/FlvMuxerWithRtmp.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/FlvMuxerWithRtmp.cpp.o
+.PHONY : Rtmp/FlvMuxerWithRtmp.cpp.o
+
+Rtmp/FlvMuxerWithRtmp.i: Rtmp/FlvMuxerWithRtmp.cpp.i
+
+.PHONY : Rtmp/FlvMuxerWithRtmp.i
+
+# target to preprocess a source file
+Rtmp/FlvMuxerWithRtmp.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/FlvMuxerWithRtmp.cpp.i
+.PHONY : Rtmp/FlvMuxerWithRtmp.cpp.i
+
+Rtmp/FlvMuxerWithRtmp.s: Rtmp/FlvMuxerWithRtmp.cpp.s
+
+.PHONY : Rtmp/FlvMuxerWithRtmp.s
+
+# target to generate assembly for a file
+Rtmp/FlvMuxerWithRtmp.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/FlvMuxerWithRtmp.cpp.s
+.PHONY : Rtmp/FlvMuxerWithRtmp.cpp.s
+
+Rtmp/RtmpChunk.o: Rtmp/RtmpChunk.cpp.o
+
+.PHONY : Rtmp/RtmpChunk.o
+
+# target to build an object file
+Rtmp/RtmpChunk.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/RtmpChunk.cpp.o
+.PHONY : Rtmp/RtmpChunk.cpp.o
+
+Rtmp/RtmpChunk.i: Rtmp/RtmpChunk.cpp.i
+
+.PHONY : Rtmp/RtmpChunk.i
+
+# target to preprocess a source file
+Rtmp/RtmpChunk.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/RtmpChunk.cpp.i
+.PHONY : Rtmp/RtmpChunk.cpp.i
+
+Rtmp/RtmpChunk.s: Rtmp/RtmpChunk.cpp.s
+
+.PHONY : Rtmp/RtmpChunk.s
+
+# target to generate assembly for a file
+Rtmp/RtmpChunk.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/RtmpChunk.cpp.s
+.PHONY : Rtmp/RtmpChunk.cpp.s
+
+Rtmp/RtmpClient.o: Rtmp/RtmpClient.cpp.o
+
+.PHONY : Rtmp/RtmpClient.o
+
+# target to build an object file
+Rtmp/RtmpClient.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/RtmpClient.cpp.o
+.PHONY : Rtmp/RtmpClient.cpp.o
+
+Rtmp/RtmpClient.i: Rtmp/RtmpClient.cpp.i
+
+.PHONY : Rtmp/RtmpClient.i
+
+# target to preprocess a source file
+Rtmp/RtmpClient.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/RtmpClient.cpp.i
+.PHONY : Rtmp/RtmpClient.cpp.i
+
+Rtmp/RtmpClient.s: Rtmp/RtmpClient.cpp.s
+
+.PHONY : Rtmp/RtmpClient.s
+
+# target to generate assembly for a file
+Rtmp/RtmpClient.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/RtmpClient.cpp.s
+.PHONY : Rtmp/RtmpClient.cpp.s
+
+Rtmp/RtmpConnection.o: Rtmp/RtmpConnection.cpp.o
+
+.PHONY : Rtmp/RtmpConnection.o
+
+# target to build an object file
+Rtmp/RtmpConnection.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/RtmpConnection.cpp.o
+.PHONY : Rtmp/RtmpConnection.cpp.o
+
+Rtmp/RtmpConnection.i: Rtmp/RtmpConnection.cpp.i
+
+.PHONY : Rtmp/RtmpConnection.i
+
+# target to preprocess a source file
+Rtmp/RtmpConnection.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/RtmpConnection.cpp.i
+.PHONY : Rtmp/RtmpConnection.cpp.i
+
+Rtmp/RtmpConnection.s: Rtmp/RtmpConnection.cpp.s
+
+.PHONY : Rtmp/RtmpConnection.s
+
+# target to generate assembly for a file
+Rtmp/RtmpConnection.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/RtmpConnection.cpp.s
+.PHONY : Rtmp/RtmpConnection.cpp.s
+
+Rtmp/RtmpDecodeTrack.o: Rtmp/RtmpDecodeTrack.cpp.o
+
+.PHONY : Rtmp/RtmpDecodeTrack.o
+
+# target to build an object file
+Rtmp/RtmpDecodeTrack.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/RtmpDecodeTrack.cpp.o
+.PHONY : Rtmp/RtmpDecodeTrack.cpp.o
+
+Rtmp/RtmpDecodeTrack.i: Rtmp/RtmpDecodeTrack.cpp.i
+
+.PHONY : Rtmp/RtmpDecodeTrack.i
+
+# target to preprocess a source file
+Rtmp/RtmpDecodeTrack.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/RtmpDecodeTrack.cpp.i
+.PHONY : Rtmp/RtmpDecodeTrack.cpp.i
+
+Rtmp/RtmpDecodeTrack.s: Rtmp/RtmpDecodeTrack.cpp.s
+
+.PHONY : Rtmp/RtmpDecodeTrack.s
+
+# target to generate assembly for a file
+Rtmp/RtmpDecodeTrack.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/RtmpDecodeTrack.cpp.s
+.PHONY : Rtmp/RtmpDecodeTrack.cpp.s
+
+Rtmp/RtmpEncodeTrack.o: Rtmp/RtmpEncodeTrack.cpp.o
+
+.PHONY : Rtmp/RtmpEncodeTrack.o
+
+# target to build an object file
+Rtmp/RtmpEncodeTrack.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/RtmpEncodeTrack.cpp.o
+.PHONY : Rtmp/RtmpEncodeTrack.cpp.o
+
+Rtmp/RtmpEncodeTrack.i: Rtmp/RtmpEncodeTrack.cpp.i
+
+.PHONY : Rtmp/RtmpEncodeTrack.i
+
+# target to preprocess a source file
+Rtmp/RtmpEncodeTrack.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/RtmpEncodeTrack.cpp.i
+.PHONY : Rtmp/RtmpEncodeTrack.cpp.i
+
+Rtmp/RtmpEncodeTrack.s: Rtmp/RtmpEncodeTrack.cpp.s
+
+.PHONY : Rtmp/RtmpEncodeTrack.s
+
+# target to generate assembly for a file
+Rtmp/RtmpEncodeTrack.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/RtmpEncodeTrack.cpp.s
+.PHONY : Rtmp/RtmpEncodeTrack.cpp.s
+
+Rtmp/RtmpHandshake.o: Rtmp/RtmpHandshake.cpp.o
+
+.PHONY : Rtmp/RtmpHandshake.o
+
+# target to build an object file
+Rtmp/RtmpHandshake.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/RtmpHandshake.cpp.o
+.PHONY : Rtmp/RtmpHandshake.cpp.o
+
+Rtmp/RtmpHandshake.i: Rtmp/RtmpHandshake.cpp.i
+
+.PHONY : Rtmp/RtmpHandshake.i
+
+# target to preprocess a source file
+Rtmp/RtmpHandshake.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/RtmpHandshake.cpp.i
+.PHONY : Rtmp/RtmpHandshake.cpp.i
+
+Rtmp/RtmpHandshake.s: Rtmp/RtmpHandshake.cpp.s
+
+.PHONY : Rtmp/RtmpHandshake.s
+
+# target to generate assembly for a file
+Rtmp/RtmpHandshake.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/RtmpHandshake.cpp.s
+.PHONY : Rtmp/RtmpHandshake.cpp.s
+
+Rtmp/RtmpMediaSource.o: Rtmp/RtmpMediaSource.cpp.o
+
+.PHONY : Rtmp/RtmpMediaSource.o
+
+# target to build an object file
+Rtmp/RtmpMediaSource.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/RtmpMediaSource.cpp.o
+.PHONY : Rtmp/RtmpMediaSource.cpp.o
+
+Rtmp/RtmpMediaSource.i: Rtmp/RtmpMediaSource.cpp.i
+
+.PHONY : Rtmp/RtmpMediaSource.i
+
+# target to preprocess a source file
+Rtmp/RtmpMediaSource.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/RtmpMediaSource.cpp.i
+.PHONY : Rtmp/RtmpMediaSource.cpp.i
+
+Rtmp/RtmpMediaSource.s: Rtmp/RtmpMediaSource.cpp.s
+
+.PHONY : Rtmp/RtmpMediaSource.s
+
+# target to generate assembly for a file
+Rtmp/RtmpMediaSource.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/RtmpMediaSource.cpp.s
+.PHONY : Rtmp/RtmpMediaSource.cpp.s
+
+Rtmp/RtmpServer.o: Rtmp/RtmpServer.cpp.o
+
+.PHONY : Rtmp/RtmpServer.o
+
+# target to build an object file
+Rtmp/RtmpServer.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/RtmpServer.cpp.o
+.PHONY : Rtmp/RtmpServer.cpp.o
+
+Rtmp/RtmpServer.i: Rtmp/RtmpServer.cpp.i
+
+.PHONY : Rtmp/RtmpServer.i
+
+# target to preprocess a source file
+Rtmp/RtmpServer.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/RtmpServer.cpp.i
+.PHONY : Rtmp/RtmpServer.cpp.i
+
+Rtmp/RtmpServer.s: Rtmp/RtmpServer.cpp.s
+
+.PHONY : Rtmp/RtmpServer.s
+
+# target to generate assembly for a file
+Rtmp/RtmpServer.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtmp/RtmpServer.cpp.s
+.PHONY : Rtmp/RtmpServer.cpp.s
+
+Rtp/Decoder/RtpDecodeAac.o: Rtp/Decoder/RtpDecodeAac.cpp.o
+
+.PHONY : Rtp/Decoder/RtpDecodeAac.o
+
+# target to build an object file
+Rtp/Decoder/RtpDecodeAac.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Decoder/RtpDecodeAac.cpp.o
+.PHONY : Rtp/Decoder/RtpDecodeAac.cpp.o
+
+Rtp/Decoder/RtpDecodeAac.i: Rtp/Decoder/RtpDecodeAac.cpp.i
+
+.PHONY : Rtp/Decoder/RtpDecodeAac.i
+
+# target to preprocess a source file
+Rtp/Decoder/RtpDecodeAac.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Decoder/RtpDecodeAac.cpp.i
+.PHONY : Rtp/Decoder/RtpDecodeAac.cpp.i
+
+Rtp/Decoder/RtpDecodeAac.s: Rtp/Decoder/RtpDecodeAac.cpp.s
+
+.PHONY : Rtp/Decoder/RtpDecodeAac.s
+
+# target to generate assembly for a file
+Rtp/Decoder/RtpDecodeAac.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Decoder/RtpDecodeAac.cpp.s
+.PHONY : Rtp/Decoder/RtpDecodeAac.cpp.s
+
+Rtp/Decoder/RtpDecodeCommon.o: Rtp/Decoder/RtpDecodeCommon.cpp.o
+
+.PHONY : Rtp/Decoder/RtpDecodeCommon.o
+
+# target to build an object file
+Rtp/Decoder/RtpDecodeCommon.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Decoder/RtpDecodeCommon.cpp.o
+.PHONY : Rtp/Decoder/RtpDecodeCommon.cpp.o
+
+Rtp/Decoder/RtpDecodeCommon.i: Rtp/Decoder/RtpDecodeCommon.cpp.i
+
+.PHONY : Rtp/Decoder/RtpDecodeCommon.i
+
+# target to preprocess a source file
+Rtp/Decoder/RtpDecodeCommon.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Decoder/RtpDecodeCommon.cpp.i
+.PHONY : Rtp/Decoder/RtpDecodeCommon.cpp.i
+
+Rtp/Decoder/RtpDecodeCommon.s: Rtp/Decoder/RtpDecodeCommon.cpp.s
+
+.PHONY : Rtp/Decoder/RtpDecodeCommon.s
+
+# target to generate assembly for a file
+Rtp/Decoder/RtpDecodeCommon.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Decoder/RtpDecodeCommon.cpp.s
+.PHONY : Rtp/Decoder/RtpDecodeCommon.cpp.s
+
+Rtp/Decoder/RtpDecodeH264.o: Rtp/Decoder/RtpDecodeH264.cpp.o
+
+.PHONY : Rtp/Decoder/RtpDecodeH264.o
+
+# target to build an object file
+Rtp/Decoder/RtpDecodeH264.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Decoder/RtpDecodeH264.cpp.o
+.PHONY : Rtp/Decoder/RtpDecodeH264.cpp.o
+
+Rtp/Decoder/RtpDecodeH264.i: Rtp/Decoder/RtpDecodeH264.cpp.i
+
+.PHONY : Rtp/Decoder/RtpDecodeH264.i
+
+# target to preprocess a source file
+Rtp/Decoder/RtpDecodeH264.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Decoder/RtpDecodeH264.cpp.i
+.PHONY : Rtp/Decoder/RtpDecodeH264.cpp.i
+
+Rtp/Decoder/RtpDecodeH264.s: Rtp/Decoder/RtpDecodeH264.cpp.s
+
+.PHONY : Rtp/Decoder/RtpDecodeH264.s
+
+# target to generate assembly for a file
+Rtp/Decoder/RtpDecodeH264.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Decoder/RtpDecodeH264.cpp.s
+.PHONY : Rtp/Decoder/RtpDecodeH264.cpp.s
+
+Rtp/Decoder/RtpDecodeH265.o: Rtp/Decoder/RtpDecodeH265.cpp.o
+
+.PHONY : Rtp/Decoder/RtpDecodeH265.o
+
+# target to build an object file
+Rtp/Decoder/RtpDecodeH265.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Decoder/RtpDecodeH265.cpp.o
+.PHONY : Rtp/Decoder/RtpDecodeH265.cpp.o
+
+Rtp/Decoder/RtpDecodeH265.i: Rtp/Decoder/RtpDecodeH265.cpp.i
+
+.PHONY : Rtp/Decoder/RtpDecodeH265.i
+
+# target to preprocess a source file
+Rtp/Decoder/RtpDecodeH265.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Decoder/RtpDecodeH265.cpp.i
+.PHONY : Rtp/Decoder/RtpDecodeH265.cpp.i
+
+Rtp/Decoder/RtpDecodeH265.s: Rtp/Decoder/RtpDecodeH265.cpp.s
+
+.PHONY : Rtp/Decoder/RtpDecodeH265.s
+
+# target to generate assembly for a file
+Rtp/Decoder/RtpDecodeH265.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Decoder/RtpDecodeH265.cpp.s
+.PHONY : Rtp/Decoder/RtpDecodeH265.cpp.s
+
+Rtp/Decoder/RtpDecoder.o: Rtp/Decoder/RtpDecoder.cpp.o
+
+.PHONY : Rtp/Decoder/RtpDecoder.o
+
+# target to build an object file
+Rtp/Decoder/RtpDecoder.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Decoder/RtpDecoder.cpp.o
+.PHONY : Rtp/Decoder/RtpDecoder.cpp.o
+
+Rtp/Decoder/RtpDecoder.i: Rtp/Decoder/RtpDecoder.cpp.i
+
+.PHONY : Rtp/Decoder/RtpDecoder.i
+
+# target to preprocess a source file
+Rtp/Decoder/RtpDecoder.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Decoder/RtpDecoder.cpp.i
+.PHONY : Rtp/Decoder/RtpDecoder.cpp.i
+
+Rtp/Decoder/RtpDecoder.s: Rtp/Decoder/RtpDecoder.cpp.s
+
+.PHONY : Rtp/Decoder/RtpDecoder.s
+
+# target to generate assembly for a file
+Rtp/Decoder/RtpDecoder.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Decoder/RtpDecoder.cpp.s
+.PHONY : Rtp/Decoder/RtpDecoder.cpp.s
+
+Rtp/Encoder/RtpEncodeAac.o: Rtp/Encoder/RtpEncodeAac.cpp.o
+
+.PHONY : Rtp/Encoder/RtpEncodeAac.o
+
+# target to build an object file
+Rtp/Encoder/RtpEncodeAac.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Encoder/RtpEncodeAac.cpp.o
+.PHONY : Rtp/Encoder/RtpEncodeAac.cpp.o
+
+Rtp/Encoder/RtpEncodeAac.i: Rtp/Encoder/RtpEncodeAac.cpp.i
+
+.PHONY : Rtp/Encoder/RtpEncodeAac.i
+
+# target to preprocess a source file
+Rtp/Encoder/RtpEncodeAac.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Encoder/RtpEncodeAac.cpp.i
+.PHONY : Rtp/Encoder/RtpEncodeAac.cpp.i
+
+Rtp/Encoder/RtpEncodeAac.s: Rtp/Encoder/RtpEncodeAac.cpp.s
+
+.PHONY : Rtp/Encoder/RtpEncodeAac.s
+
+# target to generate assembly for a file
+Rtp/Encoder/RtpEncodeAac.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Encoder/RtpEncodeAac.cpp.s
+.PHONY : Rtp/Encoder/RtpEncodeAac.cpp.s
+
+Rtp/Encoder/RtpEncodeCommon.o: Rtp/Encoder/RtpEncodeCommon.cpp.o
+
+.PHONY : Rtp/Encoder/RtpEncodeCommon.o
+
+# target to build an object file
+Rtp/Encoder/RtpEncodeCommon.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Encoder/RtpEncodeCommon.cpp.o
+.PHONY : Rtp/Encoder/RtpEncodeCommon.cpp.o
+
+Rtp/Encoder/RtpEncodeCommon.i: Rtp/Encoder/RtpEncodeCommon.cpp.i
+
+.PHONY : Rtp/Encoder/RtpEncodeCommon.i
+
+# target to preprocess a source file
+Rtp/Encoder/RtpEncodeCommon.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Encoder/RtpEncodeCommon.cpp.i
+.PHONY : Rtp/Encoder/RtpEncodeCommon.cpp.i
+
+Rtp/Encoder/RtpEncodeCommon.s: Rtp/Encoder/RtpEncodeCommon.cpp.s
+
+.PHONY : Rtp/Encoder/RtpEncodeCommon.s
+
+# target to generate assembly for a file
+Rtp/Encoder/RtpEncodeCommon.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Encoder/RtpEncodeCommon.cpp.s
+.PHONY : Rtp/Encoder/RtpEncodeCommon.cpp.s
+
+Rtp/Encoder/RtpEncodeH264.o: Rtp/Encoder/RtpEncodeH264.cpp.o
+
+.PHONY : Rtp/Encoder/RtpEncodeH264.o
+
+# target to build an object file
+Rtp/Encoder/RtpEncodeH264.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Encoder/RtpEncodeH264.cpp.o
+.PHONY : Rtp/Encoder/RtpEncodeH264.cpp.o
+
+Rtp/Encoder/RtpEncodeH264.i: Rtp/Encoder/RtpEncodeH264.cpp.i
+
+.PHONY : Rtp/Encoder/RtpEncodeH264.i
+
+# target to preprocess a source file
+Rtp/Encoder/RtpEncodeH264.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Encoder/RtpEncodeH264.cpp.i
+.PHONY : Rtp/Encoder/RtpEncodeH264.cpp.i
+
+Rtp/Encoder/RtpEncodeH264.s: Rtp/Encoder/RtpEncodeH264.cpp.s
+
+.PHONY : Rtp/Encoder/RtpEncodeH264.s
+
+# target to generate assembly for a file
+Rtp/Encoder/RtpEncodeH264.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Encoder/RtpEncodeH264.cpp.s
+.PHONY : Rtp/Encoder/RtpEncodeH264.cpp.s
+
+Rtp/Encoder/RtpEncodeH265.o: Rtp/Encoder/RtpEncodeH265.cpp.o
+
+.PHONY : Rtp/Encoder/RtpEncodeH265.o
+
+# target to build an object file
+Rtp/Encoder/RtpEncodeH265.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Encoder/RtpEncodeH265.cpp.o
+.PHONY : Rtp/Encoder/RtpEncodeH265.cpp.o
+
+Rtp/Encoder/RtpEncodeH265.i: Rtp/Encoder/RtpEncodeH265.cpp.i
+
+.PHONY : Rtp/Encoder/RtpEncodeH265.i
+
+# target to preprocess a source file
+Rtp/Encoder/RtpEncodeH265.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Encoder/RtpEncodeH265.cpp.i
+.PHONY : Rtp/Encoder/RtpEncodeH265.cpp.i
+
+Rtp/Encoder/RtpEncodeH265.s: Rtp/Encoder/RtpEncodeH265.cpp.s
+
+.PHONY : Rtp/Encoder/RtpEncodeH265.s
+
+# target to generate assembly for a file
+Rtp/Encoder/RtpEncodeH265.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Encoder/RtpEncodeH265.cpp.s
+.PHONY : Rtp/Encoder/RtpEncodeH265.cpp.s
+
+Rtp/Encoder/RtpEncoder.o: Rtp/Encoder/RtpEncoder.cpp.o
+
+.PHONY : Rtp/Encoder/RtpEncoder.o
+
+# target to build an object file
+Rtp/Encoder/RtpEncoder.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Encoder/RtpEncoder.cpp.o
+.PHONY : Rtp/Encoder/RtpEncoder.cpp.o
+
+Rtp/Encoder/RtpEncoder.i: Rtp/Encoder/RtpEncoder.cpp.i
+
+.PHONY : Rtp/Encoder/RtpEncoder.i
+
+# target to preprocess a source file
+Rtp/Encoder/RtpEncoder.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Encoder/RtpEncoder.cpp.i
+.PHONY : Rtp/Encoder/RtpEncoder.cpp.i
+
+Rtp/Encoder/RtpEncoder.s: Rtp/Encoder/RtpEncoder.cpp.s
+
+.PHONY : Rtp/Encoder/RtpEncoder.s
+
+# target to generate assembly for a file
+Rtp/Encoder/RtpEncoder.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/Encoder/RtpEncoder.cpp.s
+.PHONY : Rtp/Encoder/RtpEncoder.cpp.s
+
+Rtp/RtpConnection.o: Rtp/RtpConnection.cpp.o
+
+.PHONY : Rtp/RtpConnection.o
+
+# target to build an object file
+Rtp/RtpConnection.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/RtpConnection.cpp.o
+.PHONY : Rtp/RtpConnection.cpp.o
+
+Rtp/RtpConnection.i: Rtp/RtpConnection.cpp.i
+
+.PHONY : Rtp/RtpConnection.i
+
+# target to preprocess a source file
+Rtp/RtpConnection.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/RtpConnection.cpp.i
+.PHONY : Rtp/RtpConnection.cpp.i
+
+Rtp/RtpConnection.s: Rtp/RtpConnection.cpp.s
+
+.PHONY : Rtp/RtpConnection.s
+
+# target to generate assembly for a file
+Rtp/RtpConnection.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/RtpConnection.cpp.s
+.PHONY : Rtp/RtpConnection.cpp.s
+
+Rtp/RtpPacket.o: Rtp/RtpPacket.cpp.o
+
+.PHONY : Rtp/RtpPacket.o
+
+# target to build an object file
+Rtp/RtpPacket.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/RtpPacket.cpp.o
+.PHONY : Rtp/RtpPacket.cpp.o
+
+Rtp/RtpPacket.i: Rtp/RtpPacket.cpp.i
+
+.PHONY : Rtp/RtpPacket.i
+
+# target to preprocess a source file
+Rtp/RtpPacket.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/RtpPacket.cpp.i
+.PHONY : Rtp/RtpPacket.cpp.i
+
+Rtp/RtpPacket.s: Rtp/RtpPacket.cpp.s
+
+.PHONY : Rtp/RtpPacket.s
+
+# target to generate assembly for a file
+Rtp/RtpPacket.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/RtpPacket.cpp.s
+.PHONY : Rtp/RtpPacket.cpp.s
+
+Rtp/RtpSort.o: Rtp/RtpSort.cpp.o
+
+.PHONY : Rtp/RtpSort.o
+
+# target to build an object file
+Rtp/RtpSort.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/RtpSort.cpp.o
+.PHONY : Rtp/RtpSort.cpp.o
+
+Rtp/RtpSort.i: Rtp/RtpSort.cpp.i
+
+.PHONY : Rtp/RtpSort.i
+
+# target to preprocess a source file
+Rtp/RtpSort.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/RtpSort.cpp.i
+.PHONY : Rtp/RtpSort.cpp.i
+
+Rtp/RtpSort.s: Rtp/RtpSort.cpp.s
+
+.PHONY : Rtp/RtpSort.s
+
+# target to generate assembly for a file
+Rtp/RtpSort.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtp/RtpSort.cpp.s
+.PHONY : Rtp/RtpSort.cpp.s
+
+Rtsp/RtspAuth.o: Rtsp/RtspAuth.cpp.o
+
+.PHONY : Rtsp/RtspAuth.o
+
+# target to build an object file
+Rtsp/RtspAuth.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspAuth.cpp.o
+.PHONY : Rtsp/RtspAuth.cpp.o
+
+Rtsp/RtspAuth.i: Rtsp/RtspAuth.cpp.i
+
+.PHONY : Rtsp/RtspAuth.i
+
+# target to preprocess a source file
+Rtsp/RtspAuth.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspAuth.cpp.i
+.PHONY : Rtsp/RtspAuth.cpp.i
+
+Rtsp/RtspAuth.s: Rtsp/RtspAuth.cpp.s
+
+.PHONY : Rtsp/RtspAuth.s
+
+# target to generate assembly for a file
+Rtsp/RtspAuth.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspAuth.cpp.s
+.PHONY : Rtsp/RtspAuth.cpp.s
+
+Rtsp/RtspClient.o: Rtsp/RtspClient.cpp.o
+
+.PHONY : Rtsp/RtspClient.o
+
+# target to build an object file
+Rtsp/RtspClient.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspClient.cpp.o
+.PHONY : Rtsp/RtspClient.cpp.o
+
+Rtsp/RtspClient.i: Rtsp/RtspClient.cpp.i
+
+.PHONY : Rtsp/RtspClient.i
+
+# target to preprocess a source file
+Rtsp/RtspClient.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspClient.cpp.i
+.PHONY : Rtsp/RtspClient.cpp.i
+
+Rtsp/RtspClient.s: Rtsp/RtspClient.cpp.s
+
+.PHONY : Rtsp/RtspClient.s
+
+# target to generate assembly for a file
+Rtsp/RtspClient.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspClient.cpp.s
+.PHONY : Rtsp/RtspClient.cpp.s
+
+Rtsp/RtspConnection.o: Rtsp/RtspConnection.cpp.o
+
+.PHONY : Rtsp/RtspConnection.o
+
+# target to build an object file
+Rtsp/RtspConnection.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspConnection.cpp.o
+.PHONY : Rtsp/RtspConnection.cpp.o
+
+Rtsp/RtspConnection.i: Rtsp/RtspConnection.cpp.i
+
+.PHONY : Rtsp/RtspConnection.i
+
+# target to preprocess a source file
+Rtsp/RtspConnection.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspConnection.cpp.i
+.PHONY : Rtsp/RtspConnection.cpp.i
+
+Rtsp/RtspConnection.s: Rtsp/RtspConnection.cpp.s
+
+.PHONY : Rtsp/RtspConnection.s
+
+# target to generate assembly for a file
+Rtsp/RtspConnection.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspConnection.cpp.s
+.PHONY : Rtsp/RtspConnection.cpp.s
+
+Rtsp/RtspMediaSource.o: Rtsp/RtspMediaSource.cpp.o
+
+.PHONY : Rtsp/RtspMediaSource.o
+
+# target to build an object file
+Rtsp/RtspMediaSource.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspMediaSource.cpp.o
+.PHONY : Rtsp/RtspMediaSource.cpp.o
+
+Rtsp/RtspMediaSource.i: Rtsp/RtspMediaSource.cpp.i
+
+.PHONY : Rtsp/RtspMediaSource.i
+
+# target to preprocess a source file
+Rtsp/RtspMediaSource.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspMediaSource.cpp.i
+.PHONY : Rtsp/RtspMediaSource.cpp.i
+
+Rtsp/RtspMediaSource.s: Rtsp/RtspMediaSource.cpp.s
+
+.PHONY : Rtsp/RtspMediaSource.s
+
+# target to generate assembly for a file
+Rtsp/RtspMediaSource.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspMediaSource.cpp.s
+.PHONY : Rtsp/RtspMediaSource.cpp.s
+
+Rtsp/RtspParser.o: Rtsp/RtspParser.cpp.o
+
+.PHONY : Rtsp/RtspParser.o
+
+# target to build an object file
+Rtsp/RtspParser.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspParser.cpp.o
+.PHONY : Rtsp/RtspParser.cpp.o
+
+Rtsp/RtspParser.i: Rtsp/RtspParser.cpp.i
+
+.PHONY : Rtsp/RtspParser.i
+
+# target to preprocess a source file
+Rtsp/RtspParser.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspParser.cpp.i
+.PHONY : Rtsp/RtspParser.cpp.i
+
+Rtsp/RtspParser.s: Rtsp/RtspParser.cpp.s
+
+.PHONY : Rtsp/RtspParser.s
+
+# target to generate assembly for a file
+Rtsp/RtspParser.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspParser.cpp.s
+.PHONY : Rtsp/RtspParser.cpp.s
+
+Rtsp/RtspPsDecodeTrack.o: Rtsp/RtspPsDecodeTrack.cpp.o
+
+.PHONY : Rtsp/RtspPsDecodeTrack.o
+
+# target to build an object file
+Rtsp/RtspPsDecodeTrack.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspPsDecodeTrack.cpp.o
+.PHONY : Rtsp/RtspPsDecodeTrack.cpp.o
+
+Rtsp/RtspPsDecodeTrack.i: Rtsp/RtspPsDecodeTrack.cpp.i
+
+.PHONY : Rtsp/RtspPsDecodeTrack.i
+
+# target to preprocess a source file
+Rtsp/RtspPsDecodeTrack.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspPsDecodeTrack.cpp.i
+.PHONY : Rtsp/RtspPsDecodeTrack.cpp.i
+
+Rtsp/RtspPsDecodeTrack.s: Rtsp/RtspPsDecodeTrack.cpp.s
+
+.PHONY : Rtsp/RtspPsDecodeTrack.s
+
+# target to generate assembly for a file
+Rtsp/RtspPsDecodeTrack.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspPsDecodeTrack.cpp.s
+.PHONY : Rtsp/RtspPsDecodeTrack.cpp.s
+
+Rtsp/RtspPsEncodeTrack.o: Rtsp/RtspPsEncodeTrack.cpp.o
+
+.PHONY : Rtsp/RtspPsEncodeTrack.o
+
+# target to build an object file
+Rtsp/RtspPsEncodeTrack.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspPsEncodeTrack.cpp.o
+.PHONY : Rtsp/RtspPsEncodeTrack.cpp.o
+
+Rtsp/RtspPsEncodeTrack.i: Rtsp/RtspPsEncodeTrack.cpp.i
+
+.PHONY : Rtsp/RtspPsEncodeTrack.i
+
+# target to preprocess a source file
+Rtsp/RtspPsEncodeTrack.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspPsEncodeTrack.cpp.i
+.PHONY : Rtsp/RtspPsEncodeTrack.cpp.i
+
+Rtsp/RtspPsEncodeTrack.s: Rtsp/RtspPsEncodeTrack.cpp.s
+
+.PHONY : Rtsp/RtspPsEncodeTrack.s
+
+# target to generate assembly for a file
+Rtsp/RtspPsEncodeTrack.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspPsEncodeTrack.cpp.s
+.PHONY : Rtsp/RtspPsEncodeTrack.cpp.s
+
+Rtsp/RtspPsMediaSource.o: Rtsp/RtspPsMediaSource.cpp.o
+
+.PHONY : Rtsp/RtspPsMediaSource.o
+
+# target to build an object file
+Rtsp/RtspPsMediaSource.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspPsMediaSource.cpp.o
+.PHONY : Rtsp/RtspPsMediaSource.cpp.o
+
+Rtsp/RtspPsMediaSource.i: Rtsp/RtspPsMediaSource.cpp.i
+
+.PHONY : Rtsp/RtspPsMediaSource.i
+
+# target to preprocess a source file
+Rtsp/RtspPsMediaSource.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspPsMediaSource.cpp.i
+.PHONY : Rtsp/RtspPsMediaSource.cpp.i
+
+Rtsp/RtspPsMediaSource.s: Rtsp/RtspPsMediaSource.cpp.s
+
+.PHONY : Rtsp/RtspPsMediaSource.s
+
+# target to generate assembly for a file
+Rtsp/RtspPsMediaSource.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspPsMediaSource.cpp.s
+.PHONY : Rtsp/RtspPsMediaSource.cpp.s
+
+Rtsp/RtspRtcpTransport.o: Rtsp/RtspRtcpTransport.cpp.o
+
+.PHONY : Rtsp/RtspRtcpTransport.o
+
+# target to build an object file
+Rtsp/RtspRtcpTransport.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspRtcpTransport.cpp.o
+.PHONY : Rtsp/RtspRtcpTransport.cpp.o
+
+Rtsp/RtspRtcpTransport.i: Rtsp/RtspRtcpTransport.cpp.i
+
+.PHONY : Rtsp/RtspRtcpTransport.i
+
+# target to preprocess a source file
+Rtsp/RtspRtcpTransport.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspRtcpTransport.cpp.i
+.PHONY : Rtsp/RtspRtcpTransport.cpp.i
+
+Rtsp/RtspRtcpTransport.s: Rtsp/RtspRtcpTransport.cpp.s
+
+.PHONY : Rtsp/RtspRtcpTransport.s
+
+# target to generate assembly for a file
+Rtsp/RtspRtcpTransport.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspRtcpTransport.cpp.s
+.PHONY : Rtsp/RtspRtcpTransport.cpp.s
+
+Rtsp/RtspRtpTransport.o: Rtsp/RtspRtpTransport.cpp.o
+
+.PHONY : Rtsp/RtspRtpTransport.o
+
+# target to build an object file
+Rtsp/RtspRtpTransport.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspRtpTransport.cpp.o
+.PHONY : Rtsp/RtspRtpTransport.cpp.o
+
+Rtsp/RtspRtpTransport.i: Rtsp/RtspRtpTransport.cpp.i
+
+.PHONY : Rtsp/RtspRtpTransport.i
+
+# target to preprocess a source file
+Rtsp/RtspRtpTransport.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspRtpTransport.cpp.i
+.PHONY : Rtsp/RtspRtpTransport.cpp.i
+
+Rtsp/RtspRtpTransport.s: Rtsp/RtspRtpTransport.cpp.s
+
+.PHONY : Rtsp/RtspRtpTransport.s
+
+# target to generate assembly for a file
+Rtsp/RtspRtpTransport.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspRtpTransport.cpp.s
+.PHONY : Rtsp/RtspRtpTransport.cpp.s
+
+Rtsp/RtspSdpParser.o: Rtsp/RtspSdpParser.cpp.o
+
+.PHONY : Rtsp/RtspSdpParser.o
+
+# target to build an object file
+Rtsp/RtspSdpParser.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspSdpParser.cpp.o
+.PHONY : Rtsp/RtspSdpParser.cpp.o
+
+Rtsp/RtspSdpParser.i: Rtsp/RtspSdpParser.cpp.i
+
+.PHONY : Rtsp/RtspSdpParser.i
+
+# target to preprocess a source file
+Rtsp/RtspSdpParser.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspSdpParser.cpp.i
+.PHONY : Rtsp/RtspSdpParser.cpp.i
+
+Rtsp/RtspSdpParser.s: Rtsp/RtspSdpParser.cpp.s
+
+.PHONY : Rtsp/RtspSdpParser.s
+
+# target to generate assembly for a file
+Rtsp/RtspSdpParser.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspSdpParser.cpp.s
+.PHONY : Rtsp/RtspSdpParser.cpp.s
+
+Rtsp/RtspServer.o: Rtsp/RtspServer.cpp.o
+
+.PHONY : Rtsp/RtspServer.o
+
+# target to build an object file
+Rtsp/RtspServer.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspServer.cpp.o
+.PHONY : Rtsp/RtspServer.cpp.o
+
+Rtsp/RtspServer.i: Rtsp/RtspServer.cpp.i
+
+.PHONY : Rtsp/RtspServer.i
+
+# target to preprocess a source file
+Rtsp/RtspServer.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspServer.cpp.i
+.PHONY : Rtsp/RtspServer.cpp.i
+
+Rtsp/RtspServer.s: Rtsp/RtspServer.cpp.s
+
+.PHONY : Rtsp/RtspServer.s
+
+# target to generate assembly for a file
+Rtsp/RtspServer.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspServer.cpp.s
+.PHONY : Rtsp/RtspServer.cpp.s
+
+Rtsp/RtspTrack.o: Rtsp/RtspTrack.cpp.o
+
+.PHONY : Rtsp/RtspTrack.o
+
+# target to build an object file
+Rtsp/RtspTrack.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspTrack.cpp.o
+.PHONY : Rtsp/RtspTrack.cpp.o
+
+Rtsp/RtspTrack.i: Rtsp/RtspTrack.cpp.i
+
+.PHONY : Rtsp/RtspTrack.i
+
+# target to preprocess a source file
+Rtsp/RtspTrack.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspTrack.cpp.i
+.PHONY : Rtsp/RtspTrack.cpp.i
+
+Rtsp/RtspTrack.s: Rtsp/RtspTrack.cpp.s
+
+.PHONY : Rtsp/RtspTrack.s
+
+# target to generate assembly for a file
+Rtsp/RtspTrack.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Rtsp/RtspTrack.cpp.s
+.PHONY : Rtsp/RtspTrack.cpp.s
 
 Srt/SrtClient.o: Srt/SrtClient.cpp.o
 
@@ -3392,59 +3932,32 @@ Srt/SrtServer.cpp.s:
 	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Srt/SrtServer.cpp.s
 .PHONY : Srt/SrtServer.cpp.s
 
-Webrtc/WebRtcRtcpPacket.o: Webrtc/WebRtcRtcpPacket.cpp.o
+Webrtc/Webrtc.o: Webrtc/Webrtc.cpp.o
 
-.PHONY : Webrtc/WebRtcRtcpPacket.o
-
-# target to build an object file
-Webrtc/WebRtcRtcpPacket.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Webrtc/WebRtcRtcpPacket.cpp.o
-.PHONY : Webrtc/WebRtcRtcpPacket.cpp.o
-
-Webrtc/WebRtcRtcpPacket.i: Webrtc/WebRtcRtcpPacket.cpp.i
-
-.PHONY : Webrtc/WebRtcRtcpPacket.i
-
-# target to preprocess a source file
-Webrtc/WebRtcRtcpPacket.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Webrtc/WebRtcRtcpPacket.cpp.i
-.PHONY : Webrtc/WebRtcRtcpPacket.cpp.i
-
-Webrtc/WebRtcRtcpPacket.s: Webrtc/WebRtcRtcpPacket.cpp.s
-
-.PHONY : Webrtc/WebRtcRtcpPacket.s
-
-# target to generate assembly for a file
-Webrtc/WebRtcRtcpPacket.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Webrtc/WebRtcRtcpPacket.cpp.s
-.PHONY : Webrtc/WebRtcRtcpPacket.cpp.s
-
-Webrtc/WebRtcRtpPacket.o: Webrtc/WebRtcRtpPacket.cpp.o
-
-.PHONY : Webrtc/WebRtcRtpPacket.o
+.PHONY : Webrtc/Webrtc.o
 
 # target to build an object file
-Webrtc/WebRtcRtpPacket.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Webrtc/WebRtcRtpPacket.cpp.o
-.PHONY : Webrtc/WebRtcRtpPacket.cpp.o
+Webrtc/Webrtc.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Webrtc/Webrtc.cpp.o
+.PHONY : Webrtc/Webrtc.cpp.o
 
-Webrtc/WebRtcRtpPacket.i: Webrtc/WebRtcRtpPacket.cpp.i
+Webrtc/Webrtc.i: Webrtc/Webrtc.cpp.i
 
-.PHONY : Webrtc/WebRtcRtpPacket.i
+.PHONY : Webrtc/Webrtc.i
 
 # target to preprocess a source file
-Webrtc/WebRtcRtpPacket.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Webrtc/WebRtcRtpPacket.cpp.i
-.PHONY : Webrtc/WebRtcRtpPacket.cpp.i
+Webrtc/Webrtc.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Webrtc/Webrtc.cpp.i
+.PHONY : Webrtc/Webrtc.cpp.i
 
-Webrtc/WebRtcRtpPacket.s: Webrtc/WebRtcRtpPacket.cpp.s
+Webrtc/Webrtc.s: Webrtc/Webrtc.cpp.s
 
-.PHONY : Webrtc/WebRtcRtpPacket.s
+.PHONY : Webrtc/Webrtc.s
 
 # target to generate assembly for a file
-Webrtc/WebRtcRtpPacket.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Webrtc/WebRtcRtpPacket.cpp.s
-.PHONY : Webrtc/WebRtcRtpPacket.cpp.s
+Webrtc/Webrtc.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Webrtc/Webrtc.cpp.s
+.PHONY : Webrtc/Webrtc.cpp.s
 
 Webrtc/WebrtcClient.o: Webrtc/WebrtcClient.cpp.o
 
@@ -3472,6 +3985,33 @@ Webrtc/WebrtcClient.s: Webrtc/WebrtcClient.cpp.s
 Webrtc/WebrtcClient.cpp.s:
 	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Webrtc/WebrtcClient.cpp.s
 .PHONY : Webrtc/WebrtcClient.cpp.s
+
+Webrtc/WebrtcConnection.o: Webrtc/WebrtcConnection.cpp.o
+
+.PHONY : Webrtc/WebrtcConnection.o
+
+# target to build an object file
+Webrtc/WebrtcConnection.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Webrtc/WebrtcConnection.cpp.o
+.PHONY : Webrtc/WebrtcConnection.cpp.o
+
+Webrtc/WebrtcConnection.i: Webrtc/WebrtcConnection.cpp.i
+
+.PHONY : Webrtc/WebrtcConnection.i
+
+# target to preprocess a source file
+Webrtc/WebrtcConnection.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Webrtc/WebrtcConnection.cpp.i
+.PHONY : Webrtc/WebrtcConnection.cpp.i
+
+Webrtc/WebrtcConnection.s: Webrtc/WebrtcConnection.cpp.s
+
+.PHONY : Webrtc/WebrtcConnection.s
+
+# target to generate assembly for a file
+Webrtc/WebrtcConnection.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Webrtc/WebrtcConnection.cpp.s
+.PHONY : Webrtc/WebrtcConnection.cpp.s
 
 Webrtc/WebrtcContext.o: Webrtc/WebrtcContext.cpp.o
 
@@ -3635,6 +4175,87 @@ Webrtc/WebrtcMediaSource.cpp.s:
 	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Webrtc/WebrtcMediaSource.cpp.s
 .PHONY : Webrtc/WebrtcMediaSource.cpp.s
 
+Webrtc/WebrtcParser.o: Webrtc/WebrtcParser.cpp.o
+
+.PHONY : Webrtc/WebrtcParser.o
+
+# target to build an object file
+Webrtc/WebrtcParser.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Webrtc/WebrtcParser.cpp.o
+.PHONY : Webrtc/WebrtcParser.cpp.o
+
+Webrtc/WebrtcParser.i: Webrtc/WebrtcParser.cpp.i
+
+.PHONY : Webrtc/WebrtcParser.i
+
+# target to preprocess a source file
+Webrtc/WebrtcParser.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Webrtc/WebrtcParser.cpp.i
+.PHONY : Webrtc/WebrtcParser.cpp.i
+
+Webrtc/WebrtcParser.s: Webrtc/WebrtcParser.cpp.s
+
+.PHONY : Webrtc/WebrtcParser.s
+
+# target to generate assembly for a file
+Webrtc/WebrtcParser.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Webrtc/WebrtcParser.cpp.s
+.PHONY : Webrtc/WebrtcParser.cpp.s
+
+Webrtc/WebrtcRtcpPacket.o: Webrtc/WebrtcRtcpPacket.cpp.o
+
+.PHONY : Webrtc/WebrtcRtcpPacket.o
+
+# target to build an object file
+Webrtc/WebrtcRtcpPacket.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Webrtc/WebrtcRtcpPacket.cpp.o
+.PHONY : Webrtc/WebrtcRtcpPacket.cpp.o
+
+Webrtc/WebrtcRtcpPacket.i: Webrtc/WebrtcRtcpPacket.cpp.i
+
+.PHONY : Webrtc/WebrtcRtcpPacket.i
+
+# target to preprocess a source file
+Webrtc/WebrtcRtcpPacket.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Webrtc/WebrtcRtcpPacket.cpp.i
+.PHONY : Webrtc/WebrtcRtcpPacket.cpp.i
+
+Webrtc/WebrtcRtcpPacket.s: Webrtc/WebrtcRtcpPacket.cpp.s
+
+.PHONY : Webrtc/WebrtcRtcpPacket.s
+
+# target to generate assembly for a file
+Webrtc/WebrtcRtcpPacket.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Webrtc/WebrtcRtcpPacket.cpp.s
+.PHONY : Webrtc/WebrtcRtcpPacket.cpp.s
+
+Webrtc/WebrtcRtpPacket.o: Webrtc/WebrtcRtpPacket.cpp.o
+
+.PHONY : Webrtc/WebrtcRtpPacket.o
+
+# target to build an object file
+Webrtc/WebrtcRtpPacket.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Webrtc/WebrtcRtpPacket.cpp.o
+.PHONY : Webrtc/WebrtcRtpPacket.cpp.o
+
+Webrtc/WebrtcRtpPacket.i: Webrtc/WebrtcRtpPacket.cpp.i
+
+.PHONY : Webrtc/WebrtcRtpPacket.i
+
+# target to preprocess a source file
+Webrtc/WebrtcRtpPacket.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Webrtc/WebrtcRtpPacket.cpp.i
+.PHONY : Webrtc/WebrtcRtpPacket.cpp.i
+
+Webrtc/WebrtcRtpPacket.s: Webrtc/WebrtcRtpPacket.cpp.s
+
+.PHONY : Webrtc/WebrtcRtpPacket.s
+
+# target to generate assembly for a file
+Webrtc/WebrtcRtpPacket.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Webrtc/WebrtcRtpPacket.cpp.s
+.PHONY : Webrtc/WebrtcRtpPacket.cpp.s
+
 Webrtc/WebrtcSdpParser.o: Webrtc/WebrtcSdpParser.cpp.o
 
 .PHONY : Webrtc/WebrtcSdpParser.o
@@ -3791,6 +4412,9 @@ help:
 	@echo "... Api/HttpStreamApi.o"
 	@echo "... Api/HttpStreamApi.i"
 	@echo "... Api/HttpStreamApi.s"
+	@echo "... Api/RecordApi.o"
+	@echo "... Api/RecordApi.i"
+	@echo "... Api/RecordApi.s"
 	@echo "... Api/RtmpApi.o"
 	@echo "... Api/RtmpApi.i"
 	@echo "... Api/RtmpApi.s"
@@ -3800,12 +4424,18 @@ help:
 	@echo "... Api/SrtApi.o"
 	@echo "... Api/SrtApi.i"
 	@echo "... Api/SrtApi.s"
+	@echo "... Api/TestApi.o"
+	@echo "... Api/TestApi.i"
+	@echo "... Api/TestApi.s"
 	@echo "... Api/WebrtcApi.o"
 	@echo "... Api/WebrtcApi.i"
 	@echo "... Api/WebrtcApi.s"
 	@echo "... Codec/AacTrack.o"
 	@echo "... Codec/AacTrack.i"
 	@echo "... Codec/AacTrack.s"
+	@echo "... Codec/G711Track.o"
+	@echo "... Codec/G711Track.i"
+	@echo "... Codec/G711Track.s"
 	@echo "... Codec/H264Frame.o"
 	@echo "... Codec/H264Frame.i"
 	@echo "... Codec/H264Frame.s"
@@ -3839,6 +4469,9 @@ help:
 	@echo "... Common/MediaSource.o"
 	@echo "... Common/MediaSource.i"
 	@echo "... Common/MediaSource.s"
+	@echo "... Common/RecordReader.o"
+	@echo "... Common/RecordReader.i"
+	@echo "... Common/RecordReader.s"
 	@echo "... Common/StampAdjust.o"
 	@echo "... Common/StampAdjust.i"
 	@echo "... Common/StampAdjust.s"
@@ -3857,6 +4490,15 @@ help:
 	@echo "... Ehome2/Ehome2Server.o"
 	@echo "... Ehome2/Ehome2Server.i"
 	@echo "... Ehome2/Ehome2Server.s"
+	@echo "... Ehome5/Ehome5Connection.o"
+	@echo "... Ehome5/Ehome5Connection.i"
+	@echo "... Ehome5/Ehome5Connection.s"
+	@echo "... Ehome5/Ehome5Parser.o"
+	@echo "... Ehome5/Ehome5Parser.i"
+	@echo "... Ehome5/Ehome5Parser.s"
+	@echo "... Ehome5/Ehome5Server.o"
+	@echo "... Ehome5/Ehome5Server.i"
+	@echo "... Ehome5/Ehome5Server.s"
 	@echo "... Flv/FlvDemuxer.o"
 	@echo "... Flv/FlvDemuxer.i"
 	@echo "... Flv/FlvDemuxer.s"
@@ -3977,162 +4619,201 @@ help:
 	@echo "... JT1078/JT1078Server.o"
 	@echo "... JT1078/JT1078Server.i"
 	@echo "... JT1078/JT1078Server.s"
-	@echo "... MP4/Mp4Box.o"
-	@echo "... MP4/Mp4Box.i"
-	@echo "... MP4/Mp4Box.s"
-	@echo "... MP4/Mp4Demuxer.o"
-	@echo "... MP4/Mp4Demuxer.i"
-	@echo "... MP4/Mp4Demuxer.s"
-	@echo "... MP4/Mp4Muxer.o"
-	@echo "... MP4/Mp4Muxer.i"
-	@echo "... MP4/Mp4Muxer.s"
-	@echo "... MPEG/Mpeg.o"
-	@echo "... MPEG/Mpeg.i"
-	@echo "... MPEG/Mpeg.s"
-	@echo "... MPEG/PsDemuxer.o"
-	@echo "... MPEG/PsDemuxer.i"
-	@echo "... MPEG/PsDemuxer.s"
-	@echo "... MPEG/PsMediaSource.o"
-	@echo "... MPEG/PsMediaSource.i"
-	@echo "... MPEG/PsMediaSource.s"
-	@echo "... MPEG/PsMuxer.o"
-	@echo "... MPEG/PsMuxer.i"
-	@echo "... MPEG/PsMuxer.s"
-	@echo "... MPEG/TsDemuxer.o"
-	@echo "... MPEG/TsDemuxer.i"
-	@echo "... MPEG/TsDemuxer.s"
-	@echo "... MPEG/TsMediaSource.o"
-	@echo "... MPEG/TsMediaSource.i"
-	@echo "... MPEG/TsMediaSource.s"
-	@echo "... MPEG/TsMuxer.o"
-	@echo "... MPEG/TsMuxer.i"
-	@echo "... MPEG/TsMuxer.s"
-	@echo "... RTMP/Amf.o"
-	@echo "... RTMP/Amf.i"
-	@echo "... RTMP/Amf.s"
-	@echo "... RTMP/Decode/RtmpDecode.o"
-	@echo "... RTMP/Decode/RtmpDecode.i"
-	@echo "... RTMP/Decode/RtmpDecode.s"
-	@echo "... RTMP/Decode/RtmpDecodeAac.o"
-	@echo "... RTMP/Decode/RtmpDecodeAac.i"
-	@echo "... RTMP/Decode/RtmpDecodeAac.s"
-	@echo "... RTMP/Decode/RtmpDecodeH264.o"
-	@echo "... RTMP/Decode/RtmpDecodeH264.i"
-	@echo "... RTMP/Decode/RtmpDecodeH264.s"
-	@echo "... RTMP/Decode/RtmpDecodeH265.o"
-	@echo "... RTMP/Decode/RtmpDecodeH265.i"
-	@echo "... RTMP/Decode/RtmpDecodeH265.s"
-	@echo "... RTMP/Encode/RtmpEncode.o"
-	@echo "... RTMP/Encode/RtmpEncode.i"
-	@echo "... RTMP/Encode/RtmpEncode.s"
-	@echo "... RTMP/Encode/RtmpEncodeAac.o"
-	@echo "... RTMP/Encode/RtmpEncodeAac.i"
-	@echo "... RTMP/Encode/RtmpEncodeAac.s"
-	@echo "... RTMP/Encode/RtmpEncodeH264.o"
-	@echo "... RTMP/Encode/RtmpEncodeH264.i"
-	@echo "... RTMP/Encode/RtmpEncodeH264.s"
-	@echo "... RTMP/Encode/RtmpEncodeH265.o"
-	@echo "... RTMP/Encode/RtmpEncodeH265.i"
-	@echo "... RTMP/Encode/RtmpEncodeH265.s"
-	@echo "... RTMP/FlvMuxerWithRtmp.o"
-	@echo "... RTMP/FlvMuxerWithRtmp.i"
-	@echo "... RTMP/FlvMuxerWithRtmp.s"
-	@echo "... RTMP/RtmpChunk.o"
-	@echo "... RTMP/RtmpChunk.i"
-	@echo "... RTMP/RtmpChunk.s"
-	@echo "... RTMP/RtmpClient.o"
-	@echo "... RTMP/RtmpClient.i"
-	@echo "... RTMP/RtmpClient.s"
-	@echo "... RTMP/RtmpConnection.o"
-	@echo "... RTMP/RtmpConnection.i"
-	@echo "... RTMP/RtmpConnection.s"
-	@echo "... RTMP/RtmpDecodeTrack.o"
-	@echo "... RTMP/RtmpDecodeTrack.i"
-	@echo "... RTMP/RtmpDecodeTrack.s"
-	@echo "... RTMP/RtmpEncodeTrack.o"
-	@echo "... RTMP/RtmpEncodeTrack.i"
-	@echo "... RTMP/RtmpEncodeTrack.s"
-	@echo "... RTMP/RtmpHandshake.o"
-	@echo "... RTMP/RtmpHandshake.i"
-	@echo "... RTMP/RtmpHandshake.s"
-	@echo "... RTMP/RtmpMediaSource.o"
-	@echo "... RTMP/RtmpMediaSource.i"
-	@echo "... RTMP/RtmpMediaSource.s"
-	@echo "... RTMP/RtmpServer.o"
-	@echo "... RTMP/RtmpServer.i"
-	@echo "... RTMP/RtmpServer.s"
-	@echo "... RTP/Decoder/RtpDecodeAac.o"
-	@echo "... RTP/Decoder/RtpDecodeAac.i"
-	@echo "... RTP/Decoder/RtpDecodeAac.s"
-	@echo "... RTP/Decoder/RtpDecodeCommon.o"
-	@echo "... RTP/Decoder/RtpDecodeCommon.i"
-	@echo "... RTP/Decoder/RtpDecodeCommon.s"
-	@echo "... RTP/Decoder/RtpDecodeH264.o"
-	@echo "... RTP/Decoder/RtpDecodeH264.i"
-	@echo "... RTP/Decoder/RtpDecodeH264.s"
-	@echo "... RTP/Decoder/RtpDecodeH265.o"
-	@echo "... RTP/Decoder/RtpDecodeH265.i"
-	@echo "... RTP/Decoder/RtpDecodeH265.s"
-	@echo "... RTP/Decoder/RtpDecoder.o"
-	@echo "... RTP/Decoder/RtpDecoder.i"
-	@echo "... RTP/Decoder/RtpDecoder.s"
-	@echo "... RTP/Encoder/RtpEncodeAac.o"
-	@echo "... RTP/Encoder/RtpEncodeAac.i"
-	@echo "... RTP/Encoder/RtpEncodeAac.s"
-	@echo "... RTP/Encoder/RtpEncodeCommon.o"
-	@echo "... RTP/Encoder/RtpEncodeCommon.i"
-	@echo "... RTP/Encoder/RtpEncodeCommon.s"
-	@echo "... RTP/Encoder/RtpEncodeH264.o"
-	@echo "... RTP/Encoder/RtpEncodeH264.i"
-	@echo "... RTP/Encoder/RtpEncodeH264.s"
-	@echo "... RTP/Encoder/RtpEncodeH265.o"
-	@echo "... RTP/Encoder/RtpEncodeH265.i"
-	@echo "... RTP/Encoder/RtpEncodeH265.s"
-	@echo "... RTP/Encoder/RtpEncoder.o"
-	@echo "... RTP/Encoder/RtpEncoder.i"
-	@echo "... RTP/Encoder/RtpEncoder.s"
-	@echo "... RTP/RtpConnection.o"
-	@echo "... RTP/RtpConnection.i"
-	@echo "... RTP/RtpConnection.s"
-	@echo "... RTP/RtpPacket.o"
-	@echo "... RTP/RtpPacket.i"
-	@echo "... RTP/RtpPacket.s"
-	@echo "... RTP/RtpSort.o"
-	@echo "... RTP/RtpSort.i"
-	@echo "... RTP/RtpSort.s"
-	@echo "... RTSP/RtspAuth.o"
-	@echo "... RTSP/RtspAuth.i"
-	@echo "... RTSP/RtspAuth.s"
-	@echo "... RTSP/RtspClient.o"
-	@echo "... RTSP/RtspClient.i"
-	@echo "... RTSP/RtspClient.s"
-	@echo "... RTSP/RtspConnection.o"
-	@echo "... RTSP/RtspConnection.i"
-	@echo "... RTSP/RtspConnection.s"
-	@echo "... RTSP/RtspMediaSource.o"
-	@echo "... RTSP/RtspMediaSource.i"
-	@echo "... RTSP/RtspMediaSource.s"
-	@echo "... RTSP/RtspParser.o"
-	@echo "... RTSP/RtspParser.i"
-	@echo "... RTSP/RtspParser.s"
-	@echo "... RTSP/RtspRtcpTransport.o"
-	@echo "... RTSP/RtspRtcpTransport.i"
-	@echo "... RTSP/RtspRtcpTransport.s"
-	@echo "... RTSP/RtspRtpTransport.o"
-	@echo "... RTSP/RtspRtpTransport.i"
-	@echo "... RTSP/RtspRtpTransport.s"
-	@echo "... RTSP/RtspSdpParser.o"
-	@echo "... RTSP/RtspSdpParser.i"
-	@echo "... RTSP/RtspSdpParser.s"
-	@echo "... RTSP/RtspServer.o"
-	@echo "... RTSP/RtspServer.i"
-	@echo "... RTSP/RtspServer.s"
-	@echo "... RTSP/RtspTrack.o"
-	@echo "... RTSP/RtspTrack.i"
-	@echo "... RTSP/RtspTrack.s"
+	@echo "... Mp4/Fmp4Demuxer.o"
+	@echo "... Mp4/Fmp4Demuxer.i"
+	@echo "... Mp4/Fmp4Demuxer.s"
+	@echo "... Mp4/Fmp4MediaSource.o"
+	@echo "... Mp4/Fmp4MediaSource.i"
+	@echo "... Mp4/Fmp4MediaSource.s"
+	@echo "... Mp4/Fmp4Muxer.o"
+	@echo "... Mp4/Fmp4Muxer.i"
+	@echo "... Mp4/Fmp4Muxer.s"
+	@echo "... Mp4/Mp4Box.o"
+	@echo "... Mp4/Mp4Box.i"
+	@echo "... Mp4/Mp4Box.s"
+	@echo "... Mp4/Mp4Demuxer.o"
+	@echo "... Mp4/Mp4Demuxer.i"
+	@echo "... Mp4/Mp4Demuxer.s"
+	@echo "... Mp4/Mp4FileReader.o"
+	@echo "... Mp4/Mp4FileReader.i"
+	@echo "... Mp4/Mp4FileReader.s"
+	@echo "... Mp4/Mp4FileWriter.o"
+	@echo "... Mp4/Mp4FileWriter.i"
+	@echo "... Mp4/Mp4FileWriter.s"
+	@echo "... Mp4/Mp4Muxer.o"
+	@echo "... Mp4/Mp4Muxer.i"
+	@echo "... Mp4/Mp4Muxer.s"
+	@echo "... Mpeg/Mpeg.o"
+	@echo "... Mpeg/Mpeg.i"
+	@echo "... Mpeg/Mpeg.s"
+	@echo "... Mpeg/PsDemuxer.o"
+	@echo "... Mpeg/PsDemuxer.i"
+	@echo "... Mpeg/PsDemuxer.s"
+	@echo "... Mpeg/PsMediaSource.o"
+	@echo "... Mpeg/PsMediaSource.i"
+	@echo "... Mpeg/PsMediaSource.s"
+	@echo "... Mpeg/PsMuxer.o"
+	@echo "... Mpeg/PsMuxer.i"
+	@echo "... Mpeg/PsMuxer.s"
+	@echo "... Mpeg/TsDemuxer.o"
+	@echo "... Mpeg/TsDemuxer.i"
+	@echo "... Mpeg/TsDemuxer.s"
+	@echo "... Mpeg/TsMediaSource.o"
+	@echo "... Mpeg/TsMediaSource.i"
+	@echo "... Mpeg/TsMediaSource.s"
+	@echo "... Mpeg/TsMuxer.o"
+	@echo "... Mpeg/TsMuxer.i"
+	@echo "... Mpeg/TsMuxer.s"
+	@echo "... Record/Record.o"
+	@echo "... Record/Record.i"
+	@echo "... Record/Record.s"
+	@echo "... Record/RecordMp4.o"
+	@echo "... Record/RecordMp4.i"
+	@echo "... Record/RecordMp4.s"
+	@echo "... Record/RecordPs.o"
+	@echo "... Record/RecordPs.i"
+	@echo "... Record/RecordPs.s"
 	@echo "... Rtcp/RtcpPacket.o"
 	@echo "... Rtcp/RtcpPacket.i"
 	@echo "... Rtcp/RtcpPacket.s"
+	@echo "... Rtmp/Amf.o"
+	@echo "... Rtmp/Amf.i"
+	@echo "... Rtmp/Amf.s"
+	@echo "... Rtmp/Decode/RtmpDecode.o"
+	@echo "... Rtmp/Decode/RtmpDecode.i"
+	@echo "... Rtmp/Decode/RtmpDecode.s"
+	@echo "... Rtmp/Decode/RtmpDecodeAac.o"
+	@echo "... Rtmp/Decode/RtmpDecodeAac.i"
+	@echo "... Rtmp/Decode/RtmpDecodeAac.s"
+	@echo "... Rtmp/Decode/RtmpDecodeCommon.o"
+	@echo "... Rtmp/Decode/RtmpDecodeCommon.i"
+	@echo "... Rtmp/Decode/RtmpDecodeCommon.s"
+	@echo "... Rtmp/Decode/RtmpDecodeH264.o"
+	@echo "... Rtmp/Decode/RtmpDecodeH264.i"
+	@echo "... Rtmp/Decode/RtmpDecodeH264.s"
+	@echo "... Rtmp/Decode/RtmpDecodeH265.o"
+	@echo "... Rtmp/Decode/RtmpDecodeH265.i"
+	@echo "... Rtmp/Decode/RtmpDecodeH265.s"
+	@echo "... Rtmp/Encode/RtmpEncode.o"
+	@echo "... Rtmp/Encode/RtmpEncode.i"
+	@echo "... Rtmp/Encode/RtmpEncode.s"
+	@echo "... Rtmp/Encode/RtmpEncodeAac.o"
+	@echo "... Rtmp/Encode/RtmpEncodeAac.i"
+	@echo "... Rtmp/Encode/RtmpEncodeAac.s"
+	@echo "... Rtmp/Encode/RtmpEncodeCommon.o"
+	@echo "... Rtmp/Encode/RtmpEncodeCommon.i"
+	@echo "... Rtmp/Encode/RtmpEncodeCommon.s"
+	@echo "... Rtmp/Encode/RtmpEncodeH264.o"
+	@echo "... Rtmp/Encode/RtmpEncodeH264.i"
+	@echo "... Rtmp/Encode/RtmpEncodeH264.s"
+	@echo "... Rtmp/Encode/RtmpEncodeH265.o"
+	@echo "... Rtmp/Encode/RtmpEncodeH265.i"
+	@echo "... Rtmp/Encode/RtmpEncodeH265.s"
+	@echo "... Rtmp/FlvMuxerWithRtmp.o"
+	@echo "... Rtmp/FlvMuxerWithRtmp.i"
+	@echo "... Rtmp/FlvMuxerWithRtmp.s"
+	@echo "... Rtmp/RtmpChunk.o"
+	@echo "... Rtmp/RtmpChunk.i"
+	@echo "... Rtmp/RtmpChunk.s"
+	@echo "... Rtmp/RtmpClient.o"
+	@echo "... Rtmp/RtmpClient.i"
+	@echo "... Rtmp/RtmpClient.s"
+	@echo "... Rtmp/RtmpConnection.o"
+	@echo "... Rtmp/RtmpConnection.i"
+	@echo "... Rtmp/RtmpConnection.s"
+	@echo "... Rtmp/RtmpDecodeTrack.o"
+	@echo "... Rtmp/RtmpDecodeTrack.i"
+	@echo "... Rtmp/RtmpDecodeTrack.s"
+	@echo "... Rtmp/RtmpEncodeTrack.o"
+	@echo "... Rtmp/RtmpEncodeTrack.i"
+	@echo "... Rtmp/RtmpEncodeTrack.s"
+	@echo "... Rtmp/RtmpHandshake.o"
+	@echo "... Rtmp/RtmpHandshake.i"
+	@echo "... Rtmp/RtmpHandshake.s"
+	@echo "... Rtmp/RtmpMediaSource.o"
+	@echo "... Rtmp/RtmpMediaSource.i"
+	@echo "... Rtmp/RtmpMediaSource.s"
+	@echo "... Rtmp/RtmpServer.o"
+	@echo "... Rtmp/RtmpServer.i"
+	@echo "... Rtmp/RtmpServer.s"
+	@echo "... Rtp/Decoder/RtpDecodeAac.o"
+	@echo "... Rtp/Decoder/RtpDecodeAac.i"
+	@echo "... Rtp/Decoder/RtpDecodeAac.s"
+	@echo "... Rtp/Decoder/RtpDecodeCommon.o"
+	@echo "... Rtp/Decoder/RtpDecodeCommon.i"
+	@echo "... Rtp/Decoder/RtpDecodeCommon.s"
+	@echo "... Rtp/Decoder/RtpDecodeH264.o"
+	@echo "... Rtp/Decoder/RtpDecodeH264.i"
+	@echo "... Rtp/Decoder/RtpDecodeH264.s"
+	@echo "... Rtp/Decoder/RtpDecodeH265.o"
+	@echo "... Rtp/Decoder/RtpDecodeH265.i"
+	@echo "... Rtp/Decoder/RtpDecodeH265.s"
+	@echo "... Rtp/Decoder/RtpDecoder.o"
+	@echo "... Rtp/Decoder/RtpDecoder.i"
+	@echo "... Rtp/Decoder/RtpDecoder.s"
+	@echo "... Rtp/Encoder/RtpEncodeAac.o"
+	@echo "... Rtp/Encoder/RtpEncodeAac.i"
+	@echo "... Rtp/Encoder/RtpEncodeAac.s"
+	@echo "... Rtp/Encoder/RtpEncodeCommon.o"
+	@echo "... Rtp/Encoder/RtpEncodeCommon.i"
+	@echo "... Rtp/Encoder/RtpEncodeCommon.s"
+	@echo "... Rtp/Encoder/RtpEncodeH264.o"
+	@echo "... Rtp/Encoder/RtpEncodeH264.i"
+	@echo "... Rtp/Encoder/RtpEncodeH264.s"
+	@echo "... Rtp/Encoder/RtpEncodeH265.o"
+	@echo "... Rtp/Encoder/RtpEncodeH265.i"
+	@echo "... Rtp/Encoder/RtpEncodeH265.s"
+	@echo "... Rtp/Encoder/RtpEncoder.o"
+	@echo "... Rtp/Encoder/RtpEncoder.i"
+	@echo "... Rtp/Encoder/RtpEncoder.s"
+	@echo "... Rtp/RtpConnection.o"
+	@echo "... Rtp/RtpConnection.i"
+	@echo "... Rtp/RtpConnection.s"
+	@echo "... Rtp/RtpPacket.o"
+	@echo "... Rtp/RtpPacket.i"
+	@echo "... Rtp/RtpPacket.s"
+	@echo "... Rtp/RtpSort.o"
+	@echo "... Rtp/RtpSort.i"
+	@echo "... Rtp/RtpSort.s"
+	@echo "... Rtsp/RtspAuth.o"
+	@echo "... Rtsp/RtspAuth.i"
+	@echo "... Rtsp/RtspAuth.s"
+	@echo "... Rtsp/RtspClient.o"
+	@echo "... Rtsp/RtspClient.i"
+	@echo "... Rtsp/RtspClient.s"
+	@echo "... Rtsp/RtspConnection.o"
+	@echo "... Rtsp/RtspConnection.i"
+	@echo "... Rtsp/RtspConnection.s"
+	@echo "... Rtsp/RtspMediaSource.o"
+	@echo "... Rtsp/RtspMediaSource.i"
+	@echo "... Rtsp/RtspMediaSource.s"
+	@echo "... Rtsp/RtspParser.o"
+	@echo "... Rtsp/RtspParser.i"
+	@echo "... Rtsp/RtspParser.s"
+	@echo "... Rtsp/RtspPsDecodeTrack.o"
+	@echo "... Rtsp/RtspPsDecodeTrack.i"
+	@echo "... Rtsp/RtspPsDecodeTrack.s"
+	@echo "... Rtsp/RtspPsEncodeTrack.o"
+	@echo "... Rtsp/RtspPsEncodeTrack.i"
+	@echo "... Rtsp/RtspPsEncodeTrack.s"
+	@echo "... Rtsp/RtspPsMediaSource.o"
+	@echo "... Rtsp/RtspPsMediaSource.i"
+	@echo "... Rtsp/RtspPsMediaSource.s"
+	@echo "... Rtsp/RtspRtcpTransport.o"
+	@echo "... Rtsp/RtspRtcpTransport.i"
+	@echo "... Rtsp/RtspRtcpTransport.s"
+	@echo "... Rtsp/RtspRtpTransport.o"
+	@echo "... Rtsp/RtspRtpTransport.i"
+	@echo "... Rtsp/RtspRtpTransport.s"
+	@echo "... Rtsp/RtspSdpParser.o"
+	@echo "... Rtsp/RtspSdpParser.i"
+	@echo "... Rtsp/RtspSdpParser.s"
+	@echo "... Rtsp/RtspServer.o"
+	@echo "... Rtsp/RtspServer.i"
+	@echo "... Rtsp/RtspServer.s"
+	@echo "... Rtsp/RtspTrack.o"
+	@echo "... Rtsp/RtspTrack.i"
+	@echo "... Rtsp/RtspTrack.s"
 	@echo "... Srt/SrtClient.o"
 	@echo "... Srt/SrtClient.i"
 	@echo "... Srt/SrtClient.s"
@@ -4142,15 +4823,15 @@ help:
 	@echo "... Srt/SrtServer.o"
 	@echo "... Srt/SrtServer.i"
 	@echo "... Srt/SrtServer.s"
-	@echo "... Webrtc/WebRtcRtcpPacket.o"
-	@echo "... Webrtc/WebRtcRtcpPacket.i"
-	@echo "... Webrtc/WebRtcRtcpPacket.s"
-	@echo "... Webrtc/WebRtcRtpPacket.o"
-	@echo "... Webrtc/WebRtcRtpPacket.i"
-	@echo "... Webrtc/WebRtcRtpPacket.s"
+	@echo "... Webrtc/Webrtc.o"
+	@echo "... Webrtc/Webrtc.i"
+	@echo "... Webrtc/Webrtc.s"
 	@echo "... Webrtc/WebrtcClient.o"
 	@echo "... Webrtc/WebrtcClient.i"
 	@echo "... Webrtc/WebrtcClient.s"
+	@echo "... Webrtc/WebrtcConnection.o"
+	@echo "... Webrtc/WebrtcConnection.i"
+	@echo "... Webrtc/WebrtcConnection.s"
 	@echo "... Webrtc/WebrtcContext.o"
 	@echo "... Webrtc/WebrtcContext.i"
 	@echo "... Webrtc/WebrtcContext.s"
@@ -4169,6 +4850,15 @@ help:
 	@echo "... Webrtc/WebrtcMediaSource.o"
 	@echo "... Webrtc/WebrtcMediaSource.i"
 	@echo "... Webrtc/WebrtcMediaSource.s"
+	@echo "... Webrtc/WebrtcParser.o"
+	@echo "... Webrtc/WebrtcParser.i"
+	@echo "... Webrtc/WebrtcParser.s"
+	@echo "... Webrtc/WebrtcRtcpPacket.o"
+	@echo "... Webrtc/WebrtcRtcpPacket.i"
+	@echo "... Webrtc/WebrtcRtcpPacket.s"
+	@echo "... Webrtc/WebrtcRtpPacket.o"
+	@echo "... Webrtc/WebrtcRtpPacket.i"
+	@echo "... Webrtc/WebrtcRtpPacket.s"
 	@echo "... Webrtc/WebrtcSdpParser.o"
 	@echo "... Webrtc/WebrtcSdpParser.i"
 	@echo "... Webrtc/WebrtcSdpParser.s"

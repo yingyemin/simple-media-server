@@ -15,9 +15,9 @@
         "size" : 0
     },
     "Util" : {
-        "stopNonePlayerStream" : 1,
+        "stopNonePlayerStream" : true,
         "nonePlayerWaitTime" : 5000,
-        "enableLoadFromFile" : 1
+        "enableLoadFromFile" : true
     },
     "Hook" : {
         "Type" : "http",
@@ -25,7 +25,8 @@
             "timeout" : 10,
             "onStreamStatus" : "http://127.0.0.1/api/v1/onStreamStatus",
             "onNonePlayer" : "http://127.0.0.1/api/v1/onNonePlayer",
-            "onPublish" : "http://127.0.0.1/api/v1/onPublish"
+            "onPublish" : "http://127.0.0.1/api/v1/onPublish",
+            "onPlay" : "http://127.0.0.1/api/v1/onPlay"
         },
         "Kafka" : {
             "endpoint" : "127.0.0.1:9092",
@@ -50,7 +51,7 @@
                 "threads" : 1,
                 "udpPortMin" : 10000,
                 "udpPortMax" : 20000,
-                "rtspAuth" : 0
+                "rtspAuth" : false
             }
         }
     },

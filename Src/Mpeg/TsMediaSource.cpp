@@ -293,6 +293,8 @@ void TsMediaSource::startEncode()
 
 void TsMediaSource::inputTs(const StreamBuffer::Ptr& buffer)
 {
+    _ring->addBytes(buffer->size());
+    
     logInfo << "TsMediaSource::inputTs: " << this << ", " << _decodeFlag;
     _cache->emplace_back(std::move(buffer));
     // logInfo << "write cache size: " << strongSelf->_cache->size();

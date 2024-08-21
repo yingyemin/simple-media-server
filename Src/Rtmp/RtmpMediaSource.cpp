@@ -56,6 +56,7 @@ void RtmpMediaSource::addTrack(const RtmpDecodeTrack::Ptr& track)
             strongSelf->_start = true;
         }
         // logInfo << "write rtmp packet: ";
+        strongSelf->_ring->addBytes(pkt->length);
         if (pkt->abs_timestamp != strongSelf->_lastPts) {
             strongSelf->_cache->emplace_back(std::move(pkt));
             // logInfo << "write cache size: " << strongSelf->_cache->size();

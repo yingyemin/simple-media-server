@@ -120,6 +120,8 @@ bool RecordReader::start()
         }, nullptr);
     } else if (!strcasecmp(ext.data(), "mp4")) {
         readMp4(abpath);
+    } else {
+        return false;
     }
 
     return true;

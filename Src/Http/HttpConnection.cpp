@@ -9,6 +9,7 @@
 #include "Common/Define.h"
 #include "Util/Base64.h"
 #include "Ssl/SHA1.h"
+#include "Hook/MediaHook.h"
 
 using namespace std;
 
@@ -92,6 +93,8 @@ void HttpConnection::onError(const string& msg)
 
 ssize_t HttpConnection::send(Buffer::Ptr pkt)
 {
+    _totalSendBytes += pkt->size();
+    _intervalSendBytes += pkt->size();
     // logInfo << "pkt size: " << pkt->size();
     if (_isChunked) {
         std::stringstream ss;
@@ -375,22 +378,70 @@ void HttpConnection::handleGet()
 
     _parser._contentLen = 0;
 
-    if (endWith(_urlParser.path_, ".flv") && startWith(_urlParser.path_, "/live")) {
-        handleFlvStream();
-    } else if (endWith(_urlParser.path_, "sms.m3u8") && startWith(_urlParser.path_, "/live")) {
-        handleSmsHlsM3u8();
-    } else if (endWith(_urlParser.path_, ".m3u8") && startWith(_urlParser.path_, "/live")) {
-        handleHlsM3u8();
-    } else if (endWith(_urlParser.path_, ".ts") && startWith(_urlParser.path_, "/live")) {
-        if (_urlParser.path_.find("_hls") != string::npos) {
-            handleHlsTs();
-        } else {
-            handleTs();
+    if (startWith(_urlParser.path_, "/live") || startWith(_urlParser.path_, "/vod")) {
+        static int interval = Config::instance()->getAndListen([](const json &config){
+            interval = Config::instance()->get("Http", "Server", "Server1", "interval");
+            if (interval == 0) {
+                interval = 5000;
+            }
+        }, "Http", "Server", "Server1", "interval");
+
+        if (interval == 0) {
+            interval = 5000;
         }
-    } else if (endWith(_urlParser.path_, ".ps") && startWith(_urlParser.path_, "/live")) {
-        handlePs();
-    } else if (endWith(_urlParser.path_, ".mp4") && startWith(_urlParser.path_, "/live")) {
-        handleFmp4();
+        weak_ptr<HttpConnection> wSelf = static_pointer_cast<HttpConnection>(shared_from_this());
+        _loop->addTimerTask(interval, [wSelf](){
+            auto self = wSelf.lock();
+            if (!self) {
+                return 0;
+            }
+            self->_lastBitrate = self->_intervalSendBytes / (interval / 1000.0);
+            self->_intervalSendBytes = 0;
+
+            return interval;
+        }, nullptr);
+
+        PlayInfo info;
+        info.protocol = _urlParser.protocol_;
+        info.type = _urlParser.type_;
+        info.uri = _urlParser.path_;
+        info.vhost = _urlParser.vhost_;
+
+        MediaHook::instance()->onPlay(info, [wSelf](const PlayResponse &rsp){
+            auto self = wSelf.lock();
+            if (!self) {
+                return ;
+            }
+
+            if (!rsp.authResult) {
+                HttpResponse rsp;
+                rsp._status = 400;
+                json value;
+                value["msg"] = "path is not exist: " + self->_urlParser.path_;
+                rsp.setContent(value.dump());
+                self->writeHttpResponse(rsp);
+
+                return ;
+            }
+
+            if (endWith(self->_urlParser.path_, ".flv")) {
+                self->handleFlvStream();
+            } else if (endWith(self->_urlParser.path_, "sms.m3u8")) {
+                self->handleSmsHlsM3u8();
+            } else if (endWith(self->_urlParser.path_, ".m3u8")) {
+                self->handleHlsM3u8();
+            } else if (endWith(self->_urlParser.path_, ".ts")) {
+                if (self->_urlParser.path_.find("_hls") != string::npos) {
+                    self->handleHlsTs();
+                } else {
+                    self->handleTs();
+                }
+            } else if (endWith(self->_urlParser.path_, ".ps")) {
+                self->handlePs();
+            } else if (endWith(self->_urlParser.path_, ".mp4")) {
+                self->handleFmp4();
+            }
+        });
     } else {
         logInfo << "download file or dir: " << _urlParser.path_;
         _httpFile = make_shared<HttpFile>(_parser);
@@ -722,6 +773,7 @@ void HttpConnection::onPlayTs(const TsMediaSource::Ptr &tsSrc)
 			ret.ip_ = self->_socket->getLocalIp();
 			ret.port_ = self->_socket->getLocalPort();
 			ret.protocol_ = PROTOCOL_TS;
+            ret.bitrate_ = self->_lastBitrate;
 			return ret;
 		});
 		_playTsReader->setDetachCB([wSelf]() {
@@ -822,6 +874,7 @@ void HttpConnection::onPlayPs(const PsMediaSource::Ptr &psSrc)
 			ret.ip_ = self->_socket->getLocalIp();
 			ret.port_ = self->_socket->getLocalPort();
 			ret.protocol_ = PROTOCOL_PS;
+            ret.bitrate_ = self->_lastBitrate;
 			return ret;
 		});
 		_playPsReader->setDetachCB([wSelf]() {
@@ -926,6 +979,7 @@ void HttpConnection::onPlayFmp4(const Fmp4MediaSource::Ptr &fmp4Src)
 			ret.ip_ = self->_socket->getLocalIp();
 			ret.port_ = self->_socket->getLocalPort();
 			ret.protocol_ = PROTOCOL_PS;
+            ret.bitrate_ = self->_lastBitrate;
 			return ret;
 		});
 		_playFmp4Reader->setDetachCB([wSelf]() {

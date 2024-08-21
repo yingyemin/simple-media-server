@@ -137,6 +137,50 @@ void MediaHook::onPublish(const PublishInfo& info, const function<void(const Pub
     }
 }
 
+void MediaHook::onPlay(const PlayInfo& info, const function<void(const PlayResponse& rsp)>& cb)
+{
+    json value;
+    value["protocol"] = info.protocol;
+    value["type"] = info.type;
+    value["uri"] = info.uri;
+    value["vhost"] = info.vhost;
+    value["params"] = info.params;
+
+    // static string type = Config::instance()->getAndListen([](const json& config){
+    //     type = Config::instance()->get("Hook", "Type");
+    //     logInfo << "Hook type: " << type;
+    // }, "Hook", "Type");
+
+    if (_type == "http") {
+        static string url = Config::instance()->getAndListen([](const json& config){
+            url = Config::instance()->get("Hook", "Http", "onPlay");
+            logInfo << "Hook url: " << url;
+        }, "Hook", "Http", "onPlay");
+
+        reportByHttp(url, "GET", value.dump(), [cb](const string& err, const nlohmann::json& res){
+            PlayResponse rsp;
+            if (!err.empty()) {
+                rsp.authResult = false;
+                rsp.err = err;
+                cb(rsp);
+
+                return ;
+            }
+
+            if (res.find("authResult") == res.end()) {
+                rsp.authResult = false;
+                rsp.err = "authResult is empty";
+                cb(rsp);
+
+                return ;
+            }
+            
+            rsp.authResult = res["authResult"];
+            cb(rsp);
+        });
+    }
+}
+
 void MediaHook::onNonePlayer(const string& protocol, const string& uri, 
             const string& vhost, const string& type)
 {

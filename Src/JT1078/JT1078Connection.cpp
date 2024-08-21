@@ -8,6 +8,7 @@
 #include "Logger.h"
 #include "Util/String.h"
 #include "Common/Define.h"
+#include "Hook/MediaHook.h"
 
 using namespace std;
 
@@ -97,6 +98,24 @@ void JT1078Connection::onRtpPacket(const JT1078RtpPacket::Ptr& buffer)
         }
         jtSrc->setOrigin();
         _source = jtSrc;
+
+        PublishInfo info;
+        info.protocol = parser.protocol_;
+        info.type = parser.type_;
+        info.uri = parser.path_;
+        info.vhost = parser.vhost_;
+
+        weak_ptr<JT1078Connection> wSelf = dynamic_pointer_cast<JT1078Connection>(shared_from_this());
+        MediaHook::instance()->onPublish(info, [wSelf](const PublishResponse &rsp){
+            auto self = wSelf.lock();
+            if (!self) {
+                return ;
+            }
+
+            if (!rsp.authResult) {
+                self->onError();
+            }
+        });
     }
 
     int index = buffer->getTrackType() == "video" ? VideoTrackType : AudioTrackType;

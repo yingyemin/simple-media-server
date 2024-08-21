@@ -52,6 +52,7 @@ void JT1078MediaSource::addTrack(const JT1078DecodeTrack::Ptr& track)
             return;
         }
         // logInfo << "on rtp seq: " << rtp->getSeq();
+        strongSelf->_ring->addBytes(rtp->size());
         if (rtp->getHeader()->mark) {
             strongSelf->_cache->emplace_back(std::move(rtp));
             // logInfo << "write cache size: " << strongSelf->_cache->size();

@@ -9,6 +9,7 @@
 #include "Util/String.h"
 #include "Common/Define.h"
 #include "Common/Config.h"
+#include "Hook/MediaHook.h"
 
 using namespace std;
 
@@ -109,6 +110,23 @@ bool GB28181Context::init()
     });
 
     _timeClock.start();
+        
+    PublishInfo info;
+    info.protocol = _protocol;
+    info.type = _type;
+    info.uri = _uri;
+    info.vhost = _vhost;
+
+    MediaHook::instance()->onPublish(info, [wSelf](const PublishResponse &rsp){
+        auto self = wSelf.lock();
+        if (!self) {
+            return ;
+        }
+
+        if (!rsp.authResult) {
+            self->_alive = false;
+        }
+    });
 
     return true;
 }

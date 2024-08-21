@@ -290,6 +290,7 @@ void PsMediaSource::startEncode()
 
 void PsMediaSource::inputPs(const FrameBuffer::Ptr& buffer)
 {
+    _ring->addBytes(buffer->size());
     _cache->emplace_back(std::move(buffer));
     // logInfo << "write cache size: " << strongSelf->_cache->size();
     _ring->write(_cache);

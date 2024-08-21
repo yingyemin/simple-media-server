@@ -40,6 +40,7 @@ public:
     virtual QueType::Ptr getRing() {return _ring;}
     virtual int playerCount() override;
     virtual void getClientList(const function<void(const list<ClientInfo>& info)>& func) override;
+    uint64_t getBytes() override { return _ring ? _ring->getBytes() : 0;}
 
     virtual void addControl2Index(const string& control, int index)
     {

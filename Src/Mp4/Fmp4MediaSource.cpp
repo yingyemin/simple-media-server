@@ -301,6 +301,7 @@ void Fmp4MediaSource::inputFmp4(const Buffer::Ptr& buffer)
 {
     // _cache->emplace_back(std::move(buffer));
     // logInfo << "write cache size: " << strongSelf->_cache->size();
+    _ring->addBytes(buffer->size());
     _ring->write(buffer);
     // _cache = std::make_shared<Buffer::Ptr>();
 

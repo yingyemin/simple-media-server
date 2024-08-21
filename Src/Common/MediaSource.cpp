@@ -10,6 +10,7 @@
 #include "Define.h"
 #include "FrameMediaSource.h"
 #include "Hook/MediaHook.h"
+#include "Util/TimeClock.h"
 #include "Config.h"
 
 using namespace std;
@@ -22,14 +23,24 @@ unordered_map<MediaClient*, MediaClient::Ptr> MediaSource::_mapPusher;
 MediaSource::MediaSource(const UrlParser& urlParser, const EventLoop::Ptr& loop)
     :_urlParser(urlParser)
     ,_loop(loop)
-{}
+{
+    _createTime = TimeClock::now();
+}
 
 MediaSource::~MediaSource()
 {
     logInfo << "~MediaSource";
-    lock_guard<mutex> lck(_mtxOnReadyFunc);
-    for (auto onready : _mapOnReadyFunc) {
-        onready.second();
+    {
+        lock_guard<mutex> lck(_mtxOnReadyFunc);
+        for (auto onready : _mapOnReadyFunc) {
+            onready.second();
+        }
+    }
+    {
+        lock_guard<mutex> lck(_mtxOnDetachFunc);
+        for (auto& iter : _mapOnDetachFunc) {
+            iter.second();
+        }
     }
     StreamStatusInfo statusInfo{_urlParser.protocol_, _urlParser.path_, _urlParser.vhost_, 
                                 _urlParser.type_, "off", "400"};
@@ -60,7 +71,7 @@ MediaSource::Ptr MediaSource::get(const string& uri, const string& vhost, const 
             source = _totalSource[key];
         }
     }
-    if (protocol == source->getProtocol() && type == source->getType()) {
+    if (source && protocol == source->getProtocol() && type == source->getType()) {
         return source;
     }
     
@@ -317,29 +328,47 @@ void MediaSource::loadFromFile(const string& uri, const string& vhost, const str
 
     RecordReader::Ptr reader = make_shared<RecordReader>(uri);
     void* key = reader.get();
-    reader->setOnFrame([frameSource](const FrameBuffer::Ptr &frame){
-        frameSource->getLoop()->async([frameSource, frame](){
-            frameSource->onFrame(frame);
+    weak_ptr<FrameMediaSource> wFrameSrc = frameSource;
+    reader->setOnFrame([wFrameSrc](const FrameBuffer::Ptr &frame){
+        auto frameSrc = wFrameSrc.lock();
+        if (!frameSrc) {
+            return ;
+        }
+        frameSrc->getLoop()->async([frameSrc, frame](){
+            frameSrc->onFrame(frame);
         }, true);
     });
-    reader->setOnTrackInfo([frameSource](const TrackInfo::Ptr &trackInfo){
-        frameSource->getLoop()->async([frameSource, trackInfo](){
-            frameSource->addTrack(trackInfo);
+    reader->setOnTrackInfo([wFrameSrc](const TrackInfo::Ptr &trackInfo){
+        auto frameSrc = wFrameSrc.lock();
+        if (!frameSrc) {
+            return ;
+        }
+        frameSrc->getLoop()->async([frameSrc, trackInfo](){
+            frameSrc->addTrack(trackInfo);
         }, true);
     });
-    reader->setOnReady([frameSource, uri, vhost, protocol, type, cb, create, connKey](){
-        frameSource->getLoop()->async([frameSource, uri, vhost, protocol, type, cb, create, connKey](){
-            frameSource->onReady();
+    reader->setOnReady([wFrameSrc, uri, vhost, protocol, type, cb, create, connKey](){
+        auto frameSrc = wFrameSrc.lock();
+        if (!frameSrc) {
+            return ;
+        }
+        frameSrc->getLoop()->async([frameSrc, uri, vhost, protocol, type, cb, create, connKey](){
+            frameSrc->onReady();
             MediaSource::getOrCreateAsync(uri, vhost, protocol, type, cb, create, connKey);
         }, true);
     });
-    reader->setOnClose([frameSource, key, cb](){
-        frameSource->getLoop()->async([frameSource, key, cb](){
-            frameSource->release();
-            frameSource->delConnection(key);
-            if (frameSource->_status != AVAILABLE) {
+    reader->setOnClose([wFrameSrc, key, cb](){
+        auto frameSrc = wFrameSrc.lock();
+        if (!frameSrc) {
+            return ;
+        }
+        frameSrc->getLoop()->async([frameSrc, key, cb](){
+            frameSrc->release();
+            frameSrc->delConnection(key);
+            if (frameSrc->_status != AVAILABLE) {
                 cb(nullptr);
             }
+            frameSrc->_recordReader = nullptr;
         }, true);
     });
     if (!reader->start()) {
@@ -347,6 +376,19 @@ void MediaSource::loadFromFile(const string& uri, const string& vhost, const str
     }
     frameSource->setOrigin();
     frameSource->_recordReader = reader;
+
+    EventLoop::getCurrentLoop()->addTimerTask(5000, [wFrameSrc](){
+        auto frameSrc = wFrameSrc.lock();
+        if (!frameSrc) {
+            return 0;
+        }
+
+        if (frameSrc->getStatus() < AVAILABLE) {
+            frameSrc->release();
+        }
+
+        return 0;
+    }, nullptr);
 }
 
 void MediaSource::pullStreamFromOrigin(const string& uri, const string& vhost, const string &protocol, 
@@ -518,13 +560,13 @@ void MediaSource::addTrack(const shared_ptr<TrackInfo>& track)
 
 void MediaSource::addOnDetach(void* key, const onDetachFunc& func)
 {
-    lock_guard<recursive_mutex> lck(_mtxOnDetachFunc);
+    lock_guard<mutex> lck(_mtxOnDetachFunc);
     _mapOnDetachFunc[key] = func;
 }
 
 void MediaSource::delOnDetach(void* key)
 {
-    lock_guard<recursive_mutex> lck(_mtxOnDetachFunc);
+    lock_guard<mutex> lck(_mtxOnDetachFunc);
     _mapOnDetachFunc.erase(key);
 }
 

@@ -7,6 +7,7 @@
 #include "EventPoller/EventLoopPool.h"
 #include "Common/Define.h"
 #include "ApiUtil.h"
+#include "Util/TimeClock.h"
 
 using namespace std;
 
@@ -168,6 +169,24 @@ void HttpApi::getSourceList(const HttpParser& parser, const UrlParser& urlParser
         auto loop = source->getLoop();
         item["epollFd"] = loop->getEpollFd();
         item["playerCount"] = source->playerCount();
+        value["bytes"] = source->getBytes();
+        value["createTime"] = source->getCreateTime();
+        value["onlineDuration"] = TimeClock::now() - source->getCreateTime();
+        auto tracks = source->getTrackInfo();
+        for (auto iter : tracks) {
+            if (iter.second->trackType_ == "video") {
+                value["video"]["codec"] = iter.second->codec_;
+            } else if (iter.second->trackType_ == "audio") {
+                value["audio"]["codec"] = iter.second->codec_;
+            }
+        }
+        auto sock = source->getOriginSocket();
+        if (sock) {
+            value["socketInfo"]["localIp"] = sock->getLocalIp();
+            value["socketInfo"]["localPort"] = sock->getLocalPort();
+            value["socketInfo"]["peerIp"] = sock->getPeerIp();
+            value["socketInfo"]["peerPort"] = sock->getPeerPort();
+        }
         int totalPlayerCount = source->playerCount();
 
         auto muxerSource = source->getMuxerSource();
@@ -215,6 +234,25 @@ void HttpApi::getSourceInfo(const HttpParser& parser, const UrlParser& urlParser
         value["protocol"] = source->getProtocol();
         value["vhost"] = source->getVhost();
         value["playerCount"] = source->playerCount();
+        value["bytes"] = source->getBytes();
+        value["createTime"] = source->getCreateTime();
+        value["onlineDuration"] = TimeClock::now() - source->getCreateTime();
+        auto tracks = source->getTrackInfo();
+        for (auto iter : tracks) {
+            if (iter.second->trackType_ == "video") {
+                value["video"]["codec"] = iter.second->codec_;
+            } else if (iter.second->trackType_ == "audio") {
+                value["audio"]["codec"] = iter.second->codec_;
+            }
+        }
+        auto sock = source->getOriginSocket();
+        if (sock) {
+            value["socketInfo"]["localIp"] = sock->getLocalIp();
+            value["socketInfo"]["localPort"] = sock->getLocalPort();
+            value["socketInfo"]["peerIp"] = sock->getPeerIp();
+            value["socketInfo"]["peerPort"] = sock->getPeerPort();
+        }
+        
         int totalPlayerCount = source->playerCount();
 
         auto loop = source->getLoop();
@@ -278,6 +316,7 @@ void HttpApi::getClientList(const HttpParser& parser, const UrlParser& urlParser
                 json client;
                 client["ip"] = data.ip_;
                 client["port"] = data.port_;
+                client["bitrate"] = data.bitrate_;
 
                 const_cast<json &>(value)["client"].push_back(client);
             }

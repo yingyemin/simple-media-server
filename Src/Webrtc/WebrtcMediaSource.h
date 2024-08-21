@@ -36,6 +36,7 @@ public:
     void onReady() override;
     int playerCount() override;
     void getClientList(const function<void(const list<ClientInfo>& info)>& func) override;
+    uint64_t getBytes() override { return _ring ? _ring->getBytes() : 0;}
 
     QueType::Ptr getRing() {return _ring;}
 

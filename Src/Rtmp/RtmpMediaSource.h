@@ -49,6 +49,7 @@ public:
 
     int playerCount();
     void getClientList(const function<void(const list<ClientInfo>& info)>& func) override;
+    uint64_t getBytes() override { return _ring ? _ring->getBytes() : 0;}
 
 public:
     int _aacHeaderSize = 0;

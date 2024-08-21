@@ -53,6 +53,7 @@ void GB28181MediaSource::addTrack(const GB28181DecodeTrack::Ptr& track)
         }
         // logInfo << "on rtp seq: " << rtp->getSeq();
         // logInfo << "on rtp mark: " << (int)rtp->getHeader()->mark;
+        strongSelf->_ring->addBytes(rtp->size());
         if (rtp->getHeader()->mark || strongSelf->_cache->size() > 256) {
             strongSelf->_cache->emplace_back(std::move(rtp));
             // logInfo << "write cache size: " << strongSelf->_cache->size();
