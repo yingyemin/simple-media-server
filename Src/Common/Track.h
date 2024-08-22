@@ -33,6 +33,8 @@ public:
     using Ptr = shared_ptr<TrackInfo>;
     virtual string getSdp() { return "";}
     virtual string getConfig() {return "";}
+    virtual void getWidthAndHeight(int& width, int& height, int& fps) {}
+    virtual bool isBFrame(unsigned char* data, int size) {return false;}
 public:
     int payloadType_;
     int samplerate_;
@@ -42,6 +44,9 @@ public:
     int bitPerSample_ = 16;
     int _width = 0;
     int _height = 0;
+    uint8_t _dependent_slice_segments_enabled_flag = 0;
+    uint8_t _num_extra_slice_header_bits = 0;
+    uint32_t _PicSizeInCtbsY = 0;
     string trackType_;
     string codec_;
 };

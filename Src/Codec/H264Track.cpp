@@ -52,7 +52,7 @@ string H264Track::getSdp()
 
 void H264Track::getWidthAndHeight(int& width, int& height, int& fps)
 {
-    if (!_width) {
+    if (_width && _height) {
         width = _width;
         height = _height;
         fps = samplerate_;

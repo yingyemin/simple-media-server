@@ -54,7 +54,8 @@ static shared_ptr<TrackInfo> createTrackBySdp(const shared_ptr<SdpMedia>& media)
         logInfo << "createTrackBySdp h264";
         auto h264TrackInfo = make_shared<H264Track>();
         //a=fmtp:96 packetization-mode=1;profile-level-id=42C01F;sprop-parameter-sets=Z0LAH9oBQBboQAAAAwBAAAAPI8YMqA==,aM48gA==
-        auto mapFmtp = split(findSubStr(media->fmtp_," ", ""),";","=");
+        // auto mapFmtp = split(findSubStr(media->fmtp_," ", ""),";","=");
+        auto mapFmtp = split(media->fmtp_,";","=");
         auto sps_pps = mapFmtp["sprop-parameter-sets"];
         string base64_SPS = findSubStr(sps_pps.data(), "", ",");
         string base64_PPS = findSubStr(sps_pps.data(), ",", "");
@@ -86,7 +87,8 @@ static shared_ptr<TrackInfo> createTrackBySdp(const shared_ptr<SdpMedia>& media)
     } else if (strcasecmp(media->codec_.data(), "h265") == 0) {
         auto h265TrackInfo = make_shared<H265Track>();
         //a=fmtp:96 sprop-sps=QgEBAWAAAAMAsAAAAwAAAwBdoAKAgC0WNrkky/AIAAADAAgAAAMBlQg=; sprop-pps=RAHA8vA8kAA=
-        auto mapFmtp = split(findSubStr(media->fmtp_," ", ""),";","=");
+        // auto mapFmtp = split(findSubStr(media->fmtp_," ", ""),";","=");
+        auto mapFmtp = split(media->fmtp_,";","=");
         auto vpsFrame = make_shared<FrameBuffer>();
         vpsFrame->_startSize = 4;
         vpsFrame->_buffer.assign("\x00\x00\x00\x01", 4);
@@ -254,6 +256,7 @@ void RtspEncodeTrack::onFrame(const FrameBuffer::Ptr& frame)
 {
     if (_encoder) {
         // logInfo << "encode a frame";
+        logInfo << "is h265 b frame: " << _trackInfo->isBFrame((unsigned char*)frame->data() + frame->startSize(), frame->size() - frame->startSize());
         _encoder->encode(frame);
     }
 }

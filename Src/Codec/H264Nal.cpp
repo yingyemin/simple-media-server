@@ -112,8 +112,8 @@ void de_emulation_prevention(unsigned char* buf,unsigned int* buf_size)
 bool h264_decode_sps(unsigned char * buf,unsigned int nLen,int &width,int &height,int &fps)
 {  
     uint32_t StartBit=0;  
-    fps=0;  
-    de_emulation_prevention(buf,&nLen);  
+    // fps=0;  
+    // de_emulation_prevention(buf,&nLen);  
   
     int forbidden_zero_bit=u(1,buf,StartBit);  
     int nal_ref_idc=u(2,buf,StartBit);  

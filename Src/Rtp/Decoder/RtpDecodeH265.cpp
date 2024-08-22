@@ -53,7 +53,7 @@ bool RtpDecodeH265::isStartGop(const RtpPacket::Ptr& rtp)
             auto payloadSize = rtp->getPayloadSize() - 2;
 
             while (payloadSize > 2) {
-                auto frameSize = payload[0] < 8 | payload[1];
+                auto frameSize = payload[0] << 8 | payload[1];
                 if (frameSize == 0) {
                     logWarn << "frame size is 0";
                     continue;
@@ -156,7 +156,7 @@ void RtpDecodeH265::decodeStapA(const RtpPacket::Ptr& rtp)
     auto payloadSize = rtp->getPayloadSize() - 2;
 
     while (payloadSize > 2) {
-        auto frameSize = payload[0] < 8 | payload[1];
+        auto frameSize = payload[0] << 8 | payload[1];
         if (frameSize == 0) {
             logWarn << "frame size is 0";
             continue;

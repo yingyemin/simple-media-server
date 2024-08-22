@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(SimpleMediaServer)
 
-option(ENABLE_ASAN "Enable lib asan" true)
+option(ENABLE_ASAN "Enable lib asan" false)
 option(ENABLE_OPENSSL "Enable openssl" true)
 
 #设置调试信息并开启c++11标准

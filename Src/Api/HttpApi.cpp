@@ -169,23 +169,30 @@ void HttpApi::getSourceList(const HttpParser& parser, const UrlParser& urlParser
         auto loop = source->getLoop();
         item["epollFd"] = loop->getEpollFd();
         item["playerCount"] = source->playerCount();
-        value["bytes"] = source->getBytes();
-        value["createTime"] = source->getCreateTime();
-        value["onlineDuration"] = TimeClock::now() - source->getCreateTime();
+        item["bytes"] = source->getBytes();
+        item["createTime"] = source->getCreateTime();
+        item["onlineDuration"] = TimeClock::now() - source->getCreateTime();
         auto tracks = source->getTrackInfo();
         for (auto iter : tracks) {
             if (iter.second->trackType_ == "video") {
-                value["video"]["codec"] = iter.second->codec_;
+                item["video"]["codec"] = iter.second->codec_;
+                int height = 0;
+                int width = 0;
+                int fps = 0;
+                iter.second->getWidthAndHeight(width, height, fps);
+                item["video"]["width"] = width;
+                item["video"]["height"] = height;
+                item["video"]["fps"] = fps;
             } else if (iter.second->trackType_ == "audio") {
-                value["audio"]["codec"] = iter.second->codec_;
+                item["audio"]["codec"] = iter.second->codec_;
             }
         }
         auto sock = source->getOriginSocket();
         if (sock) {
-            value["socketInfo"]["localIp"] = sock->getLocalIp();
-            value["socketInfo"]["localPort"] = sock->getLocalPort();
-            value["socketInfo"]["peerIp"] = sock->getPeerIp();
-            value["socketInfo"]["peerPort"] = sock->getPeerPort();
+            item["socketInfo"]["localIp"] = sock->getLocalIp();
+            item["socketInfo"]["localPort"] = sock->getLocalPort();
+            item["socketInfo"]["peerIp"] = sock->getPeerIp();
+            item["socketInfo"]["peerPort"] = sock->getPeerPort();
         }
         int totalPlayerCount = source->playerCount();
 
@@ -241,6 +248,13 @@ void HttpApi::getSourceInfo(const HttpParser& parser, const UrlParser& urlParser
         for (auto iter : tracks) {
             if (iter.second->trackType_ == "video") {
                 value["video"]["codec"] = iter.second->codec_;
+                int height = 0;
+                int width = 0;
+                int fps = 0;
+                iter.second->getWidthAndHeight(width, height, fps);
+                value["video"]["width"] = width;
+                value["video"]["height"] = height;
+                value["video"]["fps"] = fps;
             } else if (iter.second->trackType_ == "audio") {
                 value["audio"]["codec"] = iter.second->codec_;
             }

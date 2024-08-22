@@ -2,6 +2,7 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
+#include <cmath>
 #include<string.h>
 
 #include "H265Track.h"
@@ -27,10 +28,17 @@ struct vc_params_t
 	int width, height;
 	int profile, level;
 	int nal_length_size;
+	uint32_t PicSizeInCtbsY;
 	void clear()
 	{
 		memset(this, 0, sizeof(*this));
 	}
+};
+
+struct PpsInfo
+{
+	uint8_t dependent_slice_segments_enabled_flag;
+	uint8_t num_extra_slice_header_bits;
 };
  
  
@@ -231,7 +239,39 @@ bool  ParseSequenceParameterSet(uint8* data, int size, vc_params_t& params)
 	if (bit_depth_luma_minus8 != bit_depth_chroma_minus8) {
 		return false;
 	}
+
+	bs.GetUE(); //log2_max_pic_order_cnt_lsb_minus4
+	uint8_t sps_sub_layer_ordering_info_present_flag = bs.GetWord(1); //sps_sub_layer_ordering_info_present_flag
+
+	for (int i = sps_sub_layer_ordering_info_present_flag ? 0 : sps_max_sub_layers_minus1; i <= sps_max_sub_layers_minus1; ++i) {
+		bs.GetUE(); //sps_max_dec_pic_buffering_minus1
+		bs.GetUE(); //sps_max_num_reorder_pics
+		bs.GetUE(); //sps_max_latency_increase_plus1
+	}
+
+	uint32_t log2_min_luma_coding_block_size_minus3 = bs.GetUE();
+	uint32_t log2_diff_max_min_luma_coding_block_size = bs.GetUE();
+
+	uint32_t MinCbLog2SizeY = log2_min_luma_coding_block_size_minus3 + 3;
+	uint32_t CtbLog2SizeY = MinCbLog2SizeY + log2_diff_max_min_luma_coding_block_size;
+	uint32_t CtbSizeY = 1 << CtbLog2SizeY;
+	uint32_t PicWidthInCtbsY = std::ceil(params.width / CtbSizeY);
+	uint32_t PicHeightInCtbsY = std::ceil(params.height / CtbSizeY);
+
+	params.PicSizeInCtbsY = PicWidthInCtbsY * PicHeightInCtbsY;
  
+	return true;
+}
+
+bool  ParsePps(uint8* data, int size, PpsInfo& pps)
+{
+	NALBitstream bs(data, size);
+	bs.GetUE(); //pps_pic_parameter_set_id
+	bs.GetUE(); //pps_seq_parameter_set_id
+	pps.dependent_slice_segments_enabled_flag = bs.GetWord(1);
+	bs.GetWord(1); //output_flag_present_flag
+	pps.num_extra_slice_header_bits = bs.GetWord(3);
+
 	return true;
 }
 
@@ -264,7 +304,7 @@ string H265Track::getSdp()
 	return ss.str();
 }
 
-void H265Track::getWidthAndHeight(int& width, int& height)
+void H265Track::getWidthAndHeight(int& width, int& height, int& fps)
 {
     if (_width && _height) {
         width = _width;
@@ -391,4 +431,49 @@ string H265Track::getConfig()
     // 43  + vpsLen + spsLen + ppsLen
 
     return config;
+}
+
+bool H265Track::isBFrame(uint8* data, int size)
+{
+	if (!_dependent_slice_segments_enabled_flag && !_num_extra_slice_header_bits) {
+		PpsInfo ppsInfo;
+		ParsePps((uint8*)_pps->data() + _pps->startSize(), _pps->size() - _pps->startSize(), ppsInfo);
+		_dependent_slice_segments_enabled_flag = ppsInfo.dependent_slice_segments_enabled_flag;
+		_num_extra_slice_header_bits = ppsInfo.num_extra_slice_header_bits;
+	}
+	if (!_width && !_height) {
+		vc_params_t param;
+		ParseSequenceParameterSet((uint8*)_sps->data() + _sps->startSize(), _sps->size() - _sps->startSize(), param);
+		_width = param.width;
+		_height = param.height;
+		_PicSizeInCtbsY = param.PicSizeInCtbsY;
+	}
+	NALBitstream bs(data, size);
+	uint8_t dependent_slice_segment_flag = 0;
+	uint8_t first_slice_segment_in_pic_flag = bs.GetWord(1); //first_slice_segment_in_pic_flag
+	uint8_t nal_unit_type = ((uint8_t)(data[0]) >> 1) & 0x3f;
+	if (nal_unit_type >= 16/*H265_BLA_W_LP*/ && nal_unit_type <= 23/*H265_RSV_IRAP_VCL23*/)
+	{
+		bs.GetWord(1); //no_output_of_prior_pics_flag)
+	}
+	bs.GetUE();//slice_pic_parameter_set_id
+	if (!first_slice_segment_in_pic_flag) {
+		if (_dependent_slice_segments_enabled_flag/*pps*/) {
+			dependent_slice_segment_flag = bs.GetWord(1);
+		}
+		bs.GetWord((uint32_t)std::ceil(std::log2(_PicSizeInCtbsY/*sps*/))); //slice_segment_address
+	}
+	if (!dependent_slice_segment_flag) {
+		for (uint32_t i=0; i<_num_extra_slice_header_bits/*pps*/; i++)
+		{
+			bs.GetWord(1);//slice_reserved_flag
+		}
+		uint32_t slice_type = bs.GetUE();
+		logInfo << "slice_type ========= " << (int)slice_type << ", nalu type: " << (int)nal_unit_type;
+		if (slice_type == 1) {
+			return true;
+		}
+	}
+
+	return false;
 }
