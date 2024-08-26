@@ -105,7 +105,7 @@ void GB28181DecodeTrack::onRtpPacket(const RtpPacket::Ptr& rtp)
 void GB28181DecodeTrack::decodeRtp(const RtpPacket::Ptr& rtp)
 {
     // logInfo << "rtp seq: " << rtp->getSeq();
-    logInfo << "track ifo codec: " << _trackInfo->codec_;
+    // logInfo << "track info codec: " << _trackInfo->codec_;
     if (!_startdecode) {
         _decoder = nullptr;
         return;
@@ -135,7 +135,7 @@ void GB28181DecodeTrack::onPsFrame(const FrameBuffer::Ptr frame)
 
 void GB28181DecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
 {
-    // logInfo << "get a raw frame: " << frame->_codec;
+    logInfo << "get a raw frame: " << frame->_codec;
     if (!_isPs) {
         if (_trackInfo->codec_ == "h265") {
             auto h265frame = dynamic_pointer_cast<H265Frame>(frame);
@@ -208,11 +208,11 @@ void GB28181DecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
             _onFrame(frame);
         }
     }
-    if (frame->_index == VideoTrackType) {
-        FILE* fp = fopen("test3.264", "ab+");
-        fwrite(frame->_buffer.data(), 1, frame->_buffer.size(), fp);
-        fclose(fp);
-    }
+    // if (frame->_index == VideoTrackType) {
+    //     FILE* fp = fopen("test3.264", "ab+");
+    //     fwrite(frame->_buffer.data(), 1, frame->_buffer.size(), fp);
+    //     fclose(fp);
+    // }
     logInfo << "decode a frame: " << frame->_index << ", decoder codec: " << _trackInfo->codec_;
 }
 

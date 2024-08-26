@@ -141,7 +141,9 @@ RtpPacket::Ptr RtpPacket::create(const shared_ptr<TrackInfo>& trackInfo, int len
     header->mark = mark;
     header->pt = trackInfo->payloadType_;
     header->seq = htons(seq);
-    header->stamp = htonl(uint64_t(pts) * trackInfo->samplerate_ / 1000);
+    uint64_t timeslace = trackInfo->samplerate_ / 1000.0;
+    uint64_t stamp = uint64_t(pts) * (uint64_t)timeslace;
+    header->stamp = htonl(stamp);
     header->ssrc = htonl(trackInfo->ssrc_ + 1000);
     rtp->ntpStamp_ = pts;
     rtp->samplerate_ = trackInfo->samplerate_ ? trackInfo->samplerate_ : 90000;

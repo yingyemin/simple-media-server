@@ -588,27 +588,31 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
 //             unknow_fw.write(next_ps_pack,  incomplete_len, NULL);          
 // #endif      
             //TODO: fixme unkonw ps data parse
-            if (next_ps_pack
-            && next_ps_pack[0] == (char)0x00
-			&& next_ps_pack[1] == (char)0x00
-			&& next_ps_pack[2] == (char)0x00
-			&& next_ps_pack[3] == (char)0x01){
-                //dahua's PS header may lose packets. It is sent by an RTP packet of Dahua's PS header
-                //dahua rtp send format:
-                //ts=1000 seq=1 mark=false payload= ps header
-                //ts=1000 seq=2 mark=false payload= video
-                //ts=1000 seq=3 mark=true payload= video
-                //ts=1000 seq=4 mark=true payload= audio
-                incomplete_len = ps_size - complete_len; 
-                complete_len = complete_len + incomplete_len;
-            }
-            _remainBuffer.clear();
+            // if (next_ps_pack
+            // && next_ps_pack[0] == (char)0x00
+			// && next_ps_pack[1] == (char)0x00
+			// && next_ps_pack[2] == (char)0x00
+			// && next_ps_pack[3] == (char)0x01){
+            //     //dahua's PS header may lose packets. It is sent by an RTP packet of Dahua's PS header
+            //     //dahua rtp send format:
+            //     //ts=1000 seq=1 mark=false payload= ps header
+            //     //ts=1000 seq=2 mark=false payload= video
+            //     //ts=1000 seq=3 mark=true payload= video
+            //     //ts=1000 seq=4 mark=true payload= audio
+            //     incomplete_len = ps_size - complete_len; 
+            //     complete_len = complete_len + incomplete_len;
+            // }
+            // _remainBuffer.clear();
 
             // first_keyframe_flag = false;
             // srs_trace("gb28181: client_id %s, unkonw ps data (%#x/%u) %02x %02x %02x %02x\n", 
             //     channel_id.c_str(), ssrc, timestamp,  
             //     next_ps_pack[0]&0xFF, next_ps_pack[1]&0xFF, next_ps_pack[2]&0xFF, next_ps_pack[3]&0xFF);
-            break;
+            // break;
+
+            next_ps_pack = next_ps_pack + 1;
+            complete_len = complete_len + 1;
+            incomplete_len = ps_size - complete_len;
         }
     }
 

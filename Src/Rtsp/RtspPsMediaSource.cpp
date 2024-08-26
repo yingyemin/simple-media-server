@@ -105,7 +105,7 @@ void RtspPsMediaSource::addTrack(const RtspTrack::Ptr& track)
             if (frame->_trackType == AudioTrackType) {
                 samples = frame->_buffer.size() - frame->startSize();
             }
-            strongSelf->_mapStampAdjust[frame->_index]->inputStamp(frame->_pts, frame->_dts, samples);
+            // strongSelf->_mapStampAdjust[frame->_index]->inputStamp(frame->_pts, frame->_dts, samples);
             // logInfo << "on frame";
             for (auto& sink : strongSelf->_mapSink) {
                 // logInfo << "on frame to sink";

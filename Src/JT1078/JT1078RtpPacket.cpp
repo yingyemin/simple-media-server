@@ -160,7 +160,7 @@ string JT1078RtpPacket::getSimCode()
 uint64_t JT1078RtpPacket::getTimestamp()
 {
     if (getStreamType() < 4) {
-        auto payload = _buffer->data() + 16;
+        unsigned char* payload = (unsigned char*)_buffer->data() + 16;
         uint64_t stamp = 0;
         for (uint8_t i = 0; i < 8; i++)
         {

@@ -118,8 +118,15 @@ void JT1078Connection::onRtpPacket(const JT1078RtpPacket::Ptr& buffer)
         });
     }
 
-    int index = buffer->getTrackType() == "video" ? VideoTrackType : AudioTrackType;
-    // logInfo << "codec: " << buffer->getCodecType();
+    int index = 0;
+    if (buffer->getTrackType() == "video") {
+        index = VideoTrackType;
+    } else if (buffer->getTrackType() == "audio") {
+        index = AudioTrackType;
+    } else {
+        return ;
+    }
+    logInfo << "codec: " << buffer->getCodecType() << ", index: " << index;
     auto iter = _mapTrack.find(index);
     if (iter == _mapTrack.end()) {
         auto track = make_shared<JT1078DecodeTrack>(index);
