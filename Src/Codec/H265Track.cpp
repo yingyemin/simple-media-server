@@ -275,6 +275,31 @@ bool  ParsePps(uint8* data, int size, PpsInfo& pps)
 	return true;
 }
 
+static void de_emulation_prevention(unsigned char* buf,unsigned int* buf_size)
+{  
+    int i=0,j=0;  
+    unsigned char* tmp_ptr=NULL;  
+    unsigned int tmp_buf_size=0;  
+    int val=0;  
+  
+    tmp_ptr=buf;  
+    tmp_buf_size=*buf_size;  
+    for(i=0;i<(tmp_buf_size-2);i++)  
+    {  
+        //check for 0x000003  
+        val=(tmp_ptr[i]^0x00) +(tmp_ptr[i+1]^0x00)+(tmp_ptr[i+2]^0x03);  
+        if(val==0)  
+        {  
+            //kick out 0x03  
+            for(j=i+2;j<tmp_buf_size-1;j++)  
+                tmp_ptr[j]=tmp_ptr[j+1];  
+  
+            //and so we should devrease bufsize  
+            (*buf_size)--;  
+        }  
+    }  
+}  
+
 H265Track::H265Track()
 {
 
@@ -433,8 +458,11 @@ string H265Track::getConfig()
     return config;
 }
 
+// 判断有问题，不知道哪错了
 bool H265Track::isBFrame(uint8* data, int size)
 {
+	// de_emulation_prevention(data, (unsigned int *)&size);
+
 	if (!_dependent_slice_segments_enabled_flag && !_num_extra_slice_header_bits) {
 		PpsInfo ppsInfo;
 		ParsePps((uint8*)_pps->data() + _pps->startSize(), _pps->size() - _pps->startSize(), ppsInfo);
@@ -448,7 +476,7 @@ bool H265Track::isBFrame(uint8* data, int size)
 		_height = param.height;
 		_PicSizeInCtbsY = param.PicSizeInCtbsY;
 	}
-	NALBitstream bs(data, size);
+	NALBitstream bs(data + 2, size - 2);
 	uint8_t dependent_slice_segment_flag = 0;
 	uint8_t first_slice_segment_in_pic_flag = bs.GetWord(1); //first_slice_segment_in_pic_flag
 	uint8_t nal_unit_type = ((uint8_t)(data[0]) >> 1) & 0x3f;
@@ -469,8 +497,8 @@ bool H265Track::isBFrame(uint8* data, int size)
 			bs.GetWord(1);//slice_reserved_flag
 		}
 		uint32_t slice_type = bs.GetUE();
-		logInfo << "slice_type ========= " << (int)slice_type << ", nalu type: " << (int)nal_unit_type;
-		if (slice_type == 1) {
+		// logInfo << "slice_type ========= " << (int)slice_type << ", nalu type: " << (int)nal_unit_type;
+		if (slice_type == 0) {
 			return true;
 		}
 	}

@@ -113,7 +113,7 @@ bool h264_decode_sps(unsigned char * buf,unsigned int nLen,int &width,int &heigh
 {  
     uint32_t StartBit=0;  
     // fps=0;  
-    // de_emulation_prevention(buf,&nLen);  
+    de_emulation_prevention(buf,&nLen);  
   
     int forbidden_zero_bit=u(1,buf,StartBit);  
     int nal_ref_idc=u(2,buf,StartBit);  

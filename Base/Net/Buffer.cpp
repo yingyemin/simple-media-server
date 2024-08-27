@@ -9,6 +9,7 @@
  */
 
 #include <cstdlib>
+#include <stdexcept>
 #include "Buffer.h"
 
 StreamBuffer::~StreamBuffer()

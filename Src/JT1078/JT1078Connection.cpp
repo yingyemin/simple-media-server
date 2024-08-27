@@ -76,7 +76,7 @@ void JT1078Connection::onRtpPacket(const JT1078RtpPacket::Ptr& buffer)
 {
     if (!_source.lock()) {
         UrlParser parser;
-        parser.path_ = "/live/" + buffer->getSimCode();
+        parser.path_ = "/live/" + buffer->getSimCode() + "_" + to_string(buffer->getLogicNo());
         parser.vhost_ = DEFAULT_VHOST;
         parser.protocol_ = PROTOCOL_JT1078;
         parser.type_ = DEFAULT_TYPE;

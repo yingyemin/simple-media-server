@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <memory>
 #include <vector>
+#include <string>
 #include <functional>
 
 using namespace std;

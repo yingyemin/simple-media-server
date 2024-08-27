@@ -19,6 +19,9 @@ void WebrtcApi::initApi()
     // server
     g_mapApi.emplace("/api/v1/rtc/play", WebrtcApi::rtcPlay);
     g_mapApi.emplace("/api/v1/rtc/publish", WebrtcApi::rtcPublish);
+
+    g_mapApi.emplace("/api/v1/rtc/whep", WebrtcApi::rtcPlay);
+    g_mapApi.emplace("/api/v1/rtc/whip", WebrtcApi::rtcPublish);
     // client
     g_mapApi.emplace("/api/v1/rtc/pull/start", WebrtcApi::startRtcPull);
     g_mapApi.emplace("/api/v1/rtc/pull/stop", WebrtcApi::stopRtcPull);
@@ -32,22 +35,53 @@ void WebrtcApi::initApi()
 void WebrtcApi::rtcPlay(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc)
 {
-    checkArgs(parser._body, {"appName", "streamName", "enableDtls", "sdp"});
+    bool isWhep = false;
+    if (urlParser.path_.find("whep") != string::npos) {
+        isWhep = true;
+    }
+
+    string appName;
+    string streamName;
+    string sdp;
+    int enableDtls = 0;
+    if (isWhep) {
+        enableDtls = true;
+        appName = urlParser.vecParam_.at("appName");
+        streamName = urlParser.vecParam_.at("streamName");
+        sdp = parser._content;
+    } else {
+        checkArgs(parser._body, {"appName", "streamName", "enableDtls", "sdp"});
+        enableDtls = toInt(parser._body["enableDtls"]);
+        appName = parser._body["appName"];
+        streamName = parser._body["streamName"];
+        sdp = parser._body["sdp"];
+    }
 
     auto context = make_shared<WebrtcContext>();
-    context->setDtls(toInt(parser._body["enableDtls"]));
-    context->initPlayer(parser._body["appName"], parser._body["streamName"], parser._body["sdp"]);
+    context->setDtls(enableDtls);
+    context->initPlayer(appName, streamName, sdp);
 
     WebrtcContextManager::instance()->addContext(context->getUsername(), context);
 
-    HttpResponse rsp;
-    rsp._status = 200;
-    json value;
-    value["sdp"] = context->getLocalSdp();
-    value["code"] = 200;
-    rsp.setHeader("Access-Control-Allow-Origin", "*");
-    rsp.setContent(value.dump());
-    rspFunc(rsp);
+    if (isWhep) {
+        HttpResponse rsp;
+        rsp._status = 201;
+        rsp.setHeader("Access-Control-Allow-Origin", "*");
+        rsp.setHeader("Content-Type", "application/sdp");
+        string stopUrl = urlParser.protocol_ + "://" + urlParser.host_ + ":" + to_string(urlParser.port_) + "api/v1/rtc/play/stop";
+        rsp.setHeader("Location", stopUrl);
+        rsp.setContent(context->getLocalSdp());
+        rspFunc(rsp);
+    } else {
+        HttpResponse rsp;
+        rsp._status = 200;
+        json value;
+        value["sdp"] = context->getLocalSdp();
+        value["code"] = 200;
+        rsp.setHeader("Access-Control-Allow-Origin", "*");
+        rsp.setContent(value.dump());
+        rspFunc(rsp);
+    }
 
 
     // checkArgs(parser._body, {"streamurl", "sdp"});
@@ -81,43 +115,72 @@ void WebrtcApi::rtcPlay(const HttpParser& parser, const UrlParser& urlParser,
 void WebrtcApi::rtcPublish(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc)
 {
-    checkArgs(parser._body, {"streamurl", "sdp"});
-    UrlParser streamurlparser;
-    streamurlparser.parse(parser._body["streamurl"]);
-
-    auto pos = streamurlparser.path_.find_first_of("/", 1);
-    if (pos == string::npos) {
-        HttpResponse rsp;
-        rsp._status = 200;
-        json value;
-        value["msg"] = "url is invalid";
-        value["code"] = 200;
-        rsp.setHeader("Access-Control-Allow-Origin", "*");
-        rsp.setContent(value.dump());
-        rspFunc(rsp);
-
-        return ;
+    bool isWhip = false;
+    if (urlParser.path_.find("whip") != string::npos) {
+        isWhip = true;
     }
 
-    auto appName = streamurlparser.path_.substr(1, pos - 1);
-    auto streamName = streamurlparser.path_.substr(pos + 1);
+    string appName;
+    string streamName;
+    string sdp;
+    int enableDtls = 0;
+    if (isWhip) {
+        enableDtls = true;
+        appName = urlParser.vecParam_.at("appName");
+        streamName = urlParser.vecParam_.at("streamName");
+        sdp = parser._content;
+    } else {
+        checkArgs(parser._body, {"streamurl", "sdp"});
+        UrlParser streamurlparser;
+        streamurlparser.parse(parser._body["streamurl"]);
+
+        auto pos = streamurlparser.path_.find_first_of("/", 1);
+        if (pos == string::npos) {
+            HttpResponse rsp;
+            rsp._status = 200;
+            json value;
+            value["msg"] = "url is invalid";
+            value["code"] = 200;
+            rsp.setHeader("Access-Control-Allow-Origin", "*");
+            rsp.setContent(value.dump());
+            rspFunc(rsp);
+
+            return ;
+        }
+
+        appName = streamurlparser.path_.substr(1, pos - 1);
+        streamName = streamurlparser.path_.substr(pos + 1);
+        enableDtls = toInt(parser._body["enableDtls"]);
+        sdp = parser._body["sdp"];
+    }
 
     auto context = make_shared<WebrtcContext>();
     context->setDtls(1);
-    context->initPublisher(appName, streamName, parser._body["sdp"]);
+    context->initPublisher(appName, streamName, sdp);
 
     WebrtcContextManager::instance()->addContext(context->getUsername(), context);
 
-    HttpResponse rsp;
-    rsp._status = 200;
-    json value;
-    value["sdp"] = context->getLocalSdp();
-    value["code"] = 0;
-    value["server"] = "sms";
-    value["sessionid"] = "sms";
-    rsp.setHeader("Access-Control-Allow-Origin", "*");
-    rsp.setContent(value.dump());
-    rspFunc(rsp);
+    if (isWhip) {
+        HttpResponse rsp;
+        rsp._status = 201;
+        rsp.setHeader("Access-Control-Allow-Origin", "*");
+        rsp.setHeader("Content-Type", "application/sdp");
+        string stopUrl = urlParser.protocol_ + "://" + urlParser.host_ + ":" + to_string(urlParser.port_) + "api/v1/rtc/publish/stop";
+        rsp.setHeader("Location", stopUrl);
+        rsp.setContent(context->getLocalSdp());
+        rspFunc(rsp);
+    } else {
+        HttpResponse rsp;
+        rsp._status = 200;
+        json value;
+        value["sdp"] = context->getLocalSdp();
+        value["code"] = 0;
+        value["server"] = "sms";
+        value["sessionid"] = "sms";
+        rsp.setHeader("Access-Control-Allow-Origin", "*");
+        rsp.setContent(value.dump());
+        rspFunc(rsp);
+    }
 }
 
 void WebrtcApi::startRtcPull(const HttpParser& parser, const UrlParser& urlParser, 

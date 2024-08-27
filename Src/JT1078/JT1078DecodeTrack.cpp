@@ -154,10 +154,6 @@ void JT1078DecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
         }
     }
 
-    if (_trackInfo->trackType_ == "audio") {
-        return ;
-    }
-
     frame->_dts = frame->_pts;
     frame->_index = _trackInfo->index_;
     frame->_codec = _trackInfo->codec_;

@@ -83,6 +83,7 @@ public:
     uint64_t getTimestamp();
     string getTrackType();
     uint16_t getSeq();
+    int getLogicNo() {return _header->logicChannelNumber;}
     JT1078RtpHeader* getHeader() {return _header;}
 
 public:

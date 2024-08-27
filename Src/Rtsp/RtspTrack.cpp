@@ -256,7 +256,8 @@ void RtspEncodeTrack::onFrame(const FrameBuffer::Ptr& frame)
 {
     if (_encoder) {
         // logInfo << "encode a frame";
-        logInfo << "is h265 b frame: " << _trackInfo->isBFrame((unsigned char*)frame->data() + frame->startSize(), frame->size() - frame->startSize());
+        // if (frame->getNalType() < 30)
+        //     logInfo << "is h265 b frame: " << _trackInfo->isBFrame((unsigned char*)frame->data() + frame->startSize(), frame->size() - frame->startSize());
         _encoder->encode(frame);
     }
 }
