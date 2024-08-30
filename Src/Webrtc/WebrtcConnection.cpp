@@ -113,7 +113,12 @@ void WebrtcConnection::onStunPacket(const StreamBuffer::Ptr& buffer)
 	}
 
     logInfo << "get peer addr";
-    auto addr = _socket->getPeerAddr();
+    sockaddr * addr;
+    if (_socket->getFamily() == AF_INET) {
+        addr = (sockaddr *)_socket->getPeerAddr4();
+    } else {
+        addr = (sockaddr *)_socket->getPeerAddr6();
+    }
 
 	_username = stunReq.getUsername();
 	auto context = WebrtcContextManager::instance()->getContext(_username);

@@ -29,8 +29,17 @@ H265Frame::Ptr RtmpDecodeH265::createFrame()
 void RtmpDecodeH265::decode(const RtmpMessage::Ptr& msg)
 {
     uint8_t *payload = (uint8_t *)msg->payload.get();
+    bool isEnhance = (payload[0] >> 4) & 0b1000;
+    uint8_t packet_type;
+
+    if (isEnhance) {
+        packet_type = payload[0] & 0x0f;
+    } else {
+        packet_type = payload[1];
+    }
+
     int length = msg->length;
-    if (_first && payload[1] == 0) {
+    if (_first && packet_type == 0) {
         logInfo << "get a flv config";
         // rtmp header 5 bytes, hvcc 22 bytes
         if (length < 27) {
@@ -68,6 +77,18 @@ void RtmpDecodeH265::decode(const RtmpMessage::Ptr& msg)
         // i b p
         int len =0;
         int num =5;
+        int32_t cts = 0;
+
+        if (isEnhance) {
+            if (packet_type == 1 || packet_type == 3) {
+                if (packet_type == 1) {
+                    cts = (((payload[num] << 16) | (payload[num + 1] << 8) | (payload[num + 2])) + 0xff800000) ^ 0xff800000;
+                    num += 3;
+                }
+            } else {
+                return ;
+            }
+        }
 
         while(num < length) {
 
@@ -78,6 +99,7 @@ void RtmpDecodeH265::decode(const RtmpMessage::Ptr& msg)
 
             auto frame = createFrame();
             frame->_pts = frame->_dts = msg->abs_timestamp;
+            frame->_pts += cts;
             frame->_buffer.append((char*)payload + num, len);
             
             onFrame(frame);
@@ -94,6 +116,7 @@ void RtmpDecodeH265::setOnFrame(const function<void(const FrameBuffer::Ptr& fram
 
 void RtmpDecodeH265::onFrame(const FrameBuffer::Ptr& frame)
 {
+    logInfo << "get a h265 nal: " << (int)(frame->getNalType());
     if (_onFrame) {
         _onFrame(frame);
     }

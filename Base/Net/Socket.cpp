@@ -16,8 +16,6 @@
 
 using namespace std;
 
-
-
 static int setIpv6Only(int fd, bool flag)
 {
     int opt = flag;
@@ -98,8 +96,13 @@ Socket::~Socket()
 sockaddr_storage Socket::createSocket(const string& peerIp, int peerPort, int type)
 {
     sockaddr_storage addr;
+    int netType = getNetType(peerIp);
+    int ss_family = AF_INET;
+    if (netType == NET_IPV6) {
+        ss_family = AF_INET6;
+    }
     //优先使用ipv4地址
-    if (!DnsCache::instance().getDomainIP(peerIp.data(), peerPort, addr, AF_INET, SOCK_STREAM, IPPROTO_TCP)) {
+    if (!DnsCache::instance().getDomainIP(peerIp.data(), peerPort, addr, ss_family, SOCK_STREAM, IPPROTO_TCP)) {
         //dns解析失败
         logError << "get domain ip failed";
         return addr;
@@ -126,10 +129,10 @@ sockaddr_storage Socket::createSocket(const string& peerIp, int peerPort, int ty
 
 
 
-int Socket::createSocket(int type)
+int Socket::createSocket(int type, int family)
 {
     // int family = support_ipv6() ? (is_ipv4(local_ip) ? AF_INET : AF_INET6) : AF_INET;
-    _family = AF_INET;
+    _family = family;
     switch (type)
     {
     case 1:
@@ -165,6 +168,7 @@ int Socket::createTcpSocket(int family)
     setRecvBuf();
     setCloseWait();
     setCloExec();
+    setIpv6Only(false);
 
     return 0;
 }
@@ -186,6 +190,7 @@ int Socket::createUdpSocket(int family)
     setRecvBuf();
     setCloseWait();
     setCloExec();
+    setIpv6Only(false);
 
     logTrace << "create a udp socket: " << _fd;
 
@@ -204,6 +209,21 @@ int Socket::setReuseable()
     ret = setsockopt(_fd, SOL_SOCKET, SO_REUSEPORT, (char *) &opt, static_cast<socklen_t>(sizeof(opt)));
     if (ret == -1) {
         cout << "setsockopt SO_REUSEPORT failed";
+    }
+    
+    return ret;
+}
+
+int Socket::setIpv6Only(bool enable)
+{
+    if (_family != AF_INET6) {
+        return 0;
+    }
+
+    int ret = setsockopt(_fd, IPPROTO_IPV6, IPV6_V6ONLY, reinterpret_cast<char*>(&enable), sizeof(enable));
+    if (ret == -1)
+    {
+        cout << "setsockopt IPV6_V6ONLY failed";
     }
     
     return ret;
@@ -379,8 +399,13 @@ int Socket::connect(const string& peerIp, int port, int timeout)
 {
     _isClient = true;
     sockaddr_storage addr;
+    int netType = getNetType(peerIp);
+    int ss_family = AF_INET;
+    if (netType == NET_IPV6) {
+        ss_family = AF_INET6;
+    }
     //优先使用ipv4地址
-    if (!DnsCache::instance().getDomainIP(peerIp.data(), port, addr, AF_INET, SOCK_STREAM, IPPROTO_TCP)) {
+    if (!DnsCache::instance().getDomainIP(peerIp.data(), port, addr, ss_family, SOCK_STREAM, IPPROTO_TCP)) {
         //dns解析失败
         return -1;
     }
@@ -389,9 +414,16 @@ int Socket::connect(const string& peerIp, int port, int timeout)
     timeo.tv_sec = timeout;
     setsockopt(_fd, SOL_SOCKET, SO_SNDTIMEO, &timeo, sizeof(timeo));
 
-    ((sockaddr_in *) &addr)->sin_port = htons(port);
+    int socketLen = 0;
+    if (addr.ss_family == AF_INET) {
+        ((sockaddr_in *) &addr)->sin_port = htons(port);
+        socketLen = sizeof(sockaddr_in);
+    } else {
+        ((sockaddr_in6 *) &addr)->sin6_port = htons(port);
+        socketLen = sizeof(sockaddr_in6);
+    }
     errno = 0;
-    if (::connect(_fd, (sockaddr *) &addr, sizeof(sockaddr_in)) == 0) {
+    if (::connect(_fd, (sockaddr *) &addr, socketLen) == 0) {
         addToEpoll();
         //同步连接成功
         return 0;
@@ -509,7 +541,7 @@ int Socket::onRead(void* args)
             // 此处捕获异常，目的是防止数据未读尽，epoll边沿触发失效的问题
             _onRead(g_readBuffer, (struct sockaddr *)&addr, len);
         } catch (std::exception &ex) {
-            cout << "Exception occurred when emit on_read: " << ex.what();
+            logInfo << "Exception occurred when emit on_read: " << ex.what();
         }
     }
     return 0;
@@ -743,24 +775,45 @@ ssize_t Socket::send(const Buffer::Ptr pkt, int flag, int offset, struct sockadd
     return totalSendSize;
 }
 
+void Socket::getLocalInfo()
+{
+    if (_family == AF_INET) {
+        struct sockaddr_in localaddr;
+        socklen_t len = sizeof(localaddr);
+        int ret = getsockname(_fd, (struct sockaddr*)&localaddr, &len);
+        if (ret != 0) {
+            logWarn << "get sock name failed";
+            return;
+        } else {
+            char buf[INET_ADDRSTRLEN] = "";
+            _localPort = ntohs(localaddr.sin_port);
+            _localIp = inet_ntop(_family, &(localaddr.sin_addr), buf, INET_ADDRSTRLEN);
+            _localIp.assign(buf);
+        }
+    } else {
+        struct sockaddr_in6 localaddr;
+        socklen_t len = sizeof(localaddr);
+        int ret = getsockname(_fd, (struct sockaddr*)&localaddr, &len);
+        if (ret != 0) {
+            logWarn << "get sock name failed";
+            return ;
+        } else {
+            char buf[INET6_ADDRSTRLEN] = "";
+            _localPort = ntohs(localaddr.sin6_port);
+            _localIp = inet_ntop(_family, &(localaddr.sin6_addr), buf, INET6_ADDRSTRLEN);
+            _localIp.assign(buf);
+        }
+    }
+}
+
 int Socket::getLocalPort() {
     if (_localPort != -1) {
         return _localPort;
     }
 
-    struct sockaddr_in localaddr;
-    socklen_t len = sizeof(localaddr);
-    int ret = getsockname(_fd, (struct sockaddr*)&localaddr, &len);
-    if (ret != 0) {
-        logWarn << "get sock name failed";
-        return -1;
-    } else {
-        string ip;
-        ip.resize(INET_ADDRSTRLEN);
-        _localPort = ntohs(localaddr.sin_port);
-        _localIp = inet_ntop(AF_INET, &(localaddr.sin_addr), (char*)ip.data(), INET_ADDRSTRLEN);
-        return _localPort;
-    }
+    getLocalInfo();
+
+    return _localPort;
 }
 
 string Socket::getLocalIp() {
@@ -768,18 +821,39 @@ string Socket::getLocalIp() {
         return _localIp;
     }
 
-    struct sockaddr_in localaddr;
-    socklen_t len = sizeof(localaddr);
-    int ret = getsockname(_fd, (struct sockaddr*)&localaddr, &len);
-    if (ret != 0) {
-        logWarn << "get sock name failed";
-        return "";
+    getLocalInfo();
+
+    return _localIp;
+}
+
+void Socket::getPeerInfo()
+{
+    if (_family == AF_INET) {
+        struct sockaddr_in peerAddr;
+        socklen_t len = sizeof(peerAddr);
+        int ret = getpeername(_fd, (struct sockaddr*)&peerAddr, &len);
+        if (ret != 0) {
+            logWarn << "get sock name failed";
+            return ;
+        } else {
+            char buf[INET_ADDRSTRLEN] = "";
+            _localPort = ntohs(peerAddr.sin_port);
+            _localIp = inet_ntop(_family, &(peerAddr.sin_addr), buf, INET_ADDRSTRLEN);
+            _localIp.assign(buf);
+        }
     } else {
-        string ip;
-        ip.resize(INET_ADDRSTRLEN);
-        _localPort = ntohs(localaddr.sin_port);
-        _localIp = inet_ntop(AF_INET, &(localaddr.sin_addr), (char*)ip.data(), INET_ADDRSTRLEN);
-        return _localIp;
+        struct sockaddr_in6 peerAddr;
+        socklen_t len = sizeof(peerAddr);
+        int ret = getpeername(_fd, (struct sockaddr*)&peerAddr, &len);
+        if (ret != 0) {
+            logWarn << "get sock name failed";
+            return ;
+        } else {
+            char buf[INET6_ADDRSTRLEN] = "";
+            _localPort = ntohs(peerAddr.sin6_port);
+            _localIp = inet_ntop(_family, &(peerAddr.sin6_addr), buf, INET6_ADDRSTRLEN);
+            _localIp.assign(buf);
+        }
     }
 }
 
@@ -788,19 +862,9 @@ int Socket::getPeerPort() {
         return _peerPort;
     }
 
-    struct sockaddr_in peerAddr;
-    socklen_t len = sizeof(peerAddr);
-    int ret = getpeername(_fd, (struct sockaddr*)&peerAddr, &len);
-    if (ret != 0) {
-        logWarn << "get sock name failed";
-        return -1;
-    } else {
-        string ip;
-        ip.resize(INET_ADDRSTRLEN);
-        _peerPort = ntohs(peerAddr.sin_port);
-        _peerIp = inet_ntop(AF_INET, &(peerAddr.sin_addr), (char*)ip.data(), INET_ADDRSTRLEN);
-        return _peerPort;
-    }
+    getPeerInfo();
+
+    return _peerPort;
 }
 
 string Socket::getPeerIp() {
@@ -808,31 +872,33 @@ string Socket::getPeerIp() {
         return _peerIp;
     }
 
-    struct sockaddr_in peerAddr;
-    socklen_t len = sizeof(peerAddr);
-    int ret = getpeername(_fd, (struct sockaddr*)&peerAddr, &len);
-    if (ret != 0) {
-        logWarn << "get sock name failed";
-        return "";
-    } else {
-        string ip;
-        ip.resize(INET_ADDRSTRLEN);
-        _peerPort = ntohs(peerAddr.sin_port);
-        _peerIp = inet_ntop(AF_INET, &(peerAddr.sin_addr), (char*)ip.data(), INET_ADDRSTRLEN);
-        return _peerIp;
-    }
+    getPeerInfo();
+
+    return _peerIp;
 }
 
-sockaddr* Socket::getPeerAddr()
+sockaddr_in* Socket::getPeerAddr4()
 {
-    socklen_t len = sizeof(_peerAddr);
-    int ret = getpeername(_fd, (struct sockaddr*)&_peerAddr, &len);
+    socklen_t len = sizeof(_peerAddr4);
+    int ret = getpeername(_fd, (struct sockaddr*)&_peerAddr4, &len);
     if (ret != 0) {
         logWarn << "get sock name failed";
         return nullptr;
     }
 
-    return (struct sockaddr*)&_peerAddr;
+    return &_peerAddr4;
+}
+
+sockaddr_in6* Socket::getPeerAddr6()
+{
+    socklen_t len = sizeof(_peerAddr6);
+    int ret = getpeername(_fd, (struct sockaddr*)&_peerAddr6, &len);
+    if (ret != 0) {
+        logWarn << "get sock name failed";
+        return nullptr;
+    }
+
+    return &_peerAddr6;
 }
 
 int Socket::getSocketType()
@@ -847,4 +913,17 @@ int Socket::getSocketType()
     }
 
     return protocol == IPPROTO_TCP ? SOCKET_TCP : SOCKET_UDP;
+}
+
+NetType Socket::getNetType(const string& ip)
+{
+    struct in_addr addr;
+    struct in6_addr addr6;
+    if (inet_pton(AF_INET, ip.c_str(), &addr) == 1) {
+        return NET_IPV4;
+    } else if (inet_pton(AF_INET6, ip.c_str(), &addr6) == 1) {
+        return NET_IPV6;
+    } else {
+        return NET_INVALID;
+    }
 }

@@ -78,7 +78,9 @@ void RtmpMediaSource::addTrack(const RtmpDecodeTrack::Ptr& track)
         if (!strongSelf) {
             return;
         }
-        // logInfo << "on frame";
+        if (frame->_trackType == VideoTrackType) {
+            logInfo << "on frame: size: " << frame->size() << ", type: " << (int)frame->getNalType();
+        }
         for (auto& sink : strongSelf->_mapSink) {
             // logInfo << "on frame to sink";
             // if (sink.second.lock()) {

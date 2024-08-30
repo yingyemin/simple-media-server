@@ -20,7 +20,7 @@ void RtmpDecodeCommon::decode(const RtmpMessage::Ptr& msg)
         
     frame->_codec = _trackInfo->codec_;
     frame->_index = _trackInfo->index_;
-    frame->_trackType = AudioTrackType;
+    frame->_trackType = _trackInfo->trackType_ == "video" ? VideoTrackType : AudioTrackType;
     frame->_dts = frame->_pts = msg->abs_timestamp;
 
     frame->_buffer.append((char*)payload + 1, length - 1);

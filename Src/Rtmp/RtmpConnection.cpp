@@ -354,6 +354,8 @@ bool RtmpConnection::handleUserEvent(RtmpMessage& rtmp_msg)
 
 bool RtmpConnection::handleVideo(RtmpMessage& rtmp_msg)
 {
+    static uint32_t fourccH265 = (unsigned)('h') << 24 | 'v' << 16 | 'c' << 8 | '1';
+
     if (!_validVideoTrack) {
         return false;
     }
@@ -365,8 +367,26 @@ bool RtmpConnection::handleVideo(RtmpMessage& rtmp_msg)
 	uint8_t type = RTMP_VIDEO;
 	uint8_t *payload = (uint8_t *)rtmp_msg.payload.get();
 	uint32_t length = rtmp_msg.length;
-	uint8_t frame_type = (payload[0] >> 4) & 0x0f;
-	uint8_t codec_id = payload[0] & 0x0f;
+    
+    bool isEnhance = (payload[0] >> 4) & 0b1000;
+	uint8_t frame_type;
+	uint8_t codec_id;
+    uint8_t packet_type;
+
+    if (isEnhance) {
+        frame_type = (payload[0] >> 4) & 0b0111;
+        packet_type = payload[0] & 0x0f;
+        if (readUint32BE((char*)payload + 1) == fourccH265) {
+            codec_id = 12;
+        } else {
+            close();
+            return false;
+        }
+    } else {
+        frame_type = (payload[0] >> 4) & 0x0f;
+        codec_id = payload[0] & 0x0f;
+        packet_type = payload[1];
+    }
 
     // shared_ptr<char> tmpPayload(new char[rtmp_msg.length], std::default_delete<char[]>());
     // memcpy(tmpPayload.get(), payload, rtmp_msg.length);
@@ -398,7 +418,7 @@ bool RtmpConnection::handleVideo(RtmpMessage& rtmp_msg)
     auto msg = make_shared<RtmpMessage>(std::move(rtmp_msg));
     if (frame_type == 1/* && codec_id == RTMP_CODEC_ID_H264*/) {
             // logInfo << "payload[1] : " << (int)payload[1];
-        if (payload[1] == 0) {
+        if (packet_type == 0) {
             // sps pps??
             _avcHeaderSize = length;
             _avcHeader.reset(new char[length], std::default_delete<char[]>());

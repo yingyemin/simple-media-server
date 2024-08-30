@@ -15,6 +15,12 @@ enum SocketType {
     SOCKET_UDP
 };
 
+enum NetType {
+    NET_INVALID = 0,
+    NET_IPV4 = 1,
+    NET_IPV6
+};
+
 class SocketBuffer
 {
 public:
@@ -47,12 +53,13 @@ public:
     // type: 1:tcp, 2:udp, 3:quic, 4:srt
     // family ipv4 or ipv6
     sockaddr_storage createSocket(const string& peerIp, int peerPort, int type);
-    int createSocket(int type);
+    int createSocket(int type, int family = AF_INET);
 
     int createTcpSocket(int family);
     int createUdpSocket(int family);
 
     int setReuseable();
+    int setIpv6Only(bool enable);
     int setNoSigpipe();
     int setNoBlocked();
     int setNoDelay();
@@ -69,10 +76,14 @@ public:
     int getFd() {return _fd;}
     int getLocalPort();
     string getLocalIp();
+    void getLocalInfo();
     
     int getPeerPort();
     string getPeerIp();
-    sockaddr* getPeerAddr();
+    void getPeerInfo();
+    // sockaddr* getPeerAddr();
+    sockaddr_in* getPeerAddr4();
+    sockaddr_in6* getPeerAddr6();
 
     int getSocketType();
 
@@ -92,21 +103,26 @@ public:
     void setWriteCb(const onWriteCb& cb) { _onWrite = cb;}
     void setErrorCb(const onErrorCb& cb) { _onError = cb;}
     void setOnGetBuffer(const function<bool()>& cb) {_onGetBuffer = cb;}
+    int getFamily() {return _family;}
+    void setFamily(int family) {_family = family;}
 
     EventLoop::Ptr getLoop() {return _loop;}
+
+    static NetType getNetType(const string& ip);
 
 private:
     bool _isClient = false;
     bool _isConnected = false;
     int _fd = -1;
-    int _family;
+    int _family = AF_INET;
     int _type = 1;
     int _localPort = -1;
     int _peerPort = -1;
     size_t _remainSize = 0;
     string _localIp;
     string _peerIp;
-    sockaddr_in _peerAddr;
+    sockaddr_in _peerAddr4;
+    sockaddr_in6 _peerAddr6;
     SocketBuffer::Ptr _sendBuffer;
     list<SocketBuffer::Ptr> _readyBuffer;
     EventLoop::Ptr _loop;

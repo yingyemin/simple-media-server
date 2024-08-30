@@ -198,15 +198,15 @@ void HttpParser::onHttpBody(const char* data, int len)
 
 void HttpParser::clear()
 {
-    logTrace << "HttpParser::clear() : " << this;
-    _contentLen = -1;
-    _stage = 1;
-    _content = "";
-    _method = "";
-    _url = "";
-    _version = "";
-    _body = nullptr;
-    _mapHeaders.clear();
+    // logTrace << "HttpParser::clear() : " << this;
+    // _contentLen = -1;
+    // _stage = 1;
+    // _content = "";
+    // _method = "";
+    // _url = "";
+    // _version = "";
+    // _body = nullptr;
+    // _mapHeaders.clear();
     _remainData.clear();
 
     logTrace << "_stage: " << _stage;

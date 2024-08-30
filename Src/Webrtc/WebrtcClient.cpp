@@ -476,9 +476,14 @@ void WebrtcClient::onConnected()
 
     logTrace << "socket ip: " << _socket->getLocalIp() << ", port: " << _socket->getLocalPort();
     // string localIp = "127.0.0.1";
-	stunReq.setMappedAddress(ntohl(inet_addr(_socket->getLocalIp().c_str())));
+	// stunReq.setMappedAddress(ntohl(inet_addr(_socket->getLocalIp().c_str())));
 	// stunReq.setMappedPort(ntohs(_socket->getLocalPort()));
-	stunReq.setMappedPort(_socket->getLocalPort());
+	// stunReq.setMappedPort(_socket->getLocalPort());
+    if (_addr->sa_family == AF_INET) {
+	    stunReq.setMappedAddress((sockaddr *)_socket->getPeerAddr4());
+    } else {
+        stunReq.setMappedAddress((sockaddr *)_socket->getPeerAddr6());
+    }
 
     // char buf[kRtpPacketSize];
     // SrsBuffer* stream = new SrsBuffer(buf, sizeof(buf));

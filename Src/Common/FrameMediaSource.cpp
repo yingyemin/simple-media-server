@@ -21,13 +21,13 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
 {
     // for (auto& sink : _mapSink) {
         // logInfo << "on frame to sink";
-        bool keyframe = true;
+        bool keyframe = false;
         if (frame->getTrackType() == VideoTrackType) {
-            if (!frame->startFrame()) {
-                keyframe = false;
+            if (frame->startFrame()) {
+                keyframe = true;
             }
         }
-        // logInfo << "keyframe: " << keyframe;
+        logInfo << "keyframe: " << keyframe << ", size: " << frame->size() << ", type: " << (int)frame->getNalType();
         _ring->write(frame, keyframe);
     // }
 }

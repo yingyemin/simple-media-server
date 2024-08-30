@@ -39,7 +39,11 @@ void RtpEncodeCommon::makeRtp(const char *data, size_t len, bool mark, uint64_t 
     auto payload = rtp->getPayload();
     memcpy(payload, data, len);
 
-    onRtpPacket(rtp, true);
+    if (_trackInfo->trackType_ == "video") {
+        onRtpPacket(rtp, true);
+    } else {
+        onRtpPacket(rtp, false);
+    }
 }
 
 void RtpEncodeCommon::setOnRtpPacket(const function<void(const RtpPacket::Ptr& packet, bool start)>& cb)

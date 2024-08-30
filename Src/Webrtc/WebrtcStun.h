@@ -2,6 +2,7 @@
 #define WebrtcStun_h
 
 #include <string>
+#include <netinet/in.h>
 
 #include "Net/Buffer.h"
 
@@ -75,7 +76,7 @@ public:
     void setLocalUfrag(const std::string& uflag);
     void setRemoteUfrag(const std::string& uflag);
     void setTranscationId(const std::string& transId);
-    void setMappedAddress(const uint32_t& addr);
+    void setMappedAddress(const sockaddr* addr);
     void setMappedPort(const uint32_t& port);
 
     int32_t parse(const char* buf, const int32_t nb_buf);
@@ -91,6 +92,7 @@ private:
     std::string _localUfrag;
     std::string _remoteUfrag;
     std::string _transcationId;
+    sockaddr* _addr;
     uint32_t _mappedAddress;
     uint16_t _mappedPort;
     bool _useCandidate;

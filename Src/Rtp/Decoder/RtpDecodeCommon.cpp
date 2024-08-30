@@ -21,6 +21,7 @@ FrameBuffer::Ptr RtpDecodeCommon::createFrame()
     frame->_startSize = 0;
     frame->_codec = _trackInfo->codec_;
     frame->_index = _trackInfo->index_;
+    frame->_trackType = _trackInfo->trackType_ == "video" ? VideoTrackType : AudioTrackType;
 
     return frame;
 }

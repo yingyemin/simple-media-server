@@ -61,7 +61,7 @@ void RtspMediaSource::addTrack(const RtspTrack::Ptr& track)
             strongSelf->_start = start;
         }
         strongSelf->_ring->addBytes(rtp->size());
-        // logInfo << "on rtp seq: " << rtp->getSeq() << ", size: " << rtp->size() << ", type: " << rtp->type_;
+        // logInfo << "on rtp seq: " << rtp->getSeq() << ", size: " << rtp->size() << ", type: " << rtp->type_ << ", start: " << start;
         if (rtp->getHeader()->mark) {
             strongSelf->_cache->emplace_back(std::move(rtp));
             // logInfo << "write cache size: " << strongSelf->_cache->size();
@@ -163,7 +163,7 @@ void RtspMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
             if (start) {
                 strongSelf->_start = start;
             }
-            // logInfo << "on rtp seq: " << rtp->getSeq() << ", size: " << rtp->size() << ", type: " << rtp->type_;
+            logInfo << "on rtp seq: " << rtp->getSeq() << ", size: " << rtp->size() << ", type: " << rtp->type_ << ", start: " << strongSelf->_start;
             if (rtp->getHeader()->mark) {
                 strongSelf->_cache->emplace_back(std::move(rtp));
                 strongSelf->_ring->write(strongSelf->_cache, strongSelf->_start);

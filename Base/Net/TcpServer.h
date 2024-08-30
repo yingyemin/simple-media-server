@@ -23,7 +23,7 @@ public:
     ~TcpServer();
 
 public:
-    void start();
+    void start(NetType type = NET_IPV4);
     void accept(int event, void* args);
     TcpConnection::Ptr createSession(const EventLoop::Ptr& loop, const Socket::Ptr& socket);
     void setOnCreateSession(createSessionCb cb) {_createSessionCb = cb;}

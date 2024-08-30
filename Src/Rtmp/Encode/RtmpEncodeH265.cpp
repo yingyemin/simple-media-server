@@ -3,6 +3,7 @@
 #include "Log/Logger.h"
 #include "Codec/H265Track.h"
 #include "Rtmp/Rtmp.h"
+#include "Common/Config.h"
 
 using namespace std;
 
@@ -21,6 +22,10 @@ string RtmpEncodeH265::getConfig()
         return "";
     }
 
+    static bool enbaleEnhanced = Config::instance()->getAndListen([](const json &config){
+        enbaleEnhanced = Config::instance()->get("Rtmp", "Server", "Server1", "enableEnhanced");
+    }, "Rtmp", "Server", "Server1", "enableEnhanced");
+
     string config;
 
     auto spsSize = trackInfo->_sps->startSize();
@@ -37,11 +42,19 @@ string RtmpEncodeH265::getConfig()
     config.resize(43  + vpsLen + spsLen + ppsLen);
     auto data = (char*)config.data();
 
-    *data++ = 0x1c; //key frame, AVC
-    *data++ = 0x00; //avc sequence header
-    *data++ = 0x00; //composit time 
-    *data++ = 0x00; //composit time
-    *data++ = 0x00; //composit time
+    if (enbaleEnhanced) {
+        *data++ = 1 << 7 | 1;
+        *data++ = 'h';
+        *data++ = 'v';
+        *data++ = 'c';
+        *data++ = '1';
+    } else {
+        *data++ = 0x1c; //key frame, AVC
+        *data++ = 0x00; //avc sequence header
+        *data++ = 0x00; //composit time 
+        *data++ = 0x00; //composit time
+        *data++ = 0x00; //composit time
+    }
     *data++ = 0x01;   //configurationversion
     // 6 byte
 
@@ -132,6 +145,15 @@ string RtmpEncodeH265::getConfig()
 
 void RtmpEncodeH265::encode(const FrameBuffer::Ptr& frame)
 {
+    static bool enbaleEnhanced = Config::instance()->getAndListen([](const json &config){
+        enbaleEnhanced = Config::instance()->get("Rtmp", "Server", "Server1", "enableEnhanced");
+    }, "Rtmp", "Server", "Server1", "enableEnhanced");
+
+    int enhancedExtraSize = 0;
+    if (enbaleEnhanced) {
+        enhancedExtraSize = 3;
+    }
+
     auto msg = make_shared<RtmpMessage>();
 
     if (!_append && !_vecFrame.empty()) { 
@@ -154,17 +176,30 @@ void RtmpEncodeH265::encode(const FrameBuffer::Ptr& frame)
                 }
 
                 if (first) {
-                    if (keyFrame) {
-                        *data++ = 0x1c;
+                    if (enbaleEnhanced) {
+                        uint8_t frameType = keyFrame ? 1 : 2;
+                        *data++ = 1 << 7 | frameType << 4 | 1;
+                        *data++ = 'h';
+                        *data++ = 'v';
+                        *data++ = 'c';
+                        *data++ = '1';
+                        *data++ = (uint8_t)(cts >> 16); 
+                        *data++ = (uint8_t)(cts >> 8); 
+                        *data++ = (uint8_t)(cts); 
+                        index += 8;
                     } else {
-                        *data++ = 0x2c;
-                    }
-                    *data++ = 1;
-                    *data++ = (uint8_t)(cts >> 16); 
-                    *data++ = (uint8_t)(cts >> 8); 
-                    *data++ = (uint8_t)(cts); 
+                        if (keyFrame) {
+                            *data++ = 0x1c;
+                        } else {
+                            *data++ = 0x2c;
+                        }
+                        *data++ = 1;
+                        *data++ = (uint8_t)(cts >> 16); 
+                        *data++ = (uint8_t)(cts >> 8); 
+                        *data++ = (uint8_t)(cts); 
 
-                    index += 5;
+                        index += 5;
+                    }
 
                     first = false;
                 }
@@ -204,7 +239,7 @@ void RtmpEncodeH265::encode(const FrameBuffer::Ptr& frame)
     }
 
     if (_vecFrame.empty()) {
-        _msgLength += 9 + length;
+        _msgLength += 9 + length + enhancedExtraSize;
     } else {
         _msgLength += 4 + length;
     }

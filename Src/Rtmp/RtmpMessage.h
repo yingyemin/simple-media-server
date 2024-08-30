@@ -45,7 +45,19 @@ public:
 
     bool isKeyFrame() const
     {
-        return type_id == RTMP_VIDEO && (uint8_t) payload.get()[0] >> 4 == 1 && (uint8_t) payload.get()[1] == 1;
+        bool isEnhance = (payload.get()[0] >> 4) & 0b1000;
+        uint8_t frame_type;
+        uint8_t packet_type;
+
+        if (isEnhance) {
+            frame_type = (payload.get()[0] >> 4) & 0b0111;
+            packet_type = payload.get()[0] & 0x0f;
+            return type_id == RTMP_VIDEO && frame_type == 1 && (packet_type == 1 || packet_type == 3);
+        } else {
+            frame_type = (payload.get()[0] >> 4) & 0x0f;
+            packet_type = payload.get()[1];
+            return type_id == RTMP_VIDEO && frame_type == 1 && packet_type == 1;
+        }
     }
 
 public:

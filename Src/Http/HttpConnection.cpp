@@ -169,6 +169,7 @@ void HttpConnection::onHttpRequest()
                 if (iter == self->_parser._mapHeaders.end()) {
                     logInfo << "no content-type";
                 } else if (iter->second == "application/json") {
+                    logInfo << "self->_parser._content: " << self->_parser._content;
                     self->_parser._body = json::parse(self->_parser._content);
                 } else if (iter->second == "application/x-www-form-urlencoded") {
                     auto body = split(self->_parser._content, "&", "=");
@@ -282,7 +283,7 @@ void HttpConnection::writeHttpResponse(HttpResponse& rsp) // 将要素按照Http
     // logInfo << "send rsp: " << rsp_str.str();
     send(buffer);
 
-    // _parser.clear();
+    _parser.clear();
     _onHttpBody = nullptr;
 }
 
@@ -365,7 +366,7 @@ void HttpConnection::sendFile() // 将要素按照HttpResponse协议进行组织
     logInfo << "send rsp: " << rsp_str.str();
     send(buffer);
 
-    // _parser.clear();
+    _parser.clear();
     _onHttpBody = nullptr;
 }
 

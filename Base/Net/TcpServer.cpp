@@ -24,9 +24,9 @@ TcpServer::TcpServer(EventLoop::Ptr loop, const string& host, int port, int maxC
 TcpServer::~TcpServer()
 {}
 
-void TcpServer::start()
+void TcpServer::start(NetType type)
 {
-    _socket->createSocket(1);
+    _socket->createSocket(SOCKET_TCP, type == NET_IPV4 ? AF_INET : AF_INET6);
     _socket->bind(_port, _ip.data());
     _socket->listen(1024);
 
@@ -90,6 +90,7 @@ void TcpServer::accept(int event, void* args)
             socket->setRecvBuf();
             socket->setCloseWait();
             socket->setCloExec();
+            socket->setFamily(_socket->getFamily());
 
             TcpConnection::Ptr session = createSession(_loop, socket);
             session->init();

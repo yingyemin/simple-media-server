@@ -30,7 +30,7 @@ void RtspServer::start(const string& ip, int port, int count)
         server->setOnCreateSession([](const EventLoop::Ptr& loop, const Socket::Ptr& socket) -> RtspConnection::Ptr {
             return make_shared<RtspConnection>(loop, socket);
         });
-        server->start();
+        server->start(Socket::getNetType(ip));
         lock_guard<mutex> lck(self->_mtx);
         self->_tcpServers[port].emplace_back(server);
     });

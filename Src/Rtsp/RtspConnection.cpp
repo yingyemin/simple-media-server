@@ -349,6 +349,17 @@ void RtspConnection::handleAnnounce_l() {
     _sdpParser.parse(_parser._content);
     int trackIndex = 0;
     for (auto& media : _sdpParser._vecSdpMedia) {
+        if (media->trackType_ == "audio" && media->codec_.empty()) {
+            if (media->payloadType_ == 8) {
+                media->codec_ = "pcma";
+                media->channel_ = 1;
+                media->samplerate_ = 8000;
+            } else if (media->payloadType_ == 0) {
+                media->codec_ = "pcmu";
+                media->channel_ = 1;
+                media->samplerate_ = 8000;
+            } 
+        }
         RtspTrack::Ptr track;
         if (_payloadType == "ps") {
             track = make_shared<RtspPsDecodeTrack>(trackIndex++, media);

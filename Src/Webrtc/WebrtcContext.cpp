@@ -528,9 +528,13 @@ void WebrtcContext::onStunPacket(const Socket::Ptr& socket, const WebrtcStun& st
     stunRsp.setRemoteUfrag(stunReq.getLocalUfrag());
     stunRsp.setTranscationId(stunReq.getTranscationId());
 
-	struct sockaddr_in* peer_addr = (struct sockaddr_in*)_addr;
-	stunRsp.setMappedAddress(ntohl(peer_addr->sin_addr.s_addr));
-	stunRsp.setMappedPort(ntohs(peer_addr->sin_port));
+	// struct sockaddr_in* peer_addr = (struct sockaddr_in*)_addr;
+    if (_addr->sa_family == AF_INET) {
+	    stunRsp.setMappedAddress((sockaddr *)_socket->getPeerAddr4());
+    } else {
+        stunRsp.setMappedAddress((sockaddr *)_socket->getPeerAddr6());
+    }
+	// stunRsp.setMappedPort(ntohs(peer_addr->sin_port));
 
     // char buf[kRtpPacketSize];
     // SrsBuffer* stream = new SrsBuffer(buf, sizeof(buf));

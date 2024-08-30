@@ -146,9 +146,9 @@ void WebrtcStun::setTranscationId(const std::string& t)
     _transcationId = t;
 }
 
-void WebrtcStun::setMappedAddress(const uint32_t& addr)
+void WebrtcStun::setMappedAddress(const sockaddr* addr)
 {
-    _mappedAddress = addr;
+    _addr = (sockaddr*)addr;
 }
 
 void WebrtcStun::setMappedPort(const uint32_t& port)
@@ -388,10 +388,46 @@ string WebrtcStun::encodeMappedAddress()
 
     writeUint16BE((char*)buffer.data(), XorMappedAddress);
     writeUint16BE((char*)buffer.data() + 2, 8);
-    buffer[4] = 0;
-    buffer[5] = 1;
-    writeUint16BE((char*)buffer.data() + 6, _mappedPort ^ (kStunMagicCookie >> 16));
-    writeUint32BE((char*)buffer.data() + 8, _mappedAddress ^ kStunMagicCookie);
+    if (_addr->sa_family == AF_INET) {
+        buffer[4] = 0;
+        buffer[5] = 1;
+        _mappedPort = ntohs((reinterpret_cast<const sockaddr_in*>(_addr))->sin_port);
+        _mappedAddress = ntohl((reinterpret_cast<const sockaddr_in*>(_addr))->sin_addr.s_addr);
+        writeUint16BE((char*)buffer.data() + 6, _mappedPort ^ (kStunMagicCookie >> 16));
+        writeUint32BE((char*)buffer.data() + 8, _mappedAddress ^ kStunMagicCookie);
+    } else {
+        buffer.resize(24);
+        buffer[4] = 0;
+        buffer[5] = 2;
+
+        std::memcpy(
+                      (char*)buffer.data() + 6,
+                      &(reinterpret_cast<const sockaddr_in6*>(_addr))->sin6_port,
+                      2);
+                    buffer[6] ^= kStunMagicCookie >> 24;
+                    buffer[7] ^= (kStunMagicCookie >> 16) & 0xff;
+                    // Set address and XOR it.
+                    std::memcpy(
+                      (char*)buffer.data() + 8,
+                      &(reinterpret_cast<const sockaddr_in6*>(_addr))->sin6_addr.s6_addr,
+                      16);
+                    buffer[8] ^= kStunMagicCookie >> 24;;
+                    buffer[9] ^= (kStunMagicCookie >> 16) & 0xff;;
+                    buffer[10] ^= (kStunMagicCookie >> 8) & 0xff;;
+                    buffer[11] ^= (kStunMagicCookie) & 0xff;;
+                    buffer[12] ^= _transcationId[0];
+                    buffer[13] ^= _transcationId[1];
+                    buffer[14] ^= _transcationId[2];
+                    buffer[15] ^= _transcationId[3];
+                    buffer[16] ^= _transcationId[4];
+                    buffer[17] ^= _transcationId[5];
+                    buffer[18] ^= _transcationId[6];
+                    buffer[19] ^= _transcationId[7];
+                    buffer[20] ^= _transcationId[8];
+                    buffer[21] ^= _transcationId[9];
+                    buffer[22] ^= _transcationId[10];
+                    buffer[23] ^= _transcationId[11];
+    }
 
     // stream->write_2bytes(XorMappedAddress);
     // stream->write_2bytes(8);

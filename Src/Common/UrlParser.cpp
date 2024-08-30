@@ -57,9 +57,15 @@ void UrlParser::parse(string url)
         host = findSubStr(host, "@", "");
     }
     logInfo << host;
-    host_ = findSubStr(host, "", ":");
-    string port = findSubStr(host, ":", "");
-    port_ = (port == "" ? 0 : stoi(port));
+    if (host[0] == '[') {
+        host_ = findSubStr(host, "[", "]");
+        string port = findSubStr(host, "]:", "");
+        port_ = (port == "" ? 0 : stoi(port));
+    } else {
+        host_ = findSubStr(host, "", ":");
+        string port = findSubStr(host, ":", "");
+        port_ = (port == "" ? 0 : stoi(port));
+    }
 
     path_ = url.substr(pos);
     for (auto& param : vecParam_) {

@@ -150,7 +150,11 @@ void WebrtcApi::rtcPublish(const HttpParser& parser, const UrlParser& urlParser,
 
         appName = streamurlparser.path_.substr(1, pos - 1);
         streamName = streamurlparser.path_.substr(pos + 1);
-        enableDtls = toInt(parser._body["enableDtls"]);
+        if (parser._body.find("enableDtls") == parser._body.end()) {
+            enableDtls = 0;
+        } else {
+            enableDtls = toInt(parser._body["enableDtls"]);
+        }
         sdp = parser._body["sdp"];
     }
 
