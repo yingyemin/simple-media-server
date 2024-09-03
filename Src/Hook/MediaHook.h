@@ -62,6 +62,18 @@ public:
     string err;
 };
 
+class PlayerInfo
+{
+public:
+    string protocol;
+    string uri;
+    string vhost;
+    string type;
+    string ip;
+    string status;
+    int port = 0;
+};
+
 class MediaHook : public enable_shared_from_this<MediaHook>
 {
 public:
@@ -78,6 +90,7 @@ public:
     void onStreamStatus(const StreamStatusInfo& info);
     void onPublish(const PublishInfo& info, const function<void(const PublishResponse& rsp)>& cb);
     void onPlay(const PlayInfo& info, const function<void(const PlayResponse& rsp)>& cb);
+    void onPlayer(const PlayerInfo& info);
     void onNonePlayer(const string& protocol, const string& uri, 
                         const string& vhost, const string& type);
 

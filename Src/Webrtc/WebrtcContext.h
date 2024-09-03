@@ -15,6 +15,7 @@
 #include "Util/TimeClock.h"
 #include "WebrtcMediaSource.h"
 #include "Common/UrlParser.h"
+#include "Rtp/RtpSort.h"
 
 using namespace std;
 
@@ -57,6 +58,7 @@ private:
     void sendMedia(const RtpPacket::Ptr& rtp);
     void sendRtcpPli(int ssrc);
     void onManager();
+    void checkAndSendRtcpNack();
 
 private:
     bool _enbaleDtls = false;
@@ -83,8 +85,11 @@ private:
     string _icePwd;
     string _username;
     TimeClock _timeClock;
+    TimeClock _nackClock;
     TimeClock _lastPktClock;
     UrlParser _urlParser;
+    RtpSort::Ptr _videoSort;
+    RtpSort::Ptr _audioSort;
     EventLoop::Ptr _loop;
     WebrtcPtInfo::Ptr _videoPtInfo;
     WebrtcPtInfo::Ptr _audioPtInfo;

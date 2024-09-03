@@ -34,6 +34,19 @@ RtmpConnection::~RtmpConnection()
         rtmpSrc->delConnection(this);
         // rtmpSrc->delOnDetach(this);
     }
+
+    if (_playReader) {
+        PlayerInfo info;
+        info.ip = _socket->getPeerIp();
+        info.port = _socket->getPeerPort();
+        info.protocol = PROTOCOL_RTMP;
+        info.status = "off";
+        info.type = _urlParser.type_;
+        info.uri = _urlParser.path_;
+        info.vhost = _urlParser.vhost_;
+
+        MediaHook::instance()->onPlayer(info);
+    }
 }
 
 void RtmpConnection::init()
@@ -830,6 +843,17 @@ void RtmpConnection::responsePlay(const MediaSource::Ptr &src)
                 self->sendRtmpChunks(pkt->csid, *pkt);
             }
         });
+
+        PlayerInfo info;
+        info.ip = _socket->getPeerIp();
+        info.port = _socket->getPeerPort();
+        info.protocol = PROTOCOL_RTMP;
+        info.status = "on";
+        info.type = _urlParser.type_;
+        info.uri = _urlParser.path_;
+        info.vhost = _urlParser.vhost_;
+
+        MediaHook::instance()->onPlayer(info);
     }
 }
 

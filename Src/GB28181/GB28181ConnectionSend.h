@@ -10,6 +10,7 @@
 #include "Net/TcpConnection.h"
 #include "Rtp/RtpPacket.h"
 #include "GB28181MediaSource.h"
+#include "Common/UrlParser.h"
 
 
 using namespace std;
@@ -43,6 +44,7 @@ private:
     int _ssrc = -1;
     string _app;
     string _stream;
+    UrlParser _urlParser;
     shared_ptr<sockaddr> _addr;
     shared_ptr<TimerTask> _task;
     EventLoop::Ptr _loop;

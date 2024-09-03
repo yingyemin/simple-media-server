@@ -9,6 +9,7 @@
 #include "WebrtcRtcpPacket.h"
 #include "WebrtcContextManager.h"
 #include "Codec/H264Track.h"
+#include "Hook/MediaHook.h"
 
 using namespace std;
 
@@ -28,6 +29,7 @@ WebrtcContext::WebrtcContext()
     }
 
     _timeClock.start();
+    _nackClock.start();
     _lastPktClock.start();
 }
 
@@ -43,6 +45,19 @@ WebrtcContext::~WebrtcContext()
     } else if (rtcSrc) {
         rtcSrc->delConnection(this);
         // _source->delOnDetach(this);
+    }
+
+    if (_playReader) {
+        PlayerInfo info;
+        info.ip = _socket->getPeerIp();
+        info.port = _socket->getPeerPort();
+        info.protocol = PROTOCOL_WEBRTC;
+        info.status = "off";
+        info.type = _urlParser.type_;
+        info.uri = _urlParser.path_;
+        info.vhost = _urlParser.vhost_;
+
+        MediaHook::instance()->onPlayer(info);
     }
 }
 
@@ -406,6 +421,16 @@ void WebrtcContext::onManager()
     if (_lastPktClock.startToNow() > timeout) {
         close();
     }
+
+    if (!_isPlayer && _nackClock.startToNow() > 5000) {
+        checkAndSendRtcpNack();
+        _nackClock.update();
+    }
+}
+
+void WebrtcContext::checkAndSendRtcpNack()
+{
+    // vector<uint16_t> vecSeq = _videoSort->inputRtp
 }
 
 void WebrtcContext::sendRtcpPli(int ssrc)
@@ -469,7 +494,17 @@ void WebrtcContext::onRtpPacket(const Socket::Ptr& socket, const RtpPacket::Ptr&
 
     if (rtp->getHeader()->pt == _videoPtInfo->payloadType_) {
         logTrace << "decode rtp";
-        _videoDecodeTrack->decodeRtp(rtpPacket);
+        if (_socket->getSocketType() == SOCKET_TCP) {
+            _videoDecodeTrack->decodeRtp(rtpPacket);
+        } else {
+            _videoSort->inputRtp(rtpPacket);
+        }
+    } else if (rtp->getHeader()->pt == _audioPtInfo->payloadType_) {
+        if (_socket->getSocketType() == SOCKET_TCP) {
+            _audioDecodeTrack->decodeRtp(rtpPacket);
+        } else {
+            _audioSort->inputRtp(rtpPacket);
+        }
     } else {
         // logWarn << "videoDecodeTrack is empty";
     }
@@ -491,6 +526,7 @@ void WebrtcContext::onStunPacket(const Socket::Ptr& socket, const WebrtcStun& st
 	    memcpy(_addr, addr, len);
 
         _loop = socket->getLoop();
+        weak_ptr<WebrtcContext> wSelf = dynamic_pointer_cast<WebrtcContext>(shared_from_this());
 
         if (!_isPlayer) {
             auto rtcSrc = _source.lock();
@@ -502,12 +538,31 @@ void WebrtcContext::onStunPacket(const Socket::Ptr& socket, const WebrtcStun& st
                 if (sdpMediaIter->media_ == "video") {
                     _videoDecodeTrack = make_shared<WebrtcDecodeTrack>(VideoTrackType, VideoTrackType, sdpMediaIter->mapPtInfo_.begin()->second);
                     rtcSrc->addTrack(_videoDecodeTrack);
-                    break;
+                } else if (sdpMediaIter->media_ == "audio") {
+                    _audioDecodeTrack = make_shared<WebrtcDecodeTrack>(AudioTrackType, AudioTrackType, sdpMediaIter->mapPtInfo_.begin()->second);
+                    rtcSrc->addTrack(_audioDecodeTrack);
                 }
             }
+
+            _videoSort = make_shared<RtpSort>(25);
+            _videoSort->setOnRtpPacket([wSelf](const RtpPacket::Ptr& rtp){
+                // logInfo << "decode rtp seq: " << rtp->getSeq() << ", rtp size: " << rtp->size() << ", rtp time: " << rtp->getStamp();
+                auto self = wSelf.lock();
+                if (self) {
+                    self->_videoDecodeTrack->decodeRtp(rtp);
+                }
+            });
+
+            _audioSort = make_shared<RtpSort>(25);
+            _audioSort->setOnRtpPacket([wSelf](const RtpPacket::Ptr& rtp){
+                // logInfo << "decode rtp seq: " << rtp->getSeq() << ", rtp size: " << rtp->size() << ", rtp time: " << rtp->getStamp();
+                auto self = wSelf.lock();
+                if (self) {
+                    self->_audioDecodeTrack->decodeRtp(rtp);
+                }
+            });
         }
 
-        weak_ptr<WebrtcContext> wSelf = dynamic_pointer_cast<WebrtcContext>(shared_from_this());
         _loop->addTimerTask(2000, [wSelf](){
             auto self = wSelf.lock();
             if (!self) {
@@ -791,6 +846,17 @@ void WebrtcContext::startPlay(const MediaSource::Ptr &src)
             
             self->sendRtpPacket(pack);
         });
+
+        PlayerInfo info;
+        info.ip = _socket->getPeerIp();
+        info.port = _socket->getPeerPort();
+        info.protocol = PROTOCOL_WEBRTC;
+        info.status = "on";
+        info.type = _urlParser.type_;
+        info.uri = _urlParser.path_;
+        info.vhost = _urlParser.vhost_;
+
+        MediaHook::instance()->onPlayer(info);
     }
 }
 
@@ -829,6 +895,9 @@ void WebrtcContext::sendRtpPacket(const WebrtcMediaSource::DataType &pack)
     auto pktlist = *(pack.get());
 
     for (auto& packet: pktlist) {
+        int index = packet->getSeq() % 256;
+        _rtpCache[index] = packet;
+
         sendMedia(packet);
     };
 }

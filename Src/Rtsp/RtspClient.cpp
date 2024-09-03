@@ -2,6 +2,7 @@
 #include "Common/Define.h"
 #include "Util/String.h"
 #include "Util/MD5.h"
+#include "Hook/MediaHook.h"
 
 #include <arpa/inet.h>
 
@@ -25,6 +26,19 @@ RtspClient::~RtspClient()
         rtspSrc->release();
     } else if (rtspSrc) {
         rtspSrc->delConnection(this);
+    }
+
+    if (_playReader) {
+        PlayerInfo info;
+        info.ip = _socket->getPeerIp();
+        info.port = _socket->getPeerPort();
+        info.protocol = PROTOCOL_RTSP;
+        info.status = "off";
+        info.type = _localUrlParser.type_;
+        info.uri = _localUrlParser.path_;
+        info.vhost = _localUrlParser.vhost_;
+
+        MediaHook::instance()->onPlayer(info);
     }
 }
 
@@ -544,6 +558,17 @@ void RtspClient::sendPlayOrPublish()
                 }
                 // strong_self->_rtpList.push_back(pack);
             });
+
+            PlayerInfo info;
+            info.ip = _socket->getPeerIp();
+            info.port = _socket->getPeerPort();
+            info.protocol = PROTOCOL_RTSP;
+            info.status = "on";
+            info.type = _localUrlParser.type_;
+            info.uri = _localUrlParser.path_;
+            info.vhost = _localUrlParser.vhost_;
+
+            MediaHook::instance()->onPlayer(info);
         }
     }
 

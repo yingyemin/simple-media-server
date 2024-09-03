@@ -546,6 +546,8 @@ void HttpConnection::handleFlvStream()
     logInfo << "flv mux start";
     flvMux->setLocalIp(_socket->getLocalIp());
     flvMux->setLocalPort(_socket->getLocalPort());
+    flvMux->setPeerIp(_socket->getPeerIp());
+    flvMux->setPeerPort(_socket->getPeerPort());
     flvMux->start();
 
     logInfo << "oncolse";

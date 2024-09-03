@@ -52,3 +52,21 @@ void RtpSort::setOnRtpPacket(const function<void(const RtpPacket::Ptr& rtp)>& cb
 {
     _onRtpPacket = cb;
 }
+
+vector<uint16_t> RtpSort::getLossSeq()
+{
+    int curSeq = -1;
+    vector<uint16_t> vecSeq;
+    for (auto& iter : _mapRtp) {
+        if (curSeq == -1) {
+            curSeq = iter.first;
+            continue;
+        }
+        uint16_t diff = iter.first - (uint16_t)curSeq;
+        for (int i = 1; i < diff; ++i) {
+            vecSeq.push_back(curSeq + i);
+        }
+    }
+
+    return vecSeq;
+}

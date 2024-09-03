@@ -2,6 +2,7 @@
 #include "Rtmp.h"
 #include "Common/Define.h"
 #include "Util/String.h"
+#include "Hook/MediaHook.h"
 
 // mutex RtmpClient::_mapMtx;
 // unordered_map<string, RtmpClient::Ptr> RtmpClient::_mapRtmpClient;
@@ -27,6 +28,19 @@ RtmpClient::~RtmpClient()
         rtmpSrc->release();
     } else if (rtmpSrc) {
         rtmpSrc->delConnection(this);
+    }
+
+    if (_playReader) {
+        PlayerInfo info;
+        info.ip = _socket->getPeerIp();
+        info.port = _socket->getPeerPort();
+        info.protocol = PROTOCOL_RTMP;
+        info.status = "off";
+        info.type = _localUrlParser.type_;
+        info.uri = _localUrlParser.path_;
+        info.vhost = _localUrlParser.vhost_;
+
+        MediaHook::instance()->onPlayer(info);
     }
 }
 
@@ -614,6 +628,17 @@ void RtmpClient::onPublish(const MediaSource::Ptr &src)
                 self->sendRtmpChunks(pkt->csid, *pkt);
             }
         });
+
+        PlayerInfo info;
+        info.ip = _socket->getPeerIp();
+        info.port = _socket->getPeerPort();
+        info.protocol = PROTOCOL_RTMP;
+        info.status = "on";
+        info.type = _localUrlParser.type_;
+        info.uri = _localUrlParser.path_;
+        info.vhost = _localUrlParser.vhost_;
+
+        MediaHook::instance()->onPlayer(info);
     }
 }
 

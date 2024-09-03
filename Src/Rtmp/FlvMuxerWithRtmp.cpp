@@ -5,6 +5,7 @@
 #include "RtmpMessage.h"
 #include "Common/Define.h"
 #include "Util/String.h"
+#include "Hook/MediaHook.h"
 
 FlvMuxerWithRtmp::FlvMuxerWithRtmp(const UrlParser& urlParser, const EventLoop::Ptr& loop)
 	:_loop(loop)
@@ -24,6 +25,19 @@ FlvMuxerWithRtmp::~FlvMuxerWithRtmp()
 	// if (_onDetach) {
 	// 	_onDetach();
 	// }
+
+	if (_playReader) {
+		PlayerInfo info;
+        info.ip = _peerIp;
+        info.port = _peerPort;
+        info.protocol = PROTOCOL_HTTP_FLV;
+        info.status = "off";
+        info.type = _urlParser.type_;
+        info.uri = _urlParser.path_;
+        info.vhost = _urlParser.vhost_;
+
+        MediaHook::instance()->onPlayer(info);
+	}
 }
 
 void FlvMuxerWithRtmp::onPlay()
@@ -66,8 +80,8 @@ void FlvMuxerWithRtmp::onPlay()
 			if (!self) {
 				return ret;
 			}
-			ret.ip_ = self->_localIp;
-			ret.port_ = self->_localPort;
+			ret.ip_ = self->_peerIp;
+			ret.port_ = self->_peerPort;
 			ret.protocol_ = PROTOCOL_HTTP_FLV;
 			return ret;
 		});
@@ -100,6 +114,17 @@ void FlvMuxerWithRtmp::onPlay()
 				self->sendMediaData(pkt->type_id, pkt->abs_timestamp, pkt->payload, pkt->length);
 			}
 		});
+
+		PlayerInfo info;
+        info.ip = _peerIp;
+        info.port = _peerPort;
+        info.protocol = PROTOCOL_HTTP_FLV;
+        info.status = "on";
+        info.type = _urlParser.type_;
+        info.uri = _urlParser.path_;
+        info.vhost = _urlParser.vhost_;
+
+        MediaHook::instance()->onPlayer(info);
 	}
 }
 

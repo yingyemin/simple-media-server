@@ -9,6 +9,7 @@
 #include "Logger.h"
 #include "Util/String.h"
 #include "Common/Define.h"
+#include "Hook/MediaHook.h"
 
 using namespace std;
 
@@ -40,6 +41,19 @@ GB28181ConnectionSend::~GB28181ConnectionSend()
 	if (gbSrc) {
 		gbSrc->delConnection(this);
 	}
+
+    if (_playReader) {
+        PlayerInfo info;
+        info.ip = _socket->getPeerIp();
+        info.port = _socket->getPeerPort();
+        info.protocol = PROTOCOL_GB28181;
+        info.status = "off";
+        info.type = _urlParser.type_;
+        info.uri = _urlParser.path_;
+        info.vhost = _urlParser.vhost_;
+
+        MediaHook::instance()->onPlayer(info);
+    }
 }
 
 void GB28181ConnectionSend::init()
@@ -73,12 +87,12 @@ void GB28181ConnectionSend::init()
         if (!self) {
             return nullptr;
         }
-        UrlParser parser;
-        parser.path_ = uri;
-        parser.vhost_ = DEFAULT_VHOST;
-        parser.protocol_ = PROTOCOL_GB28181;
-        parser.type_ = DEFAULT_TYPE;
-        return make_shared<GB28181MediaSource>(parser, nullptr, true);
+        // UrlParser parser;
+        self->_urlParser.path_ = uri;
+        self->_urlParser.vhost_ = DEFAULT_VHOST;
+        self->_urlParser.protocol_ = PROTOCOL_GB28181;
+        self->_urlParser.type_ = DEFAULT_TYPE;
+        return make_shared<GB28181MediaSource>(self->_urlParser, nullptr, true);
     }, this);
 
     if (_transType != 1) {
@@ -145,6 +159,17 @@ void GB28181ConnectionSend::initReader()
                 self->sendRtpPacket(pack);
             // }
         });
+
+        PlayerInfo info;
+        info.ip = _socket->getPeerIp();
+        info.port = _socket->getPeerPort();
+        info.protocol = PROTOCOL_GB28181;
+        info.status = "on";
+        info.type = _urlParser.type_;
+        info.uri = _urlParser.path_;
+        info.vhost = _urlParser.vhost_;
+
+        MediaHook::instance()->onPlayer(info);
     }
 }
 

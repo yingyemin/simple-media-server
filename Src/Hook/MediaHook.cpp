@@ -181,6 +181,34 @@ void MediaHook::onPlay(const PlayInfo& info, const function<void(const PlayRespo
     }
 }
 
+void MediaHook::onPlayer(const PlayerInfo& info)
+{
+    json value;
+    value["protocol"] = info.protocol;
+    value["type"] = info.type;
+    value["uri"] = info.uri;
+    value["vhost"] = info.vhost;
+    value["ip"] = info.ip;
+    value["status"] = info.status;
+    value["port"] = info.port;
+
+    // static string type = Config::instance()->getAndListen([](const json& config){
+    //     type = Config::instance()->get("Hook", "Type");
+    //     logInfo << "Hook type: " << type;
+    // }, "Hook", "Type");
+
+    if (_type == "http") {
+        static string url = Config::instance()->getAndListen([](const json& config){
+            url = Config::instance()->get("Hook", "Http", "onPlayer");
+            logInfo << "Hook url: " << url;
+        }, "Hook", "Http", "onPlayer");
+
+        reportByHttp(url, "GET", value.dump(), [](const string& err, const nlohmann::json& res){
+            
+        });
+    }
+}
+
 void MediaHook::onNonePlayer(const string& protocol, const string& uri, 
             const string& vhost, const string& type)
 {

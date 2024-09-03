@@ -20,6 +20,9 @@ public:
 
 	void setLocalIp(const string& ip) {_localIp = ip;}
 	void setLocalPort(int port) {_localPort = port;}
+
+	void setPeerIp(const string& ip) {_peerIp = ip;}
+	void setPeerPort(int port) {_peerPort = port;}
 	
 	virtual bool ssPlaying()  { return is_playing_; }
 	virtual bool ssPlayer()  { return true; }
@@ -40,6 +43,8 @@ private:
 private:
 	string _localIp;
 	int _localPort = 0;
+	string _peerIp;
+	int _peerPort = 0;
 	EventLoop::Ptr _loop;
 
 	std::shared_ptr<char> avc_sequence_header_;

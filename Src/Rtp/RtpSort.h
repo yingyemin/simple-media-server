@@ -36,6 +36,7 @@ public:
     void inputRtp(const RtpPacket::Ptr& rtp);
     void onRtpPacket(const RtpPacket::Ptr& rtp);
     void setOnRtpPacket(const function<void(const RtpPacket::Ptr& rtp)>& cb);
+    vector<uint16_t> getLossSeq();
     
 private:
     bool _firstRtp = true;

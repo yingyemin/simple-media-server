@@ -34,6 +34,19 @@ RtspConnection::~RtspConnection()
         rtspSrc->delConnection(this);
         // rtspSrc->delOnDetach(this);
     }
+
+    if (_playReader) {
+        PlayerInfo info;
+        info.ip = _socket->getPeerIp();
+        info.port = _socket->getPeerPort();
+        info.protocol = PROTOCOL_RTSP;
+        info.status = "off";
+        info.type = _urlParser.type_;
+        info.uri = _urlParser.path_;
+        info.vhost = _urlParser.vhost_;
+
+        MediaHook::instance()->onPlayer(info);
+    }
 }
 
 void RtspConnection::init()
@@ -814,6 +827,17 @@ void RtspConnection::handlePlay()
             }
             // strong_self->_rtpList.push_back(pack);
         });
+
+        PlayerInfo info;
+        info.ip = _socket->getPeerIp();
+        info.port = _socket->getPeerPort();
+        info.protocol = PROTOCOL_RTSP;
+        info.status = "on";
+        info.type = _urlParser.type_;
+        info.uri = _urlParser.path_;
+        info.vhost = _urlParser.vhost_;
+
+        MediaHook::instance()->onPlayer(info);
     }
 }
 

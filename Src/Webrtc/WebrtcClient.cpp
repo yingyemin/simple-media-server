@@ -14,6 +14,7 @@
 #include "WebrtcContext.h"
 #include "Webrtc.h"
 #include "Codec/H264Track.h"
+#include "Hook/MediaHook.h"
 
 using namespace std;
 
@@ -43,6 +44,19 @@ WebrtcClient::~WebrtcClient()
     if (_dtlsTimeTask) {
         _dtlsTimeTask->quit = false;
     }
+
+    if (_playReader) {
+        PlayerInfo info;
+        info.ip = _socket->getPeerIp();
+        info.port = _socket->getPeerPort();
+        info.protocol = PROTOCOL_WEBRTC;
+        info.status = "off";
+        info.type = _urlParser.type_;
+        info.uri = _urlParser.path_;
+        info.vhost = _urlParser.vhost_;
+
+        MediaHook::instance()->onPlayer(info);
+    }
 }
 
 void WebrtcClient::start(const string& localIp, int localPort, const string& url, int timeout)
@@ -63,6 +77,15 @@ void WebrtcClient::start(const string& localIp, int localPort, const string& url
     value["api"] = apiUrl;
 
     weak_ptr<WebrtcClient> wSelf = shared_from_this();
+    _parser.setOnRtcPacket([wSelf](const char* data, int len){
+        auto self = wSelf.lock();
+        if(!self){
+            return;
+        }
+        
+        self->onRtcPacket(data + 2, len - 2);
+    });
+
     shared_ptr<HttpClientApi> client = make_shared<HttpClientApi>(EventLoop::getCurrentLoop());
     client->addHeader("Content-Type", "application/json;charset=UTF-8");
     client->setMethod("GET");
@@ -520,7 +543,18 @@ void WebrtcClient::onConnected()
 
 void WebrtcClient::onRead(const StreamBuffer::Ptr& buffer)
 {
-    int pktType = guessType(buffer);
+    if (_socket->getSocketType() == SOCKET_TCP) {
+        _parser.parse(buffer->data(), buffer->size());
+    } else {
+        onRtcPacket(buffer->data(), buffer->size());
+    }
+}
+
+void WebrtcClient::onRtcPacket(const char* data, int len)
+{
+    auto buffer = StreamBuffer::create();
+    buffer->assign(data, len);int pktType = guessType(buffer);
+
     logTrace << "get a packet: " << pktType;
     switch(pktType) {
         case kStunPkt: {
@@ -734,6 +768,17 @@ void WebrtcClient::startPlay(const MediaSource::Ptr &src)
             
             self->sendRtpPacket(pack);
         });
+
+        PlayerInfo info;
+        info.ip = _socket->getPeerIp();
+        info.port = _socket->getPeerPort();
+        info.protocol = PROTOCOL_WEBRTC;
+        info.status = "on";
+        info.type = _urlParser.type_;
+        info.uri = _urlParser.path_;
+        info.vhost = _urlParser.vhost_;
+
+        MediaHook::instance()->onPlayer(info);
     }
 }
 
