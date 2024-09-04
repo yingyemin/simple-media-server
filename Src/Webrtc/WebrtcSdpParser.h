@@ -30,6 +30,15 @@ public:
 
     string fmtp_;
     vector<string> rtcpFbs_;
+
+    // 关联 ssrcinfo
+    uint32_t ssrc_;
+
+    // 关联rtx
+    uint32_t rtxPt_;
+
+    // 如果是rtx，关联源pt
+    uint32_t origPt_;
 };
 
 class CandidateInfo

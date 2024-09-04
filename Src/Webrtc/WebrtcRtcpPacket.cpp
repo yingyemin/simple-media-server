@@ -345,7 +345,6 @@ void RtcpNack::parse()
     while (index + 4 < _length) {
         auto pid = readUint16BE(data + index);
         auto blp = readUint16BE(data + index + 2);
-
         _lossSn.push_back(pid);
         auto nack_blp = std::bitset<16>(blp);
         for(int i=0; i<16; i++) {
@@ -354,6 +353,36 @@ void RtcpNack::parse()
 			}
 		}
     }
+}
+
+StreamBuffer::Ptr RtcpNack::encode()
+{
+    auto buffer = StreamBuffer::create();
+    buffer->setCapacity(17);
+
+    RtcpHeader header;
+    header.version = 2;
+    header.padding = 0;
+    header.rc = RtcpRtpFBFmt_NACK;
+    header.type = RtcpType_RTPFB;
+    header.length = 3;
+    header.ssrc = _ssrc;
+
+    memcpy(buffer->data(), &header, 8);
+    writeUint32BE(buffer->data() + 8, _ssrc);
+
+    uint16_t pid = *_lossSn.begin();
+    writeUint16BE(buffer->data() + 12, pid);
+    uint16_t blp = 0;
+    for (auto& sn : _lossSn) {
+        if (sn - pid > 15) {
+            break;
+        }
+        blp |= 1 << (15 - (sn - pid));
+    }
+    writeUint16BE(buffer->data() + 14, blp);
+
+    return buffer;
 }
 
 RtcpTWCC::RtcpTWCC(const StreamBuffer::Ptr& buffer, int pos)

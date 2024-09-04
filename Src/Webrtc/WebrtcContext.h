@@ -69,6 +69,18 @@ private:
     int _videoFirst = 0;
     uint64_t _lastRecvTime;
 
+    WebrtcPtInfo::Ptr _videoRedPtInfo;
+    WebrtcPtInfo::Ptr _audioRedPtInfo;
+
+    WebrtcPtInfo::Ptr _videoUlpfecPtInfo;
+    WebrtcPtInfo::Ptr _audioUlpfecPtInfo;
+
+    WebrtcPtInfo::Ptr _videoFlexfecPtInfo;
+    WebrtcPtInfo::Ptr _audioFlexfecPtInfo;
+
+    WebrtcPtInfo::Ptr _videoRtxPtInfo;
+    WebrtcPtInfo::Ptr _audioRtxPtInfo;
+
     uint64_t _sendRtpPack_10s;
     uint64_t _sendRtcpNackPack_10s;
     uint64_t _rtpLoss_10s;
@@ -85,7 +97,6 @@ private:
     string _icePwd;
     string _username;
     TimeClock _timeClock;
-    TimeClock _nackClock;
     TimeClock _lastPktClock;
     UrlParser _urlParser;
     RtpSort::Ptr _videoSort;

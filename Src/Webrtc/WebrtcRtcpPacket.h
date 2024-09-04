@@ -192,14 +192,19 @@ class RtcpNack : public RtcpPacket
 {
 public:
     RtcpNack(const StreamBuffer::Ptr& buffer, int pos);
+    RtcpNack() {}
 
 public:
     void parse();
-    vector<int> getLossPacket() {return _lossSn;}
+    vector<uint16_t> getLossPacket() {return _lossSn;}
+
+    StreamBuffer::Ptr encode();
+    void setSsrc(uint32_t ssrc) {_ssrc = ssrc;}
+    void setLossSn(const vector<uint16_t>& lossSn) {_lossSn = lossSn;}
 
 private:
     uint32_t _ssrc;
-    vector<int> _lossSn;
+    vector<uint16_t> _lossSn;
 };
 
 class RtcpTWCC : public RtcpPacket

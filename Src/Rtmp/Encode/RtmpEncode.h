@@ -12,7 +12,7 @@
 
 using namespace std;
 
-class RtmpEncode : public enable_shared_from_this<RtmpEncode>
+class RtmpEncode // : public enable_shared_from_this<RtmpEncode>
 {
 public:
     using Ptr = shared_ptr<RtmpEncode>;

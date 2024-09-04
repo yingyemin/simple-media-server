@@ -6,6 +6,7 @@
 #include "WebrtcSdpParser.h"
 #include "Logger.h"
 #include "Util/String.h"
+#include "Common/Config.h"
 
 using namespace std;
 
@@ -417,6 +418,17 @@ void WebrtcSdpMedia::parseFmtp(const string& value)
     }
 
     iter->second->fmtp_ = vecValue[1];
+
+    if (iter->second->codec_ == "rtx") {
+        if (startWith(iter->second->fmtp_, "apt=")) {
+            auto payloadType = stoi(iter->second->fmtp_.substr(4));
+            auto iterOrig = mapPtInfo_.find(payloadType);
+            if (iterOrig != mapPtInfo_.end()) {
+                iterOrig->second->rtxPt_ = pt;
+                iter->second->origPt_ = payloadType;
+            }
+        }
+    }
 }
 
 void WebrtcSdpMedia::parseMid(const string& value)
@@ -551,6 +563,14 @@ void WebrtcSdpMedia::encode(stringstream& ss)
         iter.second->encode(ss);
     }
 
+    for (auto& iter : mapSsrcGroup_) {
+        ss << "a=ssrc-group:" << iter.first;
+        for (auto& ssrcIter : iter.second) {
+            ss << " " << ssrcIter;
+        }
+        ss << "\r\n";
+    }
+
     for (auto iter : mapSsrcInfo_) {
         iter.second->encode(ss);
     }
@@ -585,6 +605,14 @@ void SsrcInfo::encode(stringstream& ss)
 
 void WebrtcPtInfo::encode(stringstream& ss)
 {
+    static bool enableNack = Config::instance()->getAndListen([](const json& config){
+        enableNack = Config::instance()->get("Webrtc", "Server", "Server1", "enableNack");
+    }, "Webrtc", "Server", "Server1", "enableNack");
+
+    static bool enableTwcc = Config::instance()->getAndListen([](const json& config){
+        enableTwcc = Config::instance()->get("Webrtc", "Server", "Server1", "enableTwcc");
+    }, "Webrtc", "Server", "Server1", "enableTwcc");
+
     ss << "a=rtpmap:" << payloadType_ << " " << codec_ << "/" << samplerate_;
     if (!codecExt_.empty()) {
         ss << "/" << codecExt_;
@@ -592,7 +620,10 @@ void WebrtcPtInfo::encode(stringstream& ss)
     ss << "\r\n";
 
     for (auto iter : rtcpFbs_) {
-        ss << "a=rtcp-fb:" << payloadType_ << " " << iter << "\r\n";
+        if ((enableNack && (iter.find("nack") != string::npos))
+            || (enableTwcc && (iter.find("transport-cc") != string::npos))) {
+            ss << "a=rtcp-fb:" << payloadType_ << " " << iter << "\r\n";
+        }
     }
 
     if (!fmtp_.empty()) {

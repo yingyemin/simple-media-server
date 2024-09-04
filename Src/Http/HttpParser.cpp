@@ -201,7 +201,7 @@ void HttpParser::clear()
     // logTrace << "HttpParser::clear() : " << this;
     // _contentLen = -1;
     // _stage = 1;
-    // _content = "";
+    _content = "";
     // _method = "";
     // _url = "";
     // _version = "";

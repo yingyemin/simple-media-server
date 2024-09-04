@@ -29,7 +29,6 @@ WebrtcContext::WebrtcContext()
     }
 
     _timeClock.start();
-    _nackClock.start();
     _lastPktClock.start();
 }
 
@@ -149,7 +148,7 @@ void WebrtcContext::initPublisher(const string& appName, const string& streamNam
     shared_ptr<TrackInfo> audioInfo = make_shared<TrackInfo>();
     
     videoInfo->codec_ = "h264";
-    audioInfo->codec_ = "opus";
+    audioInfo->codec_ = "g711a";
 
     _remoteSdp = make_shared<WebrtcSdp>();
     _remoteSdp->parse(sdp);
@@ -238,6 +237,26 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
 {
     int videoTrackNum = 0;
     WebrtcPtInfo::Ptr remotePtInfo;
+
+    static bool enableNack = Config::instance()->getAndListen([](const json& config){
+        enableNack = Config::instance()->get("Webrtc", "Server", "Server1", "enableNack");
+    }, "Webrtc", "Server", "Server1", "enableNack");
+
+    static bool enableTwcc = Config::instance()->getAndListen([](const json& config){
+        enableTwcc = Config::instance()->get("Webrtc", "Server", "Server1", "enableTwcc");
+    }, "Webrtc", "Server", "Server1", "enableTwcc");
+
+    static bool enableRtx = Config::instance()->getAndListen([](const json& config){
+        enableRtx = Config::instance()->get("Webrtc", "Server", "Server1", "enableRtx");
+    }, "Webrtc", "Server", "Server1", "enableRtx");
+
+    static bool enableRed = Config::instance()->getAndListen([](const json& config){
+        enableRed = Config::instance()->get("Webrtc", "Server", "Server1", "enableRed");
+    }, "Webrtc", "Server", "Server1", "enableRed");
+
+    static bool enableUlpfec = Config::instance()->getAndListen([](const json& config){
+        enableUlpfec = Config::instance()->get("Webrtc", "Server", "Server1", "enableUlpfec");
+    }, "Webrtc", "Server", "Server1", "enableUlpfec");
     
     for (auto sdpMedia : _remoteSdp->_vecSdpMedia) {
         shared_ptr<WebrtcSdpMedia> localSdpMedia = make_shared<WebrtcSdpMedia>();
@@ -282,6 +301,20 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
                 }
             }
 
+            for (auto ptIter : sdpMedia->mapPtInfo_) {
+                if (enableRtx && ptIter.second->codec_ == "rtx" && ptIter.second->payloadType_ == remotePtInfo->rtxPt_) {
+                    _videoRtxPtInfo = ptIter.second;
+                }
+
+                if (enableRed && ptIter.second->codec_ == "red") {
+                    _videoRedPtInfo = ptIter.second;
+                }
+
+                if (enableUlpfec && ptIter.second->codec_ == "ulpfec") {
+                    _videoUlpfecPtInfo = ptIter.second;
+                }
+            }
+
             _videoPtInfo = remotePtInfo;
         } else {
             if (!videoTrackNum) {
@@ -309,6 +342,20 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
                 }
             }
 
+            for (auto ptIter : sdpMedia->mapPtInfo_) {
+                if (enableRtx && ptIter.second->codec_ == "rtx") {
+                    _audioRtxPtInfo = ptIter.second;
+                }
+
+                if (enableRed && ptIter.second->codec_ == "red") {
+                    _audioRedPtInfo = ptIter.second;
+                }
+
+                if (enableUlpfec && ptIter.second->codec_ == "ulpfec") {
+                    _audioUlpfecPtInfo = ptIter.second;
+                }
+            }
+
             if (!findFlag && opusPtInfo) {
                 remotePtInfo = opusPtInfo;
             }
@@ -326,11 +373,28 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
             auto ssrcInfo = make_shared<SsrcInfo>();
             if (sdpMedia->media_ == "video") {
                 ssrcInfo->ssrc_ = 20000;//(!videoInfo || videoInfo->trackType_.empty()) ? 0 : 20000;
+                if (_videoRtxPtInfo) {
+                    localSdpMedia->mapPtInfo_.emplace(_videoRtxPtInfo->payloadType_, _videoRtxPtInfo);
+                    localSdpMedia->mapSsrcGroup_["FID"].push_back(ssrcInfo->ssrc_);
+                    localSdpMedia->mapSsrcGroup_["FID"].push_back(ssrcInfo->ssrc_ + 1);
+                    
+                    auto rtxSsrcInfo = make_shared<SsrcInfo>();
+                    rtxSsrcInfo->ssrc_ = 20001;
+                    rtxSsrcInfo->cname_ = _path;
+                    localSdpMedia->mapSsrcInfo_.emplace(rtxSsrcInfo->ssrc_, rtxSsrcInfo);
+                }
+                if (_videoRedPtInfo) {
+                    localSdpMedia->mapPtInfo_.emplace(_videoRedPtInfo->payloadType_, _videoRedPtInfo);
+                }
+                if (_videoUlpfecPtInfo) {
+                    localSdpMedia->mapPtInfo_.emplace(_videoUlpfecPtInfo->payloadType_, _videoUlpfecPtInfo);
+                }
             } else {
                 ssrcInfo->ssrc_ = 10000;//(!audioInfo || audioInfo->trackType_.empty()) ? 0 : 10000;
             }
             ssrcInfo->cname_ = _path;
             localSdpMedia->mapSsrcInfo_.emplace(ssrcInfo->ssrc_, ssrcInfo);
+            remotePtInfo->ssrc_ = ssrcInfo->ssrc_;
 
             switch (sdpMedia->sendRecvType_)
             {
@@ -421,16 +485,30 @@ void WebrtcContext::onManager()
     if (_lastPktClock.startToNow() > timeout) {
         close();
     }
-
-    if (!_isPlayer && _nackClock.startToNow() > 5000) {
-        checkAndSendRtcpNack();
-        _nackClock.update();
-    }
 }
 
 void WebrtcContext::checkAndSendRtcpNack()
 {
-    // vector<uint16_t> vecSeq = _videoSort->inputRtp
+    vector<uint16_t> videoVecSeq = _videoSort->getLossSeq();
+    vector<uint16_t> audioVecSeq = _audioSort->getLossSeq();
+
+    if (!videoVecSeq.empty()) {
+        RtcpNack videoNack;
+        videoNack.setSsrc(_videoPtInfo->ssrc_);
+        videoNack.setLossSn(videoVecSeq);
+        auto videoNackBuffer = videoNack.encode();
+
+        _socket->send(videoNackBuffer);
+    }
+
+    if (!audioVecSeq.empty()) {
+        RtcpNack audioNack;
+        audioNack.setSsrc(_audioPtInfo->ssrc_);
+        audioNack.setLossSn(audioVecSeq);
+        auto audioNackBuffer = audioNack.encode();
+
+        _socket->send(audioNackBuffer);
+    }
 }
 
 void WebrtcContext::sendRtcpPli(int ssrc)
@@ -478,6 +556,19 @@ void WebrtcContext::onRtpPacket(const Socket::Ptr& socket, const RtpPacket::Ptr&
 
             return 2000;
         }, nullptr);
+
+        if (!_isPlayer) {
+            _loop->addTimerTask(50, [wSelf, ssrc](){
+                auto self = wSelf.lock();
+                if (!self) {
+                    return 0;
+                }
+
+                self->checkAndSendRtcpNack();
+
+                return 50;
+            }, nullptr);
+        }
 
         _rtcpPliTimerCreated = true;
     }
@@ -536,11 +627,13 @@ void WebrtcContext::onStunPacket(const Socket::Ptr& socket, const WebrtcStun& st
             
             for (auto sdpMediaIter : _localSdp->_vecSdpMedia) {
                 if (sdpMediaIter->media_ == "video") {
-                    _videoDecodeTrack = make_shared<WebrtcDecodeTrack>(VideoTrackType, VideoTrackType, sdpMediaIter->mapPtInfo_.begin()->second);
+                    _videoDecodeTrack = make_shared<WebrtcDecodeTrack>(VideoTrackType, VideoTrackType, _videoPtInfo/*sdpMediaIter->mapPtInfo_.begin()->second*/);
                     rtcSrc->addTrack(_videoDecodeTrack);
                 } else if (sdpMediaIter->media_ == "audio") {
-                    _audioDecodeTrack = make_shared<WebrtcDecodeTrack>(AudioTrackType, AudioTrackType, sdpMediaIter->mapPtInfo_.begin()->second);
-                    rtcSrc->addTrack(_audioDecodeTrack);
+                    _audioDecodeTrack = make_shared<WebrtcDecodeTrack>(AudioTrackType, AudioTrackType, _audioPtInfo/*sdpMediaIter->mapPtInfo_.begin()->second*/);
+                    if (_audioDecodeTrack->getTrackInfo()) {
+                        rtcSrc->addTrack(_audioDecodeTrack);
+                    }
                 }
             }
 
