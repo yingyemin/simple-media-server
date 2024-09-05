@@ -87,28 +87,30 @@ public:
 
     static RtpPacket::Ptr create(const shared_ptr<TrackInfo>& trackInfo, int len, uint64_t pts, uint16_t seq, bool mark);
 
+    virtual void parse() {}
     // 获取rtp头
-    RtpHeader *getHeader();
+    virtual RtpHeader *getHeader();
     // const RtpHeader *getHeader() const;
 
     // 打印调试信息
     // std::string dumpString() const;
 
     // 主机字节序的seq
-    uint16_t getSeq();
-    uint32_t getStamp();
+    virtual uint16_t getSeq();
+    virtual uint32_t getStamp();
     // 主机字节序的时间戳，已经转换为毫秒
-    uint64_t getStampMS(bool ntp = false);
+    virtual uint64_t getStampMS(bool ntp = false);
     // 主机字节序的ssrc
-    uint32_t getSSRC();
+    virtual uint32_t getSSRC();
     // 有效负载，跳过csrc、ext
-    uint8_t *getPayload();
+    virtual uint8_t *getPayload();
     // 有效负载长度，不包括csrc、ext、padding
-    size_t getPayloadSize();
-    char* data();
-    size_t size();
-    StreamBuffer::Ptr buffer();
+    virtual size_t getPayloadSize();
+    virtual char* data();
+    virtual size_t size();
+    virtual StreamBuffer::Ptr buffer();
 
+public:
     // 音视频类型
     string type_;
     // 音频为采样率，视频一般为90000

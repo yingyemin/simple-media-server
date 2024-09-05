@@ -309,68 +309,68 @@ uint8_t WebrtcRtpExt::getFramemarkingTID() const {
 
 /////////////////////////////////WebrtcRtpHeader/////////////////////////////
 
-size_t WebrtcRtpHeader::getCsrcSize() const {
-    // 每个csrc占用4字节
-    return csrc << 2;
-}
+// size_t WebrtcRtpHeader::getCsrcSize() const {
+//     // 每个csrc占用4字节
+//     return csrc << 2;
+// }
 
-uint8_t *WebrtcRtpHeader::getCsrcData() {
-    if (!csrc) {
-        return nullptr;
-    }
-    return &payload;
-}
+// uint8_t *WebrtcRtpHeader::getCsrcData() {
+//     if (!csrc) {
+//         return nullptr;
+//     }
+//     return &payload;
+// }
 
-size_t WebrtcRtpHeader::getExtSize() const {
-    // rtp有ext
-    if (!ext) {
-        return 0;
-    }
-    auto ext_ptr = &payload + getCsrcSize();
-    // uint16_t reserved = AV_RB16(ext_ptr);
-    // 每个ext占用4字节
-    return AV_RB16(ext_ptr + 2) << 2;
-}
+// size_t WebrtcRtpHeader::getExtSize() const {
+//     // rtp有ext
+//     if (!ext) {
+//         return 0;
+//     }
+//     auto ext_ptr = &payload + getCsrcSize();
+//     // uint16_t reserved = AV_RB16(ext_ptr);
+//     // 每个ext占用4字节
+//     return AV_RB16(ext_ptr + 2) << 2;
+// }
 
-uint16_t WebrtcRtpHeader::getExtReserved() const {
-    // rtp有ext
-    if (!ext) {
-        return 0;
-    }
-    auto ext_ptr = &payload + getCsrcSize();
-    return AV_RB16(ext_ptr);
-}
+// uint16_t WebrtcRtpHeader::getExtReserved() const {
+//     // rtp有ext
+//     if (!ext) {
+//         return 0;
+//     }
+//     auto ext_ptr = &payload + getCsrcSize();
+//     return AV_RB16(ext_ptr);
+// }
 
-uint8_t *WebrtcRtpHeader::getExtData() {
-    if (!ext) {
-        return nullptr;
-    }
-    auto ext_ptr = &payload + getCsrcSize();
-    // 多出的4个字节分别为reserved、ext_len
-    return ext_ptr + 4;
-}
+// uint8_t *WebrtcRtpHeader::getExtData() {
+//     if (!ext) {
+//         return nullptr;
+//     }
+//     auto ext_ptr = &payload + getCsrcSize();
+//     // 多出的4个字节分别为reserved、ext_len
+//     return ext_ptr + 4;
+// }
 
-size_t WebrtcRtpHeader::getPayloadOffset() const {
-    // 有ext时，还需要忽略reserved、ext_len 4个字节
-    return getCsrcSize() + (ext ? (4 + getExtSize()) : 0);
-}
+// size_t WebrtcRtpHeader::getPayloadOffset() const {
+//     // 有ext时，还需要忽略reserved、ext_len 4个字节
+//     return getCsrcSize() + (ext ? (4 + getExtSize()) : 0);
+// }
 
-uint8_t *WebrtcRtpHeader::getPayloadData() {
-    return &payload + getPayloadOffset();
-}
+// uint8_t *WebrtcRtpHeader::getPayloadData() {
+//     return &payload + getPayloadOffset();
+// }
 
-size_t WebrtcRtpHeader::getPaddingSize(size_t rtp_size) const {
-    if (!padding) {
-        return 0;
-    }
-    auto end = (uint8_t *)this + rtp_size - 1;
-    return *end;
-}
+// size_t WebrtcRtpHeader::getPaddingSize(size_t rtp_size) const {
+//     if (!padding) {
+//         return 0;
+//     }
+//     auto end = (uint8_t *)this + rtp_size - 1;
+//     return *end;
+// }
 
-ssize_t WebrtcRtpHeader::getPayloadSize(size_t rtp_size) const {
-    auto invalid_size = getPayloadOffset() + getPaddingSize(rtp_size);
-    return (ssize_t)rtp_size - invalid_size - WebrtcRtpPacket::kRtpHeaderSize;
-}
+// ssize_t WebrtcRtpHeader::getPayloadSize(size_t rtp_size) const {
+//     auto invalid_size = getPayloadOffset() + getPaddingSize(rtp_size);
+//     return (ssize_t)rtp_size - invalid_size - WebrtcRtpPacket::kRtpHeaderSize;
+// }
 
 // string WebrtcRtpHeader::dumpString(size_t rtp_size) const {
 //     _StrPrinter printer;
@@ -392,7 +392,8 @@ ssize_t WebrtcRtpHeader::getPayloadSize(size_t rtp_size) const {
 /////////////////////////////////WebrtcRtpPacket//////////////////////////////////////
 
 WebrtcRtpPacket::WebrtcRtpPacket(const StreamBuffer::Ptr& buffer, int rtpOverTcpHeaderSize)
-    :_rtpOverTcpHeaderSize(rtpOverTcpHeaderSize)
+    :RtpPacket(buffer, rtpOverTcpHeaderSize)
+    ,_rtpOverTcpHeaderSize(rtpOverTcpHeaderSize)
 {
     _data = StreamBuffer::create();
     _size = buffer->size() + _rtpOverTcpHeaderSize;
@@ -404,16 +405,17 @@ WebrtcRtpPacket::WebrtcRtpPacket(const StreamBuffer::Ptr& buffer, int rtpOverTcp
         // logInfo << "buffer size: " << buffer->size();
         _data->assign(buffer->data(), _size);
     }
-    _header = (WebrtcRtpHeader *)(data() + _rtpOverTcpHeaderSize);
+    _header = (RtpHeader *)(data() + _rtpOverTcpHeaderSize);
 }
 
 WebrtcRtpPacket::WebrtcRtpPacket(const int length, int rtpOverTcpHeaderSize)
-    :_rtpOverTcpHeaderSize(rtpOverTcpHeaderSize)
+    :RtpPacket(length, rtpOverTcpHeaderSize)
+    ,_rtpOverTcpHeaderSize(rtpOverTcpHeaderSize)
 {
     _data = StreamBuffer::create();
     _size = length + rtpOverTcpHeaderSize;
     _data->setCapacity(_size + 1);
-    _header = (WebrtcRtpHeader *)(data() + _rtpOverTcpHeaderSize);
+    _header = (RtpHeader *)(data() + _rtpOverTcpHeaderSize);
 }
 
 // WebrtcRtpPacket::Ptr WebrtcRtpPacket::create(const shared_ptr<TrackInfo>& trackInfo, int len, uint64_t pts, uint16_t seq, bool mark)
@@ -421,7 +423,7 @@ WebrtcRtpPacket::WebrtcRtpPacket(const int length, int rtpOverTcpHeaderSize)
 //     // StreamBuffer::Ptr buffer = StreamBuffer::create();
 //     // buffer->setCapacity(len + 1);
 //     WebrtcRtpPacket::Ptr rtp = make_shared<WebrtcRtpPacket>(len, 4);
-//     WebrtcRtpHeader* header = rtp->getHeader();
+//     RtpHeader* header = rtp->getHeader();
 //     rtp->type_ = trackInfo->trackType_;
 //     rtp->trackIndex_ = trackInfo->index_;
 //     // auto data = buffer->data();
@@ -522,7 +524,7 @@ void WebrtcRtpPacket::parseTwoByteRtpExt()
     }
 }
 
-WebrtcRtpHeader *WebrtcRtpPacket::getHeader() {
+RtpHeader *WebrtcRtpPacket::getHeader() {
     // 需除去rtcp over tcp 4个字节长度
     return _header;
 }

@@ -207,13 +207,64 @@ private:
     vector<uint16_t> _lossSn;
 };
 
+enum PacketChunkStatus
+{
+    PacketNotReceived = 0,
+    PacketReceivedSmall,
+    PacketReceivedlarge,
+    Reserved
+};
+
+class PacketChunkInfo
+{
+public:
+    bool isRunLengthChunk;
+    PacketChunkStatus status;
+    uint64_t recvTime;
+    uint32_t seq;
+};
+
+class RunLengthChunk
+{
+public:
+    uint8_t type;
+    uint8_t statusSymbol;
+    uint16_t length;
+};
+
+class StatusVectorChunk
+{
+public:
+    uint8_t type;
+    uint8_t symbolSize;
+    uint16_t symbolList;
+};
+
 class RtcpTWCC : public RtcpPacket
 {
 public:
     RtcpTWCC(const StreamBuffer::Ptr& buffer, int pos);
+    RtcpTWCC() {}
 
 public:
     void parse();
+    void setSsrc(uint32_t ssrc) {_ssrc = ssrc;}
+    void setBaseSn(uint16_t baseSeqNum) {_baseSeqNum = baseSeqNum;}
+    void setreferenceTime(uint16_t referenceTime) {_referenceTime = referenceTime;}
+    void setFbPktCnt(uint16_t fbPktCnt) {_fbPktCnt = fbPktCnt;}
+    void addPacket(const PacketChunkInfo& pktChunk) {_pktChunks.emplace_back(std::move(pktChunk));}
+    StringBuffer::Ptr encode();
+    uint16_t getFbPktCnt() {return _fbPktCnt;}
+    vector<PacketChunkInfo> getPktChunks() {return _pktChunks;}
+
+private:
+    uint32_t _ssrc;
+    uint16_t _baseSeqNum;
+    uint16_t _pktStatusCnt;
+    uint16_t _referenceTime; // 单位：64ms
+    uint16_t _fbPktCnt;
+    vector<PacketChunkInfo> _pktChunks;
+    // vector<uint8_t> _recvDeltas; // 单位：0.25ms
 };
 
 class RtcpPli : public RtcpPacket

@@ -301,6 +301,14 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
                 }
             }
 
+            if (enableTwcc) {
+                auto iter = sdpMedia->mapExtmap_.find(TWCCUrl);
+                if (iter != sdpMedia->mapExtmap_.end()) {
+                    // rtp 扩展头里的id，是从extmap里获取的
+                    rtpExtTypeMap.addId(iter->second, iter->first);
+                }
+            }
+
             for (auto ptIter : sdpMedia->mapPtInfo_) {
                 if (enableRtx && ptIter.second->codec_ == "rtx" && ptIter.second->payloadType_ == remotePtInfo->rtxPt_) {
                     _videoRtxPtInfo = ptIter.second;
@@ -581,7 +589,7 @@ void WebrtcContext::onRtpPacket(const Socket::Ptr& socket, const RtpPacket::Ptr&
     auto rtpbuffer = StreamBuffer::create();
     rtpbuffer->assign(plaintext, nb_plaintext);
 
-    auto rtpPacket = make_shared<RtpPacket>(rtpbuffer);
+    auto rtpPacket = make_shared<WebrtcRtpPacket>(rtpbuffer);
 
     if (rtp->getHeader()->pt == _videoPtInfo->payloadType_) {
         logTrace << "decode rtp";
@@ -796,6 +804,7 @@ void WebrtcContext::handleRtcp(char* buf, int size)
             ++_sendRtcpNackPack_10s;
             
             auto nackRtcp = dynamic_pointer_cast<RtcpNack>(subRtcp);
+            nackRtcp->parse();
             auto nackId = nackRtcp->getLossPacket();
             for(auto id : nackId){
                 ++_rtpLoss_10s;
@@ -811,6 +820,13 @@ void WebrtcContext::handleRtcp(char* buf, int size)
                     }
                 }
             }
+        } else if (subRtcp->getHeader()->type == RtcpType_RTPFB && subRtcp->getHeader()->rc == RtcpRtpFBFmt_TWCC) {
+            auto nackRtcp = dynamic_pointer_cast<RtcpTWCC>(subRtcp);
+            nackRtcp->parse();
+            auto curSeq = nackRtcp->getFbPktCnt();
+            // TODO lastSeq == curSeq + 1，判断是否丢包
+            auto pktChunks = nackRtcp->getPktChunks();
+            // TODO 判断是否拥塞阻塞了，进一步可以调整码率，帧率之类的操作
         }
     });
 

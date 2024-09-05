@@ -58,7 +58,7 @@ void WebrtcContextManager::onUdpPacket(const Socket::Ptr& socket, const StreamBu
             break;
         }
         case kRtpPkt: {
-            auto rtp = make_shared<RtpPacket>(buffer, 0);
+            auto rtp = make_shared<WebrtcRtpPacket>(buffer, 0);
             onRtpPacket(socket, rtp, addr, len);
             break;
         }

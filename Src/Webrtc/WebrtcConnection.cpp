@@ -89,7 +89,7 @@ void WebrtcConnection::onRtcPacket(const char* data, int len)
             break;
         }
         case kRtpPkt: {
-            auto rtp = make_shared<RtpPacket>(buffer, 0);
+            auto rtp = make_shared<WebrtcRtpPacket>(buffer, 0);
             _context->onRtpPacket(_socket, rtp, nullptr, 0);
             break;
         }

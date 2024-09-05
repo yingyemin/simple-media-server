@@ -99,6 +99,7 @@ private:
     TimeClock _timeClock;
     TimeClock _lastPktClock;
     UrlParser _urlParser;
+    RtpExtTypeMap rtpExtTypeMap;
     RtpSort::Ptr _videoSort;
     RtpSort::Ptr _audioSort;
     EventLoop::Ptr _loop;

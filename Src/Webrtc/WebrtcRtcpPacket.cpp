@@ -391,7 +391,167 @@ RtcpTWCC::RtcpTWCC(const StreamBuffer::Ptr& buffer, int pos)
 
 void RtcpTWCC::parse()
 {
-    
+    /*
+    @doc: https://tools.ietf.org/html/draft-holmer-rmcat-transport-wide-cc-extensions-01#section-3.1
+            0                   1                   2                   3
+        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       |V=2|P|  FMT=15 |    PT=205     |           length              |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       |                     SSRC of packet sender                     |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       |                      SSRC of media source                     |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       |      base sequence number     |      packet status count      |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       |                 reference time                | fb pkt. count |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       |          packet chunk         |         packet chunk          |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       .                                                               .
+       .                                                               .
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       |         packet chunk          |  recv delta   |  recv delta   |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       .                                                               .
+       .                                                               .
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       |           recv delta          |  recv delta   | zero padding  |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    */
+    if (_header->length + _pos > _buffer->size()) {
+        return ;
+    }
+
+    _payload = _buffer->data() + sizeof(RtcpHeader);
+    _payloadLen = _length - sizeof(RtcpHeader);
+    _ssrc = readUint32BE(_payload);
+    _baseSeqNum = readUint16BE(_payload + 4);
+    _pktStatusCnt = readUint16BE(_payload + 6);
+    _referenceTime = readUint24BE(_payload + 8);
+    _fbPktCnt = _payload[11];
+
+    int pktCntParsed = 0;
+    int index = 12;
+    int curSn = _baseSeqNum;
+    while (pktCntParsed < _pktStatusCnt) {
+        uint16_t pktChunk = readUint16BE(_payload + index);
+        index += 2;
+
+        int type = pktChunk >> 15;
+        bool isRunLengthChunk = false;
+        if (type) {
+            int symbolSize = (pktChunk >> 14) & 0b1;
+            if (symbolSize) {
+                // 2 bit
+                for (int i = 6; i >= 0; --i) {
+                    PacketChunkInfo info;
+                    info.isRunLengthChunk = false;
+                    info.seq = curSn + 6 - i;
+                    info.status = (PacketChunkStatus)(pktChunk & (0b11 << (i*2)));
+
+                    _pktChunks.push_back(info);
+                }
+                curSn += 7;
+                pktCntParsed += 7;
+            } else {
+                // 1 bit
+                for (int i = 13; i >= 0; --i) {
+                    PacketChunkInfo info;
+                    info.isRunLengthChunk = false;
+                    info.seq = curSn + 13 - i;
+                    info.status = (PacketChunkStatus)(pktChunk & (0b1 << i));
+
+                    _pktChunks.push_back(info);
+                }
+                curSn += 14;
+                pktCntParsed += 14;
+            }
+        } else {
+            int pktStatusSymbol = (pktChunk >> 13) & 0b11;
+            int length = (pktChunk << 3) >> 3;
+            for (int i = 0; i < length; ++i) {
+                PacketChunkInfo info;
+                info.isRunLengthChunk = true;
+                info.seq = curSn + i;
+                info.status = (PacketChunkStatus)pktStatusSymbol;
+
+                _pktChunks.push_back(info);
+            }
+            curSn += length;
+            pktCntParsed += length;
+        }
+    }
+
+    uint64_t curStamp = _referenceTime * 64 * 1000; // us
+    for (int i = 0; i < _pktStatusCnt; ++i) {
+        if (_pktChunks[i].status == PacketReceivedSmall) {
+            uint8_t delta = _payload[index];
+            index += 1;
+            curStamp += delta * 250;
+            _pktChunks[i].recvTime = curStamp;
+        } else {
+            auto delta = readUint16BE(_payload + index);
+            index += 2;
+            curStamp += delta * 250;
+            _pktChunks[i].recvTime = curStamp;
+        }
+    }
+}
+
+// 这里图方便，全部用的StatusVectorChunk的PacketReceivedlarge类型
+StringBuffer::Ptr RtcpTWCC::encode()
+{
+    StringBuffer::Ptr buffer = make_shared<StringBuffer>();
+
+    RtcpHeader header;
+    header.version = 2;
+    header.padding = 0;
+    header.rc = RtcpRtpFBFmt_TWCC;
+    header.type = RtcpType_RTPFB;
+    header.length = 3; // 这里先占个位
+    header.ssrc = _ssrc;
+
+    int length = 0;
+    buffer->assign((char*)&header, 8);
+    buffer->append((char*)&_ssrc, 4);
+    buffer->append((char*)&_baseSeqNum, 2);
+    buffer->append((char*)&_pktStatusCnt, 2);
+    buffer->append((char*)&_referenceTime, 3);
+    buffer->append((char*)&_fbPktCnt, 1);
+
+    length = 20;
+
+    uint16_t chunkBytes = 0b11 << 14;
+    int index = 14;
+    for (auto& chunk : _pktChunks) {
+        if (!index) {
+            buffer->append((char*)&chunkBytes, 2);
+            index = 14;
+            chunkBytes = 0b11 << 14;
+        }
+        index -= 2;
+        chunkBytes |= chunk.status << index;
+    }
+
+    uint64_t preStamp = _referenceTime * 64 * 1000;
+    for (auto& chunk : _pktChunks) {
+        if (chunk.status == PacketReceivedSmall) {
+            buffer->append((char*)&chunk.recvTime, 1);
+        } else if (chunk.status == PacketReceivedlarge) {
+            buffer->append((char*)&chunk.recvTime, 2);
+        }
+    }
+
+    int padSize = 4 - (buffer->size() % 4);
+    for (int i = 0; i <padSize; ++i) {
+        buffer->push_back('0');
+    }
+
+    header.length = buffer->size() / 4;
+    memcpy(buffer->data(), &header, 8);
+
+    return buffer;
 }
 
 RtcpPli::RtcpPli(const StreamBuffer::Ptr& buffer, int pos)

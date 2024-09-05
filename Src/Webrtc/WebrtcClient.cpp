@@ -566,7 +566,7 @@ void WebrtcClient::onRtcPacket(const char* data, int len)
             break;
         }
         case kRtpPkt: {
-            auto rtp = make_shared<RtpPacket>(buffer, 0);
+            auto rtp = make_shared<WebrtcRtpPacket>(buffer, 0);
             onRtpPacket(rtp);
             break;
         }
@@ -673,7 +673,7 @@ void WebrtcClient::onRtpPacket(const RtpPacket::Ptr& rtp)
     auto rtpbuffer = StreamBuffer::create();
     rtpbuffer->assign(plaintext, nb_plaintext);
 
-    auto rtpPacket = make_shared<RtpPacket>(rtpbuffer);
+    auto rtpPacket = make_shared<WebrtcRtpPacket>(rtpbuffer);
 
     if (rtp->getHeader()->pt == _videoPtInfo->payloadType_) {
         logTrace << "decode rtp";
