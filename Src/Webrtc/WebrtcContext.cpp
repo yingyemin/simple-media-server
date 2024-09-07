@@ -10,6 +10,7 @@
 #include "WebrtcContextManager.h"
 #include "Codec/H264Track.h"
 #include "Hook/MediaHook.h"
+#include "Webrtc.h"
 
 using namespace std;
 
@@ -148,7 +149,7 @@ void WebrtcContext::initPublisher(const string& appName, const string& streamNam
     shared_ptr<TrackInfo> audioInfo = make_shared<TrackInfo>();
     
     videoInfo->codec_ = "h264";
-    audioInfo->codec_ = "g711a";
+    audioInfo->codec_ = "opus";
 
     _remoteSdp = make_shared<WebrtcSdp>();
     _remoteSdp->parse(sdp);
@@ -309,6 +310,20 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
                 }
             }
 
+            if (enableRtx) {
+                auto iter = sdpMedia->mapExtmap_.find(RtpStreamIdUrl);
+                if (iter != sdpMedia->mapExtmap_.end()) {
+                    // rtp 扩展头里的id，是从extmap里获取的
+                    rtpExtTypeMap.addId(iter->second, iter->first);
+                }
+                
+                iter = sdpMedia->mapExtmap_.find(RepairedRtpStreamIdUrl);
+                if (iter != sdpMedia->mapExtmap_.end()) {
+                    // rtp 扩展头里的id，是从extmap里获取的
+                    rtpExtTypeMap.addId(iter->second, iter->first);
+                }
+            }
+
             for (auto ptIter : sdpMedia->mapPtInfo_) {
                 if (enableRtx && ptIter.second->codec_ == "rtx" && ptIter.second->payloadType_ == remotePtInfo->rtxPt_) {
                     _videoRtxPtInfo = ptIter.second;
@@ -377,19 +392,29 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
             localSdpMedia->port_ = sdpMedia->port_;
             localSdpMedia->protocol_ = sdpMedia->protocol_;
             localSdpMedia->mid_ = sdpMedia->mid_;
+            localSdpMedia->mapExtmap_ = sdpMedia->mapExtmap_;
+            if (!_isPlayer) {
+                if (sdpMedia->mapSsrc_.find("origin") == sdpMedia->mapSsrc_.end()) {
+                    remotePtInfo->ssrc_ = sdpMedia->mapSsrcInfo_.begin()->first;
+                } else {
+                    remotePtInfo->ssrc_ = sdpMedia->mapSsrc_["origin"];
+                }
+            }
             
             auto ssrcInfo = make_shared<SsrcInfo>();
             if (sdpMedia->media_ == "video") {
-                ssrcInfo->ssrc_ = 20000;//(!videoInfo || videoInfo->trackType_.empty()) ? 0 : 20000;
+                ssrcInfo->ssrc_ = _isPlayer ? 20000 : remotePtInfo->ssrc_;//(!videoInfo || videoInfo->trackType_.empty()) ? 0 : 20000;
                 if (_videoRtxPtInfo) {
                     localSdpMedia->mapPtInfo_.emplace(_videoRtxPtInfo->payloadType_, _videoRtxPtInfo);
-                    localSdpMedia->mapSsrcGroup_["FID"].push_back(ssrcInfo->ssrc_);
-                    localSdpMedia->mapSsrcGroup_["FID"].push_back(ssrcInfo->ssrc_ + 1);
                     
                     auto rtxSsrcInfo = make_shared<SsrcInfo>();
-                    rtxSsrcInfo->ssrc_ = 20001;
+                    rtxSsrcInfo->ssrc_ = _isPlayer ? 20001 : sdpMedia->mapSsrc_["rtx"];
                     rtxSsrcInfo->cname_ = _path;
                     localSdpMedia->mapSsrcInfo_.emplace(rtxSsrcInfo->ssrc_, rtxSsrcInfo);
+                    _videoRtxPtInfo->ssrc_ = rtxSsrcInfo->ssrc_;
+
+                    localSdpMedia->mapSsrcGroup_["FID"].push_back(ssrcInfo->ssrc_);
+                    localSdpMedia->mapSsrcGroup_["FID"].push_back(rtxSsrcInfo->ssrc_);
                 }
                 if (_videoRedPtInfo) {
                     localSdpMedia->mapPtInfo_.emplace(_videoRedPtInfo->payloadType_, _videoRedPtInfo);
@@ -398,7 +423,7 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
                     localSdpMedia->mapPtInfo_.emplace(_videoUlpfecPtInfo->payloadType_, _videoUlpfecPtInfo);
                 }
             } else {
-                ssrcInfo->ssrc_ = 10000;//(!audioInfo || audioInfo->trackType_.empty()) ? 0 : 10000;
+                ssrcInfo->ssrc_ = _isPlayer ? 10000 : remotePtInfo->ssrc_;//(!audioInfo || audioInfo->trackType_.empty()) ? 0 : 10000;
             }
             ssrcInfo->cname_ = _path;
             localSdpMedia->mapSsrcInfo_.emplace(ssrcInfo->ssrc_, ssrcInfo);
@@ -506,7 +531,23 @@ void WebrtcContext::checkAndSendRtcpNack()
         videoNack.setLossSn(videoVecSeq);
         auto videoNackBuffer = videoNack.encode();
 
-        _socket->send(videoNackBuffer);
+        char plaintext[1500];
+        int nb_plaintext = videoNackBuffer->size();
+        auto data = videoNackBuffer->data();
+        if (0 != _srtpSession->protectRtcp(data, plaintext, nb_plaintext)) {
+            close();
+            return ;
+        }
+
+        auto bufferRtcp = StreamBuffer::create();
+        bufferRtcp->assign(plaintext, nb_plaintext);
+
+        logInfo << "_socket->send(videoNackBuffer); " << bufferRtcp->size();
+        if (_socket->getSocketType() == SOCKET_TCP) {
+            _socket->send(bufferRtcp);
+        } else {
+            _socket->send(bufferRtcp, 1, 0, _addr, _addrLen);
+        }
     }
 
     if (!audioVecSeq.empty()) {
@@ -515,7 +556,23 @@ void WebrtcContext::checkAndSendRtcpNack()
         audioNack.setLossSn(audioVecSeq);
         auto audioNackBuffer = audioNack.encode();
 
-        _socket->send(audioNackBuffer);
+        char plaintext[1500];
+        int nb_plaintext = audioNackBuffer->size();
+        auto data = audioNackBuffer->data();
+        if (0 != _srtpSession->protectRtcp(data, plaintext, nb_plaintext)) {
+            close();
+            return ;
+        }
+
+        auto bufferRtcp = StreamBuffer::create();
+        bufferRtcp->assign(plaintext, nb_plaintext);
+
+        logInfo << "_socket->send(audioNackBuffer);" << bufferRtcp->size();
+        if (_socket->getSocketType() == SOCKET_TCP) {
+            _socket->send(bufferRtcp);
+        } else {
+            _socket->send(bufferRtcp, 1, 0, _addr, _addrLen);
+        }
     }
 }
 
@@ -551,9 +608,30 @@ void WebrtcContext::onRtpPacket(const Socket::Ptr& socket, const RtpPacket::Ptr&
     // logInfo << "get a rtp packet: " << rtp->size();
     _lastPktClock.update();
 
-    int ssrc = rtp->getSSRC();
+    // 如果是rtx，并且有padding，认为是探测包，不处理；判断方式是否正确??
+    if (_videoRtxPtInfo && rtp->getSSRC() == _videoRtxPtInfo->ssrc_ && rtp->getHeader()->padding) {
+        return ;
+    }
+
+    static int lossIntervel = Config::instance()->getAndListen([](const json &config){
+        lossIntervel = Config::instance()->get("Webrtc", "Server", "Server1", "lossIntervel");
+    }, "Webrtc", "Server", "Server1", "lossIntervel");
+
+    // 模拟丢包
+    if (lossIntervel && rtp->getSSRC() == _videoPtInfo->ssrc_ && _totalRtpCnt++ % lossIntervel == 0) {
+        logInfo << "loss a seq: " << rtp->getSeq();
+        return ;
+    }
+
+    // rtx 包的payload前两个字节，表示源rtp的序号
+    // rtx 包的时间戳与源rtp一致
+
+    uint32_t ssrc = rtp->getSSRC();
+    uint32_t sdpSsrc = _videoPtInfo->ssrc_;
+    uint rtxSsrc = _videoRtxPtInfo ? _videoRtxPtInfo->ssrc_ : 0;
+    logInfo << "rtp ssrc: " << ssrc << ", sdp ssrc: " << sdpSsrc << ", rtx ssrc: " << rtxSsrc;
     weak_ptr<WebrtcContext> wSelf = dynamic_pointer_cast<WebrtcContext>(shared_from_this());
-    if (!_rtcpPliTimerCreated) {
+    if (ssrc == sdpSsrc && !_rtcpPliTimerCreated) {
         _loop->addTimerTask(2000, [wSelf, ssrc](){
             auto self = wSelf.lock();
             if (!self) {
@@ -591,8 +669,15 @@ void WebrtcContext::onRtpPacket(const Socket::Ptr& socket, const RtpPacket::Ptr&
 
     auto rtpPacket = make_shared<WebrtcRtpPacket>(rtpbuffer);
 
-    if (rtp->getHeader()->pt == _videoPtInfo->payloadType_) {
-        logTrace << "decode rtp";
+    // rtx 包
+    if (_videoRtxPtInfo && rtpPacket->getSSRC() == _videoRtxPtInfo->ssrc_) {
+        rtpPacket->setRtxFlag(true);
+        logInfo << "get a resend packet: " << rtpPacket->getSeq();
+    }
+
+    if (rtp->getHeader()->pt == _videoPtInfo->payloadType_ 
+            || rtp->getHeader()->pt == _videoRtxPtInfo->payloadType_) {
+        logTrace << "decode video rtp";
         if (_socket->getSocketType() == SOCKET_TCP) {
             _videoDecodeTrack->decodeRtp(rtpPacket);
         } else {
@@ -686,9 +771,9 @@ void WebrtcContext::onStunPacket(const Socket::Ptr& socket, const WebrtcStun& st
 
 	// struct sockaddr_in* peer_addr = (struct sockaddr_in*)_addr;
     if (_addr->sa_family == AF_INET) {
-	    stunRsp.setMappedAddress((sockaddr *)_socket->getPeerAddr4());
+	    stunRsp.setMappedAddress(_addr);
     } else {
-        stunRsp.setMappedAddress((sockaddr *)_socket->getPeerAddr6());
+        stunRsp.setMappedAddress(_addr);
     }
 	// stunRsp.setMappedPort(ntohs(peer_addr->sin_port));
 

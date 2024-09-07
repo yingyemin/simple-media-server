@@ -365,19 +365,21 @@ StreamBuffer::Ptr RtcpNack::encode()
     header.padding = 0;
     header.rc = RtcpRtpFBFmt_NACK;
     header.type = RtcpType_RTPFB;
-    header.length = 3;
-    header.ssrc = _ssrc;
+    header.length = htons(3);
+    header.ssrc = htonl(_ssrc);
 
     memcpy(buffer->data(), &header, 8);
     writeUint32BE(buffer->data() + 8, _ssrc);
 
     uint16_t pid = *_lossSn.begin();
+    logInfo << "nack pid: " << pid;
     writeUint16BE(buffer->data() + 12, pid);
     uint16_t blp = 0;
     for (auto& sn : _lossSn) {
         if (sn - pid > 15) {
             break;
         }
+        logInfo << "send a loss seq: " << sn;
         blp |= 1 << (15 - (sn - pid));
     }
     writeUint16BE(buffer->data() + 14, blp);
@@ -509,8 +511,8 @@ StringBuffer::Ptr RtcpTWCC::encode()
     header.padding = 0;
     header.rc = RtcpRtpFBFmt_TWCC;
     header.type = RtcpType_RTPFB;
-    header.length = 3; // 这里先占个位
-    header.ssrc = _ssrc;
+    header.length = htons(3); // 这里先占个位
+    header.ssrc = htonl(_ssrc);
 
     int length = 0;
     buffer->assign((char*)&header, 8);

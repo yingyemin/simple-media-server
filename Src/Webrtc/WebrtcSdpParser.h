@@ -133,6 +133,7 @@ public:
     vector<CandidateInfo::Ptr> candidates_;
     // string fid,fec,sim
     unordered_map<string, vector<uint64_t>> mapSsrcGroup_;
+    unordered_map<string, uint64_t> mapSsrc_;
 
     unordered_map<char, string> mapMedia_;
     unordered_map<string, string> mapAttr_;

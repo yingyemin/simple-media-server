@@ -32,17 +32,27 @@ void RtpSort::inputRtp(const RtpPacket::Ptr& rtp)
         _lastRtpSeq = rtp->getSeq();
     }
 
-    while (_mapRtp.size() >= _maxQueSize || 
-        (_mapRtp.size() > 0 && _mapRtp.begin()->second->getSeq() == (uint16_t)(_lastRtpSeq + 1))) {
-        auto it = _mapRtp.begin();
-        _lastRtpSeq = it->second->getSeq();
-        onRtpPacket(it->second);
-        _mapRtp.erase(it);
+    while (true) {
+        if (_mapRtp.empty()) {
+            break;
+        }
+        auto iter = _mapRtp.begin();
+        auto rtp = iter->second;
+        if ((_mapRtp.size() >= _maxQueSize) || 
+            (_mapRtp.size() > 0 && rtp->getSeq() == (uint16_t)(_lastRtpSeq + 1))) {
+            auto it = _mapRtp.begin();
+            _lastRtpSeq = it->second->getSeq();
+            onRtpPacket(it->second);
+            _mapRtp.erase(it);
+        } else {
+            break;
+        }
     }
 }
 
 void RtpSort::onRtpPacket(const RtpPacket::Ptr& rtp)
 {
+    logInfo << "on rtp packet seq : " << rtp->getSeq();
     if (_onRtpPacket) {
         _onRtpPacket(rtp);
     }
@@ -53,19 +63,27 @@ void RtpSort::setOnRtpPacket(const function<void(const RtpPacket::Ptr& rtp)>& cb
     _onRtpPacket = cb;
 }
 
-vector<uint16_t> RtpSort::getLossSeq()
+vector<uint16_t> RtpSort::
+getLossSeq()
 {
-    int curSeq = -1;
     vector<uint16_t> vecSeq;
+    if (_firstRtp) {
+        return vecSeq;
+    }
+
+    int curSeq = _lastRtpSeq;
     for (auto& iter : _mapRtp) {
         if (curSeq == -1) {
             curSeq = iter.first;
             continue;
         }
+        logInfo << "iter.first: " << iter.first << ", curSeq: " << curSeq;
         uint16_t diff = iter.first - (uint16_t)curSeq;
         for (int i = 1; i < diff; ++i) {
             vecSeq.push_back(curSeq + i);
         }
+
+        curSeq = iter.first;
     }
 
     return vecSeq;

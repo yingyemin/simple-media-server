@@ -85,6 +85,7 @@ private:
     uint64_t _sendRtcpNackPack_10s;
     uint64_t _rtpLoss_10s;
     uint64_t _resendRtpPack_10s;
+    uint64_t _totalRtpCnt = 0;
 
     float _lossPercent;
 

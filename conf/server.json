@@ -15,7 +15,7 @@
         "size" : 0
     },
     "Util" : {
-        "stopNonePlayerStream" : true,
+        "stopNonePlayerStream" : false,
         "nonePlayerWaitTime" : 5000,
         "enableLoadFromFile" : true
     },
@@ -37,14 +37,14 @@
         "rootPath" : "./"
     },
     "Cdn" : {
-        "mode" : "forward",
+        "mode" : "forward1",
         "endpoint" : "122.51.204.244:1935",
         "protocol" : "rtmp"
     },
     "Rtsp" : {
         "Server" : {
             "Server1" : {
-                "ip" : "0.0.0.0",
+                "ip" : "::",
                 "port" : 554,
                 "sslPort" : 1554,
                 "timeout" : 5000,
@@ -146,13 +146,19 @@
             "Server1" : {
                 "timeout" : 5000,
                 "ip" : "0.0.0.0",
-                "candidateIp" : "172.24.6.238",
+                "candidateIp" : "192.168.0.104",
                 "port" : 7000,
                 "threads" : 1,
                 "sockType" : 3,
-                "enableTcp" : true,
+                "enableTcp" : false,
+                "enableNack" : true,
+                "enableTwcc" : false,
+                "enableRtx" : true,
+                "enableRed" : false,
+                "enableUlpfec" : false,
                 "udpPortMax" : 10000,
-                "udpPortMin" : 6000
+                "udpPortMin" : 6000,
+                "lossIntervel" : 10
             }
         }
     },

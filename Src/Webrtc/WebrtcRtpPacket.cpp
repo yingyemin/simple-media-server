@@ -7,6 +7,7 @@
 #include "WebrtcRtpPacket.h"
 #include "Logger.h"
 #include "Util/String.h"
+#include "Webrtc.h"
 
 using namespace std;
 
@@ -556,7 +557,11 @@ size_t WebrtcRtpPacket::size()
 // }
 
 uint16_t WebrtcRtpPacket::getSeq() {
-    return ntohs(_header->seq);
+    if (!_isRtx) {
+        return ntohs(_header->seq);
+    } else {
+        return readUint16BE((char*)_header->getPayloadData());
+    }
 }
 
 uint32_t WebrtcRtpPacket::getStamp() {
@@ -574,12 +579,20 @@ uint32_t WebrtcRtpPacket::getSSRC() {
 }
 
 uint8_t *WebrtcRtpPacket::getPayload() {
+    if (_isRtx && _header->getPayloadSize(size() - _rtpOverTcpHeaderSize) >= 2) {
+        return _header->getPayloadData() + 2;
+    }
     return _header->getPayloadData();
 }
 
 size_t WebrtcRtpPacket::getPayloadSize() {
     // 需除去rtcp over tcp 4个字节长度
-    return _header->getPayloadSize(size() - _rtpOverTcpHeaderSize);
+    size_t payloadSize = _header->getPayloadSize(size() - _rtpOverTcpHeaderSize);
+    if (_isRtx && payloadSize >= 2) {
+        return payloadSize - 2;
+    }
+
+    return payloadSize;
 }
 
 // WebrtcRtpPacket::Ptr WebrtcRtpPacket::create() {

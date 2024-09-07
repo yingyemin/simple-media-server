@@ -7,6 +7,7 @@
 #include "Logger.h"
 #include "Util/String.h"
 #include "Common/Config.h"
+#include "Webrtc.h"
 
 using namespace std;
 
@@ -489,6 +490,11 @@ void WebrtcSdpMedia::parseSsrcGroup(const string& value)
     for (int i = 1; i < vecValue.size(); ++i) {
         mapSsrcGroup_[vecValue[0]].push_back(stoull(vecValue[i]));
     }
+
+    if (vecValue[0] == "FID") {
+        mapSsrc_["origin"] = stoull(vecValue[1]);
+        mapSsrc_["rtx"] = stoull(vecValue[2]);
+    }
 }
 
 void WebrtcSdpMedia::encode(stringstream& ss)
@@ -530,6 +536,24 @@ void WebrtcSdpMedia::encode(stringstream& ss)
         }
 
         ss << "\r\n";
+    }
+
+    static bool enableTwcc = Config::instance()->getAndListen([](const json& config){
+        enableTwcc = Config::instance()->get("Webrtc", "Server", "Server1", "enableTwcc");
+    }, "Webrtc", "Server", "Server1", "enableTwcc");
+
+    static bool enableRtx = Config::instance()->getAndListen([](const json& config){
+        enableRtx = Config::instance()->get("Webrtc", "Server", "Server1", "enableRtx");
+    }, "Webrtc", "Server", "Server1", "enableRtx");
+
+    for (auto& extIter : mapExtmap_) {
+        logInfo << "extIter.first: " << extIter.first << ", extIter.second" << extIter.second;
+        if (enableTwcc && extIter.first == TWCCUrl) {
+            ss << "a=extmap:" << extIter.second << " " << extIter.first << "\r\n";
+        }
+        if (enableRtx && (extIter.first == RtpStreamIdUrl || extIter.first == RepairedRtpStreamIdUrl)) {
+            ss << "a=extmap:" << extIter.second << " " << extIter.first << "\r\n";
+        }
     }
 
     switch (sendRecvType_)

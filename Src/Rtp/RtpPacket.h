@@ -88,6 +88,7 @@ public:
     static RtpPacket::Ptr create(const shared_ptr<TrackInfo>& trackInfo, int len, uint64_t pts, uint16_t seq, bool mark);
 
     virtual void parse() {}
+    virtual void setRtxFlag(bool flag) {}
     // 获取rtp头
     virtual RtpHeader *getHeader();
     // const RtpHeader *getHeader() const;
