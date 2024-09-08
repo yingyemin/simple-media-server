@@ -339,7 +339,7 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
             }
 
             _videoPtInfo = remotePtInfo;
-        } else {
+        } else if (sdpMedia->media_ == "audio") {
             if (!videoTrackNum) {
                 _videoFirst = false;
             }
@@ -384,6 +384,8 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
             }
 
             _audioPtInfo = remotePtInfo;
+        } else {
+            return ;
         }
 
         if (remotePtInfo) {
@@ -461,6 +463,15 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
             _localSdp->_title->groups_.emplace_back(localSdpMedia->mid_);
             _localSdp->_vecSdpMedia.push_back(localSdpMedia);
         }
+    }
+
+    if (_remoteSdp->_dataChannelSdp) {
+        static int channelPort = Config::instance()->getAndListen([](const json &config){
+            channelPort = Config::instance()->get("Webrtc", "Server", "Server1", "channelPort");
+        }, "Webrtc", "Server", "Server1", "channelPort");
+        
+        _localSdp->_dataChannelSdp = _remoteSdp->_dataChannelSdp;
+        _localSdp->_dataChannelSdp->channelPort_ = channelPort;
     }
 
     static string candidateIp = Config::instance()->getAndListen([](const json &config){
@@ -671,7 +682,13 @@ void WebrtcContext::onRtpPacket(const Socket::Ptr& socket, const RtpPacket::Ptr&
 
     // rtx 包
     if (_videoRtxPtInfo && rtpPacket->getSSRC() == _videoRtxPtInfo->ssrc_) {
+        // 转换为正常包，方便后续的转发
         rtpPacket->setRtxFlag(true);
+        rtpPacket->getHeader()->seq = htons(rtpPacket->getSeq());
+        rtpPacket->getHeader()->ssrc = htonl(_videoPtInfo->ssrc_);
+        memmove(rtpPacket->data() + 2, rtpPacket->data(), (char*)rtpPacket->getHeader()->getPayloadData() - rtpPacket->data());
+        rtpPacket->buffer()->substr(2);
+        rtpPacket->setRtxFlag(false);
         logInfo << "get a resend packet: " << rtpPacket->getSeq();
     }
 

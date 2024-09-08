@@ -180,6 +180,10 @@ void WebrtcSdpMedia::parseMediaDesc(const string& value)
     port_ = stoi(vecValue[1]);
     protocol_ = vecValue[2];
 
+    if (media_ == "application") {
+        channelName_ = vecValue[3];
+    }
+
     for (int i = 3; i < size; ++i) {
         auto ptInfo = make_shared<WebrtcPtInfo>();
         ptInfo->payloadType_ = stoi(vecValue[i]);
@@ -502,12 +506,16 @@ void WebrtcSdpMedia::encode(stringstream& ss)
     logInfo << "media pt info size: " << mapPtInfo_.size();
 
     ss << "m=" << media_ << " " << port_ << " " << protocol_;
-    for (auto ptInfo : mapPtInfo_) {
-        ss << " " << ptInfo.first;
+    if (media_ == "application") {
+        ss << " " << channelName_;
+    } else {
+        for (auto ptInfo : mapPtInfo_) {
+            ss << " " << ptInfo.first;
+        }
     }
 
     ss << "\r\n";
-    ss << "c=IN IP4 0.0.0.0\n";
+    ss << "c=IN IP4 0.0.0.0\r\n";
 
     if (!iceUfrag_.empty()) {
         ss << "a=ice-ufrag:" << iceUfrag_ << "\r\n";
@@ -528,6 +536,16 @@ void WebrtcSdpMedia::encode(stringstream& ss)
     }
 
     ss << "a=mid:" << mid_ << "\r\n";
+    if (media_ == "application") {
+        ss << "a=ice-lite\r\n";
+        ss << "a=sctp-port:" << channelPort_ << "\r\n";
+        for (auto iter : candidates_) {
+            iter->encode(ss);
+        }
+
+        return ;
+    }
+
     if (!msid_.empty()) {
         ss << "a=msid:" << msid_;
         
@@ -756,6 +774,10 @@ void WebrtcSdp::parse(const string& sdp)
         }
     }
     if (media) {
+        if (media->media_ == "application") {
+            _dataChannelSdp = media;
+            return ;
+        }
         media->index_ = _vecSdpMedia.size();
         _vecSdpMedia.emplace_back(media);
     }
@@ -775,6 +797,10 @@ string WebrtcSdp::getSdp()
 
     for (auto& sdpMedia : _vecSdpMedia) {
         sdpMedia->encode(ss);
+    }
+
+    if (_dataChannelSdp) {
+        _dataChannelSdp->encode(ss);
     }
 
     return ss.str();

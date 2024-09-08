@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(SimpleMediaServer)
 
-option(ENABLE_ASAN "Enable lib asan" false)
+option(ENABLE_ASAN "Enable lib asan" true)
 option(ENABLE_OPENSSL "Enable openssl" true)
 
 #设置调试信息并开启c++11标准
@@ -50,6 +50,15 @@ include_directories(${SRT_INCLUDE_DIR})
 # 定义要链接的srt库
 link_directories(${SRT_LIBRARY})
 
+# 设置sctp库的头文件目录
+set(SCTP_INCLUDE_DIR "./Thirdparty/libusrsctp/include")
+# 设置srt库的二进制文件目录
+set(SCTP_LIBRARY "./Thirdparty/libusrsctp/lib/")
+# 包含srt头文件目录
+include_directories(${SCTP_INCLUDE_DIR})
+# 定义要链接的srt库
+link_directories(${SCTP_LIBRARY})
+
 aux_source_directory(. DIRSRCS)
 
 include_directories(./ ./Base ./Base/Net ./Base/Log ./Base/EventPoller ./Src)
@@ -60,5 +69,5 @@ add_subdirectory(Src)
 
 add_executable(SimpleMediaServer ${DIRSRCS})
 
-target_link_libraries(SimpleMediaServer src base srtp2 srt ssl crypto dl pthread)
+target_link_libraries(SimpleMediaServer src base srtp2 srt usrsctp ssl crypto dl pthread)
 

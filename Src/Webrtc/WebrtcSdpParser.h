@@ -113,6 +113,7 @@ public:
     int index_;
     string media_;
     int port_;
+    int channelPort_;
     string protocol_;
     bool rtcpMux_ = false;
     bool rtcpRsize_ = false;
@@ -127,6 +128,7 @@ public:
     string mid_;
     string msid_;
     vector<string> msidTracker_;
+    string channelName_;
 
     unordered_map<int, WebrtcPtInfo::Ptr> mapPtInfo_;
     unordered_map<uint64_t, SsrcInfo::Ptr> mapSsrcInfo_;
@@ -197,6 +199,7 @@ public:
     shared_ptr<WebrtcSdpTitle> _title;
     // index , SdpMedia
     vector<shared_ptr<WebrtcSdpMedia>> _vecSdpMedia;
+    shared_ptr<WebrtcSdpMedia> _dataChannelSdp;
 };
 
 
