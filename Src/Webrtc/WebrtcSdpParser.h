@@ -108,6 +108,7 @@ private:
     void parseExtmapAllowMixed(const string& value);
     void parseFingerprint(const string& value);
     void parseCandidate(const string& value);
+    void parseSctpPort(const string& value);
 
 public:
     int index_;

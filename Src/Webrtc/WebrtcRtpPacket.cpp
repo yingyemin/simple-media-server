@@ -419,6 +419,12 @@ WebrtcRtpPacket::WebrtcRtpPacket(const int length, int rtpOverTcpHeaderSize)
     _header = (RtpHeader *)(data() + _rtpOverTcpHeaderSize);
 }
 
+void WebrtcRtpPacket::resetHeader()
+{
+    _header = (RtpHeader *)(data() + _rtpOverTcpHeaderSize);
+    _size = 0;
+}
+
 // WebrtcRtpPacket::Ptr WebrtcRtpPacket::create(const shared_ptr<TrackInfo>& trackInfo, int len, uint64_t pts, uint16_t seq, bool mark)
 // {
 //     // StreamBuffer::Ptr buffer = StreamBuffer::create();

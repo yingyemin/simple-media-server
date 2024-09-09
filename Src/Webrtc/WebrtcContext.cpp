@@ -118,6 +118,13 @@ void WebrtcContext::initPlayer(const string& appName, const string& streamName, 
             self->startPlay();    
         }
     });
+
+    _dtlsSession->setOnRecvApplicationData([wSelf](const char* data, int len){
+        auto self = wSelf.lock();
+        if (self) {
+            self->onRecvDtlsApplicationData(data, len);    
+        }
+    });
 }
 
 void WebrtcContext::initPublisher(const string& appName, const string& streamName, const string& sdp)
@@ -470,6 +477,9 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
             channelPort = Config::instance()->get("Webrtc", "Server", "Server1", "channelPort");
         }, "Webrtc", "Server", "Server1", "channelPort");
         
+        _peerChannelPort = _remoteSdp->_dataChannelSdp->channelPort_;
+        _localChannelPort = channelPort;
+
         _localSdp->_dataChannelSdp = _remoteSdp->_dataChannelSdp;
         _localSdp->_dataChannelSdp->channelPort_ = channelPort;
     }
@@ -689,6 +699,7 @@ void WebrtcContext::onRtpPacket(const Socket::Ptr& socket, const RtpPacket::Ptr&
         memmove(rtpPacket->data() + 2, rtpPacket->data(), (char*)rtpPacket->getHeader()->getPayloadData() - rtpPacket->data());
         rtpPacket->buffer()->substr(2);
         rtpPacket->setRtxFlag(false);
+        rtpPacket->resetHeader();
         logInfo << "get a resend packet: " << rtpPacket->getSeq();
     }
 
@@ -937,18 +948,25 @@ void WebrtcContext::handleRtcp(char* buf, int size)
 
 void WebrtcContext::sendMedia(const RtpPacket::Ptr& rtp)
 {
-    if (rtp->type_ == "audio") {
+    // if (rtp->type_ == "audio") {
+    //     return ;
+    // }
+
+    if (_sctp && !_audioPtInfo && !_videoPtInfo) {
+        sendDatachannel(0, 53, rtp->data(), rtp->size());
+
         return ;
     }
+
     logInfo << "WebrtcContext::sendMedia";
 	int nb_cipher = rtp->size() - 4;
     char data[1500];
     memcpy(data, rtp->data() + 4, nb_cipher);
 
-	auto sdp_video_pt = 106;
+	// auto sdp_video_pt = 106;
 
-	auto _video_payload_type = sdp_video_pt == 0 ? 106 : sdp_video_pt;
-	data[1] = (data[1] & 0x80) | (rtp->type_ == "audio" ? 8 : _video_payload_type);
+	// auto _video_payload_type = sdp_video_pt == 0 ? 106 : sdp_video_pt;
+	data[1] = (data[1] & 0x80) | (rtp->type_ == "audio" ? _audioPtInfo->payloadType_ : _videoPtInfo->payloadType_);
 	uint32_t ssrc = htonl(rtp->type_ == "audio" ? 10000 : 20000);
 	memcpy(data + 8, &ssrc, sizeof(ssrc));	
 
@@ -971,9 +989,51 @@ void WebrtcContext::sendMedia(const RtpPacket::Ptr& rtp)
 	// _bytes += nb_cipher;
 }
 
+void WebrtcContext::onRecvDtlsApplicationData(const char* data, int len)
+{
+    if (_sctp) {
+        _sctp->ProcessSctpData((uint8_t*)data, len);
+    }
+}
+
 void WebrtcContext::startPlay()
 {
-    
+    weak_ptr<WebrtcContext> wSelf = dynamic_pointer_cast<WebrtcContext>(shared_from_this());
+    if (_localSdp->_dataChannelSdp) {
+        _sctp = std::make_shared<SctpAssociationImp>(_loop, _localChannelPort, _peerChannelPort, 128, 128, 262144, true);
+        _sctp->TransportConnected();
+        _sctp->setOnSctpAssociationConnecting([wSelf](SctpAssociation* sctpAssociation){
+
+        });
+
+        _sctp->setOnSctpAssociationConnected([wSelf](SctpAssociation* sctpAssociation){
+            
+        });
+
+        _sctp->setOnSctpAssociationFailed([wSelf](SctpAssociation* sctpAssociation){
+            
+        });
+
+        _sctp->setOnSctpAssociationClosed([wSelf](SctpAssociation* sctpAssociation){
+            
+        });
+
+        _sctp->setOnSctpAssociationSendData([wSelf](SctpAssociation* sctpAssociation, const uint8_t* data, size_t len){
+            auto self = wSelf.lock();
+            if (self) {
+                self->_dtlsSession->sendApplicationData(self->_socket, (char*)data, len);
+            }
+        });
+
+        _sctp->setOnSctpAssociationMessageReceived([wSelf](SctpAssociation* sctpAssociation,
+                                                            uint16_t streamId,
+                                                            uint32_t ppid,
+                                                            const uint8_t* msg,
+                                                            size_t len){
+            
+        });
+    }
+
     if (!_srtpSession) {
 		_srtpSession.reset(new SrtpSession());
 		std::string recv_key, send_key;
@@ -986,7 +1046,6 @@ void WebrtcContext::startPlay()
         }
 	}
 
-    weak_ptr<WebrtcContext> wSelf = dynamic_pointer_cast<WebrtcContext>(shared_from_this());
     _urlParser.path_ = _path;
     _urlParser.vhost_ = DEFAULT_VHOST;
     _urlParser.protocol_ = PROTOCOL_WEBRTC;
@@ -1015,6 +1074,17 @@ void WebrtcContext::startPlay()
         }
         return make_shared<WebrtcMediaSource>(self->_urlParser, nullptr, true);
     }, this);
+}
+
+// PPID 51: 文本string
+// PPID 53: 二进制
+void WebrtcContext::sendDatachannel(uint16_t streamId, uint32_t ppid, const char *msg, size_t len)
+{
+    if (_sctp) {
+        SctpStreamParameters params;
+        params.streamId = streamId;
+        _sctp->SendSctpMessage(params, ppid, (uint8_t *)msg, len);
+    }
 }
 
 void WebrtcContext::startPlay(const MediaSource::Ptr &src)

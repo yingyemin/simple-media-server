@@ -91,6 +91,7 @@ public:
     virtual void setRtxFlag(bool flag) {}
     // 获取rtp头
     virtual RtpHeader *getHeader();
+    virtual void resetHeader() {}
     // const RtpHeader *getHeader() const;
 
     // 打印调试信息

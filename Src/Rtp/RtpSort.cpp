@@ -26,24 +26,39 @@ void RtpSort::inputRtp(const RtpPacket::Ptr& rtp)
     uint16_t curSeq = _lastRtpSeq + 1;
     if (rtp->getSeq() != curSeq) {
         logInfo << "loss rtp, last seq + 1: " << curSeq << ", cur seq: " << rtp->getSeq();
-        _mapRtp[rtp->getSeq()] = rtp;
+        if (_setSeq.find(rtp->getSeq()) == _setSeq.end()) {
+            // _mapRtp[rtp->getSeq()] = rtp;
+            _mapRtp.emplace(rtp->getSeq(), rtp);
+            _setSeq.emplace(rtp->getSeq());
+            logInfo << "add seq: " << rtp->getSeq();
+        }
     } else {
         onRtpPacket(rtp);
         _lastRtpSeq = rtp->getSeq();
     }
+
+    // for (auto iter : _mapRtp) {
+    //     logInfo << "iter seq is: " << iter.first << endl;
+    // }
+
+    // for (auto iter : _setSeq) {
+    //     logInfo << "set iter seq is: " << iter << endl;
+    // }
 
     while (true) {
         if (_mapRtp.empty()) {
             break;
         }
         auto iter = _mapRtp.begin();
-        auto rtp = iter->second;
+        auto rtpSend = iter->second;
         if ((_mapRtp.size() >= _maxQueSize) || 
-            (_mapRtp.size() > 0 && rtp->getSeq() == (uint16_t)(_lastRtpSeq + 1))) {
-            auto it = _mapRtp.begin();
-            _lastRtpSeq = it->second->getSeq();
-            onRtpPacket(it->second);
-            _mapRtp.erase(it);
+            (_mapRtp.size() > 0 && rtpSend->getSeq() == (uint16_t)(_lastRtpSeq + 1))) {
+            // auto it = _mapRtp.begin();
+            _lastRtpSeq = rtpSend->getSeq();
+            auto seq = iter->first;
+            onRtpPacket(rtpSend);
+            _setSeq.erase(iter->first);
+            _mapRtp.erase(iter);
         } else {
             break;
         }

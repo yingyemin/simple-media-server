@@ -6,6 +6,7 @@
 #include <memory>
 #include <iostream>
 #include <vector>
+#include <set>
 
 #include "Net/Buffer.h"
 #include "RtpPacket.h"
@@ -42,6 +43,7 @@ private:
     bool _firstRtp = true;
     uint16_t _lastRtpSeq = -1;
     int _maxQueSize;
+    set<uint16_t> _setSeq;
     map<uint16_t, RtpPacket::Ptr, myCompare> _mapRtp;
     function<void(const RtpPacket::Ptr& rtp)> _onRtpPacket;
 };

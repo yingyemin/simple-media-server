@@ -16,6 +16,7 @@
 #include "WebrtcMediaSource.h"
 #include "Common/UrlParser.h"
 #include "Rtp/RtpSort.h"
+#include "SctpAssociation.h"
 
 using namespace std;
 
@@ -59,6 +60,8 @@ private:
     void sendRtcpPli(int ssrc);
     void onManager();
     void checkAndSendRtcpNack();
+    void onRecvDtlsApplicationData(const char* data, int len);
+    void sendDatachannel(uint16_t streamId, uint32_t ppid, const char *msg, size_t len);
 
 private:
     bool _enbaleDtls = false;
@@ -92,6 +95,8 @@ private:
     Socket::Ptr	_socket;
 	struct sockaddr* _addr = nullptr;
 	int _addrLen = 0;
+    int _localChannelPort = 0;
+    int _peerChannelPort = 0;
 
     string _path;
     string _iceUfrag;
@@ -101,6 +106,7 @@ private:
     TimeClock _lastPktClock;
     UrlParser _urlParser;
     RtpExtTypeMap rtpExtTypeMap;
+    SctpAssociationImp::Ptr _sctp;
     RtpSort::Ptr _videoSort;
     RtpSort::Ptr _audioSort;
     EventLoop::Ptr _loop;

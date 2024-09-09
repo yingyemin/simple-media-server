@@ -226,7 +226,8 @@ void WebrtcSdpMedia::parseAttr(const string& value)
         {"setup", &WebrtcSdpMedia::parseSetup},
         {"extmap-allow-mixed", &WebrtcSdpMedia::parseExtmapAllowMixed},
         {"fingerprint", &WebrtcSdpMedia::parseFingerprint},
-        {"candidate", &WebrtcSdpMedia::parseCandidate}
+        {"candidate", &WebrtcSdpMedia::parseCandidate},
+        {"sctp-port", &WebrtcSdpMedia::parseSctpPort}
     };
     
     auto iter = sdpMediaHandle.find(attrKey);
@@ -330,6 +331,11 @@ void WebrtcSdpMedia::parseCandidate(const string& value)
     }
     
     candidates_.push_back(candidate);
+}
+
+void WebrtcSdpMedia::parseSctpPort(const string& value)
+{
+    channelPort_ = stoi(value);
 }
 
 void WebrtcSdpMedia::parseConnect(const string& value)

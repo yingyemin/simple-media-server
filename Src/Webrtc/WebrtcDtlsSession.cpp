@@ -403,6 +403,12 @@ int DtlsSession::onDtls(Socket::Ptr sock, const Buffer::Ptr& buf, struct sockadd
 
 	if (handshakeFinish_) {
 		// TODO: support sctp
+        int read = SSL_read(dtls_, static_cast<void*>(_sslReadBuffer), 2000);
+        if (read > 0) {
+            if (_onRecvApplicationData) {
+                _onRecvApplicationData((char*)_sslReadBuffer, read);
+            }
+        }
 		return 0;
 	}
 
@@ -602,6 +608,41 @@ int DtlsSession::checkTimeout(Socket::Ptr sock)
     }
 
     return 50;
+}
+
+void DtlsSession::sendApplicationData(Socket::Ptr socket, const char* data, int len)
+{
+    if (!handshakeFinish_) {
+        return ;
+    }
+
+    (void)BIO_reset(bioOut_);
+
+    int written;
+    written = SSL_write(dtls_, static_cast<const void*>(data), static_cast<int>(len));
+    if (written != static_cast<int>(len))
+    {
+        logError << "OpenSSL SSL_write() wrote less (" << written << "bytes) than given data (" << len << " bytes)";
+    }
+
+    if (BIO_eof(this->bioOut_))
+        return;
+
+    int64_t read;
+    char* dataOut{ nullptr };
+
+    read = BIO_get_mem_data(bioOut_, &dataOut); // NOLINT
+
+    if (read <= 0)
+        return;
+
+    size_t offset = 0;
+    while(offset < read) {
+        auto *header = reinterpret_cast<const DtlsHeader *>(dataOut + offset);
+        auto length = ntohs(header->length) + offsetof(DtlsHeader, payload);
+        socket->send(dataOut + offset, length);
+        offset += length;
+    }
 }
 
 int DtlsSession::getSrtpKey(std::string& recvKey, std::string& sendKey)

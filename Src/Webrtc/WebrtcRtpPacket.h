@@ -196,6 +196,7 @@ public:
 
     // 获取rtp头
     RtpHeader *getHeader() override;
+    void resetHeader() override;
     void setrtpExtTypeMap(const RtpExtTypeMap::Ptr& extType) {_rtpExtTypeMap = extType;}
     void setRtxFlag(bool flag) {_isRtx = flag;}
     // const RtpHeader *getHeader() const;
