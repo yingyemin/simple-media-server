@@ -326,7 +326,11 @@ void MediaSource::loadFromFile(const string& uri, const string& vhost, const str
     FrameMediaSource::Ptr frameSource = make_shared<FrameMediaSource>(parser, EventLoop::getCurrentLoop());
     _totalSource[uri + "_" + vhost] = frameSource;
 
-    RecordReader::Ptr reader = make_shared<RecordReader>(uri);
+    RecordReaderBase::Ptr reader = RecordReaderBase::createRecordReader(uri);
+    if (!reader) {
+        logWarn << "create record reader failed";
+        return ;
+    }
     void* key = reader.get();
     weak_ptr<FrameMediaSource> wFrameSrc = frameSource;
     reader->setOnFrame([wFrameSrc](const FrameBuffer::Ptr &frame){

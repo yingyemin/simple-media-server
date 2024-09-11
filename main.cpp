@@ -17,6 +17,8 @@
 
 #include "Hook/MediaHook.h"
 
+#include "Record/RecordReader.h"
+
 #include "Api/HttpApi.h"
 #include "Api/RtmpApi.h"
 #include "Api/RtspApi.h"
@@ -25,6 +27,10 @@
 #include "Api/HttpStreamApi.h"
 #include "Api/RecordApi.h"
 #include "Api/TestApi.h"
+
+#include "Rtmp/RtmpClient.h"
+#include "Rtsp/RtspClient.h"
+#include "Webrtc/WebrtcClient.h"
 
 #include <unistd.h>
 #include <string.h>
@@ -102,6 +108,9 @@ int main(int argc, char** argv)
     TlsContext::setKeyFile(sslKey, sslCrt);
 
     MediaHook::instance()->init();
+
+    RecordReader::init();
+
     HttpApi::initApi();
     RtmpApi::initApi();
     RtspApi::initApi();
@@ -110,6 +119,10 @@ int main(int argc, char** argv)
     HttpStreamApi::initApi();
     RecordApi::initApi();
     TestApi::initApi();
+
+    RtspClient::init();
+    RtmpClient::init();
+    WebrtcClient::init();
 
     SrtSocket::initSrt();
 

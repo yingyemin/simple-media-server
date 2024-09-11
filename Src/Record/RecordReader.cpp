@@ -25,6 +25,13 @@ RecordReader::~RecordReader()
     close();
 }
 
+void RecordReader::init()
+{
+    RecordReaderBase::registerCreateFunc([](const string& path){
+        return make_shared<RecordReader>(path);
+    });
+}
+
 bool RecordReader::start()
 {
     weak_ptr<RecordReader> wSelf = shared_from_this();

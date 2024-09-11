@@ -33,8 +33,11 @@ class RtspClient : public TcpClient, public MediaClient
 {
 public:
     using Ptr = shared_ptr<RtspClient>;
-    RtspClient(MediaClientType type, TransportType rtpType, const string& appName, const string& streamName);
+    RtspClient(MediaClientType type, const string& appName, const string& streamName);
     ~RtspClient();
+
+public:
+    static void init();
 
 public:
     // override MediaClient
@@ -43,6 +46,7 @@ public:
     void pause() override;
     void setOnClose(const function<void()>& cb) override;
     void addOnReady(void* key, const function<void()>& onReady) override;
+    void setTransType(int type) override;
 
 protected:
     // override TcpClient

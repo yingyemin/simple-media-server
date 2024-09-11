@@ -38,6 +38,9 @@ public:
     ~RtmpClient();
 
 public:
+    static void init();
+
+public:
     // override MediaClient
     void start(const string& localIp, int localPort, const string& url, int timeout) override;
     void stop() override;

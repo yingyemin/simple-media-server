@@ -48,7 +48,8 @@ void RtspApi::startRtspPlay(const HttpParser& parser, const UrlParser& urlParser
         }
     }
     
-    auto client = make_shared<RtspClient>(MediaClientType_Pull, rtpType, parser._body["appName"], parser._body["streamName"]);
+    auto client = make_shared<RtspClient>(MediaClientType_Pull, parser._body["appName"], parser._body["streamName"]);
+    client->setTransType(rtpType);
     client->start("0.0.0.0", 0, parser._body["url"], timeout);
 
     // stringstream key;
@@ -97,7 +98,8 @@ void RtspApi::startRtspPublish(const HttpParser& parser, const UrlParser& urlPar
         }
     }
 
-    auto client = make_shared<RtspClient>(MediaClientType_Push, rtpType, parser._body["appName"], parser._body["streamName"]);
+    auto client = make_shared<RtspClient>(MediaClientType_Push, parser._body["appName"], parser._body["streamName"]);
+    client->setTransType(rtpType);
     client->start("0.0.0.0", 0, parser._body["url"], timeout);
 
     string key = parser._body["url"];

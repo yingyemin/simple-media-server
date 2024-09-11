@@ -8,21 +8,25 @@
 #include <list>
 
 #include "Net/Buffer.h"
-#include "Track.h"
-#include "Frame.h"
+#include "Common/Track.h"
+#include "Common/Frame.h"
 #include "Util/File.h"
+#include "Common/RecordReaderBase.h"
 #include "EventPoller/EventLoop.h"
 #include "WorkPoller/WorkLoop.h"
 
 using namespace std;
 
-class RecordReader : public enable_shared_from_this<RecordReader>
+class RecordReader : public RecordReaderBase, public enable_shared_from_this<RecordReader>
 {
 public:
     using Ptr = shared_ptr<RecordReader>;
 
     RecordReader(const string& path);
     ~RecordReader();
+
+public:
+    static void init();
 
 public:
     bool start();

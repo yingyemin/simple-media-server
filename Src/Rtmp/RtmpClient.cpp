@@ -44,6 +44,13 @@ RtmpClient::~RtmpClient()
     }
 }
 
+void RtmpClient::init()
+{
+    MediaClient::registerCreateClient("rtmp", [](MediaClientType type, const std::string &appName, const std::string &streamName){
+        return make_shared<RtmpClient>(type, appName, streamName);
+    });
+}
+
 // void RtmpClient::addRtmpClient(const string& key, const RtmpClient::Ptr& client)
 // {
 //     logInfo << "add rtmpclient: " << key;

@@ -1,12 +1,11 @@
 ﻿#include "MediaClient.h"
 #include "Log/Logger.h"
-#include "Rtmp/RtmpClient.h"
-#include "Rtsp/RtspClient.h"
-#include "Webrtc/WebrtcClient.h"
 #include "Util/String.h"
 
 mutex MediaClient::_mapMtx;
 unordered_map<string, MediaClient::Ptr> MediaClient::_mapMediaClient;
+
+unordered_map<string, function<MediaClient::Ptr(MediaClientType type, const string& appName, const string& streamName)>> MediaClient::_mapCreateClient;
 
 void MediaClient::addMediaClient(const string& key, const MediaClient::Ptr& client)
 {
@@ -36,13 +35,17 @@ MediaClient::Ptr MediaClient::getMediaClient(const string& key)
 MediaClient::Ptr MediaClient::createClient(const string& protocol, const string& path, MediaClientType type)
 {
     auto vecPath = split(path, "/");
-    if (protocol == "rtmp") {
-        return make_shared<RtmpClient>(type, vecPath[0], vecPath[1]);
-    } else if (protocol == "rtsp") {
-        return make_shared<RtspClient>(type, Transport_TCP, vecPath[0], vecPath[1]);
-    } else if (protocol == "webrtc") {
-        return make_shared<WebrtcClient>(type, vecPath[0], vecPath[1]);
+    if (_mapCreateClient.find(protocol) != _mapCreateClient.end()) {
+        auto client = _mapCreateClient[protocol](type, vecPath[0], vecPath[1]);
+        client->setTransType(0);
+
+        return client;
     }
 
     return nullptr;
+}
+
+void MediaClient::registerCreateClient(const string& protocol, const function<MediaClient::Ptr(MediaClientType type, const string& appName, const string& streamName)>& cb)
+{
+    _mapCreateClient.emplace(protocol, cb);
 }

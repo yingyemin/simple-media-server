@@ -30,6 +30,9 @@ public:
     ~WebrtcClient();
 
 public:
+    static void init();
+
+public:
     // override MediaClient
     void start(const string& localIp, int localPort, const string& param, int timeout) override;
     void stop() override;

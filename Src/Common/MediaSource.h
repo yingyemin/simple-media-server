@@ -12,7 +12,7 @@
 #include "DataQue.h"
 #include "Frame.h"
 #include "Track.h"
-#include "RecordReader.h"
+#include "RecordReaderBase.h"
 #include "EventPoller/EventLoop.h"
 #include "Net/TcpConnection.h"
 #include "MediaClient.h"
@@ -120,7 +120,7 @@ protected:
     UrlParser _urlParser;
     EventLoop::Ptr _loop;
     MediaSource::Wptr _originSrc;
-    RecordReader::Ptr _recordReader;
+    RecordReaderBase::Ptr _recordReader;
 
     recursive_mutex _mtxStreamSource;
     unordered_map<string/*protocol*/ , unordered_map<string/*type*/ , MediaSource::Wptr> > _streamSource;

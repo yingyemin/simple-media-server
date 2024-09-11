@@ -59,6 +59,13 @@ WebrtcClient::~WebrtcClient()
     }
 }
 
+void WebrtcClient::init()
+{
+    MediaClient::registerCreateClient("webrtc", [](MediaClientType type, const std::string &appName, const std::string &streamName){
+        return make_shared<WebrtcClient>(type, appName, streamName);
+    });
+}
+
 void WebrtcClient::start(const string& localIp, int localPort, const string& url, int timeout)
 {
     _dtlsSession.reset(new DtlsSession("client"));

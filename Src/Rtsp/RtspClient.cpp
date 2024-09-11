@@ -6,10 +6,9 @@
 
 #include <arpa/inet.h>
 
-RtspClient::RtspClient(MediaClientType type, TransportType rtpType, const string& appName, const string& streamName)
+RtspClient::RtspClient(MediaClientType type, const string& appName, const string& streamName)
     :TcpClient(EventLoop::getCurrentLoop())
     ,_type(type)
-    ,_rtpType(rtpType)
 {
     _localUrlParser.path_ = "/" + appName + "/" + streamName;
     _localUrlParser.protocol_ = PROTOCOL_RTSP;
@@ -40,6 +39,18 @@ RtspClient::~RtspClient()
 
         MediaHook::instance()->onPlayer(info);
     }
+}
+
+void RtspClient::init()
+{
+    MediaClient::registerCreateClient("rtsp", [](MediaClientType type, const std::string &appName, const std::string &streamName){
+        return make_shared<RtspClient>(type, appName, streamName);
+    });
+}
+
+void RtspClient::setTransType(int type)
+{
+    _rtpType = (TransportType)type;
 }
 
 void RtspClient::start(const string& localIp, int localPort, const string& url, int timeout)
