@@ -37,11 +37,11 @@ public:
 
     void setMetadata(const AmfObjects& meta);
     AmfObjects getMetadata();
-    void setAvcHeader(shared_ptr<char> avcHeader, int avcHeaderSize){
+    void setAvcHeader(const StreamBuffer::Ptr& avcHeader, int avcHeaderSize){
         _avcHeaderSize = avcHeaderSize;
         _avcHeader = avcHeader;
     }
-    void setAacHeader(shared_ptr<char> aacHeader, int aacHeaderSize){
+    void setAacHeader(const StreamBuffer::Ptr& aacHeader, int aacHeaderSize){
         _aacHeaderSize = aacHeaderSize;
         _aacHeader = aacHeader;
     }
@@ -53,10 +53,10 @@ public:
 
 public:
     int _aacHeaderSize = 0;
-    shared_ptr<char> _aacHeader;
+    StreamBuffer::Ptr _aacHeader;
 
     int _avcHeaderSize = 0;
-    shared_ptr<char> _avcHeader;
+    StreamBuffer::Ptr _avcHeader;
 
 private:
     bool _muxer;

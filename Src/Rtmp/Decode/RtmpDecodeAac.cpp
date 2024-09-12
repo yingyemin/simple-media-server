@@ -14,7 +14,7 @@ RtmpDecodeAac::~RtmpDecodeAac()
 
 void RtmpDecodeAac::decode(const RtmpMessage::Ptr& msg)
 {
-    uint8_t *payload = (uint8_t *)msg->payload.get();
+    uint8_t *payload = (uint8_t *)msg->payload->data();
     int length = msg->length;
     if (_first && payload[1] == 0) {
         _aacConfig.assign((char*)payload + 2, length - 2); 

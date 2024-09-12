@@ -463,6 +463,7 @@ void WebrtcClient::setRemoteSdp(const string& sdp)
                     onError("create rtp/udp socket failed");
                     return ;
                 }
+                _addrLen = sizeof(sockaddr);
                 _addr = (struct sockaddr*)malloc(sizeof(sockaddr));
                 memcpy(_addr, ((sockaddr*)&addr), sizeof(sockaddr));
                 _socket->bindPeerAddr(_addr);
@@ -806,7 +807,9 @@ void WebrtcClient::sendMedia(const RtpPacket::Ptr& rtp)
         return ;
     }
 	int nb_cipher = rtp->size() - 4;
-    char data[1500];
+    // char data[1500];
+    auto buffer = make_shared<StreamBuffer>(1500 + 1);
+    auto data = buffer->data();
     memcpy(data, rtp->data() + 4, nb_cipher);
 
 	auto sdp_video_pt = 106;
@@ -828,7 +831,7 @@ void WebrtcClient::sendMedia(const RtpPacket::Ptr& rtp)
 
             _socket->send((char*)payload_ptr, 2);
         }
-		_socket->send(data, nb_cipher);
+		_socket->send(buffer, 1, 0, 0, _addr, _addrLen);
 		// _sendRtpPack_10s++;
 		// lastest_packet_send_time_ = time(nullptr);
 	}

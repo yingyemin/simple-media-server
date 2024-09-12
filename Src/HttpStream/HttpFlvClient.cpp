@@ -273,20 +273,20 @@ void HttpFlvClient::handleVideo(const char* data, int len)
     }
 
     auto msg = make_shared<RtmpMessage>();
-    msg->payload.reset(new char[length], [](char* p){delete[] p;});
-    memcpy(msg->payload.get(), payload, length);
+    msg->payload = make_shared<StreamBuffer>(length + 1);
+    memcpy(msg->payload->data(), payload, length);
     msg->abs_timestamp = timestamp;
     msg->length = length;
     msg->type_id = RTMP_VIDEO;
     msg->csid = RTMP_CHUNK_VIDEO_ID;
 
-    if (frame_type == 1/* && codec_id == RTMP_CODEC_ID_H264*/) {
+    if (!_avcHeader && frame_type == 1/* && codec_id == RTMP_CODEC_ID_H264*/) {
             // logInfo << "payload[1] : " << (int)payload[1];
         if (payload[1] == 0) {
             // sps pps??
             _avcHeaderSize = length;
-            _avcHeader.reset(new char[length], std::default_delete<char[]>());
-            memcpy(_avcHeader.get(), msg->payload.get(), length);
+            _avcHeader = make_shared<StreamBuffer>(length + 1);
+            memcpy(_avcHeader->data(), msg->payload->data(), length);
             // session->SetAvcSequenceHeader(avc_sequence_header_, avc_sequence_header_size_);
             rtmpSrc->setAvcHeader(_avcHeader, _avcHeaderSize);
             type = RTMP_AVC_SEQUENCE_HEADER;
@@ -348,7 +348,7 @@ void HttpFlvClient::handleAudio(const char* data, int len)
     }
 
     auto msg = make_shared<RtmpMessage>();
-    msg->payload.reset(new char[length], [](char* p){delete[] p;});
+    msg->payload = make_shared<StreamBuffer>(length + 1);
     
     memcpy(msg->payload.get(), payload, length);
 
@@ -358,10 +358,10 @@ void HttpFlvClient::handleAudio(const char* data, int len)
     msg->csid = RTMP_CHUNK_AUDIO_ID;
 
     // auto msg = make_shared<RtmpMessage>(std::move(msg));
-    if (sound_format == RTMP_CODEC_ID_AAC && payload[1] == 0) {
+    if (!_aacHeader && sound_format == RTMP_CODEC_ID_AAC && payload[1] == 0) {
         _aacHeaderSize = msg->length;
-        _aacHeader.reset(new char[msg->length], std::default_delete<char[]>());
-        memcpy(_aacHeader.get(), msg->payload.get(), msg->length);
+        _aacHeader = make_shared<StreamBuffer>(length + 1);
+        memcpy(_aacHeader->data(), msg->payload->data(), msg->length);
         // session->SetAacSequenceHeader(aac_sequence_header_, aac_sequence_header_size_);
         type = RTMP_AAC_SEQUENCE_HEADER;
         rtmpSrc->setAacHeader(_aacHeader, _aacHeaderSize);

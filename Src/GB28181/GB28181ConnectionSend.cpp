@@ -254,8 +254,8 @@ void GB28181ConnectionSend::sendRtpPacket(const GB28181MediaSource::RingDataType
 
                     // data[0] = '$';
                     // data[1] = _track->getInterleavedRtp();
-                    data[0] = (packet->size() - 4) >> 8;
-                    data[1] = (packet->size() - 4) & 0x00FF;
+                    // data[0] = (packet->size() - 4) >> 8;
+                    // data[1] = (packet->size() - 4) & 0x00FF;
 
                     // StreamBuffer::Ptr tcpHeader = StreamBuffer::create();
                     // tcpHeader->assign((char*)payload_ptr, 4);

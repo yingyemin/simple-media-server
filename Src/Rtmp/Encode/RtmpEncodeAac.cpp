@@ -72,8 +72,8 @@ void RtmpEncodeAac::encode(const FrameBuffer::Ptr& frame)
     int length = frame->size() - frame->startSize();
 
     auto msg = make_shared<RtmpMessage>();
-    msg->payload.reset(new char[2 + length], [](char* p){delete[] p;});
-    auto data = msg->payload.get();
+    msg->payload = make_shared<StreamBuffer>(2 + length + 1);
+    auto data = msg->payload->data();
     
     *data++ = _audioFlag;
     *data++ = 1;

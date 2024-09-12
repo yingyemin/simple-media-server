@@ -102,8 +102,8 @@ void FlvMuxerWithRtmp::onPlay()
 			// logInfo << "send rtmp msg";
 			auto pktList = *(pack.get());
 			for (auto& pkt : pktList) {
-				uint8_t frame_type = (pkt->payload.get()[0] >> 4) & 0x0f;
-				uint8_t codec_id = pkt->payload.get()[0] & 0x0f;
+				uint8_t frame_type = (pkt->payload->data()[0] >> 4) & 0x0f;
+				uint8_t codec_id = pkt->payload->data()[0] & 0x0f;
 
 				// FILE* fp = fopen("testflv.rtmp", "ab+");
 				// fwrite(pkt->payload.get(), pkt->length, 1, fp);
@@ -166,7 +166,7 @@ void FlvMuxerWithRtmp::start()
     }, this);
 }
 
-bool FlvMuxerWithRtmp::sendMediaData(uint8_t type, uint64_t timestamp, std::shared_ptr<char> payload, uint32_t payload_size)
+bool FlvMuxerWithRtmp::sendMediaData(uint8_t type, uint64_t timestamp, const StreamBuffer::Ptr& payload, uint32_t payload_size)
 {	 
 	if (payload_size == 0) {
 		return false;
@@ -176,8 +176,8 @@ bool FlvMuxerWithRtmp::sendMediaData(uint8_t type, uint64_t timestamp, std::shar
 
 	if (type == RTMP_VIDEO) {
 		if (!has_key_frame_) {
-			uint8_t frame_type = (payload.get()[0] >> 4) & 0x0f;
-			uint8_t codec_id = payload.get()[0] & 0x0f;
+			uint8_t frame_type = (payload->data()[0] >> 4) & 0x0f;
+			uint8_t codec_id = payload->data()[0] & 0x0f;
 
 			logInfo << "frame_type : " << (int)frame_type << ", codec_id: " << (int)codec_id
 					<< ", timestamp: " << timestamp;
@@ -202,13 +202,13 @@ bool FlvMuxerWithRtmp::sendMediaData(uint8_t type, uint64_t timestamp, std::shar
 	return true;
 }
 
-bool FlvMuxerWithRtmp::sendVideoData(uint64_t timestamp, std::shared_ptr<char> payload, uint32_t payload_size)
+bool FlvMuxerWithRtmp::sendVideoData(uint64_t timestamp, const StreamBuffer::Ptr& payload, uint32_t payload_size)
 {
 	sendFlvTag(RTMP_VIDEO, timestamp, payload, payload_size);
 	return true;
 }
 
-bool FlvMuxerWithRtmp::sendAudioData(uint64_t timestamp, std::shared_ptr<char> payload, uint32_t payload_size)
+bool FlvMuxerWithRtmp::sendAudioData(uint64_t timestamp, const StreamBuffer::Ptr& payload, uint32_t payload_size)
 {
 	sendFlvTag(RTMP_AUDIO, timestamp, payload, payload_size);
 	return true;
@@ -243,7 +243,7 @@ void FlvMuxerWithRtmp::sendFlvHeader()
 	}
 }
 
-int FlvMuxerWithRtmp::sendFlvTag(uint8_t type, uint64_t timestamp, std::shared_ptr<char> payload, uint32_t payload_size)
+int FlvMuxerWithRtmp::sendFlvTag(uint8_t type, uint64_t timestamp, const StreamBuffer::Ptr& payload, uint32_t payload_size)
 {
 	if (payload_size == 0) {
 		return -1;
@@ -262,7 +262,7 @@ int FlvMuxerWithRtmp::sendFlvTag(uint8_t type, uint64_t timestamp, std::shared_p
 	writeUint32BE(previous_tag_size, payload_size + 11);
 
 	send(tag_header, 11);
-	send(payload.get(), payload_size);
+	send(payload);
 	send(previous_tag_size, 4);
 	return 0;
 }
@@ -278,5 +278,12 @@ void FlvMuxerWithRtmp::send(const char* data, int len)
 {
 	if (_onWrite) {
 		_onWrite(data, len);
+	}
+}
+
+void FlvMuxerWithRtmp::send(const StreamBuffer::Ptr& buffer)
+{
+	if (_onWriteBuffer) {
+		_onWriteBuffer(buffer);
 	}
 }

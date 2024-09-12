@@ -159,13 +159,13 @@ void RtmpEncodeH265::encode(const FrameBuffer::Ptr& frame)
     if (!_append && !_vecFrame.empty()) { 
         if (_lastStamp != frame->pts() || frame->startSize() > 0) {
             auto msg = make_shared<RtmpMessage>();
-            msg->payload.reset(new char[_msgLength], [](char* p){delete[] p;});
+            msg->payload = make_shared<StreamBuffer>(_msgLength + 1);
             
             int index = 0;
             bool first = true;
             bool start = false;
             for (auto& it : _vecFrame) {
-                auto data = msg->payload.get() + index;
+                auto data = msg->payload->data() + index;
                 auto h265It = dynamic_pointer_cast<H265Frame>(it);
                 auto keyFrame = h265It->keyFrame();
                 int cts = it->pts() - it->dts();

@@ -183,6 +183,8 @@ public:
 
     void sendMessage(const ClientInfo &data);
 
+    int getOnWriteSize();
+
     void addOnWrite(void* key, onWriteFunc onWrite);
 
     void delOnWrite(void* key);
@@ -601,6 +603,12 @@ void DataQue<T>::addOnWrite(void* key, onWriteFunc onWrite)
         }
     }
 }
+
+template <typename T>
+int DataQue<T>::getOnWriteSize()
+{
+    return _on_write_map.size();
+} 
 
 template <typename T>
 void DataQue<T>::delOnWrite(void* key)

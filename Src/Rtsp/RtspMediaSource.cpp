@@ -206,6 +206,9 @@ void RtspMediaSource::addSink(const MediaSource::Ptr &src)
             track.second->startDecode();
         }
     }
+    if (_ring->getOnWriteSize() > 0) {
+        return ;
+    }
     weak_ptr<RtspMediaSource> weakSelf = std::static_pointer_cast<RtspMediaSource>(shared_from_this());
     _ring->addOnWrite(src.get(), [weakSelf](DataType in, bool is_key){
         auto strongSelf = weakSelf.lock();

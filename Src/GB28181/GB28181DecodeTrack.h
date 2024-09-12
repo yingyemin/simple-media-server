@@ -25,6 +25,8 @@ public:
     void startDecode();
     void stopDecode();
 
+    bool isStart() {return _startdecode;}
+
     void onRtpPacket(const RtpPacket::Ptr& rtp);
     void setOnRtpPacket(const function<void(const RtpPacket::Ptr& rtp)>& cb) {_onRtpPacket = cb;}
     void setOnFrame(const function<void(const FrameBuffer::Ptr& frame)>& cb) {_onFrame = cb;}

@@ -28,7 +28,7 @@ H265Frame::Ptr RtmpDecodeH265::createFrame()
 
 void RtmpDecodeH265::decode(const RtmpMessage::Ptr& msg)
 {
-    uint8_t *payload = (uint8_t *)msg->payload.get();
+    uint8_t *payload = (uint8_t *)msg->payload->data();
     bool isEnhance = (payload[0] >> 4) & 0b1000;
     uint8_t packet_type;
 
@@ -39,7 +39,7 @@ void RtmpDecodeH265::decode(const RtmpMessage::Ptr& msg)
     }
 
     int length = msg->length;
-    if (_first && packet_type == 0) {
+    if (/*_first && */packet_type == 0) {
         logInfo << "get a flv config";
         // rtmp header 5 bytes, hvcc 22 bytes
         if (length < 27) {

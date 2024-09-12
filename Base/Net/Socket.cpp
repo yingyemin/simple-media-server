@@ -609,18 +609,18 @@ int Socket::close()
 ssize_t Socket::send(const char* data, int len, int flag, struct sockaddr *addr, socklen_t addr_len)
 {
     auto buffer = make_shared<StreamBuffer>(data, len);
-    return send(buffer, flag, 0, addr, addr_len);
+    return send(buffer, flag, 0, 0, addr, addr_len);
 }
 
-ssize_t Socket::send(const Buffer::Ptr pkt, int flag, int offset, struct sockaddr *addr, socklen_t addr_len)
+ssize_t Socket::send(const Buffer::Ptr pkt, int flag, int offset, int length, struct sockaddr *addr, socklen_t addr_len)
 {
     
     if (!_loop->isCurrent()) { //切换到当前socket线程发送
         Socket::Wptr wSelf = shared_from_this();
-        _loop->async([wSelf, pkt, flag, offset, addr, addr_len](){
+        _loop->async([wSelf, pkt, flag, offset, length, addr, addr_len](){
             auto self = wSelf.lock();
             if (self) {
-                self->send(pkt, flag, offset, addr, addr_len);
+                self->send(pkt, flag, offset, length, addr, addr_len);
             }
         }, true, true);
         logInfo << "change thread";
@@ -642,7 +642,7 @@ ssize_t Socket::send(const Buffer::Ptr pkt, int flag, int offset, struct sockadd
     if (pkt) {
         // logInfo << "send pkt size: " << pkt->size() << ", flag : " << flag;
         iovec io;
-        int size = pkt->size() - offset;
+        int size = length ? length : (pkt->size() - offset);
         io.iov_base = pkt->data() + offset;
         io.iov_len = size;
 
@@ -837,9 +837,9 @@ void Socket::getPeerInfo()
             return ;
         } else {
             char buf[INET_ADDRSTRLEN] = "";
-            _localPort = ntohs(peerAddr.sin_port);
-            _localIp = inet_ntop(_family, &(peerAddr.sin_addr), buf, INET_ADDRSTRLEN);
-            _localIp.assign(buf);
+            _peerPort = ntohs(peerAddr.sin_port);
+            _peerIp = inet_ntop(_family, &(peerAddr.sin_addr), buf, INET_ADDRSTRLEN);
+            _peerIp.assign(buf);
         }
     } else {
         struct sockaddr_in6 peerAddr;
@@ -850,9 +850,9 @@ void Socket::getPeerInfo()
             return ;
         } else {
             char buf[INET6_ADDRSTRLEN] = "";
-            _localPort = ntohs(peerAddr.sin6_port);
-            _localIp = inet_ntop(_family, &(peerAddr.sin6_addr), buf, INET6_ADDRSTRLEN);
-            _localIp.assign(buf);
+            _peerPort = ntohs(peerAddr.sin6_port);
+            _peerIp = inet_ntop(_family, &(peerAddr.sin6_addr), buf, INET6_ADDRSTRLEN);
+            _peerIp.assign(buf);
         }
     }
 }

@@ -97,7 +97,7 @@ public:
     int close();
 
     ssize_t send(const char* data, int len, int flag = true, struct sockaddr *addr = nullptr, socklen_t addr_len = 0);
-    ssize_t send(const Buffer::Ptr pkt, int flag = true, int offset = 0, struct sockaddr *addr = nullptr, socklen_t addr_len = 0);
+    ssize_t send(const Buffer::Ptr pkt, int flag = true, int offset = 0, int length = 0, struct sockaddr *addr = nullptr, socklen_t addr_len = 0);
 
     void setReadCb(const onReadCb& cb) { _onRead = cb;}
     void setWriteCb(const onWriteCb& cb) { _onWrite = cb;}

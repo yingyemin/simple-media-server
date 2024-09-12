@@ -29,11 +29,11 @@ H264Frame::Ptr RtmpDecodeH264::createFrame()
 
 void RtmpDecodeH264::decode(const RtmpMessage::Ptr& msg)
 {
-    uint8_t *payload = (uint8_t *)msg->payload.get();
+    uint8_t *payload = (uint8_t *)msg->payload->data();
     int stamp = msg->abs_timestamp;
 
     int length = msg->length;
-    if (_first && payload[1] == 0) {
+    if (/*_first && */payload[1] == 0) {
         // sps pps
         // rtmp 头(5) + avcc 前八个字节(8) = 13；第11个字节是sps的数量；12、13字节是sps的长度
 
@@ -78,7 +78,7 @@ void RtmpDecodeH264::decode(const RtmpMessage::Ptr& msg)
             ++ppsCount;
         }
 
-        _first = false;
+        // _first = false;
     } else {
         // i b p
         int len =0;

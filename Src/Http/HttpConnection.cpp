@@ -532,6 +532,15 @@ void HttpConnection::handleFlvStream()
         auto buffer = make_shared<StreamBuffer>(data, len);
         self->send(buffer);
     });
+    
+    flvMux->setOnWrite([wSelf](const StreamBuffer::Ptr& buffer){
+        auto self = wSelf.lock();
+        if (!self) {
+            return ;
+        }
+
+        self->send(buffer);
+    });
 
     logInfo << "flv mux setOnDetach";
     flvMux->setOnDetach([wSelf](){

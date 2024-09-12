@@ -58,10 +58,11 @@ public:
     virtual int onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32_t ssrc);
 
     void setOnDecode(const function<void(const FrameBuffer::Ptr& frame)> cb);
-    void onDecode(const StringBuffer& data, int index, int pts, int dts);
+    void onDecode(const FrameBuffer::Ptr& data, int index, int pts, int dts);
     void addTrackInfo(const shared_ptr<TrackInfo>& trackInfo);
     void setOnTrackInfo(const function<void(const shared_ptr<TrackInfo>& trackInfo)>& cb);
     void setOnReady(const function<void()>& cb);
+    FrameBuffer::Ptr createFrame(int index);
 
     void clear();
 
@@ -86,6 +87,7 @@ private:
     TimeClock _timeClock;
     StringBuffer _remainBuffer;
     StringBuffer _videoStream;
+    FrameBuffer::Ptr _videoFrame;
     unordered_map<int, shared_ptr<TrackInfo>> _mapTrackInfo;
     function<void(const FrameBuffer::Ptr& frame)> _onFrame;
     function<void(const shared_ptr<TrackInfo>& trackInfo)> _onTrackInfo;

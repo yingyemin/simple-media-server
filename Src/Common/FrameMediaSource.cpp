@@ -27,7 +27,7 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
                 keyframe = true;
             }
         }
-        logInfo << "keyframe: " << keyframe << ", size: " << frame->size() << ", type: " << (int)frame->getNalType();
+        // logInfo << "keyframe: " << keyframe << ", size: " << frame->size() << ", type: " << (int)frame->getNalType();
         _ring->write(frame, keyframe);
     // }
 }

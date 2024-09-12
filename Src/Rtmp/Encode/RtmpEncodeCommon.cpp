@@ -67,8 +67,8 @@ void RtmpEncodeCommon::encode(const FrameBuffer::Ptr& frame)
     int length = frame->size() - frame->startSize();
 
     auto msg = make_shared<RtmpMessage>();
-    msg->payload.reset(new char[1 + length], [](char* p){delete[] p;});
-    auto data = msg->payload.get();
+    msg->payload = make_shared<StreamBuffer>(1 + length + 1);
+    auto data = msg->payload->data();
     
     *data++ = _audioFlag;
     memcpy(data, frame->data() + frame->startSize(), length);

@@ -36,6 +36,7 @@ public:
     void onRtpPacket(const RtpPacket::Ptr& rtp);
 
 private:
+    bool _isClose = false;
     int _ssrc = -1;
     GB28181Parser _parser;
     GB28181Context::Ptr _context;

@@ -67,8 +67,8 @@ void RtmpMediaSource::addTrack(const RtmpDecodeTrack::Ptr& track)
             strongSelf->_cache->emplace_back(std::move(pkt));
         }
         strongSelf->_lastPts = pkt->abs_timestamp;
-        uint8_t frame_type = (pkt->payload.get()[0] >> 4) & 0x0f;
-        uint8_t codec_id = pkt->payload.get()[0] & 0x0f;
+        uint8_t frame_type = (pkt->payload->data()[0] >> 4) & 0x0f;
+        uint8_t codec_id = pkt->payload->data()[0] & 0x0f;
 
         // logInfo << "frame_type : " << (int)frame_type << ", codec_id: " << (int)codec_id;
     });
@@ -100,9 +100,9 @@ void RtmpMediaSource::addTrack(const RtmpDecodeTrack::Ptr& track)
         }
     });
 
-    if (_mapSink.size() > 0) {
+    // if (_mapSink.size() > 0) {
         track->startDecode();
-    }
+    // }
 }
 
 void RtmpMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
@@ -147,7 +147,7 @@ void RtmpMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
                 strongSelf->_start = start;
             }
             // logInfo << "mapsink size: " << strongSelf->_mapSink.size();
-            logInfo << "pkt->abs_timestamp: " << pkt->abs_timestamp;
+            // logInfo << "pkt->abs_timestamp: " << pkt->abs_timestamp;
             if (pkt->abs_timestamp != strongSelf->_lastPts) {
                 strongSelf->_cache->emplace_back(std::move(pkt));
                 strongSelf->_ring->write(strongSelf->_cache, strongSelf->_start);
@@ -160,17 +160,17 @@ void RtmpMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
         });
         rtmpTrack->startEncode();
 
-        if (track->codec_ == "aac") {
+        if (!_aacHeader && track->codec_ == "aac") {
             auto config = rtmpTrack->getConfig();
             _aacHeaderSize = config.size();
-            _aacHeader.reset(new char[_aacHeaderSize], [](char* p){delete[] p;});
-            memcpy(_aacHeader.get(), config.data(), _aacHeaderSize);
-        } else if (track->trackType_ == "video") {
+            _aacHeader = make_shared<StreamBuffer>(_aacHeaderSize + 1);
+            memcpy(_aacHeader->data(), config.data(), _aacHeaderSize);
+        } else if (!_avcHeader && track->trackType_ == "video") {
             auto config = rtmpTrack->getConfig();
             if (track->codec_ == "h264" || track->codec_ == "h265") {
                 _avcHeaderSize = config.size();
-                _avcHeader.reset(new char[_avcHeaderSize], [](char* p){delete[] p;});
-                memcpy(_avcHeader.get(), config.data(), _avcHeaderSize);
+                _avcHeader = make_shared<StreamBuffer>(_avcHeaderSize + 1);
+                memcpy(_avcHeader->data(), config.data(), _avcHeaderSize);
             }
         }
     }
@@ -204,6 +204,9 @@ void RtmpMediaSource::addSink(const MediaSource::Ptr &src)
             // src->addTrack(track.second->getTrackInfo());
             track.second->startDecode();
         }
+    }
+    if (_ring->getOnWriteSize() > 0) {
+        return ;
     }
     weak_ptr<RtmpMediaSource> weakSelf = std::static_pointer_cast<RtmpMediaSource>(shared_from_this());
     _ring->addOnWrite(src.get(), [weakSelf](RingDataType in, bool is_key){
@@ -248,8 +251,8 @@ void RtmpMediaSource::delSink(const MediaSource::Ptr &src)
 
 void RtmpMediaSource::onFrame(const FrameBuffer::Ptr& frame)
 {
-    logInfo << "on get a frame: index : " << frame->getTrackIndex()
-              << ", codec: " << frame->codec() << ", nalu type: " << frame->getNalType();
+    // logInfo << "on get a frame: index : " << frame->getTrackIndex()
+    //           << ", codec: " << frame->codec() << ", nalu type: " << frame->getNalType();
     auto it = _mapRtmpEncodeTrack.find(frame->getTrackType());
     if (it == _mapRtmpEncodeTrack.end()) {
         return ;

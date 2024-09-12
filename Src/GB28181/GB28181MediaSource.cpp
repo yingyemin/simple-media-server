@@ -113,7 +113,7 @@ void GB28181MediaSource::addTrack(const GB28181DecodeTrack::Ptr& track)
                 auto rtpList = *(in.get());
                 for (auto& rtp : rtpList) {
                     int index = rtp->trackIndex_;
-                    logInfo << "_mapGB28181DecodeTrack size: " << strongSelf->_mapGB28181DecodeTrack.size();
+                    // logInfo << "_mapGB28181DecodeTrack size: " << strongSelf->_mapGB28181DecodeTrack.size();
                     auto track = strongSelf->_mapGB28181DecodeTrack[index];
                     track->decodeRtp(rtp);
                 }
@@ -239,6 +239,9 @@ void GB28181MediaSource::addSink(const MediaSource::Ptr &src)
             // src->addTrack(track.second->getTrackInfo());
             track.second->startDecode();
         }
+    }
+    if (_ring->getOnWriteSize() > 0) {
+        return ;
     }
     weak_ptr<GB28181MediaSource> weakSelf = std::static_pointer_cast<GB28181MediaSource>(shared_from_this());
     _ring->addOnWrite(src.get(), [weakSelf](RingDataType in, bool is_key){

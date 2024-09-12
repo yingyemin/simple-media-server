@@ -50,9 +50,9 @@ private:
     FlvDemuxer _demuxer;
     
     int _avcHeaderSize = 0;
-    shared_ptr<char> _avcHeader;
+    StreamBuffer::Ptr _avcHeader;
     int _aacHeaderSize = 0;
-    shared_ptr<char> _aacHeader;
+    StreamBuffer::Ptr _aacHeader;
     
     EventLoop::Ptr _loop;
     Socket::Ptr _socket;

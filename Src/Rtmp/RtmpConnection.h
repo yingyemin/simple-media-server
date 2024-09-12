@@ -50,9 +50,9 @@ public:
     void setPeerBandwidth();
     void sendAcknowledgement();
     void setChunkSize();
-    bool sendInvokeMessage(uint32_t csid, std::shared_ptr<char> payload, uint32_t payload_size);
-    bool sendNotifyMessage(uint32_t csid, std::shared_ptr<char> payload, uint32_t payload_size);
-    bool isKeyFrame(std::shared_ptr<char> payload, uint32_t payload_size);
+    bool sendInvokeMessage(uint32_t csid, const StreamBuffer::Ptr& payload, uint32_t payload_size);
+    bool sendNotifyMessage(uint32_t csid, const StreamBuffer::Ptr& payload, uint32_t payload_size);
+    bool isKeyFrame(const StreamBuffer::Ptr&, uint32_t payload_size);
     void sendRtmpChunks(uint32_t csid, RtmpMessage& rtmp_msg);
 
 private:
@@ -67,9 +67,9 @@ private:
     uint64_t _intervalSendBytes = 0;
     float _lastBitrate = 0;
     int _avcHeaderSize = 0;
-    shared_ptr<char> _avcHeader;
+    StreamBuffer::Ptr _avcHeader;
     int _aacHeaderSize = 0;
-    shared_ptr<char> _aacHeader;
+    StreamBuffer::Ptr _aacHeader;
     string _streamName;
     string _app;
     string _tcUrl;

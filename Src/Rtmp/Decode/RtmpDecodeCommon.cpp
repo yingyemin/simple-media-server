@@ -14,7 +14,7 @@ RtmpDecodeCommon::~RtmpDecodeCommon()
 
 void RtmpDecodeCommon::decode(const RtmpMessage::Ptr& msg)
 {
-    uint8_t *payload = (uint8_t *)msg->payload.get();
+    uint8_t *payload = (uint8_t *)msg->payload->data();
     int length = msg->length;
     auto frame = make_shared<FrameBuffer>();
         

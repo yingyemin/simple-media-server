@@ -173,7 +173,7 @@ uint32_t AmfDecoder::decodeInt32(const char *data, int size)
 }
 
 AmfEncoder::AmfEncoder(uint32_t size)
-	: _data(new char[size], std::default_delete<char[]>())
+	: _data(make_shared<StreamBuffer>(size + 1))
 	, _size(size)
 {
 }
@@ -188,7 +188,7 @@ void AmfEncoder::encodeInt8(int8_t value)
 		this->realloc(_size + 1024);
 	}
 
-	_data.get()[_index++] = value;
+	_data->data()[_index++] = value;
 }
 
 void AmfEncoder::encodeInt16(int16_t value)
@@ -197,7 +197,7 @@ void AmfEncoder::encodeInt16(int16_t value)
 		this->realloc(_size + 1024);
 	}
 
-	writeUint16BE(_data.get() + _index, value);
+	writeUint16BE(_data->data() + _index, value);
 	_index += 2;
 }
 
@@ -207,7 +207,7 @@ void AmfEncoder::encodeInt24(int32_t value)
 		this->realloc(_size + 1024);
 	}
 
-	writeUint24BE(_data.get() + _index, value);
+	writeUint24BE(_data->data() + _index, value);
 	_index += 3;
 }
 
@@ -217,7 +217,7 @@ void AmfEncoder::encodeInt32(int32_t value)
 		this->realloc(_size + 1024);
 	}
 
-	writeUint32BE(_data.get() + _index, value);
+	writeUint32BE(_data->data() + _index, value);
 	_index += 4;
 }
 
@@ -229,18 +229,18 @@ void AmfEncoder::encodeString(const char *str, int len, bool isObject)
 
 	if (len < 65536) {
 		if (isObject) {
-			_data.get()[_index++] = AMF0_STRING;
+			_data->data()[_index++] = AMF0_STRING;
 		}
 		encodeInt16(len);
 	}
 	else {
 		if (isObject) {
-			_data.get()[_index++] = AMF0_LONG_STRING;
+			_data->data()[_index++] = AMF0_LONG_STRING;
 		}
 		encodeInt32(len);
 	}
 
-	memcpy(_data.get() + _index, str, len);
+	memcpy(_data->data() + _index, str, len);
 	_index += len;
 }
 
@@ -250,10 +250,10 @@ void AmfEncoder::encodeNumber(double value)
 		this->realloc(_size + 1024);
 	}
 
-	_data.get()[_index++] = AMF0_NUMBER;
+	_data->data()[_index++] = AMF0_NUMBER;
 
 	char* ci = (char*)&value;
-	char* co = _data.get();
+	char* co = _data->data();
 	co[_index++] = ci[7];
 	co[_index++] = ci[6];
 	co[_index++] = ci[5];
@@ -270,8 +270,8 @@ void AmfEncoder::encodeBoolean(int value)
 		this->realloc(_size + 1024);
 	}
 
-	_data.get()[_index++] = AMF0_BOOLEAN;
-	_data.get()[_index++] = value ? 0x01 : 0x00;
+	_data->data()[_index++] = AMF0_BOOLEAN;
+	_data->data()[_index++] = value ? 0x01 : 0x00;
 }
 
 void AmfEncoder::encodeObjects(AmfObjects& objs)
@@ -338,8 +338,8 @@ void AmfEncoder::realloc(uint32_t size)
 		return;
 	}
 
-	std::shared_ptr<char> data(new char[size], std::default_delete<char[]>());
-	memcpy(data.get(), _data.get(), _index);
+	StreamBuffer::Ptr data = make_shared<StreamBuffer>(size + 1);
+	memcpy(data->data(), _data->data(), _index);
 	_size = size;
 	_data = data;
 }

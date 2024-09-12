@@ -46,6 +46,7 @@ void GB28181Connection::init()
 void GB28181Connection::close()
 {
     logInfo << "GB28181Connection::close()";
+    _isClose = true;
     TcpConnection::close();
 }
 
@@ -74,6 +75,9 @@ ssize_t GB28181Connection::send(Buffer::Ptr pkt)
 
 void GB28181Connection::onRtpPacket(const RtpPacket::Ptr& rtp)
 {
+    if (_isClose) {
+        return ;
+    }
     if (_ssrc < 0) {
         _ssrc = rtp->getSSRC();
     } else if (_ssrc != rtp->getSSRC()) {

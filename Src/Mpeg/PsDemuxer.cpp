@@ -205,7 +205,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
 			&& next_ps_pack[2] == (char)0x01
 			&& next_ps_pack[3] == (char)0xBB)
         {
-            logInfo << "get a ps bb";
+            // logInfo << "get a ps bb";
             //ps system header 
             if (incomplete_len < sizeof(PsPacketBBHeader)) {
                 _remainBuffer.assign(next_ps_pack, incomplete_len);
@@ -233,7 +233,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
 			&& next_ps_pack[3] == (char)0xBC)
         {
             //program stream map 
-            logInfo << "get a ps bc";
+            // logInfo << "get a ps bc";
             
             if (incomplete_len < sizeof(PsMapPacket)) {
                 _remainBuffer.assign(next_ps_pack, incomplete_len);
@@ -287,7 +287,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
                 buf += 2;
                 // std::string s_type = get_ps_map_type_str(type);
 
-                logInfo << "es_id: " << (int)es_id;
+                // logInfo << "es_id: " << (int)es_id;
 
                 /* remember mapping from stream id to stream type */
                 if (es_id >= PS_AUDIO_ID && es_id <= PS_AUDIO_ID_END){
@@ -296,7 +296,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
                         //  s_type.c_str(), type, es_id, es_info_length);
                     }
                     
-                    logInfo << "get a ps audio map";
+                    // logInfo << "get a ps audio map";
                     audio_es_id = es_id;
                     _audio_es_type = type;
                     if (_audio_es_type == STREAM_TYPE_AUDIO_AAC) {
@@ -331,7 +331,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
                         // srs_trace("gb28181: ps map video es_type=%s(%x), es_id=%0x, es_info_length=%d", 
                         //  s_type.c_str(), type, es_id, es_info_length);
                     }
-                    logInfo << "get a ps video map";
+                    // logInfo << "get a ps video map";
 
                     video_es_id = es_id;
                     _video_es_type = type;
@@ -374,6 +374,9 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
 			&& next_ps_pack[3] == (char)0xE0)
         {
             _hasVideo = true;
+            if (!_videoFrame) {
+                _videoFrame = createFrame(VideoTrackType);
+            }
             //pse video stream
             if (incomplete_len < sizeof(PsePacket)) {
                 _remainBuffer.assign(next_ps_pack, incomplete_len);
@@ -417,7 +420,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
                 video_pts = _lastVideoPts;
             }
             
-            logInfo << "_lastVideoPts: " << _lastVideoPts << ", video_pts: " << video_pts;
+            // logInfo << "_lastVideoPts: " << _lastVideoPts << ", video_pts: " << video_pts;
             if (_lastVideoPts != -1 && _lastVideoPts != video_pts) {
                 // onDecode(_videoStream);
                 if (_videoCodec != "unknown") {
@@ -427,13 +430,19 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
                     // fwrite(_videoStream.data(), 1, _videoStream.size(), fp);
                     // fclose(fp);
 
-                    logInfo << "decode a frame";
-                    onDecode(_videoStream, VideoTrackType, video_pts, video_pts);
+                    // logInfo << "decode a frame";
+                    onDecode(_videoFrame, VideoTrackType, video_pts, video_pts);
                 }
-                _videoStream.clear();
+                _videoFrame = createFrame(VideoTrackType);
             }
             
-            _videoStream.append(next_ps_pack, payloadlen);
+            if (_videoFrame) {
+                if (_videoFrame->_buffer.empty()) {
+                    _videoFrame->_buffer.assign(next_ps_pack, payloadlen);
+                } else {
+                    _videoFrame->_buffer.append(next_ps_pack, payloadlen);
+                }
+            }
             _lastVideoPts = video_pts;
 
             next_ps_pack = next_ps_pack + payloadlen;
@@ -485,7 +494,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
             }
             // logInfo << "get a ps audio frame";
 
-            StringBuffer audio_stream;
+            FrameBuffer::Ptr audio_stream = createFrame(AudioTrackType);
             PsePacket* pse_pack = (PsePacket*)next_ps_pack;
 
 		    unsigned char pts_dts_flags = (pse_pack->info[0] & 0xF0) >> 6;
@@ -551,7 +560,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
                 }
             }
          
-            audio_stream.append(next_ps_pack, payload_len);
+            audio_stream->_buffer.append(next_ps_pack, payload_len);
             
 // #ifdef W_AUDIO_FILE            
 //             if (!audio_fw.is_open()) {
@@ -636,13 +645,31 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
     return 0;
 }
 
-void PsDemuxer::onDecode(const StringBuffer& data, int index, int pts, int dts)
+FrameBuffer::Ptr PsDemuxer::createFrame(int index)
+{
+    FrameBuffer::Ptr frame;
+    if (index == VideoTrackType) {
+        if (_videoCodec == "h264") {
+            frame = make_shared<H264Frame>();
+        } else if (_videoCodec == "h265") {
+            frame = make_shared<H265Frame>();
+        }
+
+        _videoFrame = frame;
+    } else {
+        frame = make_shared<FrameBuffer>();
+    }
+
+    return frame;
+}
+
+void PsDemuxer::onDecode(const FrameBuffer::Ptr& frame, int index, int pts, int dts)
 {
     if (_firstAac && _audioCodec == "aac")
     {
         if (_mapTrackInfo.find(AudioTrackType) != _mapTrackInfo.end()) {
             auto aacTrack = dynamic_pointer_cast<AacTrack>(_mapTrackInfo[AudioTrackType]);
-            aacTrack->setAacInfoByAdts(data.data(), 7);
+            aacTrack->setAacInfoByAdts(frame->data(), 7);
             _firstAac = false;
             if (_hasVideoReady && _onReady) {
                 _hasReady = true;
@@ -651,17 +678,8 @@ void PsDemuxer::onDecode(const StringBuffer& data, int index, int pts, int dts)
         }
     }
 
-    FrameBuffer::Ptr frame;
-    if (index == VideoTrackType) {
-        if (_videoCodec == "h264") {
-            frame = make_shared<H264Frame>();
-        } else if (_videoCodec == "h265") {
-            frame = make_shared<H265Frame>();
-        }
-    } else {
-        frame = make_shared<FrameBuffer>();
-    }
-    frame->_buffer.assign(data.data(), data.size());
+    // FrameBuffer::Ptr frame = createFrame(index);
+    // frame->_buffer.assign(data.data(), data.size());
     frame->_pts = pts / 90; // pts * 1000 / 90000,计算为毫秒
     frame->_dts = dts / 90;
     frame->_index = index;

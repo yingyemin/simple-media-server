@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "Rtmp.h"
+#include "Net/Buffer.h"
 
 using namespace std;
 
@@ -45,17 +46,17 @@ public:
 
     bool isKeyFrame() const
     {
-        bool isEnhance = (payload.get()[0] >> 4) & 0b1000;
+        bool isEnhance = (payload->data()[0] >> 4) & 0b1000;
         uint8_t frame_type;
         uint8_t packet_type;
 
         if (isEnhance) {
-            frame_type = (payload.get()[0] >> 4) & 0b0111;
-            packet_type = payload.get()[0] & 0x0f;
+            frame_type = (payload->data()[0] >> 4) & 0b0111;
+            packet_type = payload->data()[0] & 0x0f;
             return type_id == RTMP_VIDEO && frame_type == 1 && (packet_type == 1 || packet_type == 3);
         } else {
-            frame_type = (payload.get()[0] >> 4) & 0x0f;
-            packet_type = payload.get()[1];
+            frame_type = (payload->data()[0] >> 4) & 0x0f;
+            packet_type = payload->data()[1];
             return type_id == RTMP_VIDEO && frame_type == 1 && packet_type == 1;
         }
     }
@@ -76,7 +77,7 @@ public:
     uint64_t abs_timestamp = 0;
     uint64_t laststep = 0;
 
-    std::shared_ptr<char> payload = nullptr;
+    StreamBuffer::Ptr payload = nullptr;
 };
 
 #pragma pack()

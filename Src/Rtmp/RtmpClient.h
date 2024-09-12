@@ -72,7 +72,7 @@ protected:
 
     void onRtmpChunk(RtmpMessage msg);
     void sendRtmpChunks(uint32_t csid, RtmpMessage& rtmp_msg);
-    bool sendInvokeMessage(uint32_t csid, std::shared_ptr<char> payload, uint32_t payload_size);
+    bool sendInvokeMessage(uint32_t csid, const StreamBuffer::Ptr& payload, uint32_t payload_size);
     bool handleResponse(RtmpMessage& rtmp_msg);
     void handleCmdResult(int bytes_used, RtmpMessage& rtmp_msg);
     void handleCmdOnStatus(int bytes_used, RtmpMessage& rtmp_msg);
@@ -95,9 +95,9 @@ private:
     MediaClientType _type = MediaClientType_Pull;
 
     int _avcHeaderSize = 0;
-    shared_ptr<char> _avcHeader;
+    StreamBuffer::Ptr _avcHeader;
     int _aacHeaderSize = 0;
-    shared_ptr<char> _aacHeader;
+    StreamBuffer::Ptr _aacHeader;
 
     string _localAppName;
     string _localStreamName;

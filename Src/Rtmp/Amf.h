@@ -9,6 +9,8 @@
 #include <map>
 #include <unordered_map>
 
+#include "Net/Buffer.h"
+
 #pragma pack(1)
 
 typedef enum
@@ -151,7 +153,7 @@ public:
 		_index = 0;
 	}
      
-	std::shared_ptr<char> data()
+	StreamBuffer::Ptr data()
 	{
 		return _data;
 	}
@@ -175,7 +177,7 @@ private:
 	void realloc(uint32_t size);
 
 private:
-	std::shared_ptr<char> _data;    
+	StreamBuffer::Ptr _data;    
 	uint32_t _size  = 0;
 	uint32_t _index = 0;
 };

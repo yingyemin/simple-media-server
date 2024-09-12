@@ -38,7 +38,7 @@ void AudioStampAdjust::inputStamp(uint64_t& pts, uint64_t& dts, int samples)
 
     int step = pts - _lastPts;
     // TODO: 从配置里读
-    logInfo << "audio step: " << step;
+    // logInfo << "audio step: " << step;
     if ((step < -500 || step > 500) && _samplerate) {
         step = (samples * 1.0 / _samplerate) * 1000;
     }
@@ -48,8 +48,8 @@ void AudioStampAdjust::inputStamp(uint64_t& pts, uint64_t& dts, int samples)
     ++_count;
     _avgStep = _totalStamp / _count;
 
-    logInfo << "audio pts: " << pts;
-    logInfo << "audio _adjustPts: " << _adjustPts;
+    // logInfo << "audio pts: " << pts;
+    // logInfo << "audio _adjustPts: " << _adjustPts;
     _adjustPts += step;
     _lastPts = pts;
     if (pts > dts && pts - dts < 10000) {

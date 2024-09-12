@@ -103,6 +103,13 @@ void GB28181EncodeTrack::onPsFrame(const FrameBuffer::Ptr& frame)
 
 void GB28181EncodeTrack::onRtpPacket(const RtpPacket::Ptr& rtp)
 {
+    // 国标的rtp over tcp前面只要留两个字节
+    rtp->buffer()->substr(2);
+
+    auto data = rtp->data();
+    data[0] = (rtp->size() - 4) >> 8;
+    data[1] = (rtp->size() - 4) & 0x00FF;
+
     if (_onRtpPacket) {
         _onRtpPacket(rtp);
     }

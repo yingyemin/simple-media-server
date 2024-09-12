@@ -189,7 +189,7 @@ int RtmpChunk::parseChunkHeader(uint8_t* buf, uint32_t size, uint32_t &bytesUsed
 	}
 
 	if (!msg.payload) {
-		msg.payload.reset(new char[msg.length], std::default_delete<char[]>());
+		msg.payload = make_shared<StreamBuffer>(msg.length + 1);
 	}
 
 	_state = PARSE_BODY;
@@ -244,7 +244,7 @@ int RtmpChunk::parseChunkBody(uint8_t* buf, uint32_t size, uint32_t &bytesUsed)
 		return -1;
 	}
 
-	memcpy(msg.payload.get() + msg.index, buf + bodyBytesUsed, chunkSize);
+	memcpy(msg.payload->data() + msg.index, buf + bodyBytesUsed, chunkSize);
 	bodyBytesUsed += chunkSize;
 	msg.index += chunkSize;
 	
@@ -269,28 +269,40 @@ int RtmpChunk::parseChunkBody(uint8_t* buf, uint32_t size, uint32_t &bytesUsed)
 	return bytesUsed;
 }
 
-int RtmpChunk::createBasicHeader(uint8_t fmt, uint32_t csid, char* buf)
+int RtmpChunk::createBasicHeader(uint8_t fmt, uint32_t csid)
 {
 	int len = 0;
+	StreamBuffer::Ptr buffer;
 
 	if (csid >= 64 + 255) {
+		buffer = make_shared<StreamBuffer>(4);
+		char* buf = buffer->data();
 		buf[len++] = (fmt << 6) | 1;
 		buf[len++] = (csid - 64) & 0xFF;
 		buf[len++] = ((csid - 64) >> 8) & 0xFF;
 	}
 	else if (csid >= 64) {
+		buffer = make_shared<StreamBuffer>(3);
+		char* buf = buffer->data();
 		buf[len++] = (fmt << 6) | 0;
 		buf[len++] = (csid - 64) & 0xFF;
 	}
 	else {
+		buffer = make_shared<StreamBuffer>(2);
+		char* buf = buffer->data();
 		buf[len++] = (fmt << 6) | csid;
 	}
+
+	_socket->send(buffer, 0);
 	return len;
 }
 
-int RtmpChunk::createMessageHeader(uint8_t fmt, RtmpMessage& msg, char* buf, uint64_t dts)
+int RtmpChunk::createMessageHeader(uint8_t fmt, RtmpMessage& msg, uint64_t dts)
 {
 	int len = 0;
+
+	StreamBuffer::Ptr buffer = make_shared<StreamBuffer>(12);
+	auto buf = buffer->data();
 
 	if (fmt <= 2) {
 		if (dts < 0xffffff) {
@@ -313,16 +325,14 @@ int RtmpChunk::createMessageHeader(uint8_t fmt, RtmpMessage& msg, char* buf, uin
 		len += 4;
 	}
 
+	buffer->substr(0, len);
+	_socket->send(buffer, 0);
 	return len;
 }
 
-int RtmpChunk::createChunk(uint32_t csid, RtmpMessage& msg, char* buf, uint32_t size)
+int RtmpChunk::createChunk(uint32_t csid, RtmpMessage& msg)
 {
-	uint32_t bufOffset = 0, payloadOffset = 0;
-	uint32_t capacity = msg.length + msg.length / _outChunkSize * 5;
-	if (size < capacity) {
-		return -1;
-	}
+	uint32_t payloadOffset = 0;
 
 	uint32_t length = msg.length;
 	uint64_t dts = msg.abs_timestamp;
@@ -332,36 +342,38 @@ int RtmpChunk::createChunk(uint32_t csid, RtmpMessage& msg, char* buf, uint32_t 
 		_audioStampAdjust.inputStamp(dts, dts, length);
 	}
 
-	bufOffset += createBasicHeader(0, csid, buf + bufOffset); //first chunk
-	bufOffset += createMessageHeader(0, msg, buf + bufOffset, dts);
+	createBasicHeader(0, csid); //first chunk
+	createMessageHeader(0, msg, dts);
 	if (dts >= 0xffffff) {
-		writeUint32BE((char*)buf + bufOffset, (uint32_t)dts);
-		bufOffset += 4;
+		StreamBuffer::Ptr buffer = make_shared<StreamBuffer>(5);
+		auto buf = buffer->data();
+		writeUint32BE((char*)buf, (uint32_t)dts);
+		_socket->send(buffer, 0);
 	}
 
 	while (length > 0)
 	{
 		if (length > _outChunkSize) {
-			memcpy(buf + bufOffset, msg.payload.get() + payloadOffset, _outChunkSize);
+			_socket->send(msg.payload, 0, payloadOffset, _outChunkSize);
 			payloadOffset += _outChunkSize;
-			bufOffset += _outChunkSize;
 			length -= _outChunkSize;
 
-			bufOffset += createBasicHeader(3, csid, buf + bufOffset);
+			createBasicHeader(3, csid);
 			if (dts >= 0xffffff) {
-				writeUint32BE(buf + bufOffset, (uint32_t)dts);
-				bufOffset += 4;
+				StreamBuffer::Ptr buffer = make_shared<StreamBuffer>(5);
+				auto buf = buffer->data();
+				writeUint32BE((char*)buf, (uint32_t)dts);
+				_socket->send(buffer, 0);
 			}
 		}
 		else {
-			memcpy(buf + bufOffset, msg.payload.get() + payloadOffset, length);
-			bufOffset += length;
+			_socket->send(msg.payload, 1, payloadOffset, length);
 			length = 0;
 			break;
 		}
 	}
 
-	return bufOffset;
+	return 0;
 }
 
 void RtmpChunk::setOnRtmpChunk(const function<void(const RtmpMessage msg)> cb)

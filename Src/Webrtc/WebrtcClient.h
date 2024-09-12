@@ -85,6 +85,7 @@ private:
     WebrtcDecodeTrack::Ptr _videoDecodeTrack;
     WebrtcDecodeTrack::Ptr _audioDecodeTrack;
     struct sockaddr* _addr = nullptr;
+	int _addrLen = 0;
     WebrtcMediaSource::Wptr _source;
     shared_ptr<WebrtcSdp> _localSdp;
     shared_ptr<WebrtcSdp> _remoteSdp;

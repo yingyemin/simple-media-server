@@ -202,8 +202,8 @@ void RtmpClient::sendSetChunkSize()
     logInfo << "RtmpClient::sendSetChunkSize()";
 
     _chunk.setOutChunkSize(5000000);
-    std::shared_ptr<char> data(new char[4], std::default_delete<char[]>());
-    writeUint32BE((char*)data.get(), 5000000);
+    StreamBuffer::Ptr data = make_shared<StreamBuffer>(5);
+    writeUint32BE((char*)data->data(), 5000000);
 
     RtmpMessage rtmp_msg;
     rtmp_msg.type_id = RTMP_SET_CHUNK_SIZE;
@@ -311,7 +311,7 @@ void RtmpClient::onRtmpChunk(RtmpMessage msg)
 			ret = false;
             break;            
         case RTMP_SET_CHUNK_SIZE:           
-			_chunk.setInChunkSize(readUint32BE(msg.payload.get()));
+			_chunk.setInChunkSize(readUint32BE(msg.payload->data()));
             break;
 		case RTMP_BANDWIDTH_SIZE:
 			break;
@@ -355,7 +355,7 @@ bool RtmpClient::handleResponse(RtmpMessage& rtmp_msg)
     logInfo << "rtmp_msg.length: " << rtmp_msg.length;
     logInfo << bytes_used << "method: " << bytes_used;
     
-    bytes_used += _amfDecoder.decode(rtmp_msg.payload.get()+bytes_used, rtmp_msg.length-bytes_used, 1);
+    bytes_used += _amfDecoder.decode(rtmp_msg.payload->data()+bytes_used, rtmp_msg.length-bytes_used, 1);
     
     if (method == "_error" || method == "_result") {
         handleCmdResult(bytes_used, rtmp_msg);
@@ -378,7 +378,7 @@ void RtmpClient::handleCmdResult(int bytes_used, RtmpMessage& rtmp_msg)
             if (_amfDecoder.hasObject("code")) {
                 break;
             }
-            bytes_used += _amfDecoder.decode(rtmp_msg.payload.get()+bytes_used, rtmp_msg.length-bytes_used, 1);
+            bytes_used += _amfDecoder.decode(rtmp_msg.payload->data()+bytes_used, rtmp_msg.length-bytes_used, 1);
         }
         auto code = _amfDecoder.getObject("code").amfString;
         auto level = _amfDecoder.getObject("level").amfString;
@@ -392,7 +392,7 @@ void RtmpClient::handleCmdResult(int bytes_used, RtmpMessage& rtmp_msg)
         // bytes_used += _amfDecoder.decode(rtmp_msg.payload.get()+bytes_used, rtmp_msg.length-bytes_used, 1);
         // bytes_used += _amfDecoder.decode(rtmp_msg.payload.get()+bytes_used, rtmp_msg.length-bytes_used, 1);
         while (bytes_used < rtmp_msg.length) {
-            bytes_used += _amfDecoder.decode(rtmp_msg.payload.get()+bytes_used, rtmp_msg.length-bytes_used, 1);
+            bytes_used += _amfDecoder.decode(rtmp_msg.payload->data()+bytes_used, rtmp_msg.length-bytes_used, 1);
         }
 
         _streamId = _amfDecoder.getNumber();
@@ -407,7 +407,7 @@ void RtmpClient::handleCmdOnStatus(int bytes_used, RtmpMessage& rtmp_msg)
             while (bytes_used < rtmp_msg.length) {
                 logInfo << bytes_used << "method: " << bytes_used;
                 if (!_amfDecoder.hasObject("code")) {
-                    bytes_used += _amfDecoder.decode(rtmp_msg.payload.get()+bytes_used, rtmp_msg.length-bytes_used, 1);
+                    bytes_used += _amfDecoder.decode(rtmp_msg.payload->data()+bytes_used, rtmp_msg.length-bytes_used, 1);
                     continue;
                 }
             }
@@ -432,7 +432,7 @@ void RtmpClient::handleCmdOnStatus(int bytes_used, RtmpMessage& rtmp_msg)
             while (bytes_used < rtmp_msg.length) {
                 logInfo << bytes_used << "method: " << bytes_used;
                 if (!_amfDecoder.hasObject("code")) {
-                    bytes_used += _amfDecoder.decode(rtmp_msg.payload.get()+bytes_used, rtmp_msg.length-bytes_used, 1);
+                    bytes_used += _amfDecoder.decode(rtmp_msg.payload->data()+bytes_used, rtmp_msg.length-bytes_used, 1);
                     continue;
                 }
             }
@@ -532,13 +532,13 @@ bool RtmpClient::handleVideo(RtmpMessage& rtmp_msg)
     }
 
     auto msg = make_shared<RtmpMessage>(std::move(rtmp_msg));
-    if (frame_type == 1/* && codec_id == RTMP_CODEC_ID_H264*/) {
+    if (!_avcHeader && frame_type == 1/* && codec_id == RTMP_CODEC_ID_H264*/) {
             // logInfo << "payload[1] : " << (int)payload[1];
         if (payload[1] == 0) {
             // sps pps??
             _avcHeaderSize = length;
-            _avcHeader.reset(new char[length], std::default_delete<char[]>());
-            memcpy(_avcHeader.get(), msg->payload.get(), length);
+            _avcHeader = make_shared<StreamBuffer>(length + 1);
+            memcpy(_avcHeader->data(), msg->payload->data(), length);
             // session->SetAvcSequenceHeader(avc_sequence_header_, avc_sequence_header_size_);
             rtmpSrc->setAvcHeader(_avcHeader, _avcHeaderSize);
             type = RTMP_AVC_SEQUENCE_HEADER;
@@ -627,8 +627,8 @@ void RtmpClient::onPublish(const MediaSource::Ptr &src)
             logInfo << "send rtmp msg";
             auto pktList = *(pack.get());
             for (auto& pkt : pktList) {
-                uint8_t frame_type = (pkt->payload.get()[0] >> 4) & 0x0f;
-				uint8_t codec_id = pkt->payload.get()[0] & 0x0f;
+                uint8_t frame_type = (pkt->payload->data()[0] >> 4) & 0x0f;
+				uint8_t codec_id = pkt->payload->data()[0] & 0x0f;
 
                 // logInfo << "send rtmp msg,time: " << pkt->abs_timestamp << ", type: " << (int)(pkt->type_id)
                 //             << ", length: " << pkt->length;
@@ -749,10 +749,10 @@ bool RtmpClient::handleAudio(RtmpMessage& rtmp_msg)
     }
 
     auto msg = make_shared<RtmpMessage>(std::move(rtmp_msg));
-    if (sound_format == RTMP_CODEC_ID_AAC && payload[1] == 0) {
+    if (!_aacHeader && sound_format == RTMP_CODEC_ID_AAC && payload[1] == 0) {
         _aacHeaderSize = msg->length;
-        _aacHeader.reset(new char[msg->length], std::default_delete<char[]>());
-        memcpy(_aacHeader.get(), msg->payload.get(), msg->length);
+        _aacHeader = make_shared<StreamBuffer>(length + 1);
+        memcpy(_aacHeader->data(), msg->payload->data(), msg->length);
         // session->SetAacSequenceHeader(aac_sequence_header_, aac_sequence_header_size_);
         type = RTMP_AAC_SEQUENCE_HEADER;
         rtmpSrc->setAacHeader(_aacHeader, _aacHeaderSize);
@@ -767,7 +767,7 @@ bool RtmpClient::handleAudio(RtmpMessage& rtmp_msg)
     return true;
 }
 
-bool RtmpClient::sendInvokeMessage(uint32_t csid, std::shared_ptr<char> payload, uint32_t payload_size)
+bool RtmpClient::sendInvokeMessage(uint32_t csid, const StreamBuffer::Ptr& payload, uint32_t payload_size)
 {
     // if(this->IsClosed()) {
     //     return false;
@@ -785,16 +785,7 @@ bool RtmpClient::sendInvokeMessage(uint32_t csid, std::shared_ptr<char> payload,
 
 void RtmpClient::sendRtmpChunks(uint32_t csid, RtmpMessage& rtmp_msg)
 {    
-    uint32_t capacity = rtmp_msg.length + rtmp_msg.length/ 5000000 *5 + 1024;
-    std::shared_ptr<char> buffer(new char[capacity], std::default_delete<char[]>());
-
-    auto msg = rtmp_msg;
-	int size = _chunk.createChunk(csid, msg, buffer.get(), capacity);
-	if (size > 0) {
-        auto bufferRaw = StreamBuffer::create();
-        bufferRaw->assign(buffer.get(), size);
-		this->send(bufferRaw);
-	}
+    _chunk.createChunk(csid, rtmp_msg);
 }
 
 void RtmpClient::setOnClose(const function<void()>& cb)

@@ -214,6 +214,9 @@ void JT1078MediaSource::addSink(const MediaSource::Ptr &src)
             track.second->startDecode();
         }
     }
+    if (_ring->getOnWriteSize() > 0) {
+        return ;
+    }
     std::weak_ptr<JT1078MediaSource> weakSelf = std::static_pointer_cast<JT1078MediaSource>(shared_from_this());
     _ring->addOnWrite(src.get(), [weakSelf](RingDataType in, bool is_key){
         auto strongSelf = weakSelf.lock();

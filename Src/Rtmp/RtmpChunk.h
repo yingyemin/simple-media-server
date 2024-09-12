@@ -5,6 +5,7 @@
 #include "Amf.h"
 #include "Net/Buffer.h"
 #include "Common/StampAdjust.h"
+#include "Net/Socket.h"
 
 #include <map>
 
@@ -26,7 +27,7 @@ public:
 
 	int parse(const StreamBuffer::Ptr& in_buffer);
 
-	int createChunk(uint32_t csid, RtmpMessage& rtmp_msg, char* buf, uint32_t buf_size);
+	int createChunk(uint32_t csid, RtmpMessage& rtmp_msg);
 
 	void setInChunkSize(uint32_t inChunkSize)
 	{ _inChunkSize = inChunkSize; }
@@ -42,11 +43,13 @@ public:
 
     void setOnRtmpChunk(const function<void(const RtmpMessage msg)> cb);
 
+	void setSocket(const Socket::Ptr& socket) {_socket = socket;}
+
 private:
 	int parseChunkHeader(uint8_t* buf, uint32_t buf_size, uint32_t &bytes_used);
 	int parseChunkBody(uint8_t* buf, uint32_t buf_size, uint32_t &bytes_used);
-	int createBasicHeader(uint8_t fmt, uint32_t csid, char* buf);
-	int createMessageHeader(uint8_t fmt, RtmpMessage& rtmp_msg, char* buf, uint64_t dts);
+	int createBasicHeader(uint8_t fmt, uint32_t csid);
+	int createMessageHeader(uint8_t fmt, RtmpMessage& rtmp_msg, uint64_t dts);
 
 private:
 	State _state;
@@ -57,6 +60,7 @@ private:
 	VideoStampAdjust _videoStampAdjust;
 	AudioStampAdjust _audioStampAdjust;
     StringBuffer _remainBuffer;
+	Socket::Ptr _socket;
 	std::map<int, RtmpMessage> _messages;
     function<void(const RtmpMessage msg)> _onRtmpChunk;
 

@@ -183,9 +183,9 @@ void RecordReader::readMp4(const string& path)
                     self->_frameList.pop_front();
                     self->_onFrame(frame);
 
-                    FILE* fp = fopen("testvodmp4.h264", "ab+");
-                    fwrite(frame->data(), 1, frame->size(), fp);
-                    fclose(fp);
+                    // FILE* fp = fopen("testvodmp4.h264", "ab+");
+                    // fwrite(frame->data(), 1, frame->size(), fp);
+                    // fclose(fp);
                 }
                 break;
             }

@@ -86,6 +86,11 @@ void H264Frame::split(const function<void(const FrameBuffer::Ptr& frame)>& cb)
             break;
         }
     }
+
+    if (ptr == start) {
+        cb(shared_from_this());
+        return ;
+    }
     
     //未找到下一帧,这是最后一帧
     H264Frame::Ptr subFrame = make_shared<H264Frame>(dynamic_pointer_cast<H264Frame>(shared_from_this()));

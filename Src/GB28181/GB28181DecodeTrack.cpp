@@ -135,7 +135,7 @@ void GB28181DecodeTrack::onPsFrame(const FrameBuffer::Ptr frame)
 
 void GB28181DecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
 {
-    logInfo << "get a raw frame: " << frame->_codec;
+    // logInfo << "get a raw frame: " << frame->_codec;
     if (!_isPs) {
         if (_trackInfo->codec_ == "h265") {
             auto h265frame = dynamic_pointer_cast<H265Frame>(frame);
@@ -213,7 +213,7 @@ void GB28181DecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
     //     fwrite(frame->_buffer.data(), 1, frame->_buffer.size(), fp);
     //     fclose(fp);
     // }
-    logInfo << "decode a frame: " << frame->_index << ", decoder codec: " << _trackInfo->codec_;
+    // logInfo << "decode a frame: " << frame->_index << ", decoder codec: " << _trackInfo->codec_;
 }
 
 void GB28181DecodeTrack::setOnTrackInfo(const function<void(const shared_ptr<TrackInfo>& trackInfo)>& cb)

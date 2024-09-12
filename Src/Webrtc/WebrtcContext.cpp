@@ -567,7 +567,7 @@ void WebrtcContext::checkAndSendRtcpNack()
         if (_socket->getSocketType() == SOCKET_TCP) {
             _socket->send(bufferRtcp);
         } else {
-            _socket->send(bufferRtcp, 1, 0, _addr, _addrLen);
+            _socket->send(bufferRtcp, 1, 0, 0, _addr, _addrLen);
         }
     }
 
@@ -592,7 +592,7 @@ void WebrtcContext::checkAndSendRtcpNack()
         if (_socket->getSocketType() == SOCKET_TCP) {
             _socket->send(bufferRtcp);
         } else {
-            _socket->send(bufferRtcp, 1, 0, _addr, _addrLen);
+            _socket->send(bufferRtcp, 1, 0, 0, _addr, _addrLen);
         }
     }
 }
@@ -621,7 +621,7 @@ void WebrtcContext::sendRtcpPli(int ssrc)
         _socket->send((char*)payload_ptr, 2);
     }
 
-    _socket->send(bufferRtcp, 1, 0, _addr, _addrLen);
+    _socket->send(bufferRtcp, 1, 0, 0, _addr, _addrLen);
 }
 
 void WebrtcContext::onRtpPacket(const Socket::Ptr& socket, const RtpPacket::Ptr& rtp, struct sockaddr* addr, int len)
@@ -960,7 +960,9 @@ void WebrtcContext::sendMedia(const RtpPacket::Ptr& rtp)
 
     logInfo << "WebrtcContext::sendMedia";
 	int nb_cipher = rtp->size() - 4;
-    char data[1500];
+    // char data[1500];
+    auto buffer = make_shared<StreamBuffer>(1500 + 1);
+    auto data = buffer->data();
     memcpy(data, rtp->data() + 4, nb_cipher);
 
 	// auto sdp_video_pt = 106;
@@ -982,7 +984,7 @@ void WebrtcContext::sendMedia(const RtpPacket::Ptr& rtp)
 
             _socket->send((char*)payload_ptr, 2);
         }
-		_socket->send(data, nb_cipher, 1, _addr, _addrLen);
+		_socket->send(buffer, 1, 0, 0, _addr, _addrLen);
 		_sendRtpPack_10s++;
 		// lastest_packet_send_time_ = time(nullptr);
 	}
