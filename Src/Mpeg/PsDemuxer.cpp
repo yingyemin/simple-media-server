@@ -423,7 +423,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
             // logInfo << "_lastVideoPts: " << _lastVideoPts << ", video_pts: " << video_pts;
             if (_lastVideoPts != -1 && _lastVideoPts != video_pts) {
                 // onDecode(_videoStream);
-                if (_videoCodec != "unknown") {
+                if (_videoCodec != "unknown" && _videoFrame->size() > 0) {
                     // static int i = 0;
                     // string name = "testpsvod" + to_string(i++) + ".h264";
                     // FILE* fp = fopen(name.c_str(), "ab+");
@@ -444,6 +444,10 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
                 }
             }
             _lastVideoPts = video_pts;
+
+            // logInfo << "ps_size: " << ps_size;
+            // logInfo << "payloadlen: " << payloadlen;
+            // logInfo << "complete_len: " << complete_len;
 
             next_ps_pack = next_ps_pack + payloadlen;
             complete_len = complete_len + payloadlen;
@@ -628,6 +632,8 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
     if (end - next_ps_pack > 0) {
         logInfo << "remain size: " << incomplete_len << "|" << (end - next_ps_pack);
         _remainBuffer.assign(next_ps_pack, end - next_ps_pack);
+    } else if (!_remainBuffer.empty()){
+        _remainBuffer.clear();
     }
 
     // if (complete_len != ps_size){

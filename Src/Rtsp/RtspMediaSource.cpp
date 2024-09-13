@@ -163,7 +163,7 @@ void RtspMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
             if (start) {
                 strongSelf->_start = start;
             }
-            logInfo << "on rtp seq: " << rtp->getSeq() << ", size: " << rtp->size() << ", type: " << rtp->type_ << ", start: " << strongSelf->_start;
+            // logInfo << "on rtp seq: " << rtp->getSeq() << ", size: " << rtp->size() << ", type: " << rtp->type_ << ", start: " << strongSelf->_start;
             if (rtp->getHeader()->mark) {
                 strongSelf->_cache->emplace_back(std::move(rtp));
                 strongSelf->_ring->write(strongSelf->_cache, strongSelf->_start);
@@ -252,9 +252,9 @@ void RtspMediaSource::delSink(const MediaSource::Ptr &src)
 
 void RtspMediaSource::onFrame(const FrameBuffer::Ptr& frame)
 {
-    logInfo << "on get a frame: index : " << frame->getTrackIndex()
-              << ", codec: " << frame->codec() << ", size: " << frame->size()
-              << ", nal type: " << (int)frame->getNalType() << ", start size: " << frame->startSize();
+    // logInfo << "on get a frame: index : " << frame->getTrackIndex()
+    //           << ", codec: " << frame->codec() << ", size: " << frame->size()
+    //           << ", nal type: " << (int)frame->getNalType() << ", start size: " << frame->startSize();
     auto it = _mapRtspTrack.find(frame->getTrackIndex());
     if (it == _mapRtspTrack.end()) {
         return ;

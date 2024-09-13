@@ -28,7 +28,7 @@ public:
     virtual ~RtspPsMediaSource();
 
 public:
-    void addTrack(const RtspTrack::Ptr& track);
+    void addTrack(const RtspPsDecodeTrack::Ptr& track);
     void addDecodeTrack(const shared_ptr<TrackInfo>& track);
     void addTrack(const shared_ptr<TrackInfo>& track) override;
     void addSink(const MediaSource::Ptr &src) override;

@@ -21,7 +21,7 @@ RtspPsMediaSource::~RtspPsMediaSource()
     logInfo << "~RtspPsMediaSource";
 }
 
-void RtspPsMediaSource::addTrack(const RtspTrack::Ptr& track)
+void RtspPsMediaSource::addTrack(const RtspPsDecodeTrack::Ptr& track)
 {
     std::weak_ptr<RtspPsMediaSource> weakSelf = std::static_pointer_cast<RtspPsMediaSource>(shared_from_this());
     if (!_ring) {
@@ -42,7 +42,7 @@ void RtspPsMediaSource::addTrack(const RtspTrack::Ptr& track)
         logInfo << "create _ring: " << _ring;
     }
 
-    _psDecode = dynamic_pointer_cast<RtspPsDecodeTrack>(track);
+    _psDecode = track;
 
     // if (track->getTrackInfo()->trackType_ == "video") {
     //     _mapStampAdjust[track->getTrackIndex()] = make_shared<VideoStampAdjust>();
@@ -140,19 +140,19 @@ void RtspPsMediaSource::onReady()
     if (_muxer) {
         std::weak_ptr<RtspPsMediaSource> weakSelf = std::static_pointer_cast<RtspPsMediaSource>(shared_from_this());
         _psEncode->setOnRtpPacket([weakSelf](const RtpPacket::Ptr& rtp, bool start){
-            logInfo << "mux a rtp packet";
+            // logInfo << "mux a rtp packet";
             auto strongSelf = weakSelf.lock();
             if (!strongSelf) {
                 return;
             }
             if (rtp->getHeader()->mark) {
-                logInfo << "mux a rtp packet mark";
+                // logInfo << "mux a rtp packet mark";
                 strongSelf->_cache->emplace_back(std::move(rtp));
                 strongSelf->_ring->write(strongSelf->_cache);
                 strongSelf->_cache = std::make_shared<deque<RtpPacket::Ptr>>();
                 strongSelf->_start = false;
             } else {
-                logInfo << "mux a rtp packet no mark";
+                // logInfo << "mux a rtp packet no mark";
                 strongSelf->_cache->emplace_back(std::move(rtp));
             }
             if (start) {

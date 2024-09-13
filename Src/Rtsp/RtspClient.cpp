@@ -3,6 +3,7 @@
 #include "Util/String.h"
 #include "Util/MD5.h"
 #include "Hook/MediaHook.h"
+#include "RtspPsMediaSource.h"
 
 #include <arpa/inet.h>
 
@@ -330,11 +331,52 @@ void RtspClient::sendSetup()
         }
 
         if (_type == MediaClientType_Pull) {
-            auto source = MediaSource::getOrCreate(_localUrlParser.path_, _localUrlParser.vhost_
+            MediaSource::Ptr source;
+            _sdpParser.parse(_parser._content);
+
+            if (_sdpParser._vecSdpMedia.size() == 1) {
+                auto iter = _sdpParser._vecSdpMedia.begin();
+                if (toLower((*iter)->codec_) == "mp2p") {
+                    _localUrlParser.type_ = "ps";
+                    source = MediaSource::getOrCreate(_localUrlParser.path_, _localUrlParser.vhost_
+                                , _localUrlParser.protocol_, _localUrlParser.type_
+                                , [this](){
+                                    return make_shared<RtspPsMediaSource>(_localUrlParser, _loop);
+                                });
+                }
+
+                if (!source) {
+                    onError("source is exists");
+                    return ;
+                }
+
+                auto rtspSource = dynamic_pointer_cast<RtspPsMediaSource>(source);
+                // _source = dynamic_pointer_cast<RtspMediaSource>(source);
+                rtspSource->setSdp(_parser._content);
+                rtspSource->setOrigin();
+
+                int trackIndex = 0;
+                for (auto& media : _sdpParser._vecSdpMedia) {
+                    auto track = make_shared<RtspPsDecodeTrack>(trackIndex++, media);
+                    // logInfo << "type: " << track->getTrackType();
+                    logInfo << "index: " << track->getTrackIndex() << ", codec : " << media->codec_
+                                << ", control: " << media->control_;
+                    rtspSource->addTrack(track);
+                    rtspSource->addControl2Index(media->control_, track->getTrackIndex());
+                }
+
+                _source = rtspSource;
+                sendSetup(rtspSource);
+
+                return ;
+            }
+
+            source = MediaSource::getOrCreate(_localUrlParser.path_, _localUrlParser.vhost_
                                 , _localUrlParser.protocol_, _localUrlParser.type_
                                 , [this](){
                                     return make_shared<RtspMediaSource>(_localUrlParser, _loop);
                                 });
+
             if (!source) {
                 onError("source is exists");
                 return ;
@@ -345,7 +387,6 @@ void RtspClient::sendSetup()
             rtspSource->setSdp(_parser._content);
             rtspSource->setOrigin();
 
-            _sdpParser.parse(_parser._content);
             int trackIndex = 0;
             for (auto& media : _sdpParser._vecSdpMedia) {
                 auto track = make_shared<RtspDecodeTrack>(trackIndex++, media);

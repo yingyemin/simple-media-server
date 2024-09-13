@@ -78,9 +78,9 @@ void RtmpMediaSource::addTrack(const RtmpDecodeTrack::Ptr& track)
         if (!strongSelf) {
             return;
         }
-        if (frame->_trackType == VideoTrackType) {
-            logInfo << "on frame: size: " << frame->size() << ", type: " << (int)frame->getNalType();
-        }
+        // if (frame->_trackType == VideoTrackType) {
+        //     logInfo << "on frame: size: " << frame->size() << ", type: " << (int)frame->getNalType();
+        // }
         for (auto& sink : strongSelf->_mapSink) {
             // logInfo << "on frame to sink";
             // if (sink.second.lock()) {
@@ -214,7 +214,7 @@ void RtmpMediaSource::addSink(const MediaSource::Ptr &src)
         if (!strongSelf) {
             return;
         }
-        logInfo << "is key: " << is_key;
+        // logInfo << "is key: " << is_key;
         auto pktList = *(in.get());
         for (auto& pkt : pktList) {
             int index = pkt->trackIndex_;

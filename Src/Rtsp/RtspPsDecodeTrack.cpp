@@ -179,7 +179,7 @@ void RtspPsDecodeTrack::startDecode()
         _decoder->setOnDecode([wSelf](const FrameBuffer::Ptr& frame){
             auto self = wSelf.lock();
             if (self) {
-                self->onFrame(frame);
+                self->onPsFrame(frame);
             }
         });
     }
@@ -261,7 +261,10 @@ void RtspPsDecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
     if (_onFrame) {
         _onFrame(frame);
     }
-    // logInfo << "decode a frame";
+    // FILE* fp = fopen("test.h264", "ab+");
+    // fwrite(frame->_buffer.data(), 1, frame->_buffer.size(), fp);
+    // fclose(fp);
+    // logInfo << "decode a frame: " << frame->size();
 }
 
 void RtspPsDecodeTrack::setOnTrackInfo(const function<void(const shared_ptr<TrackInfo>& trackInfo)>& cb)

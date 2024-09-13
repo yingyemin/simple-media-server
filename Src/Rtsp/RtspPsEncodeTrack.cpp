@@ -62,7 +62,7 @@ void RtspPsEncodeTrack::startEncode()
 void RtspPsEncodeTrack::onFrame(const FrameBuffer::Ptr& frame)
 {
     if (_muxer) {
-        logInfo << "ps mux a frame";
+        // logInfo << "ps mux a frame";
         if (frame->keyFrame()) {
             if (_mapTrackInfo[frame->_index]->codec_ == "h264") {
                 auto trackinfo = dynamic_pointer_cast<H264Track>(_mapTrackInfo[frame->_index]);
