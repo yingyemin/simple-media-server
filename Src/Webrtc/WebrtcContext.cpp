@@ -650,7 +650,7 @@ void WebrtcContext::onRtpPacket(const Socket::Ptr& socket, const RtpPacket::Ptr&
     uint32_t ssrc = rtp->getSSRC();
     uint32_t sdpSsrc = _videoPtInfo->ssrc_;
     uint rtxSsrc = _videoRtxPtInfo ? _videoRtxPtInfo->ssrc_ : 0;
-    logInfo << "rtp ssrc: " << ssrc << ", sdp ssrc: " << sdpSsrc << ", rtx ssrc: " << rtxSsrc;
+    // logInfo << "rtp ssrc: " << ssrc << ", sdp ssrc: " << sdpSsrc << ", rtx ssrc: " << rtxSsrc;
     weak_ptr<WebrtcContext> wSelf = dynamic_pointer_cast<WebrtcContext>(shared_from_this());
     if (ssrc == sdpSsrc && !_rtcpPliTimerCreated) {
         _loop->addTimerTask(2000, [wSelf, ssrc](){
@@ -694,6 +694,7 @@ void WebrtcContext::onRtpPacket(const Socket::Ptr& socket, const RtpPacket::Ptr&
     if (_videoRtxPtInfo && rtpPacket->getSSRC() == _videoRtxPtInfo->ssrc_) {
         // 转换为正常包，方便后续的转发
         rtpPacket->setRtxFlag(true);
+        rtpPacket->getHeader()->pt = _videoPtInfo->payloadType_;
         rtpPacket->getHeader()->seq = htons(rtpPacket->getSeq());
         rtpPacket->getHeader()->ssrc = htonl(_videoPtInfo->ssrc_);
         memmove(rtpPacket->data() + 2, rtpPacket->data(), (char*)rtpPacket->getHeader()->getPayloadData() - rtpPacket->data());
@@ -704,16 +705,16 @@ void WebrtcContext::onRtpPacket(const Socket::Ptr& socket, const RtpPacket::Ptr&
     }
 
     if (rtp->getHeader()->pt == _videoPtInfo->payloadType_ 
-            || rtp->getHeader()->pt == _videoRtxPtInfo->payloadType_) {
+            || (_videoRtxPtInfo && rtp->getHeader()->pt == _videoRtxPtInfo->payloadType_)) {
         logTrace << "decode video rtp";
         if (_socket->getSocketType() == SOCKET_TCP) {
-            _videoDecodeTrack->decodeRtp(rtpPacket);
+            _videoDecodeTrack->onRtpPacket(rtpPacket);
         } else {
             _videoSort->inputRtp(rtpPacket);
         }
     } else if (rtp->getHeader()->pt == _audioPtInfo->payloadType_) {
         if (_socket->getSocketType() == SOCKET_TCP) {
-            _audioDecodeTrack->decodeRtp(rtpPacket);
+            _audioDecodeTrack->onRtpPacket(rtpPacket);
         } else {
             _audioSort->inputRtp(rtpPacket);
         }
@@ -763,7 +764,7 @@ void WebrtcContext::onStunPacket(const Socket::Ptr& socket, const WebrtcStun& st
                 // logInfo << "decode rtp seq: " << rtp->getSeq() << ", rtp size: " << rtp->size() << ", rtp time: " << rtp->getStamp();
                 auto self = wSelf.lock();
                 if (self) {
-                    self->_videoDecodeTrack->decodeRtp(rtp);
+                    self->_videoDecodeTrack->onRtpPacket(rtp);
                 }
             });
 
@@ -772,7 +773,7 @@ void WebrtcContext::onStunPacket(const Socket::Ptr& socket, const WebrtcStun& st
                 // logInfo << "decode rtp seq: " << rtp->getSeq() << ", rtp size: " << rtp->size() << ", rtp time: " << rtp->getStamp();
                 auto self = wSelf.lock();
                 if (self) {
-                    self->_audioDecodeTrack->decodeRtp(rtp);
+                    self->_audioDecodeTrack->onRtpPacket(rtp);
                 }
             });
         }
@@ -958,12 +959,14 @@ void WebrtcContext::sendMedia(const RtpPacket::Ptr& rtp)
         return ;
     }
 
-    logInfo << "WebrtcContext::sendMedia";
-	int nb_cipher = rtp->size() - 4;
+    int startSize = rtp->getStartSize();
+
+    logInfo << "WebrtcContext::sendMedia: " << startSize << ", rtp size: " << rtp->size();
+	int nb_cipher = rtp->size() - startSize;
     // char data[1500];
     auto buffer = make_shared<StreamBuffer>(1500 + 1);
     auto data = buffer->data();
-    memcpy(data, rtp->data() + 4, nb_cipher);
+    memcpy(data, rtp->data() + startSize, nb_cipher);
 
 	// auto sdp_video_pt = 106;
 
@@ -977,6 +980,7 @@ void WebrtcContext::sendMedia(const RtpPacket::Ptr& rtp)
 	// fclose(fp);
 
 	if (0 == _srtpSession->protectRtp(data, &nb_cipher)) {
+        logInfo << "protect rtp size: " << nb_cipher;
         if (_socket->getSocketType() == SOCKET_TCP) {
             uint8_t payload_ptr[2];
             payload_ptr[0] = nb_cipher >> 8;
@@ -984,7 +988,7 @@ void WebrtcContext::sendMedia(const RtpPacket::Ptr& rtp)
 
             _socket->send((char*)payload_ptr, 2);
         }
-		_socket->send(buffer, 1, 0, 0, _addr, _addrLen);
+		_socket->send(buffer, 1, 0, nb_cipher, _addr, _addrLen);
 		_sendRtpPack_10s++;
 		// lastest_packet_send_time_ = time(nullptr);
 	}

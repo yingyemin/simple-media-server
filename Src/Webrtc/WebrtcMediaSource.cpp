@@ -53,10 +53,10 @@ void WebrtcMediaSource::addTrack(const WebrtcDecodeTrack::Ptr& track)
             return;
         }
         strongSelf->_ring->addBytes(rtp->size());
-        // logInfo << "on rtp seq: " << rtp->getSeq() << ", size: " << rtp->size() << ", type: " << rtp->type_;
+        logInfo << "on rtp seq: " << rtp->getSeq() << ", size: " << rtp->size() << ", type: " << rtp->type_;
         if (rtp->getHeader()->mark) {
             strongSelf->_cache->emplace_back(std::move(rtp));
-            // logInfo << "write cache size: " << strongSelf->_cache->size();
+            logInfo << "write cache size: " << strongSelf->_cache->size();
             strongSelf->_ring->write(strongSelf->_cache);
             strongSelf->_cache = std::make_shared<deque<RtpPacket::Ptr>>();
             if (strongSelf->_probeFinish) {

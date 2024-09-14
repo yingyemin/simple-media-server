@@ -111,6 +111,7 @@ public:
     virtual char* data();
     virtual size_t size();
     virtual StreamBuffer::Ptr buffer();
+    virtual int getStartSize() {return _rtpOverTcpHeaderSize;}
 
 public:
     // 音视频类型

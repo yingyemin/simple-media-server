@@ -67,7 +67,7 @@ void RtpSort::inputRtp(const RtpPacket::Ptr& rtp)
 
 void RtpSort::onRtpPacket(const RtpPacket::Ptr& rtp)
 {
-    logInfo << "on rtp packet seq : " << rtp->getSeq();
+    // logInfo << "on rtp packet seq : " << rtp->getSeq();
     if (_onRtpPacket) {
         _onRtpPacket(rtp);
     }

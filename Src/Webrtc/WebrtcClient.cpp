@@ -831,7 +831,7 @@ void WebrtcClient::sendMedia(const RtpPacket::Ptr& rtp)
 
             _socket->send((char*)payload_ptr, 2);
         }
-		_socket->send(buffer, 1, 0, 0, _addr, _addrLen);
+		_socket->send(buffer, 1, 0, nb_cipher, _addr, _addrLen);
 		// _sendRtpPack_10s++;
 		// lastest_packet_send_time_ = time(nullptr);
 	}

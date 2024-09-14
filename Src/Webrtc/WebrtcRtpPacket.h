@@ -218,6 +218,7 @@ public:
     char* data() override;
     size_t size() override;
     StreamBuffer::Ptr buffer() override;
+    int getStartSize() override {return _rtpOverTcpHeaderSize;}
 
 // public:
 //     // 音视频类型

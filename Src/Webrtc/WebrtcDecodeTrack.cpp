@@ -151,6 +151,7 @@ void WebrtcDecodeTrack::onRtpPacket(const RtpPacket::Ptr& rtp)
     // }
     // _ring->write(rtp, true);
 
+    rtp->trackIndex_ = _index;
     if (_onRtpPacket) {
         _onRtpPacket(rtp);
     }
