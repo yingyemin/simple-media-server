@@ -115,6 +115,14 @@ void HttpClient::onConnect()
             ss << "Content-Type: " << _request._mapHeaders["Content-Type"] << "\r\n";
         }
     }
+    if (_isWebsocket) {
+        _websocketKey = "x3JJHMbDL1EzLkh9GBhXDw==";
+        ss << "Upgrade: websocket\r\n"
+           << "Connection: Upgrade\r\n"
+           << "Sec-WebSocket-Key: " << _websocketKey << "\r\n"
+           << "Sec-WebSocket-Protocol: chat, superchat\r\n"
+           << "Sec-WebSocket-Version: 13\r\n";
+    }
     ss << "\r\n";
     send(ss.str());
 }

@@ -22,6 +22,7 @@ public:
 public:
     int start(const string& localIp, int localPort, const string& peerIp, int peerPort, int timeout);
     int sendHeader(const string& localIp, int localPort, const string& url, int timeout);
+    void setWebsocket() {_isWebsocket = true;}
 
     void onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len) override;
     void onError(const string& err) override;
@@ -40,10 +41,12 @@ public:
     virtual void onRecvContent(const char *data, uint64_t len);
 
 public:
+    string _websocketKey;
     HttpParser _parser;
     HttpParser _request;
 
 private:
+    bool _isWebsocket = false;
     string _body;
     UrlParser _urlParser;
     EventLoop::Ptr _loop;

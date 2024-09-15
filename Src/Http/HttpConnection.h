@@ -38,6 +38,9 @@ public:
 
     void setServerId(const string& key) {_serverId = key;}
 
+public:
+    virtual void onWebsocketFrame(const char* data, int len) {}
+
 private:
     void onHttpRequest();
     void writeHttpResponse(HttpResponse& rsp);

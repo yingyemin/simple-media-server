@@ -284,7 +284,9 @@ void HttpConnection::writeHttpResponse(HttpResponse& rsp) // 将要素按照Http
     send(buffer);
 
     _parser.clear();
-    _onHttpBody = nullptr;
+    if (!_isWebsocket) {
+        _onHttpBody = nullptr;
+    }
 }
 
 void HttpConnection::sendFile() // 将要素按照HttpResponse协议进行组织，再发送
@@ -367,14 +369,34 @@ void HttpConnection::sendFile() // 将要素按照HttpResponse协议进行组织
     send(buffer);
 
     _parser.clear();
-    _onHttpBody = nullptr;
+    if (!_isWebsocket) {
+        _onHttpBody = nullptr;
+    }
 }
 
 void HttpConnection::handleGet()
 {
+    weak_ptr<HttpConnection> wSelf = static_pointer_cast<HttpConnection>(shared_from_this());
     if (_parser._mapHeaders.find("sec-websocket-key") != _parser._mapHeaders.end()) {
         _isWebsocket = true;
         // 此处不设置_onhttpbody，也不decode websocket的帧数据，get请求只发不收
+        _websocket.setOnWebsocketFrame([wSelf](const char* data, int len){
+            auto self = wSelf.lock();
+            if (!self) {
+                return ;
+            }
+
+            self->onWebsocketFrame(data, len);
+        });
+
+        _onHttpBody = [wSelf](const char* data, int len){
+            auto self = wSelf.lock();
+            if (!self) {
+                return ;
+            }
+
+            self->_websocket.decode((char*)data, len);
+        };
     }
 
     _parser._contentLen = 0;
@@ -390,7 +412,7 @@ void HttpConnection::handleGet()
         if (interval == 0) {
             interval = 5000;
         }
-        weak_ptr<HttpConnection> wSelf = static_pointer_cast<HttpConnection>(shared_from_this());
+        
         _loop->addTimerTask(interval, [wSelf](){
             auto self = wSelf.lock();
             if (!self) {
