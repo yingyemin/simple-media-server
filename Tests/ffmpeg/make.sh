@@ -1,0 +1,1 @@
+gcc decode_encode_video.c -g -o decode_encode_video -I ../../Thirdparty/libffmpeg/include/ -L ../../Thirdparty/libffmpeg/lib/ -lavformat -lavfilter -lavcodec -lswresample -lswscale -lpostproc -lavutil -lpthread -lz -lx264 -lx265 -lopus -lmp3lame -lfdk-aac -lvpx -ldl -lbz2 -lm -lfreetype -lz -llzma -lstdc++ -ldrm
