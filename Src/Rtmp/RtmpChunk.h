@@ -32,6 +32,9 @@ public:
 	void setInChunkSize(uint32_t inChunkSize)
 	{ _inChunkSize = inChunkSize; }
 
+	uint32_t getInChunkSize()
+	{ return _inChunkSize; }
+
 	void setOutChunkSize(uint32_t outChunkSize)
 	{ _outChunkSize = outChunkSize; }
 
@@ -48,7 +51,7 @@ public:
 private:
 	int parseChunkHeader(uint8_t* buf, uint32_t buf_size, uint32_t &bytes_used);
 	int parseChunkBody(uint8_t* buf, uint32_t buf_size, uint32_t &bytes_used);
-	int createBasicHeader(uint8_t fmt, uint32_t csid);
+	StreamBuffer::Ptr createBasicHeader(uint8_t fmt, uint32_t csid);
 	int createMessageHeader(uint8_t fmt, RtmpMessage& rtmp_msg, uint64_t dts);
 
 private:

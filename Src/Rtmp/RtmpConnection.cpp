@@ -1000,9 +1000,12 @@ void RtmpConnection::sendAcknowledgement()
 
 void RtmpConnection::setChunkSize()
 {
-	_chunk.setOutChunkSize(5000000);
+    // uint32_t chunkSize = _chunk.getInChunkSize() == 0 ? 5000000 : _chunk.getInChunkSize();
+    // 设置4Mb，一般情况下，一帧没有这么大
+    uint32_t chunkSize = 60000;
+	_chunk.setOutChunkSize(chunkSize);
     StreamBuffer::Ptr data = make_shared<StreamBuffer>(5);
-    writeUint32BE((char*)data->data(), 5000000);
+    writeUint32BE((char*)data->data(), chunkSize);
 
     RtmpMessage rtmp_msg;
     rtmp_msg.type_id = RTMP_SET_CHUNK_SIZE;

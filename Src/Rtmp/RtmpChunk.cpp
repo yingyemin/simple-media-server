@@ -269,7 +269,7 @@ int RtmpChunk::parseChunkBody(uint8_t* buf, uint32_t size, uint32_t &bytesUsed)
 	return bytesUsed;
 }
 
-int RtmpChunk::createBasicHeader(uint8_t fmt, uint32_t csid)
+StreamBuffer::Ptr RtmpChunk::createBasicHeader(uint8_t fmt, uint32_t csid)
 {
 	int len = 0;
 	StreamBuffer::Ptr buffer;
@@ -293,8 +293,7 @@ int RtmpChunk::createBasicHeader(uint8_t fmt, uint32_t csid)
 		buf[len++] = (fmt << 6) | csid;
 	}
 
-	_socket->send(buffer, 0);
-	return len;
+	return buffer;
 }
 
 int RtmpChunk::createMessageHeader(uint8_t fmt, RtmpMessage& msg, uint64_t dts)
@@ -336,34 +335,38 @@ int RtmpChunk::createChunk(uint32_t csid, RtmpMessage& msg)
 
 	uint32_t length = msg.length;
 	uint64_t dts = msg.abs_timestamp;
-	if (msg.type_id == RTMP_VIDEO) {
-		_videoStampAdjust.inputStamp(dts, dts);
-	} else {
-		_audioStampAdjust.inputStamp(dts, dts, length);
+	// if (msg.type_id == RTMP_VIDEO) {
+	// 	_videoStampAdjust.inputStamp(dts, dts);
+	// } else {
+	// 	_audioStampAdjust.inputStamp(dts, dts, length);
+	// }
+
+	auto basicBuffer = createBasicHeader(0, csid); //first chunk
+	_socket->send(basicBuffer, 0);
+
+	createMessageHeader(0, msg, dts);
+
+	StreamBuffer::Ptr extBuffer;
+	if (dts >= 0xffffff) {
+		extBuffer = make_shared<StreamBuffer>(5);
+		auto buf = extBuffer->data();
+		writeUint32BE((char*)buf, (uint32_t)dts);
+		_socket->send(extBuffer, 0);
 	}
 
-	createBasicHeader(0, csid); //first chunk
-	createMessageHeader(0, msg, dts);
-	if (dts >= 0xffffff) {
-		StreamBuffer::Ptr buffer = make_shared<StreamBuffer>(5);
-		auto buf = buffer->data();
-		writeUint32BE((char*)buf, (uint32_t)dts);
-		_socket->send(buffer, 0);
-	}
+	auto basic3Buffer = createBasicHeader(3, csid);
 
 	while (length > 0)
 	{
+		// logInfo << "pkt len: " << length << ", _outChunkSize: " << _outChunkSize;
 		if (length > _outChunkSize) {
 			_socket->send(msg.payload, 0, payloadOffset, _outChunkSize);
 			payloadOffset += _outChunkSize;
 			length -= _outChunkSize;
 
-			createBasicHeader(3, csid);
+			_socket->send(basic3Buffer, 0);
 			if (dts >= 0xffffff) {
-				StreamBuffer::Ptr buffer = make_shared<StreamBuffer>(5);
-				auto buf = buffer->data();
-				writeUint32BE((char*)buf, (uint32_t)dts);
-				_socket->send(buffer, 0);
+				_socket->send(extBuffer, 0);
 			}
 		}
 		else {

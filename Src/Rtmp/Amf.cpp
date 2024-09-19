@@ -24,13 +24,13 @@ int AmfDecoder::decode(const char *data, int size, int n)
 			break;
 
 		case AMF0_STRING:
-		logInfo << "decode a string";
+		// logInfo << "decode a string";
 			_obj.type = AMF_STRING;
 			ret = decodeString(data + bytes_used, size - bytes_used, _obj.amfString);
 			break;
 
 		case AMF0_OBJECT:
-			logInfo << "decode a object";
+			// logInfo << "decode a object";
 			ret = decodeObject(data + bytes_used, size - bytes_used, _objs);
 			break;
 
@@ -98,12 +98,12 @@ int AmfDecoder::decodeString(const char *data, int size, std::string& amf_string
 	if (strSize == 0) {
 		return bytes_used;
 	}
-	logInfo << "bytes_used: " << bytes_used;
-	logInfo << "strSize: " << strSize;
-	logInfo << "size: " << size;
+	// logInfo << "bytes_used: " << bytes_used;
+	// logInfo << "strSize: " << strSize;
+	// logInfo << "size: " << size;
 
 	amf_string.assign(data + bytes_used, strSize);
-	logInfo << "amf_string: " << amf_string;
+	// logInfo << "amf_string: " << amf_string;
 	bytes_used += strSize;
 	return bytes_used;
 }
@@ -112,20 +112,20 @@ int AmfDecoder::decodeObject(const char *data, int size, AmfObjects& amf_objs)
 {
 	amf_objs.clear();
 	int bytes_used = 0;
-	logInfo << "size: " << size;
+	// logInfo << "size: " << size;
 	while (size > 0)
 	{
-		logInfo << "size: " << size;
+		// logInfo << "size: " << size;
 		int strLen = decodeInt16(data + bytes_used, size);
-		logInfo << "strLen: " << strLen;
+		// logInfo << "strLen: " << strLen;
 		size -= 2;
 		if (size < strLen || strLen == 0) {
 			return bytes_used + 2 + 1;
 		}
 
-		logInfo << "bytes_used + 2 + strLen: " << (bytes_used + 2 + strLen);
-		logInfo << "size: " << size;
-		logInfo << "strLen: " << strLen;
+		// logInfo << "bytes_used + 2 + strLen: " << (bytes_used + 2 + strLen);
+		// logInfo << "size: " << size;
+		// logInfo << "strLen: " << strLen;
 		std::string key(data + bytes_used + 2, 0, strLen);
 		size -= strLen;
 
@@ -137,7 +137,7 @@ int AmfDecoder::decodeObject(const char *data, int size, AmfObjects& amf_objs)
 			break;
 		}
 
-		logInfo << "key: " << key;
+		// logInfo << "key: " << key;
 		amf_objs.emplace(key, dec.getObject());
 	}
 
