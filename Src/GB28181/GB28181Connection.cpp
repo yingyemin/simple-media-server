@@ -31,13 +31,13 @@ GB28181Connection::~GB28181Connection()
 void GB28181Connection::init()
 {
     weak_ptr<GB28181Connection> wSelf = static_pointer_cast<GB28181Connection>(shared_from_this());
-    _parser.setOnRtpPacket([wSelf](const char* data, int len){
+    _parser.setOnRtpPacket([wSelf](const StreamBuffer::Ptr& buffer){
         auto self = wSelf.lock();
         if(!self){
             return;
         }
-        auto buffer = StreamBuffer::create();
-        buffer->assign(data + 2, len - 2);
+        // auto buffer = StreamBuffer::create();
+        // buffer->assign(data + 2, len - 2);
         RtpPacket::Ptr rtp = make_shared<RtpPacket>(buffer, 0);
         self->onRtpPacket(rtp);
     });

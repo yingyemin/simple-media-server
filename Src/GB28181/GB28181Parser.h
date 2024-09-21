@@ -10,8 +10,8 @@ class GB28181Parser {
 public:
     void parse(const char *data, size_t len);
 
-    void setOnRtpPacket(const function<void(const char* data, int len)>& cb);
-    void onRtpPacket(const char* data, int len);
+    void setOnRtpPacket(const function<void(const StreamBuffer::Ptr& buffer)>& cb);
+    void onRtpPacket(const StreamBuffer::Ptr& buffer);
 
 public:
     int _contentLen = 0;
@@ -24,7 +24,8 @@ public:
 private:
     int _stage = 1; //1:size header, 2:payload
     StringBuffer _remainData;
-    function<void(const char* data, int len)> _onRtpPacket;
+    StreamBuffer::Ptr _rtpBuffer;
+    function<void(const StreamBuffer::Ptr& buffer)> _onRtpPacket;
 };
 
 

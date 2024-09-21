@@ -48,13 +48,13 @@ void GB28181ClientPull::onRead(const StreamBuffer::Ptr& buffer)
 void GB28181ClientPull::doPull()
 {
     weak_ptr<GB28181ClientPull> wSelf = static_pointer_cast<GB28181ClientPull>(shared_from_this());
-    _parser.setOnRtpPacket([wSelf](const char* data, int len){
+    _parser.setOnRtpPacket([wSelf](const StreamBuffer::Ptr& buffer){
         auto self = wSelf.lock();
         if(!self){
             return;
         }
-        auto buffer = StreamBuffer::create();
-        buffer->assign(data + 2, len - 2);
+        // auto buffer = StreamBuffer::create();
+        // buffer->assign(data + 2, len - 2);
         RtpPacket::Ptr rtp = make_shared<RtpPacket>(buffer, 0);
         self->_context->onRtpPacket(rtp);
     });

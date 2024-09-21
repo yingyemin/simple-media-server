@@ -377,6 +377,8 @@ void MediaSource::loadFromFile(const string& uri, const string& vhost, const str
     });
     if (!reader->start()) {
         cb(nullptr);
+        _totalSource.erase(uri + "_" + vhost);
+        return ;
     }
     frameSource->setOrigin();
     frameSource->_recordReader = reader;
