@@ -2,9 +2,11 @@
 #define TransCodeAudio_H
 
 #include <string>
+extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libswresample/swresample.h>
 #include <libavutil/audio_fifo.h>
+}
 
 #include "Common/Frame.h"
 
@@ -18,13 +20,14 @@ public:
     int channel_;
 };
 
-class TransCodeAudio
+class TranscodeAudio
 {
 public:
-    TransCodeAudio(const AudioEncodeOption& option, AVCodecID deAudioCodecId);
-    ~TransCodeAudio();
+    TranscodeAudio(const AudioEncodeOption& option, AVCodecID deAudioCodecId);
+    ~TranscodeAudio();
 
 public:
+    void init();
     void initDecode();
     void initEncode();
     int initResampler(AVCodecContext *input_codec_context,
@@ -60,6 +63,9 @@ public:
 
     int inputFrame(const FrameBuffer::Ptr& frame);
 
+    void setOnPacket(const function<void(const StreamBuffer::Ptr& packet)>& cb);
+    void onPacket(const StreamBuffer::Ptr& packet);
+
 private:
     int64_t _pts = 0;
 
@@ -76,6 +82,8 @@ private:
 
     SwrContext *_resampleContext;
     AVAudioFifo *_fifo;
+
+    function<void(const StreamBuffer::Ptr& packet)> _onPacket;
 };
 
 #endif

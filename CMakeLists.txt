@@ -1,17 +1,36 @@
 cmake_minimum_required(VERSION 3.0)
+
 project(SimpleMediaServer)
 
-option(ENABLE_ASAN "Enable lib asan" true)
+option(ENABLE_ASAN "Enable lib asan" false)
 option(ENABLE_OPENSSL "Enable openssl" true)
+option(ENABLE_FFMPEG "Enable ffmpeg" true)
+option(ENABLE_PROJECT_TRANSCODEVIDEO "Enable test transcodeVideo" false)
+option(ENABLE_PROJECT_TRANSCODEAUDIO "Enable test transcodeAudio" true)
 
 #设置调试信息并开启c++11标准
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O3 -std=c++11")
 SET(CMAKE_EXE_LINKER_FLAGS " -no-pie") 
+
+set(LINK_LIB_LIST src base)
 
 if (ENABLE_ASAN)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
     message(STATUS "已启用 Address Sanitize")
+endif ()
+
+if (ENABLE_FFMPEG)
+    add_definitions(-DENABLE_FFMPEG)
+    # 设置ffmpeg库的头文件目录
+    set(FFMPEG_INCLUDE_DIR "./Thirdparty/libffmpeg/include")
+    # 设置ffmpeg库的二进制文件目录
+    set(FFMPEG_LIBRARY "./Thirdparty/libffmpeg/lib/")
+    # 包含ffmpeg头文件目录
+    include_directories(${FFMPEG_INCLUDE_DIR})
+    # 定义要链接的srtp库
+    link_directories(${FFMPEG_LIBRARY})
+    list(APPEND LINK_LIB_LIST avformat avfilter avcodec swresample swscale postproc avutil z x264 x265 opus mp3lame fdk-aac vpx bz2 m freetype lzma drm)
 endif ()
 
 #查找openssl是否安装
@@ -32,6 +51,7 @@ set(OPENSSL_LIBRARY "./Thirdparty/libopenssl/lib/")
 # 包含OpenSSL头文件目录
 include_directories(${OPENSSL_INCLUDE_DIR})
 link_directories(${OPENSSL_LIBRARY})
+list(APPEND LINK_LIB_LIST ssl crypto)
 
 # 设置srtp库的头文件目录
 set(SRTP_INCLUDE_DIR "./Thirdparty/libsrtp/include")
@@ -41,6 +61,7 @@ set(SRTP_LIBRARY "./Thirdparty/libsrtp/lib/")
 include_directories(${SRTP_INCLUDE_DIR})
 # 定义要链接的srtp库
 link_directories(${SRTP_LIBRARY})
+list(APPEND LINK_LIB_LIST srtp2)
 
 # 设置srt库的头文件目录
 set(SRT_INCLUDE_DIR "./Thirdparty/libsrt/include")
@@ -50,6 +71,7 @@ set(SRT_LIBRARY "./Thirdparty/libsrt/lib/")
 include_directories(${SRT_INCLUDE_DIR})
 # 定义要链接的srt库
 link_directories(${SRT_LIBRARY})
+list(APPEND LINK_LIB_LIST srt)
 
 # 设置sctp库的头文件目录
 set(SCTP_INCLUDE_DIR "./Thirdparty/libusrsctp/include")
@@ -59,16 +81,28 @@ set(SCTP_LIBRARY "./Thirdparty/libusrsctp/lib/")
 include_directories(${SCTP_INCLUDE_DIR})
 # 定义要链接的srt库
 link_directories(${SCTP_LIBRARY})
+list(APPEND LINK_LIB_LIST usrsctp)
 
-aux_source_directory(. DIRSRCS)
+# aux_source_directory(. DIRSRCS)
 
 include_directories(./ ./Base ./Base/Net ./Base/Log ./Base/EventPoller ./Src)
-link_directories(${PROJECT_SOURCE_DIR}/Base/Log)
+# link_directories(${PROJECT_SOURCE_DIR}/Base/Log)
 
 add_subdirectory(Base)
 add_subdirectory(Src)
 
-add_executable(SimpleMediaServer ${DIRSRCS})
+add_executable(SimpleMediaServer main.cpp)
+target_link_libraries(SimpleMediaServer ${LINK_LIB_LIST} dl pthread)
 
-target_link_libraries(SimpleMediaServer src base srtp2 srt usrsctp ssl crypto dl pthread)
+if (ENABLE_PROJECT_TRANSCODEVIDEO)
+    project(transcodeVideo)
+    add_executable(transcodeVideo Tests/Transcode/transcodeVideo.cpp)
+    target_link_libraries(transcodeVideo ${LINK_LIB_LIST} dl pthread)
+endif ()
+
+if (ENABLE_PROJECT_TRANSCODEAUDIO)
+    project(transcodeAudio)
+    add_executable(transcodeAudio Tests/Transcode/transcodeAudio.cpp)
+    target_link_libraries(transcodeAudio ${LINK_LIB_LIST} dl pthread)
+endif ()
 

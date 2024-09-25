@@ -3,6 +3,14 @@
 
 using namespace std;
 
+static string getAvError(int errnum)
+{
+    char buffer[AV_ERROR_MAX_STRING_SIZE] = {0};
+    av_err2str_cpp(errnum, buffer, AV_ERROR_MAX_STRING_SIZE);
+
+    return string(buffer);
+}
+
 TranscodeVideo::TranscodeVideo(const VideoEncodeOption& option, AVCodecID deVideoCodecId)
     :_option(option)
     ,_deVideoCodecId(deVideoCodecId)
@@ -67,7 +75,7 @@ void TranscodeVideo::initEncode(AVCodecContext *dec_ctx)
     /* open it */
     int ret = avcodec_open2(_enCodecCtx, en_codec, NULL);
     if (ret < 0) {
-        logError << "Could not open codec: " << av_err2str(ret);
+        logError << "Could not open codec: " << getAvError(ret);
         return ;
     }
 }
@@ -95,19 +103,22 @@ void TranscodeVideo::encode(AVCodecContext *enc_ctx, AVFrame *frame, AVPacket *p
         }
 
         logInfo << "Write packet pts: " << pkt->pts << ", size: " << pkt->size;
+        StreamBuffer::Ptr buffer = make_shared<StreamBuffer>(pkt->size);
+        buffer->assign((char*)pkt->data, pkt->size);
+        onPacket(buffer);
+
         av_packet_unref(pkt);
     }
 }
 
 void TranscodeVideo::decode(AVCodecContext *dec_ctx, AVFrame *frame, AVPacket *pkt)
 {
-    char buf[1024];
     int ret;
 
     ret = avcodec_send_packet(dec_ctx, pkt);
     if (ret < 0) {
         fprintf(stderr, "Error sending a packet for decoding\n");
-        exit(1);
+        return ;
     }
 
     while (ret >= 0) {
@@ -116,7 +127,7 @@ void TranscodeVideo::decode(AVCodecContext *dec_ctx, AVFrame *frame, AVPacket *p
             return;
         else if (ret < 0) {
             fprintf(stderr, "Error during decoding\n");
-            exit(1);
+            return ;
         }
 
         logInfo << "saving frame: " << dec_ctx->frame_num;
@@ -125,6 +136,11 @@ void TranscodeVideo::decode(AVCodecContext *dec_ctx, AVFrame *frame, AVPacket *p
         if (!_bInitEncode) {
             _bInitEncode = 1;
             initEncode(dec_ctx);
+        }
+
+        if (!_enCodecCtx || !_enPkt) {
+            logError << "init encode error";
+            return ;
         }
 
         /* the picture is allocated by the decoder. no need to
@@ -192,7 +208,7 @@ int TranscodeVideo::inputFrame(const FrameBuffer::Ptr& frame)
                                 data, data_size, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
         if (ret < 0) {
             logError << "Error while parsing";
-            return ;
+            return ret;
         }
         data      += ret;
         data_size -= ret;
@@ -204,3 +220,14 @@ int TranscodeVideo::inputFrame(const FrameBuffer::Ptr& frame)
     return 0;
 }
 
+void TranscodeVideo::setOnPacket(const function<void(const StreamBuffer::Ptr& packet)>& cb)
+{
+    _onPacket = cb;
+}
+
+void TranscodeVideo::onPacket(const StreamBuffer::Ptr& packet)
+{
+    if (_onPacket) {
+        _onPacket(packet);
+    }
+}

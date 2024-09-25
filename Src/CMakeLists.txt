@@ -68,6 +68,9 @@ aux_source_directory("HttpStream" SRC_HttpStream)
 ###Record########
 aux_source_directory("Record" SRC_Record)
 
+###Ffmpeg########
+aux_source_directory("Ffmpeg" SRC_Ffmpeg)
+
 add_library(src STATIC 
     ${SRC_RTSP}
     ${SRC_RTMP}
@@ -88,4 +91,5 @@ add_library(src STATIC
     ${SRC_Srt}
     ${SRC_HttpStream}
     ${SRC_Record}
+    ${SRC_Ffmpeg}
 )

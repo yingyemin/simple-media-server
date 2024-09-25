@@ -1,3 +1,4 @@
+extern "C" {
 #include <libavutil/mem.h>
 #include <libavformat/avio.h>
 
@@ -6,6 +7,7 @@
 #include <libavutil/channel_layout.h>
 #include <libavutil/frame.h>
 #include <libavutil/opt.h>
+}
 
 #include "TranscodeAudio.h"
 #include "Log/Logger.h"
@@ -14,6 +16,14 @@
 #define OUTPUT_BIT_RATE 96000
 /* The number of output channels */
 #define OUTPUT_CHANNELS 2
+
+static string getAvError(int errnum)
+{
+    char buffer[AV_ERROR_MAX_STRING_SIZE] = {0};
+    av_err2str_cpp(errnum, buffer, AV_ERROR_MAX_STRING_SIZE);
+
+    return string(buffer);
+}
 
 /* check that a given sample format is supported by the encoder */
 static int check_sample_fmt(const AVCodec *codec, enum AVSampleFormat sample_fmt)
@@ -52,8 +62,14 @@ static int select_channel_layout(const AVCodec *codec, AVChannelLayout *dst)
     const AVChannelLayout *p, *best_ch_layout;
     int best_nb_channels   = 0;
 
+    AVChannelLayout layout;
+    layout.nb_channels = 2;
+    layout.u.mask = AV_CH_LAYOUT_STEREO;
+    layout.opaque = NULL;
+    layout.order = AV_CHANNEL_ORDER_NATIVE;
+
     if (!codec->ch_layouts)
-        return av_channel_layout_copy(dst, &(AVChannelLayout)AV_CHANNEL_LAYOUT_STEREO);
+        return av_channel_layout_copy(dst, &layout);
 
     p = codec->ch_layouts;
     while (p->nb_channels) {
@@ -125,7 +141,7 @@ static int init_converted_samples(uint8_t ***converted_input_samples,
                                   output_codec_context->sample_fmt, 0)) < 0) {
         fprintf(stderr,
                 "Could not allocate converted input samples (error '%s')\n",
-                av_err2str(error));
+                getAvError(error).c_str());
         return error;
     }
     return 0;
@@ -154,19 +170,19 @@ static int convert_samples(const uint8_t **input_data,
                              converted_data, frame_size,
                              input_data    , frame_size)) < 0) {
         fprintf(stderr, "Could not convert input samples (error '%s')\n",
-                av_err2str(error));
+                getAvError(error).c_str());
         return error;
     }
 
     return 0;
 }
 
-TransCodeAudio::TransCodeAudio(const AudioEncodeOption& option, AVCodecID deAudioCodecId)
+TranscodeAudio::TranscodeAudio(const AudioEncodeOption& option, AVCodecID deAudioCodecId)
     :_option(option)
     ,_deAudioCodecId(deAudioCodecId)
 {}
 
-TransCodeAudio::~TransCodeAudio()
+TranscodeAudio::~TranscodeAudio()
 {
     int data_written;
     /* Flush the encoder as it may have delayed frames. */
@@ -185,7 +201,7 @@ TransCodeAudio::~TransCodeAudio()
         avcodec_free_context(&_deCodecCtx);
 }
 
-void TransCodeAudio::initDecode()
+void TranscodeAudio::initDecode()
 {
     _dePkt = av_packet_alloc();
 
@@ -196,16 +212,24 @@ void TransCodeAudio::initDecode()
         return ;
     }
 
-    _deParser = av_parser_init(_deCodec->id);
-    if (!_deParser) {
-        logError << "Parser not found";
-        return ;
+    if (_deAudioCodecId != AV_CODEC_ID_PCM_ALAW) {
+        _deParser = av_parser_init(_deCodec->id);
+        if (!_deParser) {
+            logError << "Parser not found";
+            return ;
+        }
     }
 
     _deCodecCtx = avcodec_alloc_context3(_deCodec);
     if (!_deCodecCtx) {
         logError << "Could not allocate audio codec context";
         return ;
+    }
+
+    if (_deAudioCodecId == AV_CODEC_ID_PCM_ALAW) {
+        // _deCodecCtx->sample_fmt = _deCodec->sample_fmts[0];
+        _deCodecCtx->sample_rate = 8000;
+        av_channel_layout_default(&_deCodecCtx->ch_layout, 1);
     }
 
     /* open it */
@@ -215,7 +239,7 @@ void TransCodeAudio::initDecode()
     }
 }
 
-void TransCodeAudio::initEncode()
+void TranscodeAudio::initEncode()
 {
     const AVCodec *codec;
     /* find the MP2 encoder */
@@ -232,10 +256,11 @@ void TransCodeAudio::initEncode()
     }
 
     /* put sample parameters */
-    _enCodecCtx->bit_rate = 64000;
+    // _enCodecCtx->bit_rate = 64000;
 
     /* check that the encoder supports s16 pcm input */
-    _enCodecCtx->sample_fmt = AV_SAMPLE_FMT_S16;
+    _enCodecCtx->sample_fmt = AV_SAMPLE_FMT_FLTP;
+    _enCodecCtx->profile = FF_PROFILE_AAC_LOW;
     if (!check_sample_fmt(codec, _enCodecCtx->sample_fmt)) {
         fprintf(stderr, "Encoder does not support sample format %s",
                 av_get_sample_fmt_name(_enCodecCtx->sample_fmt));
@@ -243,16 +268,25 @@ void TransCodeAudio::initEncode()
     }
 
     /* select other audio parameters supported by the encoder */
-    _enCodecCtx->sample_rate    = select_sample_rate(codec);
-    int ret = select_channel_layout(codec, &_enCodecCtx->ch_layout);
-    if (ret < 0)
-        return ;
+    _enCodecCtx->sample_rate    = _option.sampleRate_; //select_sample_rate(codec);
+    // int ret = select_channel_layout(codec, &_enCodecCtx->ch_layout);
+    av_channel_layout_default(&_enCodecCtx->ch_layout, 2);
+    // if (ret < 0)
+    //     return ;
 
     /* open it */
     if (avcodec_open2(_enCodecCtx, codec, NULL) < 0) {
         fprintf(stderr, "Could not open codec\n");
         return ;
     }
+}
+
+void TranscodeAudio::init()
+{
+    initDecode();
+    initEncode();
+    initFifo(&_fifo, _enCodecCtx);
+    initResampler(_deCodecCtx, _enCodecCtx, &_resampleContext);
 }
 
 /**
@@ -264,7 +298,7 @@ void TransCodeAudio::initEncode()
  * @param[out] resample_context     Resample context for the required conversion
  * @return Error code (0 if successful)
  */
-int TransCodeAudio::initResampler(AVCodecContext *input_codec_context,
+int TranscodeAudio::initResampler(AVCodecContext *input_codec_context,
                           AVCodecContext *output_codec_context,
                           SwrContext **resample_context)
 {
@@ -291,7 +325,7 @@ int TransCodeAudio::initResampler(AVCodecContext *input_codec_context,
         * not greater than the number of samples to be converted.
         * If the sample rates differ, this case has to be handled differently
         */
-        av_assert0(output_codec_context->sample_rate == input_codec_context->sample_rate);
+        // av_assert0(output_codec_context->sample_rate == input_codec_context->sample_rate);
 
         /* Open the resampler with the specified parameters. */
         if ((error = swr_init(*resample_context)) < 0) {
@@ -308,7 +342,7 @@ int TransCodeAudio::initResampler(AVCodecContext *input_codec_context,
  * @param      output_codec_context Codec context of the output file
  * @return Error code (0 if successful)
  */
-int TransCodeAudio::initFifo(AVAudioFifo **fifo, AVCodecContext *output_codec_context)
+int TranscodeAudio::initFifo(AVAudioFifo **fifo, AVCodecContext *output_codec_context)
 {
     /* Create the FIFO buffer based on the specified output sample format. */
     if (!(*fifo = av_audio_fifo_alloc(output_codec_context->sample_fmt,
@@ -332,7 +366,7 @@ int TransCodeAudio::initFifo(AVAudioFifo **fifo, AVCodecContext *output_codec_co
  *                                  function has to be called again.
  * @return Error code (0 if successful)
  */
-int TransCodeAudio::decode_audio_frame(AVPacket *input_packet, AVFrame *frame,
+int TranscodeAudio::decode_audio_frame(AVPacket *input_packet, AVFrame *frame,
                               AVCodecContext *input_codec_context,
                               int *data_present, int *finished)
 {
@@ -362,7 +396,7 @@ int TransCodeAudio::decode_audio_frame(AVPacket *input_packet, AVFrame *frame,
         * The input audio stream decoder is used to do this. */
         if ((error = avcodec_send_packet(input_codec_context, input_packet)) < 0) {
             fprintf(stderr, "Could not send packet for decoding (error '%s')\n",
-                    av_err2str(error));
+                    getAvError(error).c_str());
             break;
         }
 
@@ -379,8 +413,8 @@ int TransCodeAudio::decode_audio_frame(AVPacket *input_packet, AVFrame *frame,
             error = 0;
             break;
         } else if (error < 0) {
-            fprintf(stderr, "Could not decode frame (error '%s')\n",
-                    av_err2str(error));
+            printf("Could not decode frame (error '%s')\n",
+                    getAvError(error).c_str());
             break;
         /* Default case: Return decoded data. */
         } else {
@@ -390,7 +424,7 @@ int TransCodeAudio::decode_audio_frame(AVPacket *input_packet, AVFrame *frame,
     } while (0);
 
 
-    av_packet_free(&input_packet);
+    // av_packet_free(&input_packet);
     return error;
 }
 
@@ -402,7 +436,7 @@ int TransCodeAudio::decode_audio_frame(AVPacket *input_packet, AVFrame *frame,
  * @param frame_size              Number of samples to be converted
  * @return Error code (0 if successful)
  */
-int TransCodeAudio::add_samples_to_fifo(AVAudioFifo *fifo,
+int TranscodeAudio::add_samples_to_fifo(AVAudioFifo *fifo,
                                uint8_t **converted_input_samples,
                                const int frame_size)
 {
@@ -440,7 +474,7 @@ int TransCodeAudio::add_samples_to_fifo(AVAudioFifo *fifo,
  *                                  again.
  * @return Error code (0 if successful)
  */
-int TransCodeAudio::read_decode_convert_and_store(AVPacket *input_packet, AVAudioFifo *fifo,
+int TranscodeAudio::read_decode_convert_and_store(AVPacket *input_packet, AVAudioFifo *fifo,
                                          AVCodecContext *input_codec_context,
                                          AVCodecContext *output_codec_context,
                                          SwrContext *resampler_context,
@@ -505,7 +539,7 @@ int TransCodeAudio::read_decode_convert_and_store(AVPacket *input_packet, AVAudi
  * @param      frame_size           Size of the frame
  * @return Error code (0 if successful)
  */
-int TransCodeAudio::init_output_frame(AVFrame **frame,
+int TranscodeAudio::init_output_frame(AVFrame **frame,
                              AVCodecContext *output_codec_context,
                              int frame_size)
 {
@@ -531,13 +565,44 @@ int TransCodeAudio::init_output_frame(AVFrame **frame,
      * sure that the audio frame can hold as many samples as specified. */
     if ((error = av_frame_get_buffer(*frame, 0)) < 0) {
         fprintf(stderr, "Could not allocate output frame samples (error '%s')\n",
-                av_err2str(error));
+                getAvError(error).c_str());
         av_frame_free(frame);
         return error;
     }
 
     return 0;
 }
+
+static void getADTSHeader(AVCodecContext *ctx, uint8_t *adts_header, int aac_length)
+{
+    uint8_t freq_idx = 0;    //0: 96000 Hz  3: 48000 Hz 4: 44100 Hz
+    switch (ctx->sample_rate) {
+        case 96000: freq_idx = 0; break;
+        case 88200: freq_idx = 1; break;
+        case 64000: freq_idx = 2; break;
+        case 48000: freq_idx = 3; break;
+        case 44100: freq_idx = 4; break;
+        case 32000: freq_idx = 5; break;
+        case 24000: freq_idx = 6; break;
+        case 22050: freq_idx = 7; break;
+        case 16000: freq_idx = 8; break;
+        case 12000: freq_idx = 9; break;
+        case 11025: freq_idx = 10; break;
+        case 8000: freq_idx = 11; break;
+        case 7350: freq_idx = 12; break;
+        default: freq_idx = 4; break;
+    }
+    uint8_t chanCfg = ctx->ch_layout.nb_channels;
+    uint32_t frame_length = aac_length + 7;
+    adts_header[0] = 0xFF;
+    adts_header[1] = 0xF1;
+    adts_header[2] = ((ctx->profile) << 6) + (freq_idx << 2) + (chanCfg >> 2);
+    adts_header[3] = (((chanCfg & 3) << 6) + (frame_length  >> 11));
+    adts_header[4] = ((frame_length & 0x7FF) >> 3);
+    adts_header[5] = (((frame_length & 7) << 5) + 0x1F);
+    adts_header[6] = 0xFC;
+}
+
 
 /**
  * Encode one frame worth of audio to the output file.
@@ -548,7 +613,7 @@ int TransCodeAudio::init_output_frame(AVFrame **frame,
  *                                   encoded
  * @return Error code (0 if successful)
  */
-int TransCodeAudio::encode_audio_frame(AVFrame *frame,
+int TranscodeAudio::encode_audio_frame(AVFrame *frame,
                               AVCodecContext *output_codec_context,
                               int *data_present)
 {
@@ -575,7 +640,7 @@ int TransCodeAudio::encode_audio_frame(AVFrame *frame,
         *  encoder signals that it has nothing more to encode. */
         if (error < 0 && error != AVERROR_EOF) {
             fprintf(stderr, "Could not send packet for encoding (error '%s')\n",
-                    av_err2str(error));
+                    getAvError(error).c_str());
             break;
         }
 
@@ -592,11 +657,23 @@ int TransCodeAudio::encode_audio_frame(AVFrame *frame,
             break;
         } else if (error < 0) {
             fprintf(stderr, "Could not encode frame (error '%s')\n",
-                    av_err2str(error));
+                    getAvError(error).c_str());
             break;
         /* Default case: Return encoded data. */
         } else {
             *data_present = 1;
+            logInfo << "Write packet pts: " << output_packet->pts << ", size: " << output_packet->size;
+
+
+            StreamBuffer::Ptr buffer = make_shared<StreamBuffer>(output_packet->size + 7);
+            auto bufferData = buffer->data();
+            
+            uint8_t header[7] = {0};
+            getADTSHeader(output_codec_context, header, output_packet->size);
+
+            memcpy(bufferData, header, 7);
+            memcpy(bufferData + 7, (char*)output_packet->data, output_packet->size);
+            onPacket(buffer);
         }
     } while (0);
 
@@ -612,7 +689,7 @@ int TransCodeAudio::encode_audio_frame(AVFrame *frame,
  * @param output_codec_context  Codec context of the output file
  * @return Error code (0 if successful)
  */
-int TransCodeAudio::load_encode_and_write(AVAudioFifo *fifo,
+int TranscodeAudio::load_encode_and_write(AVAudioFifo *fifo,
                                  AVCodecContext *output_codec_context)
 {
     /* Temporary storage of the output samples of the frame written to the file. */
@@ -646,7 +723,7 @@ int TransCodeAudio::load_encode_and_write(AVAudioFifo *fifo,
     return 0;
 }
 
-int TransCodeAudio::inputFrame(const FrameBuffer::Ptr& frame)
+int TranscodeAudio::inputFrame(const FrameBuffer::Ptr& frame)
 {
     /* Loop as long as we have input samples to read or output samples
      * to write; abort as soon as we have neither. */
@@ -657,11 +734,18 @@ int TransCodeAudio::inputFrame(const FrameBuffer::Ptr& frame)
     const int output_frame_size = _enCodecCtx->frame_size;
 
     while (data_size > 0) {
-        ret = av_parser_parse2(_deParser, _deCodecCtx, &_dePkt->data, &_dePkt->size,
-                                data, data_size, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
-        if (ret < 0) {
-            logError << "Error while parsing";
-            return ;
+        if (_deAudioCodecId != AV_CODEC_ID_PCM_ALAW) {
+            ret = av_parser_parse2(_deParser, _deCodecCtx, &_dePkt->data, &_dePkt->size,
+                                    data, data_size, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
+            if (ret < 0) {
+                logError << "Error while parsing";
+                return ret;
+            }
+        } else {
+            _dePkt->data = data;
+            _dePkt->size = data_size;
+
+            ret = data_size;
         }
         data      += ret;
         data_size -= ret;
@@ -676,10 +760,6 @@ int TransCodeAudio::inputFrame(const FrameBuffer::Ptr& frame)
                                               _resampleContext, &finished))
             break;
 
-        if (!finished) {
-            break;
-        }
-
         /* If we have enough samples for the encoder, we encode them.
          * At the end of the file, we pass the remaining samples to
          * the encoder. */
@@ -687,10 +767,22 @@ int TransCodeAudio::inputFrame(const FrameBuffer::Ptr& frame)
                (finished && av_audio_fifo_size(_fifo) > 0))
             /* Take one frame worth of audio samples from the FIFO buffer,
              * encode it and write it to the output file. */
-            if (load_encode_and_write(_fifo,
+            if (ret = load_encode_and_write(_fifo,
                                       _enCodecCtx))
-                return ;
+                return ret;
     }
 
     return ret;
+}
+
+void TranscodeAudio::setOnPacket(const function<void(const StreamBuffer::Ptr& packet)>& cb)
+{
+    _onPacket = cb;
+}
+
+void TranscodeAudio::onPacket(const StreamBuffer::Ptr& packet)
+{
+    if (_onPacket) {
+        _onPacket(packet);
+    }
 }

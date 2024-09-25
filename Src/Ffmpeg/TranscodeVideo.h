@@ -2,7 +2,10 @@
 #define TranscodeVideo_H
 
 #include "Common/Frame.h"
+
+extern "C" {
 #include <libavcodec/avcodec.h>
+}
 
 #include <string>
 
@@ -31,6 +34,9 @@ public:
     void decode(AVCodecContext *dec_ctx, AVFrame *frame, AVPacket *pkt);
     int inputFrame(const FrameBuffer::Ptr& frame);
 
+    void setOnPacket(const function<void(const StreamBuffer::Ptr& packet)>& cb);
+    void onPacket(const StreamBuffer::Ptr& packet);
+
 private:
     VideoEncodeOption _option;
     AVCodecContext *_enCodecCtx= NULL;
@@ -44,6 +50,8 @@ private:
     AVPacket *_pkt;
 
     AVCodecID _deVideoCodecId;
+
+    function<void(const StreamBuffer::Ptr& packet)> _onPacket;
 };
 
 #endif
