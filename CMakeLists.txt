@@ -96,13 +96,13 @@ target_link_libraries(SimpleMediaServer ${LINK_LIB_LIST} dl pthread)
 
 if (ENABLE_PROJECT_TRANSCODEVIDEO)
     project(transcodeVideo)
-    add_executable(transcodeVideo Tests/Transcode/transcodeVideo.cpp)
+    add_executable(transcodeVideo Tests/transcode/transcodeVideo.cpp)
     target_link_libraries(transcodeVideo ${LINK_LIB_LIST} dl pthread)
 endif ()
 
 if (ENABLE_PROJECT_TRANSCODEAUDIO)
     project(transcodeAudio)
-    add_executable(transcodeAudio Tests/Transcode/transcodeAudio.cpp)
+    add_executable(transcodeAudio Tests/transcode/transcodeAudio.cpp)
     target_link_libraries(transcodeAudio ${LINK_LIB_LIST} dl pthread)
 endif ()
 
