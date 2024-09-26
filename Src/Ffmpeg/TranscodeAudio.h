@@ -1,6 +1,8 @@
 #ifndef TransCodeAudio_H
 #define TransCodeAudio_H
 
+#ifdef ENABLE_FFMPEG
+
 #include <string>
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -85,5 +87,7 @@ private:
 
     function<void(const StreamBuffer::Ptr& packet)> _onPacket;
 };
+
+#endif
 
 #endif

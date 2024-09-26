@@ -1,3 +1,5 @@
+#ifdef ENABLE_FFMPEG
+
 #include "TranscodeVideo.h"
 #include "Log/Logger.h"
 
@@ -231,3 +233,5 @@ void TranscodeVideo::onPacket(const StreamBuffer::Ptr& packet)
         _onPacket(packet);
     }
 }
+
+#endif

@@ -1,6 +1,8 @@
 #ifndef TranscodeVideo_H
 #define TranscodeVideo_H
 
+#ifdef ENABLE_FFMPEG
+
 #include "Common/Frame.h"
 
 extern "C" {
@@ -53,5 +55,7 @@ private:
 
     function<void(const StreamBuffer::Ptr& packet)> _onPacket;
 };
+
+#endif
 
 #endif

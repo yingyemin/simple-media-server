@@ -1,3 +1,5 @@
+#ifdef ENABLE_FFMPEG
+
 extern "C" {
 #include <libavutil/mem.h>
 #include <libavformat/avio.h>
@@ -786,3 +788,5 @@ void TranscodeAudio::onPacket(const StreamBuffer::Ptr& packet)
         _onPacket(packet);
     }
 }
+
+#endif
