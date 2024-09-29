@@ -39,7 +39,9 @@ bool RecordMp4::start()
     // }
 
     _mp4Writer = make_shared<Mp4FileWriter>(0, abpath);
-    _mp4Writer->open();
+    if (!_mp4Writer->open()) {
+        return false;
+    }
     _mp4Writer->init();
 
     weak_ptr<RecordMp4> wSelf = dynamic_pointer_cast<RecordMp4>(shared_from_this());

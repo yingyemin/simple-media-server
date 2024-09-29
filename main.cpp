@@ -95,9 +95,9 @@ int main(int argc, char** argv)
     Logger::instance()->setWriter(std::make_shared<AsyncLogWriter>());
 
     static int logLevel = Config::instance()->getAndListen([](const json &config){
-        logLevel = config["LogLevel"];
+        logLevel = config["Log"]["logLevel"];
         Logger::instance()->setLevel((LogLevel)logLevel);
-    }, "LogLevel");
+    }, "Log", "logLevel");
 
     Logger::instance()->setLevel((LogLevel)logLevel);
 

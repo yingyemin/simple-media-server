@@ -18,6 +18,7 @@ public:
     FrameBuffer();
 
     static const char* findNextNalu(const char* p, size_t bytes, size_t& leading);
+    static int startSize(const char* data, int len);
 
     char *data() const { return (char *)_buffer.data(); }
     size_t size() const { return _buffer.size(); }

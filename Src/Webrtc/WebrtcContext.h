@@ -64,7 +64,8 @@ private:
     void sendDatachannel(uint16_t streamId, uint32_t ppid, const char *msg, size_t len);
 
 private:
-    bool _enbaleDtls = false;
+    bool _enbaleDtls = true;
+    bool _enbaleSrtp = true;
     bool _firstResend = true;
     bool _alive = true;
     bool _isPlayer = true;

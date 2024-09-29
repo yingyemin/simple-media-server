@@ -70,6 +70,8 @@ private:
     bool _inited = false;
     bool _dtlsHandshakeDone = false;
     bool _sendDtls = false;
+    bool _enableDtls = true;
+    bool _enableSrtp = true;
     string _request = "pull";
     string _iceUfrag;
     string _icePwd;

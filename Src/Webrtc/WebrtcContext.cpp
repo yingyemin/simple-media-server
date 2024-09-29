@@ -111,20 +111,22 @@ void WebrtcContext::initPlayer(const string& appName, const string& streamName, 
 
     negotiatePlayValid(videoInfo, audioInfo);
 
-    weak_ptr<WebrtcContext> wSelf = shared_from_this();
-    _dtlsSession->setOnHandshakeDone([wSelf](){
-        auto self = wSelf.lock();
-        if (self) {
-            self->startPlay();    
-        }
-    });
+    if (_enbaleDtls) {
+        weak_ptr<WebrtcContext> wSelf = shared_from_this();
+        _dtlsSession->setOnHandshakeDone([wSelf](){
+            auto self = wSelf.lock();
+            if (self) {
+                self->startPlay();    
+            }
+        });
 
-    _dtlsSession->setOnRecvApplicationData([wSelf](const char* data, int len){
-        auto self = wSelf.lock();
-        if (self) {
-            self->onRecvDtlsApplicationData(data, len);    
-        }
-    });
+        _dtlsSession->setOnRecvApplicationData([wSelf](const char* data, int len){
+            auto self = wSelf.lock();
+            if (self) {
+                self->onRecvDtlsApplicationData(data, len);    
+            }
+        });
+    }
 }
 
 void WebrtcContext::initPublisher(const string& appName, const string& streamName, const string& sdp)
@@ -172,7 +174,7 @@ void WebrtcContext::initPublisher(const string& appName, const string& streamNam
         if (!self) {
             return ;
         }
-        if (!self->_srtpSession) {
+        if (self->_enbaleSrtp && !self->_srtpSession) {
             self->_srtpSession.reset(new SrtpSession());
             std::string recv_key, send_key;
             if (0 != self->_dtlsSession->getSrtpKey(recv_key, send_key)) {
@@ -551,20 +553,29 @@ void WebrtcContext::checkAndSendRtcpNack()
         videoNack.setSsrc(_videoPtInfo->ssrc_);
         videoNack.setLossSn(videoVecSeq);
         auto videoNackBuffer = videoNack.encode();
+        auto bufferRtcp = videoNackBuffer;
 
-        char plaintext[1500];
-        int nb_plaintext = videoNackBuffer->size();
-        auto data = videoNackBuffer->data();
-        if (0 != _srtpSession->protectRtcp(data, plaintext, nb_plaintext)) {
-            close();
-            return ;
+        if (_enbaleSrtp) {
+            char plaintext[1500];
+            int nb_plaintext = videoNackBuffer->size();
+            auto data = videoNackBuffer->data();
+            if (0 != _srtpSession->protectRtcp(data, plaintext, nb_plaintext)) {
+                close();
+                return ;
+            }
+
+            bufferRtcp = StreamBuffer::create();
+            bufferRtcp->assign(plaintext, nb_plaintext);
         }
-
-        auto bufferRtcp = StreamBuffer::create();
-        bufferRtcp->assign(plaintext, nb_plaintext);
 
         logInfo << "_socket->send(videoNackBuffer); " << bufferRtcp->size();
         if (_socket->getSocketType() == SOCKET_TCP) {
+            uint8_t payload_ptr[2];
+            payload_ptr[0] = bufferRtcp->size() >> 8;
+            payload_ptr[1] = bufferRtcp->size() & 0x00FF;
+
+            _socket->send((char*)payload_ptr, 2);
+
             _socket->send(bufferRtcp);
         } else {
             _socket->send(bufferRtcp, 1, 0, 0, _addr, _addrLen);
@@ -576,20 +587,29 @@ void WebrtcContext::checkAndSendRtcpNack()
         audioNack.setSsrc(_audioPtInfo->ssrc_);
         audioNack.setLossSn(audioVecSeq);
         auto audioNackBuffer = audioNack.encode();
+        auto bufferRtcp = audioNackBuffer;
 
-        char plaintext[1500];
-        int nb_plaintext = audioNackBuffer->size();
-        auto data = audioNackBuffer->data();
-        if (0 != _srtpSession->protectRtcp(data, plaintext, nb_plaintext)) {
-            close();
-            return ;
+        if (_enbaleSrtp) {
+            char plaintext[1500];
+            int nb_plaintext = audioNackBuffer->size();
+            auto data = audioNackBuffer->data();
+            if (0 != _srtpSession->protectRtcp(data, plaintext, nb_plaintext)) {
+                close();
+                return ;
+            }
+
+            bufferRtcp = StreamBuffer::create();
+            bufferRtcp->assign(plaintext, nb_plaintext);
         }
-
-        auto bufferRtcp = StreamBuffer::create();
-        bufferRtcp->assign(plaintext, nb_plaintext);
 
         logInfo << "_socket->send(audioNackBuffer);" << bufferRtcp->size();
         if (_socket->getSocketType() == SOCKET_TCP) {
+            uint8_t payload_ptr[2];
+            payload_ptr[0] = bufferRtcp->size() >> 8;
+            payload_ptr[1] = bufferRtcp->size() & 0x00FF;
+
+            _socket->send((char*)payload_ptr, 2);
+
             _socket->send(bufferRtcp);
         } else {
             _socket->send(bufferRtcp, 1, 0, 0, _addr, _addrLen);
@@ -602,16 +622,20 @@ void WebrtcContext::sendRtcpPli(int ssrc)
     logInfo << "send a rtcp pli";
     RtcpPli pli;
     auto buffer = pli.encode(ssrc);
-    char plaintext[1500];
-    int nb_plaintext = buffer->size();
-    auto data = buffer->data();
-    if (0 != _srtpSession->protectRtcp(data, plaintext, nb_plaintext)) {
-        close();
-        return ;
-    }
+    auto bufferRtcp = buffer;
 
-    auto bufferRtcp = StreamBuffer::create();
-    bufferRtcp->assign(plaintext, nb_plaintext);
+    if (_enbaleSrtp) {
+        char plaintext[1500];
+        int nb_plaintext = buffer->size();
+        auto data = buffer->data();
+        if (0 != _srtpSession->protectRtcp(data, plaintext, nb_plaintext)) {
+            close();
+            return ;
+        }
+
+        bufferRtcp = StreamBuffer::create();
+        bufferRtcp->assign(plaintext, nb_plaintext);
+    }
 
     if (_socket->getSocketType() == SOCKET_TCP) {
         uint8_t payload_ptr[2];
@@ -679,16 +703,23 @@ void WebrtcContext::onRtpPacket(const Socket::Ptr& socket, const RtpPacket::Ptr&
 
         _rtcpPliTimerCreated = true;
     }
-    char plaintext[1500];
-    int nb_plaintext = rtp->size();
-    auto data = rtp->data();
-	if (0 != _srtpSession->unprotectRtp(data, plaintext, nb_plaintext)) 
-		return ;
 
-    auto rtpbuffer = StreamBuffer::create();
-    rtpbuffer->assign(plaintext, nb_plaintext);
+    WebrtcRtpPacket::Ptr rtpPacket;
 
-    auto rtpPacket = make_shared<WebrtcRtpPacket>(rtpbuffer);
+    if (_enbaleSrtp) {
+        char plaintext[1500];
+        int nb_plaintext = rtp->size();
+        auto data = rtp->data();
+        if (0 != _srtpSession->unprotectRtp(data, plaintext, nb_plaintext)) 
+            return ;
+
+        auto rtpbuffer = StreamBuffer::create();
+        rtpbuffer->assign(plaintext, nb_plaintext);
+
+        rtpPacket = make_shared<WebrtcRtpPacket>(rtpbuffer);
+    } else {
+        rtpPacket = dynamic_pointer_cast<WebrtcRtpPacket>(rtp);
+    }
 
     // rtx 包
     if (_videoRtxPtInfo && rtpPacket->getSSRC() == _videoRtxPtInfo->ssrc_) {
@@ -831,6 +862,10 @@ void WebrtcContext::onStunPacket(const Socket::Ptr& socket, const WebrtcStun& st
     
 	socket->send(buffer->data(), buffer->size(), 1, _addr, len);
 	_lastRecvTime = time(nullptr);
+
+    if (!_enbaleDtls) {
+        startPlay(); 
+    }
 }
 
 void WebrtcContext::onDtlsPacket(const Socket::Ptr& socket, const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)
@@ -870,13 +905,17 @@ void WebrtcContext::onRtcpPacket(const Socket::Ptr& socket, const StreamBuffer::
 
 	_lastRecvTime = time(nullptr);
 
-	char plaintext[1500];
-    int nb_plaintext = buffer->size();
-    auto data = buffer->data();
-	if (0 != _srtpSession->unprotectRtcp(data, plaintext, nb_plaintext)) 
-		return ;
+    if (_enbaleSrtp) {
+        char plaintext[1500];
+        int nb_plaintext = buffer->size();
+        auto data = buffer->data();
+        if (0 != _srtpSession->unprotectRtcp(data, plaintext, nb_plaintext)) 
+            return ;
 
-	handleRtcp(plaintext, nb_plaintext);
+        handleRtcp(plaintext, nb_plaintext);
+    } else {
+        handleRtcp(buffer->data(), buffer->size());
+    }
 }
 
 void WebrtcContext::nackHeartBeat()
@@ -979,19 +1018,23 @@ void WebrtcContext::sendMedia(const RtpPacket::Ptr& rtp)
 	// fwrite(data, nb_cipher, 1, fp);
 	// fclose(fp);
 
-	if (0 == _srtpSession->protectRtp(data, &nb_cipher)) {
-        logInfo << "protect rtp size: " << nb_cipher;
-        if (_socket->getSocketType() == SOCKET_TCP) {
-            uint8_t payload_ptr[2];
-            payload_ptr[0] = nb_cipher >> 8;
-            payload_ptr[1] = nb_cipher & 0x00FF;
-
-            _socket->send((char*)payload_ptr, 2);
+	if (_enbaleSrtp) {
+        if (0 != _srtpSession->protectRtp(data, &nb_cipher)) {
+            logWarn << "protect srtp failed";
+            return ;
         }
-		_socket->send(buffer, 1, 0, nb_cipher, _addr, _addrLen);
-		_sendRtpPack_10s++;
 		// lastest_packet_send_time_ = time(nullptr);
 	}
+    logInfo << "protect rtp size: " << nb_cipher;
+    if (_socket->getSocketType() == SOCKET_TCP) {
+        uint8_t payload_ptr[2];
+        payload_ptr[0] = nb_cipher >> 8;
+        payload_ptr[1] = nb_cipher & 0x00FF;
+
+        _socket->send((char*)payload_ptr, 2);
+    }
+    _socket->send(buffer, 1, 0, nb_cipher, _addr, _addrLen);
+    _sendRtpPack_10s++;
 	// _bytes += nb_cipher;
 }
 
@@ -1040,7 +1083,7 @@ void WebrtcContext::startPlay()
         });
     }
 
-    if (!_srtpSession) {
+    if (_enbaleSrtp && !_srtpSession) {
 		_srtpSession.reset(new SrtpSession());
 		std::string recv_key, send_key;
 		if (0 != _dtlsSession->getSrtpKey(recv_key, send_key)) {

@@ -597,41 +597,45 @@ void WebrtcClient::onStunPacket(const StreamBuffer::Ptr& buffer)
 		return;
 	}
 
-    if (!_sendDtls) {
-        weak_ptr<WebrtcClient> wSelf = shared_from_this();
-        _dtlsSession->setOnHandshakeDone([wSelf](){
-            logInfo << "start to publish";
-            auto self = wSelf.lock();
-            if (!self) {
-                return ;
-            }
-            self->_dtlsHandshakeDone = true;
+    if (_enableDtls) {
+        if (!_sendDtls) {
+            weak_ptr<WebrtcClient> wSelf = shared_from_this();
+            _dtlsSession->setOnHandshakeDone([wSelf](){
+                logInfo << "start to publish";
+                auto self = wSelf.lock();
+                if (!self) {
+                    return ;
+                }
+                self->_dtlsHandshakeDone = true;
 
-            self->startPlay();
-        });
-        _dtlsSession->startActiveHandshake(_socket);
-        _sendDtls = true;
+                self->startPlay();
+            });
+            _dtlsSession->startActiveHandshake(_socket);
+            _sendDtls = true;
 
-        _loop->addTimerTask(50, [wSelf](){
-            auto self = wSelf.lock();
-            if (!self) {
-                return 0;
-            }
-            int loopTime = self->onDtlsCheck();
+            _loop->addTimerTask(50, [wSelf](){
+                auto self = wSelf.lock();
+                if (!self) {
+                    return 0;
+                }
+                int loopTime = self->onDtlsCheck();
 
-            if (loopTime == 0 && self->_dtlsTimeTask) {
-                self->_dtlsTimeTask->quit = true;
-                self->_dtlsTimeTask = nullptr;
-            }
+                if (loopTime == 0 && self->_dtlsTimeTask) {
+                    self->_dtlsTimeTask->quit = true;
+                    self->_dtlsTimeTask = nullptr;
+                }
 
-            return loopTime;
-        }, [wSelf](bool success, shared_ptr<TimerTask> timeTask){
-            auto self = wSelf.lock();
-            if (!self) {
-                return ;
-            }
-            self->_dtlsTimeTask = timeTask;
-        });
+                return loopTime;
+            }, [wSelf](bool success, shared_ptr<TimerTask> timeTask){
+                auto self = wSelf.lock();
+                if (!self) {
+                    return ;
+                }
+                self->_dtlsTimeTask = timeTask;
+            });
+        }
+    } else {
+        startPlay();
     }
 }
 
@@ -672,16 +676,22 @@ void WebrtcClient::onRtcpPacket(const StreamBuffer::Ptr& buffer)
 
 void WebrtcClient::onRtpPacket(const RtpPacket::Ptr& rtp)
 {
-    char plaintext[1500];
-    int nb_plaintext = rtp->size();
-    auto data = rtp->data();
-	if (0 != _srtpSession->unprotectRtp(data, plaintext, nb_plaintext)) 
-		return ;
+    RtpPacket::Ptr rtpPacket;
 
-    auto rtpbuffer = StreamBuffer::create();
-    rtpbuffer->assign(plaintext, nb_plaintext);
+    if (_enableSrtp) {
+        char plaintext[1500];
+        int nb_plaintext = rtp->size();
+        auto data = rtp->data();
+        if (0 != _srtpSession->unprotectRtp(data, plaintext, nb_plaintext)) 
+            return ;
 
-    auto rtpPacket = make_shared<WebrtcRtpPacket>(rtpbuffer);
+        auto rtpbuffer = StreamBuffer::create();
+        rtpbuffer->assign(plaintext, nb_plaintext);
+
+        rtpPacket = make_shared<WebrtcRtpPacket>(rtpbuffer);
+    } else {
+        rtpPacket = rtp;
+    }
 
     if (rtp->getHeader()->pt == _videoPtInfo->payloadType_) {
         logTrace << "decode rtp";
@@ -694,7 +704,7 @@ void WebrtcClient::onRtpPacket(const RtpPacket::Ptr& rtp)
 void WebrtcClient::startPlay()
 {
     
-    if (!_srtpSession) {
+    if (_enableSrtp && !_srtpSession) {
 		_srtpSession.reset(new SrtpSession());
 		std::string recv_key, send_key;
 		if (0 != _dtlsSession->getSrtpKey(recv_key, send_key)) {
@@ -823,7 +833,13 @@ void WebrtcClient::sendMedia(const RtpPacket::Ptr& rtp)
 	// fwrite(data, nb_cipher, 1, fp);
 	// fclose(fp);
 
-	if (0 == _srtpSession->protectRtp(data, &nb_cipher)) {
+    if (_enableSrtp) {
+        if (0 != _srtpSession->protectRtp(data, &nb_cipher)) {
+            return ;
+        }
+    }
+
+	// if (0 == _srtpSession->protectRtp(data, &nb_cipher)) {
         if (_socket->getSocketType() == SOCKET_TCP) {
             uint8_t payload_ptr[2];
             payload_ptr[0] = nb_cipher >> 8;
@@ -834,6 +850,6 @@ void WebrtcClient::sendMedia(const RtpPacket::Ptr& rtp)
 		_socket->send(buffer, 1, 0, nb_cipher, _addr, _addrLen);
 		// _sendRtpPack_10s++;
 		// lastest_packet_send_time_ = time(nullptr);
-	}
+	// }
 	// _bytes += nb_cipher;
 }

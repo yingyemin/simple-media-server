@@ -396,16 +396,17 @@ WebrtcRtpPacket::WebrtcRtpPacket(const StreamBuffer::Ptr& buffer, int rtpOverTcp
     :RtpPacket(buffer, rtpOverTcpHeaderSize)
     ,_rtpOverTcpHeaderSize(rtpOverTcpHeaderSize)
 {
-    _data = StreamBuffer::create();
     _size = buffer->size() + _rtpOverTcpHeaderSize;
-    if (_rtpOverTcpHeaderSize == 4) {
-        char* rtpBuffer = new char[_size];
-        memcpy(rtpBuffer + 4, buffer->data(), _size - 4);
-        _data->move(rtpBuffer, _size);
-    } else {
-        // logInfo << "buffer size: " << buffer->size();
-        _data->assign(buffer->data(), _size);
-    }
+    _data = make_shared<StreamBuffer>(_size);
+    memcpy(_data->data() + rtpOverTcpHeaderSize, buffer->data(), _size - rtpOverTcpHeaderSize);
+    // if (_rtpOverTcpHeaderSize == 4) {
+    //     char* rtpBuffer = new char[_size];
+    //     memcpy(rtpBuffer + 4, buffer->data(), _size - 4);
+    //     _data->move(rtpBuffer, _size);
+    // } else {
+    //     // logInfo << "buffer size: " << buffer->size();
+    //     _data->assign(buffer->data(), _size);
+    // }
     _header = (RtpHeader *)(data() + _rtpOverTcpHeaderSize);
 }
 

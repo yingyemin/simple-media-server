@@ -42,6 +42,7 @@ public:
     int index_;
     int ssrc_;
     int bitPerSample_ = 16;
+    int _bitrate = 0;
     int _width = 0;
     int _height = 0;
     uint8_t _dependent_slice_segments_enabled_flag = 0;

@@ -458,7 +458,6 @@ string H265Track::getConfig()
     return config;
 }
 
-// 判断有问题，不知道哪错了
 bool H265Track::isBFrame(uint8* data, int size)
 {
 	// de_emulation_prevention(data, (unsigned int *)&size);
@@ -476,6 +475,7 @@ bool H265Track::isBFrame(uint8* data, int size)
 		_height = param.height;
 		_PicSizeInCtbsY = param.PicSizeInCtbsY;
 	}
+	// 跳过 nalu header 两个字节
 	NALBitstream bs(data + 2, size - 2);
 	uint8_t dependent_slice_segment_flag = 0;
 	uint8_t first_slice_segment_in_pic_flag = bs.GetWord(1); //first_slice_segment_in_pic_flag

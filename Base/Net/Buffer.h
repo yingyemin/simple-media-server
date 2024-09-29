@@ -63,6 +63,10 @@ public:
     //有效数据大小
     size_t size() const override;
 
+    size_t bufferSize() const;
+
+    void resetSize();
+
     //分配内存大小
     void setCapacity(size_t capacity);
 
@@ -86,7 +90,7 @@ private:
     size_t _size = 0;
     size_t _capacity = 0;
     size_t _offset = 0;
-    char *_data = nullptr;
+    char* _data = nullptr;
 };
 
 // 用于存储需要动态增长的内存，如帧数据

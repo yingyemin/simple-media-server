@@ -6,7 +6,7 @@ option(ENABLE_ASAN "Enable lib asan" false)
 option(ENABLE_OPENSSL "Enable openssl" true)
 option(ENABLE_FFMPEG "Enable ffmpeg" true)
 option(ENABLE_PROJECT_TRANSCODEVIDEO "Enable test transcodeVideo" false)
-option(ENABLE_PROJECT_TRANSCODEAUDIO "Enable test transcodeAudio" true)
+option(ENABLE_PROJECT_TRANSCODEAUDIO "Enable test transcodeAudio" false)
 
 #设置调试信息并开启c++11标准
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O3 -std=c++11")

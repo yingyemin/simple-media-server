@@ -110,6 +110,9 @@ public:
 
     static NetType getNetType(const string& ip);
 
+    void setOnGetRecvBuffer(const function<StreamBuffer::Ptr()>& cb) {_onGetRecvBuffer = cb;}
+    StreamBuffer::Ptr onGetRecvBuffer();
+
 private:
     bool _isClient = false;
     bool _isConnected = false;
@@ -130,6 +133,7 @@ private:
     onWriteCb _onWrite;
     onErrorCb _onError;
     function<bool()> _onGetBuffer;
+    function<StreamBuffer::Ptr()> _onGetRecvBuffer;
 };
 
 #endif //Socket_h

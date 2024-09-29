@@ -31,3 +31,24 @@ const char* FrameBuffer::findNextNalu(const char* p, size_t bytes, size_t& leadi
 
     return nullptr;
 }
+
+int FrameBuffer::startSize(const char* data, int len)
+{
+    if (len < 4) {
+        return 0;
+    }
+
+    if (*(uint16_t*)data != 0) {
+        return 0;
+    }
+
+    if (data[2] == 1) {
+        return 3;
+    }
+
+    if (*(uint16_t*)(data + 2) == 0x1000) {
+        return 4;
+    }
+
+    return 0;
+}

@@ -47,6 +47,17 @@ size_t StreamBuffer::size() const
     return _size;
 }
 
+size_t StreamBuffer::bufferSize() const 
+{
+    return _capacity - 1;
+}
+
+void StreamBuffer::resetSize()
+{
+    _offset = 0;
+    _size = _capacity - 1;
+}
+
 void StreamBuffer::setCapacity(size_t capacity) 
 {
     if (_data) {
@@ -66,8 +77,6 @@ void StreamBuffer::setCapacity(size_t capacity)
                 return;
             }
         } while (false);
-
-        delete[] _data;
     }
     _data = new char[capacity];
     _capacity = capacity;

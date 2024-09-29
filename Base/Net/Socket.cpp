@@ -491,6 +491,15 @@ void Socket::addToEpoll()
 
 thread_local StreamBuffer::Ptr g_readBuffer;
 thread_local StreamBuffer::Ptr g_writeBuffer;
+StreamBuffer::Ptr Socket::onGetRecvBuffer()
+{
+    if (_onGetRecvBuffer) {
+        return _onGetRecvBuffer();
+    } else {
+        return g_readBuffer;
+    }
+}
+
 int Socket::onRead(void* args)
 {
     if (!g_readBuffer) {
@@ -498,14 +507,19 @@ int Socket::onRead(void* args)
         g_readBuffer->setCapacity(1 + 4 * 1024 * 1024);
     }
     ssize_t ret = 0, nread = 0;
-    auto data = g_readBuffer->data();
-    // 最后一个字节设置为'\0'
-    auto capacity = g_readBuffer->getCapacity() - 1;
 
     struct sockaddr_storage addr;
     socklen_t len = sizeof(addr);
 
     while (true) {
+        auto readBuffer = onGetRecvBuffer();
+        if (!readBuffer) {
+            return 0;
+        }
+        auto data = readBuffer->data();
+        // 最后一个字节设置为'\0'
+        auto capacity = readBuffer->getCapacity() - 1;
+        
         do {
             nread = recvfrom(_fd, data, capacity, 0, (struct sockaddr *)&addr, &len);
         } while (-1 == nread && EINTR == errno);
@@ -533,13 +547,13 @@ int Socket::onRead(void* args)
         ret += nread;
         data[nread] = '\0';
         // 设置buffer有效数据大小
-        g_readBuffer->setSize(nread);
+        readBuffer->setSize(nread);
 
         // 触发回调
         // LOCK_GUARD(_mtx_event);
         try {
             // 此处捕获异常，目的是防止数据未读尽，epoll边沿触发失效的问题
-            _onRead(g_readBuffer, (struct sockaddr *)&addr, len);
+            _onRead(readBuffer, (struct sockaddr *)&addr, len);
         } catch (std::exception &ex) {
             logInfo << "Exception occurred when emit on_read: " << ex.what();
         }

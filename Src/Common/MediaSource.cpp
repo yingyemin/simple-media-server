@@ -367,12 +367,12 @@ void MediaSource::loadFromFile(const string& uri, const string& vhost, const str
             return ;
         }
         frameSrc->getLoop()->async([frameSrc, key, cb](){
+            frameSrc->_recordReader = nullptr;
             frameSrc->release();
             frameSrc->delConnection(key);
             if (frameSrc->_status != AVAILABLE) {
                 cb(nullptr);
             }
-            frameSrc->_recordReader = nullptr;
         }, true);
     });
     if (!reader->start()) {
