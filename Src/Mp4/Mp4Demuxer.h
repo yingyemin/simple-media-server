@@ -33,7 +33,7 @@ public:
     uint8_t read8BE();
 
 public:
-    void init();
+    bool init();
     int mov_reader_box(const struct mov_box_t* parent);
     int mov_reader_getinfo();
     int mov_reader_read(void* buffer, size_t bytes);

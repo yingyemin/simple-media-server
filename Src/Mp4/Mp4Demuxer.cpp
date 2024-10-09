@@ -57,7 +57,7 @@ void MP4Demuxer::skip(int size)
     seek(offset + size);
 }
 
-void MP4Demuxer::init()
+bool MP4Demuxer::init()
 {
     _ftyp.major_brand = MOV_BRAND_MP41;
 	_ftyp.minor_version = 0;
@@ -72,7 +72,7 @@ void MP4Demuxer::init()
 	box.size = UINT64_MAX;
 	r = mov_reader_box(&box);
 	if (0 != r) {
-        return ;
+        return false;
     }
 	
 	for (i = 0; i < _track_count; i++)
@@ -89,6 +89,8 @@ void MP4Demuxer::init()
 		if (track->tkhd.duration > _mvhd.duration)
 			_mvhd.duration = track->tkhd.duration; // maximum track duration
 	}
+
+	return true;
 }
 
 int MP4Demuxer::mov_reader_box(const struct mov_box_t* parent)
@@ -585,6 +587,10 @@ int MP4Demuxer::mov_reader_getinfo()
 				break;
 			}
 		}	
+	}
+
+	if (_mapTrackInfo.size() == 0) {
+		return -1;
 	}
 
 	onReady();

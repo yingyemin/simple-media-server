@@ -558,7 +558,7 @@ void RtspConnection::handleSetup()
         return ;
     }
 
-    // logInfo << "index: " << index << ", codec: " << codec << ", control: " << control;
+    logInfo << "index: " << index << ", codec: " << codec << ", control: " << control;
 
     auto track = rtspSrc->getTrack(index);
     if (!track) {
@@ -811,16 +811,16 @@ void RtspConnection::handlePlay()
             if (!strong_self/* || pack->empty()*/) {
                 return;
             }
-            // auto rtp = pack->front();
-            // int index = rtp->trackIndex_;
-            // logInfo << "rtp index: " << index;
+            auto rtp = pack->front();
+            int index = rtp->trackIndex_;
+            logInfo << "rtp index: " << index;
             auto transport = strong_self->_mapRtpTransport[pack->front()->trackIndex_ * 2];
             // for (auto rtptrans : strong_self->_mapRtpTransport) {
                 // logInfo << "index: " << rtptrans.first;
             // }
             // logInfo << "index: " << index;
             if (transport) {
-                // logInfo << "sendRtpPacket: " << index;
+                logInfo << "sendRtpPacket: " << index;
                 int bytes = transport->sendRtpPacket(pack);
                 strong_self->_intervalSendBytes += bytes;
                 strong_self->_totalSendBytes += bytes;

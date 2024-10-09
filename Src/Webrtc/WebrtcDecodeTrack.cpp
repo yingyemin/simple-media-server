@@ -198,8 +198,13 @@ void WebrtcDecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
     if (_type == AudioTrackType) {
         if (_trackInfo->codec_ == "aac") {
             samples = 1024;
+            auto track = dynamic_pointer_cast<AacTrack>(_trackInfo);
+            track->setAacInfo(string(frame->data(), 7));
         } else if (_trackInfo->codec_ == "g711a") {
             samples = frame->size() - frame->startSize();
+        }
+        if (_onReady) {
+            _onReady();
         }
     } else {
         if (!_ready) {

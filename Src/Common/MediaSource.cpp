@@ -670,6 +670,11 @@ void MediaSource::addOnReady(void* key, const onReadyFunc& func)
 
 void MediaSource::onReady()
 {
+    if (_hasReady) {
+        return ;
+    }
+    _hasReady = true;
+
     logInfo << "on ready, path: " << _urlParser.path_ << ", protocol: " << _urlParser.protocol_
                 << ", type: " << _urlParser.type_;
 

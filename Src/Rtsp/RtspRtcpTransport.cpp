@@ -28,9 +28,17 @@ void RtspRtcpTransport::start() {
         auto self = wSelf.lock();
         if (self) {
             self->onRtcpPacket(buffer);
+            self->bindPeerAddr(addr);
         }
         return 0;
     });
+}
+
+void RtspRtcpTransport::bindPeerAddr(struct sockaddr* addr)
+{
+    if (_transType == Transport_UDP) {
+        _socket->bindPeerAddr(addr);
+    }
 }
 
 void RtspRtcpTransport::onSendRtp(const RtpPacket::Ptr& rtp)

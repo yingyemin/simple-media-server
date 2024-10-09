@@ -757,6 +757,9 @@ bool RtmpClient::handleAudio(RtmpMessage& rtmp_msg)
         type = RTMP_AAC_SEQUENCE_HEADER;
         rtmpSrc->setAacHeader(_aacHeader, _aacHeaderSize);
         _rtmpAudioDecodeTrack->setConfigFrame(msg);
+        rtmpSrc->onReady();
+    } else if (sound_format != RTMP_CODEC_ID_AAC) {
+        rtmpSrc->onReady();
     }
 
     msg->trackIndex_ = AudioTrackType;

@@ -25,6 +25,7 @@ public:
     void onSendRtp(const RtpPacket::Ptr& rtp);
     void onRtcpPacket(const StreamBuffer::Ptr& buffer);
     void sendRtcpPacket();
+    void bindPeerAddr(struct sockaddr* addr);
     Socket::Ptr getSocket() {return _socket;}
 
 private:

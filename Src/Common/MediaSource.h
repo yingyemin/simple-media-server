@@ -135,6 +135,7 @@ private:
     static unordered_map<MediaClient*, MediaClient::Ptr> _mapPusher;
 
 private:
+    bool _hasReady = false;
     Socket::Wptr _originSocket;
     shared_ptr<TimerTask> _task;
     mutex _mtxConnection;

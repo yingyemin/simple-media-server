@@ -62,8 +62,8 @@ void RtspRtpTransport::onRtpPacket(const StreamBuffer::Ptr& buffer)
         data[1] = _track->getTrackIndex() * 2;
         data[2] = (rtp->size() - 4) >> 8;
         data[3] = (rtp->size() - 4) & 0x00FF;
-        // logInfo << "recv rtp seq: " << rtp->getSeq() << ", rtp size: " << rtp->size() 
-        //             << ", rtp time: " << rtp->getStamp() << ", index: " << _index;
+        logInfo << "recv rtp seq: " << rtp->getSeq() << ", rtp size: " << rtp->size() 
+                    << ", rtp time: " << rtp->getStamp() << ", index: " << _index;
         _track->onRtpPacket(rtp, false);
     } else if (_transType == Transport_UDP) {
         auto rtp = make_shared<RtpPacket>(buffer, 4);

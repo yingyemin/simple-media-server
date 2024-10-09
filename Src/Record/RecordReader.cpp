@@ -126,7 +126,7 @@ bool RecordReader::start()
             }
         }, nullptr);
     } else if (!strcasecmp(ext.data(), "mp4")) {
-        readMp4(abpath);
+        return readMp4(abpath);
     } else {
         return false;
     }
@@ -134,7 +134,7 @@ bool RecordReader::start()
     return true;
 }
 
-void RecordReader::readMp4(const string& path)
+bool RecordReader::readMp4(const string& path)
 {
     weak_ptr<RecordReader> wSelf = shared_from_this();
 
@@ -165,9 +165,16 @@ void RecordReader::readMp4(const string& path)
         }
     });
 
-    demuxer->open();
-    demuxer->init();
-    demuxer->mov_reader_getinfo();
+    if (!demuxer->open()) {
+        return false;
+    }
+    if (!demuxer->init()) {
+        return false;
+    }
+
+    if (demuxer->mov_reader_getinfo() < 0) {
+        return false;
+    }
 
     _loop->addTimerTask(40, [wSelf, demuxer](){
         auto self = wSelf.lock();
@@ -221,6 +228,8 @@ void RecordReader::readMp4(const string& path)
             return 40 - (int)take;
         }
     }, nullptr);
+
+    return true;
 }
 
 void RecordReader::stop()
