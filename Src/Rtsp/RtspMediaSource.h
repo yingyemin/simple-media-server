@@ -59,6 +59,7 @@ private:
     bool _muxer;
     bool _start = false;
     int _ringSize = 512;
+    uint64_t _lastRtpStmp = 0;
 
     mutex _mtxSdp;
     string _sdp;

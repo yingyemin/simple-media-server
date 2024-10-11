@@ -379,6 +379,11 @@ void RtspConnection::handleAnnounce_l() {
         } else {
             track = make_shared<RtspDecodeTrack>(trackIndex++, media);
         }
+
+        if (!track->getTrackInfo() || track->getTrackInfo()->codec_.empty()) {
+            sendBadRequst("no track available");
+            return ;
+        }
         // logInfo << "type: " << track->getTrackType();
         logInfo << "index: " << track->getTrackIndex() << ", codec : " << media->codec_
                     << ", control: " << media->control_;
@@ -613,9 +618,13 @@ void RtspConnection::handleSetup()
             sendNotAcceptable();
             return ;
         }
+        int rtcpPort = rtpPort + 1;
+        if (rtpPort % 2 != 0) {
+            rtcpPort = rtpPort - 1;
+        }
         socketRtcp->createSocket(SOCKET_UDP);
         // logInfo << "bind rtcp socket: ";
-        if (socketRtcp->bind(rtpPort + 1, "0.0.0.0") == -1) {
+        if (socketRtcp->bind(rtcpPort, "0.0.0.0") == -1) {
             sendNotAcceptable();
             return ;
         }
