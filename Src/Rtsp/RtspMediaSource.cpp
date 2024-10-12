@@ -23,6 +23,9 @@ RtspMediaSource::~RtspMediaSource()
 
 void RtspMediaSource::addTrack(const RtspTrack::Ptr& track)
 {
+    if (track->getTrackInfo()->trackType_ == "video") {
+        _hasVideo = true;
+    }
     std::weak_ptr<RtspMediaSource> weakSelf = std::static_pointer_cast<RtspMediaSource>(shared_from_this());
     if (!_ring) {
         auto lam = [weakSelf](int size) {
@@ -62,7 +65,7 @@ void RtspMediaSource::addTrack(const RtspTrack::Ptr& track)
         }
         strongSelf->_ring->addBytes(rtp->size());
         logInfo << "on rtp seq: " << rtp->getSeq() << ", size: " << rtp->size() << ", type: " << rtp->type_ << ", start: " << start;
-        if (rtp->getHeader()->mark || strongSelf->_lastRtpStmp != rtp->getHeader()->stamp) {
+        if (rtp->getHeader()->mark || (!strongSelf->_hasVideo && strongSelf->_lastRtpStmp != rtp->getHeader()->stamp)) {
             strongSelf->_cache->emplace_back(std::move(rtp));
             logInfo << "write cache size: " << strongSelf->_cache->size();
             strongSelf->_ring->write(strongSelf->_cache, strongSelf->_start);

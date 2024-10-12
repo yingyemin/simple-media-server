@@ -5,12 +5,18 @@
 
 using namespace std;
 
-static string getAvError(int errnum)
-{
-    char buffer[AV_ERROR_MAX_STRING_SIZE] = {0};
-    av_err2str_cpp(errnum, buffer, AV_ERROR_MAX_STRING_SIZE);
+// static string getAvError(int errnum)
+// {
+//     char buffer[AV_ERROR_MAX_STRING_SIZE] = {0};
+//     av_err2str_cpp(errnum, buffer, AV_ERROR_MAX_STRING_SIZE);
 
-    return string(buffer);
+//     return string(buffer);
+// }
+
+static string ffmpeg_err(int errnum) {
+    char errbuf[AV_ERROR_MAX_STRING_SIZE];
+    av_strerror(errnum, errbuf, AV_ERROR_MAX_STRING_SIZE);
+    return errbuf;
 }
 
 TranscodeVideo::TranscodeVideo(const VideoEncodeOption& option, AVCodecID deVideoCodecId)
@@ -77,7 +83,7 @@ void TranscodeVideo::initEncode(AVCodecContext *dec_ctx)
     /* open it */
     int ret = avcodec_open2(_enCodecCtx, en_codec, NULL);
     if (ret < 0) {
-        logError << "Could not open codec: " << getAvError(ret);
+        logError << "Could not open codec: " << ffmpeg_err(ret);
         return ;
     }
 }
