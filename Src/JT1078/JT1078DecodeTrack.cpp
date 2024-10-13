@@ -149,8 +149,14 @@ void JT1078DecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
             auto aacTrack = dynamic_pointer_cast<AacTrack>(_trackInfo);
             aacTrack->setAacInfo(string(frame->data(), 7));
             _setAacCfg = true;
+            if (_onReady) {
+                _onReady();
+            }
         } else {
             _setAacCfg = true;
+            if (_onReady) {
+                _onReady();
+            }
         }
     }
 

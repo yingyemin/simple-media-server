@@ -134,6 +134,10 @@ private:
     bool _hasAudio = false;
     bool _hasVideo = false;
     bool _firstAac = true;
+    bool _hasReady = false;
+    bool _firstVps = true;
+    bool _firstSps = true;
+    bool _firstPps = true;
     uint8_t _waitPackets = 0;
     uint8_t _audio_es_type = 0;
     uint8_t _video_es_type = 0;

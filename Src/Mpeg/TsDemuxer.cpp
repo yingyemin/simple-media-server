@@ -1056,6 +1056,11 @@ void TsDemuxer::onDecode(const char* data, int len, int index, int pts, int dts)
                 _onReady();
             }
         }
+    } else if (!_audioCodec.empty() && index == AudioTrackType) {
+        if (!_hasReady) {
+            _hasReady = true;
+            _onReady();
+        }
     }
 
     FrameBuffer::Ptr frame;
@@ -1080,7 +1085,82 @@ void TsDemuxer::onDecode(const char* data, int len, int index, int pts, int dts)
         frame->_pts = pts / 90; // pts * 1000 / 90000,计算为毫秒
         frame->_dts = dts / 90;
         frame->_index = index;
+        frame->_trackType = index;
         frame->_codec = index == VideoTrackType ? _videoCodec : _audioCodec;
+
+        if (index == VideoTrackType) {
+            if (_videoCodec == "h265") {
+                auto h265frame = dynamic_pointer_cast<H265Frame>(frame);
+                h265frame->split([this, h265frame](const FrameBuffer::Ptr &subFrame){
+                    if (_firstVps || _firstSps || _firstPps) {
+                        auto h265Track = dynamic_pointer_cast<H265Track>(_mapTrackInfo[VideoTrackType]);
+                        auto nalType = subFrame->getNalType();
+                        switch (nalType)
+                        {
+                        case H265_VPS:
+                            h265Track->setVps(subFrame);
+                            _firstVps = false;
+                            break;
+                        case H265_SPS:
+                            h265Track->setSps(subFrame);
+                            _firstSps = false;
+                            break;
+                        case H265_PPS:
+                            h265Track->setPps(subFrame);
+                            _firstPps = false;
+                            break;
+                        default:
+                            break;
+                        }
+                    }else {
+                        logInfo << "gb28181 _onReady";
+                        if (!_hasReady && _onReady) {
+                            // if (!_firstAac) {
+                                _onReady();
+                            // }
+                            _hasReady = true;
+                        }
+                    }
+                    if (_onFrame) {
+                        _onFrame(subFrame);
+                    }
+                });
+            } else if (_videoCodec == "h264") {
+                auto h264frame = dynamic_pointer_cast<H264Frame>(frame);
+                h264frame->split([this, h264frame](const FrameBuffer::Ptr &subFrame){
+                    if (_firstSps || _firstPps) {
+                        auto h264Track = dynamic_pointer_cast<H264Track>(_mapTrackInfo[VideoTrackType]);
+                        auto nalType = subFrame->getNalType();
+                        logInfo << "get a h264 nal type: " << (int)nalType;
+                        switch (nalType)
+                        {
+                        case H264_SPS:
+                            h264Track->setSps(subFrame);
+                            _firstSps = false;
+                            break;
+                        case H264_PPS:
+                            h264Track->setPps(subFrame);
+                            _firstPps = false;
+                            break;
+                        default:
+                            break;
+                        }
+                    } else {
+                        // logInfo << "gb28181 _onReady";
+                        if (!_hasReady && _onReady) {
+                            // if (!_firstAac) {
+                                _onReady();
+                            // }
+                            _hasReady = true;
+                        }
+                    }
+                    if (_onFrame) {
+                        _onFrame(subFrame);
+                    }
+                });
+            }
+            return ;
+        }
 
         if (_onFrame) {
             _onFrame(frame);
@@ -1154,11 +1234,11 @@ void TsDemuxer::addTrackInfo(const shared_ptr<TrackInfo>& trackInfo)
             _onTrackInfo(trackInfo);
         }
 
-        if ((_hasVideo ? _videoCodec != "" : true) && 
-            (_hasAudio ? _audioCodec != "" : true) && 
-            _onReady && _audioCodec != "aac") {
-            _onReady();
-        }
+        // if ((_hasVideo ? _videoCodec != "" : true) && 
+        //     (_hasAudio ? _audioCodec != "" : true) && 
+        //     _onReady && _audioCodec != "aac") {
+        //     _onReady();
+        // }
     } else if (it->second->codec_ != trackInfo->codec_) {
         _mapTrackInfo[trackInfo->index_] = trackInfo;
         // _resetTrackInfo(trackInfo);

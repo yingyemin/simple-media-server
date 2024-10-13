@@ -671,16 +671,21 @@ FrameBuffer::Ptr PsDemuxer::createFrame(int index)
 
 void PsDemuxer::onDecode(const FrameBuffer::Ptr& frame, int index, int pts, int dts)
 {
-    if (_firstAac && _audioCodec == "aac")
+    if (_firstAac && _audioCodec == "aac" && frame->getTrackType() == AudioTrackType)
     {
         if (_mapTrackInfo.find(AudioTrackType) != _mapTrackInfo.end()) {
             auto aacTrack = dynamic_pointer_cast<AacTrack>(_mapTrackInfo[AudioTrackType]);
             aacTrack->setAacInfoByAdts(frame->data(), 7);
             _firstAac = false;
-            if (_hasVideoReady && _onReady) {
+            if (/*_hasVideoReady && */_onReady) {
                 _hasReady = true;
                 _onReady();
             }
+        }
+    } else if (!_audioCodec.empty() && frame->getTrackType() == AudioTrackType) {
+        if (!_hasReady) {
+            _hasReady = true;
+            _onReady();
         }
     }
 
