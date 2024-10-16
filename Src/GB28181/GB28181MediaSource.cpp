@@ -183,6 +183,7 @@ void GB28181MediaSource::addTrack(const shared_ptr<TrackInfo>& track)
     }
     if (!_gB28181EncodeTrack) {
         _gB28181EncodeTrack = make_shared<GB28181EncodeTrack>(0);
+        _gB28181EncodeTrack->setSsrc(_ssrc);
 
         // if (_muxer) {
         //     gbTrack->setOnRtpPacket([weakSelf](const RtpPacket::Ptr& rtp){

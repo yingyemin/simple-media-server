@@ -85,7 +85,7 @@ public:
     RtpPacket(const StreamBuffer::Ptr& buffer, int rtpOverTcpHeaderSize = 0);
     RtpPacket(const int length, int rtpOverTcpHeaderSize = 0);
 
-    static RtpPacket::Ptr create(const shared_ptr<TrackInfo>& trackInfo, int len, uint64_t pts, uint16_t seq, bool mark);
+    static RtpPacket::Ptr create(const shared_ptr<TrackInfo>& trackInfo, int len, uint64_t pts, uint32_t ssrc, uint16_t seq, bool mark);
 
     virtual void parse() {}
     virtual void setRtxFlag(bool flag) {}

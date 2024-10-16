@@ -45,7 +45,7 @@ void RtpEncodeAac::encode(const FrameBuffer::Ptr& frame)
 
 void RtpEncodeAac::makeRtp(const char *data, size_t len, size_t total_len, bool mark, uint64_t pts, bool start)
 {
-    RtpPacket::Ptr rtp = RtpPacket::create(_trackInfo, len + 4 + 12, pts, _lastSeq++, mark);
+    RtpPacket::Ptr rtp = RtpPacket::create(_trackInfo, len + 4 + 12, pts, _ssrc, _lastSeq++, mark);
     auto payload = rtp->getPayload();
     payload[0] = 0;
     payload[1] = 16;

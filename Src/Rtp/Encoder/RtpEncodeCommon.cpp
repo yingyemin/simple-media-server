@@ -35,7 +35,7 @@ void RtpEncodeCommon::encode(const FrameBuffer::Ptr& frame)
 
 void RtpEncodeCommon::makeRtp(const char *data, size_t len, bool mark, uint64_t pts)
 {
-    RtpPacket::Ptr rtp = RtpPacket::create(_trackInfo, len + 12, pts, _lastSeq++, mark);
+    RtpPacket::Ptr rtp = RtpPacket::create(_trackInfo, len + 12, pts, _ssrc, _lastSeq++, mark);
     auto payload = rtp->getPayload();
     memcpy(payload, data, len);
 

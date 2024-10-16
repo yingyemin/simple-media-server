@@ -119,7 +119,7 @@ RtpPacket::RtpPacket(const int length, int rtpOverTcpHeaderSize)
     _header = (RtpHeader *)(data() + _rtpOverTcpHeaderSize);
 }
 
-RtpPacket::Ptr RtpPacket::create(const shared_ptr<TrackInfo>& trackInfo, int len, uint64_t pts, uint16_t seq, bool mark)
+RtpPacket::Ptr RtpPacket::create(const shared_ptr<TrackInfo>& trackInfo, int len, uint64_t pts, uint32_t ssrc, uint16_t seq, bool mark)
 {
     // StreamBuffer::Ptr buffer = StreamBuffer::create();
     // buffer->setCapacity(len + 1);
@@ -144,7 +144,7 @@ RtpPacket::Ptr RtpPacket::create(const shared_ptr<TrackInfo>& trackInfo, int len
     uint64_t timeslace = trackInfo->samplerate_ / 1000.0;
     uint64_t stamp = uint64_t(pts) * (uint64_t)timeslace;
     header->stamp = htonl(stamp);
-    header->ssrc = htonl(trackInfo->ssrc_ + 1000);
+    header->ssrc = htonl(ssrc);
     rtp->ntpStamp_ = pts;
     rtp->samplerate_ = trackInfo->samplerate_ ? trackInfo->samplerate_ : 90000;
 

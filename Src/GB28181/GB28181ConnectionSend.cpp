@@ -61,7 +61,7 @@ void GB28181ConnectionSend::init()
     weak_ptr<GB28181ConnectionSend> wSelf = static_pointer_cast<GB28181ConnectionSend>(shared_from_this());
     // get source
     string uri = "/" + _app + "/" + _stream;
-    MediaSource::getOrCreateAsync(uri, DEFAULT_VHOST, PROTOCOL_GB28181, DEFAULT_TYPE, 
+    MediaSource::getOrCreateAsync(uri, DEFAULT_VHOST, PROTOCOL_GB28181, to_string(_ssrc), 
         [wSelf](const MediaSource::Ptr &src){
         auto self = wSelf.lock();
         if (!self) {
@@ -92,7 +92,10 @@ void GB28181ConnectionSend::init()
         self->_urlParser.vhost_ = DEFAULT_VHOST;
         self->_urlParser.protocol_ = PROTOCOL_GB28181;
         self->_urlParser.type_ = DEFAULT_TYPE;
-        return make_shared<GB28181MediaSource>(self->_urlParser, nullptr, true);
+        auto source = make_shared<GB28181MediaSource>(self->_urlParser, nullptr, true);
+        source->setSsrc(self->_ssrc);
+
+        return source;
     }, this);
 
     if (_transType != 1) {
@@ -177,7 +180,7 @@ void GB28181ConnectionSend::close()
 {
     logInfo << "GB28181ConnectionSend::close()";
     
-    if (_transType == 1) {
+    if (_transType == 1 || _transType == 3) {
         TcpConnection::close();
     } else {
         _socket->close();
@@ -213,7 +216,7 @@ void GB28181ConnectionSend::onError()
 ssize_t GB28181ConnectionSend::send(Buffer::Ptr pkt)
 {
     logInfo << "pkt size: " << pkt->size();
-    if (_transType == 1) {
+    if (_transType == 1 || _transType == 3) {
         return TcpConnection::send(pkt);
     } else {
         return _socket->send(pkt);
@@ -268,7 +271,7 @@ void GB28181ConnectionSend::sendRtpPacket(const GB28181MediaSource::RingDataType
                     // if (++i == len) {
                     //     _socket->send(packet->buffer(), 1);
                     // } else {
-                        _socket->send(packet->buffer(), 0);
+                        _socket->send(packet->buffer(), 2);
                     // }
                     // if (++i == len) {
                     //     break;
@@ -306,7 +309,7 @@ void GB28181ConnectionSend::sendRtpPacket(const GB28181MediaSource::RingDataType
                     // logInfo << "send rtp seq: " << packet->getSeq() << ", rtp size: " << packet->size() << ", rtp time: " << packet->getStamp();
                     // logInfo << "send rtp time: " << packet->getStamp() << ", mark:" << packet->getHeader()->mark;
                     
-                    _socket->send(packet->buffer(), 1, 2);
+                    _socket->send(packet->buffer(), 1, 4);
                     // if (++i == len) {
                     //     break;
                     // }

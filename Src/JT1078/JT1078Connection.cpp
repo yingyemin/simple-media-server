@@ -97,6 +97,15 @@ void JT1078Connection::onRtpPacket(const JT1078RtpPacket::Ptr& buffer)
             return ;
         }
         jtSrc->setOrigin();
+        jtSrc->setOriginSocket(_socket);
+        weak_ptr<JT1078Connection> wSelf = dynamic_pointer_cast<JT1078Connection>(shared_from_this());
+        jtSrc->addOnDetach(this, [wSelf](){
+            auto self = wSelf.lock();
+            if (!self) {
+                return ;
+            }
+            self->close();
+        });
         _source = jtSrc;
 
         PublishInfo info;
@@ -105,7 +114,7 @@ void JT1078Connection::onRtpPacket(const JT1078RtpPacket::Ptr& buffer)
         info.uri = parser.path_;
         info.vhost = parser.vhost_;
 
-        weak_ptr<JT1078Connection> wSelf = dynamic_pointer_cast<JT1078Connection>(shared_from_this());
+        // weak_ptr<JT1078Connection> wSelf = dynamic_pointer_cast<JT1078Connection>(shared_from_this());
         MediaHook::instance()->onPublish(info, [wSelf](const PublishResponse &rsp){
             auto self = wSelf.lock();
             if (!self) {

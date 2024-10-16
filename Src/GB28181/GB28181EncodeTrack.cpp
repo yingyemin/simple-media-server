@@ -29,6 +29,7 @@ void GB28181EncodeTrack::startEncode()
     weak_ptr<GB28181EncodeTrack> wSelf = dynamic_pointer_cast<GB28181EncodeTrack>(shared_from_this());
     if (!_encoder) {
         _encoder = RtpEncoder::create(_trackInfo);
+        _encoder->setSsrc(_ssrc);
         _encoder->setOnRtpPacket([wSelf](const RtpPacket::Ptr& rtp, bool start){
             auto self = wSelf.lock();
             if (self)

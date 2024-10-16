@@ -245,6 +245,7 @@ void RtspEncodeTrack::startEncode()
     weak_ptr<RtspEncodeTrack> wSelf = dynamic_pointer_cast<RtspEncodeTrack>(shared_from_this());
     if (!_encoder) {
         _encoder = RtpEncoder::create(_trackInfo);
+        _encoder->setSsrc(_ssrc);
         _encoder->setOnRtpPacket([wSelf](const RtpPacket::Ptr& rtp, bool start){
             auto self = wSelf.lock();
             self->onRtpPacket(rtp, start);

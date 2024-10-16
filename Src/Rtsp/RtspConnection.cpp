@@ -592,6 +592,11 @@ void RtspConnection::handleSetup()
         if (_isPublish) {
             _mapRtpTransport.emplace(interleavedRtp, rtpTrans);
             _mapRtcpTransport.emplace(interleavedRtcp, rtcpTrans);
+            if (vecTrans.find("ssrc") != vecTrans.end()) {
+                track->setSsrc(strtol(vecTrans["ssrc"].data(), 0, 16));
+            } else {
+                track->setSsrc(track->getTrackIndex() + 1000);
+            }
             // track->setInterleavedRtp(interleavedRtp);
         } else {
             interleavedRtp = index * 2;

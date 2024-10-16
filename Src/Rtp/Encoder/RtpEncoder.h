@@ -21,6 +21,10 @@ public:
 
     virtual void setOnRtpPacket(const function<void(const RtpPacket::Ptr& packet, bool start)>& cb) = 0;
     virtual void encode(const FrameBuffer::Ptr& frame) = 0;
+    virtual void setSsrc(uint32_t ssrc) {_ssrc = ssrc;}
+
+protected:
+    uint32_t _ssrc = 0;
 };
 
 

@@ -32,7 +32,7 @@ void GB28181ClientPush::doPush()
 {
     if (!_connection) {
         if (_sockType == SOCKET_UDP) {
-            _connection = make_shared<GB28181ConnectionSend>(getSocket()->getLoop(), getSocket(), 3);
+            _connection = make_shared<GB28181ConnectionSend>(getSocket()->getLoop(), getSocket(), 4);
         } else {
             _connection = make_shared<GB28181ConnectionSend>(getSocket()->getLoop(), getSocket(), 3);
         }

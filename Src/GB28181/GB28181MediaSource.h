@@ -45,12 +45,15 @@ public:
         return _gB28181EncodeTrack;
     }
 
+    void setSsrc(uint32_t ssrc) {_ssrc = ssrc;}
+
     RingType::Ptr getRing() {return _ring;}
 
 private:
     bool _muxer;
     bool _probeFinish = false;
     int _ringSize = 512;
+    uint32_t _ssrc = 0;
 
     mutex _mtxSdp;
     string _sdp;

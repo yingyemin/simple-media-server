@@ -64,7 +64,7 @@ void RtpEncodeH264::encodeFuA(const FrameBuffer::Ptr& frame) {
     frameData += 1;
 
     while (size + 2 > maxRtpSize) {
-        RtpPacket::Ptr rtp = RtpPacket::create(_trackInfo, maxRtpSize + 12, pts, _lastSeq++, false);
+        RtpPacket::Ptr rtp = RtpPacket::create(_trackInfo, maxRtpSize + 12, pts, _ssrc, _lastSeq++, false);
         if (first) { //start
             fu_flags->start_bit = 1;
             first = false;
@@ -87,7 +87,7 @@ void RtpEncodeH264::encodeFuA(const FrameBuffer::Ptr& frame) {
 		if (pts == _lastPts) {
 		    logError << "pts == _lastPts";
 		}
-        RtpPacket::Ptr rtp = RtpPacket::create(_trackInfo, size + 2 + 12, pts, _lastSeq++, true/*pts != _lastPts*/);
+        RtpPacket::Ptr rtp = RtpPacket::create(_trackInfo, size + 2 + 12, pts, _ssrc, _lastSeq++, true/*pts != _lastPts*/);
         fu_flags->end_bit = 1;
         fu_flags->start_bit = 0;
         auto payload = rtp->getPayload();
@@ -109,9 +109,9 @@ void RtpEncodeH264::encodeSingle(const FrameBuffer::Ptr& frame) {
     }
     RtpPacket::Ptr rtp;
     if (frame->getNalType() == 7 || frame->getNalType() == 8) {
-        rtp = RtpPacket::create(_trackInfo, size + 12, pts, _lastSeq++, false/*pts != _lastPts*/);
+        rtp = RtpPacket::create(_trackInfo, size + 12, pts, _ssrc, _lastSeq++, false/*pts != _lastPts*/);
     } else {
-        rtp = RtpPacket::create(_trackInfo, size + 12, pts, _lastSeq++, pts != _lastPts);
+        rtp = RtpPacket::create(_trackInfo, size + 12, pts, _ssrc, _lastSeq++, pts != _lastPts);
     }
     auto payload = rtp->getPayload();
     // logInfo << "payload size: " << rtp->getPayloadSize();

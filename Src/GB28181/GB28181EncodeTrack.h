@@ -30,12 +30,14 @@ public:
 
     int getTrackIndex()  {return _index;}
     int getTrackType() {return _type;}
+    void setSsrc(uint32_t ssrc) {_ssrc = ssrc;}
     shared_ptr<TrackInfo> getTrackInfo() { return _trackInfo;}
     void addTrackInfo(const shared_ptr<TrackInfo>& track) {_mapTrackInfo[track->index_] = track;}
 
 private:
     int _index;
     int _type;
+    uint32_t _ssrc = 0;
     RtpEncoder::Ptr _encoder;
     PsMuxer::Ptr _muxer;
     shared_ptr<TrackInfo> _trackInfo;

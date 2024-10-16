@@ -64,7 +64,9 @@ void RtspMediaSource::addTrack(const RtspTrack::Ptr& track)
             strongSelf->_start = start;
         }
         strongSelf->_ring->addBytes(rtp->size());
-        logInfo << "on rtp seq: " << rtp->getSeq() << ", size: " << rtp->size() << ", type: " << rtp->type_ << ", start: " << start;
+        logInfo << "on rtp seq: " << rtp->getSeq() << ", size: " << rtp->size() 
+                << ", type: " << rtp->type_ << ", start: " << start
+                << ", ssrc: " << rtp->getSSRC();
         if (rtp->getHeader()->mark || (!strongSelf->_hasVideo && strongSelf->_lastRtpStmp != rtp->getHeader()->stamp)) {
             strongSelf->_cache->emplace_back(std::move(rtp));
             logInfo << "write cache size: " << strongSelf->_cache->size();
@@ -157,6 +159,7 @@ void RtspMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
         logInfo << "add track, index: " << track->index_;
         _mapRtspTrack.emplace(track->index_, rtspTrack);
     }
+    rtspTrack->setSsrc(track->index_ + 1000);
     if (_muxer) {
         rtspTrack->setOnRtpPacket([weakSelf](const RtpPacket::Ptr& rtp, bool start){
             // logInfo << "mux a rtp packet";

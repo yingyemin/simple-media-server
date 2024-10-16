@@ -52,7 +52,7 @@ void RtpEncodeH265::encodeFuA(const FrameBuffer::Ptr& frame) {
     frameData += 2;
 
     while (size + 3 > maxRtpSize) {
-        RtpPacket::Ptr rtp = RtpPacket::create(_trackInfo, maxRtpSize + 12, pts, _lastSeq++, false);
+        RtpPacket::Ptr rtp = RtpPacket::create(_trackInfo, maxRtpSize + 12, pts, _ssrc, _lastSeq++, false);
         if (first) { //start
             fu_flags->start_bit = 1;
             first = false;
@@ -72,7 +72,7 @@ void RtpEncodeH265::encodeFuA(const FrameBuffer::Ptr& frame) {
     }
 
     if (size > 0) { //end
-        RtpPacket::Ptr rtp = RtpPacket::create(_trackInfo, size + 3 + 12, pts, _lastSeq++, pts != _lastPts);
+        RtpPacket::Ptr rtp = RtpPacket::create(_trackInfo, size + 3 + 12, pts, _ssrc, _lastSeq++, pts != _lastPts);
         fu_flags->end_bit = 1;
         fu_flags->start_bit = 0;
         auto payload = rtp->getPayload();
@@ -90,7 +90,7 @@ void RtpEncodeH265::encodeSingle(const FrameBuffer::Ptr& frame) {
     auto frameData = frame->data() + frame->startSize();
     auto pts = frame->pts();
 
-    RtpPacket::Ptr rtp = RtpPacket::create(_trackInfo, size + 12, pts, _lastSeq++, pts != _lastPts);
+    RtpPacket::Ptr rtp = RtpPacket::create(_trackInfo, size + 12, pts, _ssrc, _lastSeq++, pts != _lastPts);
     auto payload = rtp->getPayload();
     memcpy(payload, (uint8_t *) frameData, size);
 

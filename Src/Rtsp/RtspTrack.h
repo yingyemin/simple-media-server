@@ -41,8 +41,9 @@ public:
     virtual int getTrackIndex() {return -1;}
 
     virtual uint16_t getSeq() {return _seq;}
-    virtual uint16_t getSsrc() {return _ssrc;}
+    virtual uint32_t getSsrc() {return _ssrc;}
     virtual uint32_t getTimestamp() {return _timestap;}
+    virtual void setSsrc(uint16_t ssrc) {_ssrc = ssrc;}
 
 protected:
     uint16_t _seq = 0;
