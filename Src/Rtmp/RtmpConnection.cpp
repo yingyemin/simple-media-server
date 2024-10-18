@@ -29,10 +29,10 @@ RtmpConnection::~RtmpConnection()
     if (_isPublish && rtmpSrc) {
         rtmpSrc->delConnection(this);
         rtmpSrc->release();
-        // rtmpSrc->delOnDetach(this);
+        rtmpSrc->delOnDetach(this);
     } else if (rtmpSrc) {
         rtmpSrc->delConnection(this);
-        // rtmpSrc->delOnDetach(this);
+        rtmpSrc->delOnDetach(this);
     }
 
     if (_playReader) {
@@ -534,7 +534,7 @@ bool RtmpConnection::handleConnect()
     }
 
     AmfObject amfObj = _amfDecoder.getObject("app");
-    _app = amfObj.amfString;
+    _app = amfObj.amfString_;
     if(_app == "") {
         return false;
     }
@@ -544,7 +544,7 @@ bool RtmpConnection::handleConnect()
     }
 
     amfObj = _amfDecoder.getObject("tcUrl");
-    _tcUrl = amfObj.amfString;
+    _tcUrl = amfObj.amfString_;
     if(_tcUrl == "") {
         _tcUrl = string(PROTOCOL_RTMP) + "://" + DEFAULT_VHOST + "/" + _app;
     }

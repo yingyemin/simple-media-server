@@ -22,6 +22,7 @@ public:
     void onHttpRequest() override;
     void onRecvContent(const char *data, uint64_t len) override;
     void onConnect() override;
+    void onError(const string& err) override;
 
     void onHttpResponce();
     void setOnHttpResponce(const function<void(const HttpParser& parser)>& cb);

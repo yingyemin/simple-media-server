@@ -7,12 +7,14 @@
 using namespace std;
 
 
-class SrtpSession {
-  public:
-	SrtpSession();
-	~SrtpSession();
+class SrtpSession 
+{
+public:
+    SrtpSession();
+    ~SrtpSession();
 
-	bool init(const std::string recvKey, const std::string sendKey);
+public:
+    bool init(const std::string recvKey, const std::string sendKey);
 
     // Encrypt the input plaintext to output cipher with nb_cipher bytes.
     // @remark Note that the nb_cipher is the size of input plaintext, and 
@@ -25,10 +27,10 @@ class SrtpSession {
     // it also is the length of output plaintext when return.
     int unprotectRtp(const char* cipher, char* plaintext, int& nb_plaintext);
     int unprotectRtcp(const char* cipher, char* plaintext, int& nb_plaintext);
-	
-  private:
-    srtp_t recvCtx_;
-    srtp_t sendCtx_;  	
+
+private:
+    srtp_t _recvCtx;
+    srtp_t _sendCtx;  	
 };
 
 

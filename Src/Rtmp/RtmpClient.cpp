@@ -153,12 +153,14 @@ void RtmpClient::onConnect()
 {
     _socket = TcpClient::getSocket();
     _loop = _socket->getLoop();
+    _chunk.setSocket(_socket);
     sendC0C1();
     _state = RTMP_SEND_C2;
 }
 
 void RtmpClient::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)
 {
+    logInfo << "get buffer size: " << buffer->size();
     if (_handshake->isCompleted()) {
         // logInfo << "parser chunk";
         _chunk.parse(buffer);
@@ -343,7 +345,7 @@ bool RtmpClient::handleResponse(RtmpMessage& rtmp_msg)
     bool ret  = true;
     _amfDecoder.reset();
   
-	int bytes_used = _amfDecoder.decode((const char *)rtmp_msg.payload.get(), rtmp_msg.length, 1);
+	int bytes_used = _amfDecoder.decode((const char *)rtmp_msg.payload->data(), rtmp_msg.length, 1);
 	if (bytes_used < 0) {
 		return false;
 	}
@@ -380,8 +382,8 @@ void RtmpClient::handleCmdResult(int bytes_used, RtmpMessage& rtmp_msg)
             }
             bytes_used += _amfDecoder.decode(rtmp_msg.payload->data()+bytes_used, rtmp_msg.length-bytes_used, 1);
         }
-        auto code = _amfDecoder.getObject("code").amfString;
-        auto level = _amfDecoder.getObject("level").amfString;
+        auto code = _amfDecoder.getObject("code").amfString_;
+        auto level = _amfDecoder.getObject("level").amfString_;
         if (code != "NetConnection.Connect.Success" || level != "status") {
             logWarn << "result error, code: " << code << ", level: " << level;
             onError("connect failed");
@@ -412,8 +414,8 @@ void RtmpClient::handleCmdOnStatus(int bytes_used, RtmpMessage& rtmp_msg)
                 }
             }
 
-            auto code = _amfDecoder.getObject("code").amfString;
-            auto level = _amfDecoder.getObject("level").amfString;
+            auto code = _amfDecoder.getObject("code").amfString_;
+            auto level = _amfDecoder.getObject("level").amfString_;
             if (/*code != "NetStream.Play.Start" || */level != "status") {
                 logWarn << "result error, code: " << code << ", level: " << level;
                 onError("play failed");
@@ -437,8 +439,8 @@ void RtmpClient::handleCmdOnStatus(int bytes_used, RtmpMessage& rtmp_msg)
                 }
             }
 
-            auto code = _amfDecoder.getObject("code").amfString;
-            auto level = _amfDecoder.getObject("level").amfString;
+            auto code = _amfDecoder.getObject("code").amfString_;
+            auto level = _amfDecoder.getObject("level").amfString_;
             if (/*code != "NetStream.Publish.Start" || */level != "status") {
                 logWarn << "result error, code: " << code << ", level: " << level;
                 onError("publish failed");
@@ -499,7 +501,7 @@ bool RtmpClient::handleVideo(RtmpMessage& rtmp_msg)
         return false;
     }
 	uint8_t type = RTMP_VIDEO;
-	uint8_t *payload = (uint8_t *)rtmp_msg.payload.get();
+	uint8_t *payload = (uint8_t *)rtmp_msg.payload->data();
 	uint32_t length = rtmp_msg.length;
 	uint8_t frame_type = (payload[0] >> 4) & 0x0f;
 	uint8_t codec_id = payload[0] & 0x0f;
@@ -722,7 +724,7 @@ bool RtmpClient::handleAudio(RtmpMessage& rtmp_msg)
         return false;
     }
 	uint8_t type = RTMP_AUDIO;
-	uint8_t *payload = (uint8_t *)rtmp_msg.payload.get();
+	uint8_t *payload = (uint8_t *)rtmp_msg.payload->data();
 	uint32_t length = rtmp_msg.length;
 	uint8_t sound_format = (payload[0] >> 4) & 0x0f;
 	//uint8_t sound_size = (payload[0] >> 1) & 0x01;

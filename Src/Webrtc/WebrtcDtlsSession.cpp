@@ -143,14 +143,14 @@ SSL_CTX* buildDtlsCtx(const bool ecdsa, const EC_KEY* eckey, X509* cert,  EVP_PK
 
 
 DtlsCertificate::~DtlsCertificate() {
-    if (eckey_) 
-        EC_KEY_free(eckey_);
+    if (_eckey) 
+        EC_KEY_free(_eckey);
 
-    if (dtlsPkey_)
-        EVP_PKEY_free(dtlsPkey_);
+    if (_dtlsPkey)
+        EVP_PKEY_free(_dtlsPkey);
 
-    if (dtlsCert_) 
-        X509_free(dtlsCert_);
+    if (_dtlsCert) 
+        X509_free(_dtlsCert);
 }
 
 bool DtlsCertificate::init() {
@@ -174,13 +174,13 @@ bool DtlsCertificate::init() {
 	}
 
     // Create keys by RSA or ECDSA.
-    dtlsPkey_ = EVP_PKEY_new();
-    if (!dtlsPkey_) {
+    _dtlsPkey = EVP_PKEY_new();
+    if (!_dtlsPkey) {
 		logError << "EVP_PKEY_new failed";
 		return false;
 	}
 	
-    if (!ecdsaMode_) { // By RSA
+    if (!_ecdsaMode) { // By RSA
         RSA* rsa = RSA_new();
         if (!rsa) {
 			logError << "RSA_new failed";
@@ -202,7 +202,7 @@ bool DtlsCertificate::init() {
         RSA_generate_key_ex(rsa, key_bits, exponent, NULL);
 
         // @see https://www.openssl.org/docs/man1.1.0/man3/EVP_PKEY_type.html
-        if (EVP_PKEY_set1_RSA(dtlsPkey_, rsa) != 1) {
+        if (EVP_PKEY_set1_RSA(_dtlsPkey, rsa) != 1) {
 			logError << "EVP_PKEY_set1_RSA failed";
 			return false;
 		}
@@ -211,9 +211,9 @@ bool DtlsCertificate::init() {
         BN_free(exponent);
     }
 
-	if (ecdsaMode_) { // By ECDSA, https://stackoverflow.com/a/6006898
-        eckey_ = EC_KEY_new();
-        if (!eckey_) {
+	if (_ecdsaMode) { // By ECDSA, https://stackoverflow.com/a/6006898
+        _eckey = EC_KEY_new();
+        if (!_eckey) {
 			logError << "EC_KEY_new failed";
 			return false;
 		}
@@ -239,18 +239,18 @@ bool DtlsCertificate::init() {
         EC_GROUP_set_asn1_flag(ecgroup, OPENSSL_EC_NAMED_CURVE);
 #endif
 
-        if (EC_KEY_set_group(eckey_, ecgroup) != 1) {
+        if (EC_KEY_set_group(_eckey, ecgroup) != 1) {
 			logError << "EC_KEY_set_group failed";
 			return false;
 		}
 		
-        if (EC_KEY_generate_key(eckey_) != 1) {
+        if (EC_KEY_generate_key(_eckey) != 1) {
 			logError << "EC_KEY_generate_key failed";
 			return false;
 		}
 
         // @see https://www.openssl.org/docs/man1.1.0/man3/EVP_PKEY_type.html
-        if (EVP_PKEY_set1_EC_KEY(dtlsPkey_, eckey_) != 1) {
+        if (EVP_PKEY_set1_EC_KEY(_dtlsPkey, _eckey) != 1) {
 			logError << "EVP_PKEY_set1_EC_KEY failed";
 			return false;
 		}
@@ -260,8 +260,8 @@ bool DtlsCertificate::init() {
 
     // Create certificate, from previous generated pkey.
     // TODO: Support ECDSA certificate.
-    dtlsCert_ = X509_new();
-    if (!dtlsCert_) {
+    _dtlsCert = X509_new();
+    if (!_dtlsCert) {
 		logError << "X509_new failed";
 		return false;
 	}
@@ -274,27 +274,27 @@ bool DtlsCertificate::init() {
 		}
 
         int serial = rand();
-        ASN1_INTEGER_set(X509_get_serialNumber(dtlsCert_), serial);
+        ASN1_INTEGER_set(X509_get_serialNumber(_dtlsCert), serial);
 
         const std::string& aor = "ossrs.net";
         X509_NAME_add_entry_by_txt(subject, "CN", MBSTRING_ASC, (unsigned char *) aor.data(), aor.size(), -1, 0);
 
-        X509_set_issuer_name(dtlsCert_, subject);
-        X509_set_subject_name(dtlsCert_, subject);
+        X509_set_issuer_name(_dtlsCert, subject);
+        X509_set_subject_name(_dtlsCert, subject);
 
         int expire_day = 365;
         const long cert_duration = 60*60*24*expire_day;
 
-        X509_gmtime_adj(X509_get_notBefore(dtlsCert_), 0);
-        X509_gmtime_adj(X509_get_notAfter(dtlsCert_), cert_duration);
+        X509_gmtime_adj(X509_get_notBefore(_dtlsCert), 0);
+        X509_gmtime_adj(X509_get_notAfter(_dtlsCert), cert_duration);
 
-        X509_set_version(dtlsCert_, 2);
-        if (X509_set_pubkey(dtlsCert_, dtlsPkey_) != 1) {
+        X509_set_version(_dtlsCert, 2);
+        if (X509_set_pubkey(_dtlsCert, _dtlsPkey) != 1) {
 			logError << "X509_set_pubkey failed";
 			return false;
 		}
 		
-        if (X509_sign(dtlsCert_, dtlsPkey_, EVP_sha1()) == 0) {
+        if (X509_sign(_dtlsCert, _dtlsPkey, EVP_sha1()) == 0) {
 			logError << "X509_sign failed";
 			return false;
 		}
@@ -309,9 +309,9 @@ bool DtlsCertificate::init() {
         unsigned char md[EVP_MAX_MD_SIZE];
         unsigned int n = 0;
 
-        X509_digest(dtlsCert_, EVP_sha256(), md, &n);
-        fingerprint_.resize(3*n - 1);
-        char* p = (char*)fingerprint_.data();
+        X509_digest(_dtlsCert, EVP_sha256(), md, &n);
+        _fingerprint.resize(3*n - 1);
+        char* p = (char*)_fingerprint.data();
 
         for (unsigned int i = 0; i < n; i++, ++p) {
             sprintf(p, "%02X", md[i]);
@@ -322,8 +322,8 @@ bool DtlsCertificate::init() {
 			// *p = (i < (n-1)) ? ':' : '\0';
         }
 
-        // fingerprint_.assign(fp, strlen(fp));
-		logInfo << "fingerprint: [" << fingerprint_ << "]";
+        // _fingerprint.assign(fp, strlen(fp));
+		logInfo << "fingerprint: [" << _fingerprint << "]";
     }
 
     return true;	
@@ -335,46 +335,46 @@ DtlsSession::DtlsSession(const string& role)
 
 DtlsSession::~DtlsSession()
 {
-    if (dtlsCtx_) {
-        SSL_CTX_free(dtlsCtx_);
-        dtlsCtx_ = NULL;
+    if (_dtlsCtx) {
+        SSL_CTX_free(_dtlsCtx);
+        _dtlsCtx = NULL;
     }
 
-    if (dtls_) {
-        SSL_free(dtls_);
-        dtls_ = NULL;
+    if (_dtls) {
+        SSL_free(_dtls);
+        _dtls = NULL;
     }
 }
 
 
 bool DtlsSession::init(const shared_ptr<DtlsCertificate>& dtlsCert)
 {
-	dtlsCtx_ = buildDtlsCtx(true, dtlsCert->getEcdsaKey(), 
+	_dtlsCtx = buildDtlsCtx(true, dtlsCert->getEcdsaKey(), 
 			dtlsCert->getCert(), dtlsCert->getPublicKey());
-	if (!dtlsCtx_)
+	if (!_dtlsCtx)
 		return false;
 	
 	// TODO: FIXME: Support config by vhost to use RSA or ECDSA certificate.
-    if (nullptr == (dtls_ = SSL_new(dtlsCtx_))) {
+    if (nullptr == (_dtls = SSL_new(_dtlsCtx))) {
 		logError << "ssl_new dtls failed";
 		return false;
     }
 
-    SSL_set_info_callback(dtls_, sslOnInfo);
+    SSL_set_info_callback(_dtls, sslOnInfo);
 	
-	if (nullptr == (bioIn_ = BIO_new(BIO_s_mem()))) {
+	if (nullptr == (_bioIn = BIO_new(BIO_s_mem()))) {
 		logError << "BIO_in new failed";
 		return false;
     }
 
-	if (nullptr ==(bioOut_ = BIO_new(BIO_s_mem()))) {
+	if (nullptr ==(_bioOut = BIO_new(BIO_s_mem()))) {
 		logError << "BIO_out new failed";
-		BIO_free(bioIn_);
+		BIO_free(_bioIn);
 		return false;
 	}
-	SSL_set_bio(dtls_, bioIn_, bioOut_);
+	SSL_set_bio(_dtls, _bioIn, _bioOut);
 /*
-	STACK_OF(SSL_CIPHER) *srvr = SSL_get_ciphers(dtls_);
+	STACK_OF(SSL_CIPHER) *srvr = SSL_get_ciphers(_dtls);
     for (int i = 0; i < sk_SSL_CIPHER_num(srvr); ++i) {
     	const SSL_CIPHER *c = sk_SSL_CIPHER_value(srvr, i);
     	logInfo << "id [" << c->id << "] name " << c->name;
@@ -382,28 +382,28 @@ bool DtlsSession::init(const shared_ptr<DtlsCertificate>& dtlsCert)
 */
 	// Dtls setup passive, as server role.
     if (_role == "server") {
-        SSL_set_accept_state(dtls_);	
+        SSL_set_accept_state(_dtls);	
     } else {
-        SSL_set_connect_state(dtls_);
+        SSL_set_connect_state(_dtls);
     }
 	return true;
 }
 
 int DtlsSession::onDtls(Socket::Ptr sock, const Buffer::Ptr& buf, struct sockaddr* addr, int addr_len) {
-    if (BIO_reset(bioIn_) != 1 || BIO_reset(bioOut_) != 1) {
+    if (BIO_reset(_bioIn) != 1 || BIO_reset(_bioOut) != 1) {
 		logError << "BIO_reset failed";
 		return -1;
 	}
 
-    if (BIO_write(bioIn_, buf->data(), buf->size()) <= 0) {
+    if (BIO_write(_bioIn, buf->data(), buf->size()) <= 0) {
         // TODO: 0 or -1 maybe block, use BIO_should_retry to check.
         logError << "BIO_write failed";
         return -1;
     }
 
-	if (handshakeFinish_) {
+	if (_handshakeFinish) {
 		// TODO: support sctp
-        int read = SSL_read(dtls_, static_cast<void*>(_sslReadBuffer), 2000);
+        int read = SSL_read(_dtls, static_cast<void*>(_sslReadBuffer), 2000);
         if (read > 0) {
             if (_onRecvApplicationData) {
                 _onRecvApplicationData((char*)_sslReadBuffer, read);
@@ -413,9 +413,9 @@ int DtlsSession::onDtls(Socket::Ptr sock, const Buffer::Ptr& buf, struct sockadd
 	}
 
 	// Do handshake and get the result.
-    int hsRes = SSL_do_handshake(dtls_);
+    int hsRes = SSL_do_handshake(_dtls);
     uint8_t* outBioData = nullptr;
-    int outBioLen = BIO_get_mem_data(bioOut_, &outBioData);
+    int outBioLen = BIO_get_mem_data(_bioOut, &outBioData);
 	if (outBioLen) {
         if (sock->getSocketType() == SOCKET_TCP) {
             uint8_t payload_ptr[2];
@@ -427,7 +427,7 @@ int DtlsSession::onDtls(Socket::Ptr sock, const Buffer::Ptr& buf, struct sockadd
 		sock->send((char*)outBioData, outBioLen, true, addr, addr_len);
     }
     
-    int hsErr = SSL_get_error(dtls_, hsRes);
+    int hsErr = SSL_get_error(_dtls, hsRes);
     // Fatal SSL error, for example, no available suite when peer is DTLS 1.0 while we are DTLS 1.2.
     if (hsRes < 0 && (hsErr != SSL_ERROR_NONE && hsErr != SSL_ERROR_WANT_READ && hsErr != SSL_ERROR_WANT_WRITE)) {
 		ERR_load_ERR_strings();
@@ -441,7 +441,7 @@ int DtlsSession::onDtls(Socket::Ptr sock, const Buffer::Ptr& buf, struct sockadd
 	
 	if (SSL_ERROR_NONE == hsErr /* && SSL_is_init_finished(dtls) == 1*/) {
 		logInfo << "dtls handshake finish";
-		handshakeFinish_ = true;
+		_handshakeFinish = true;
 		if (_onHandshakeDone) {
 			_onHandshakeDone();
 		}
@@ -454,18 +454,18 @@ int32_t DtlsSession::decodeHandshake(Socket::Ptr sock, char *data, int32_t nb_da
 
 	int32_t r0 = 0;
 
-	if ((r0 = BIO_reset(bioIn_)) != 1) {
+	if ((r0 = BIO_reset(_bioIn)) != 1) {
 		logError << "ERROR_OpenSslBIOReset, BIO_in reset r0=" << r0;
 		return 1;
 	}
-	if ((r0 = BIO_reset(bioOut_)) != 1) {
+	if ((r0 = BIO_reset(_bioOut)) != 1) {
 		logError << "ERROR_OpenSslBIOReset, BIO_out reset r0=" << r0;
 		return 1;
 	}
 
 	// Trace the detail of DTLS packet.
 
-	if ((r0 = BIO_write(bioIn_, data, nb_data)) <= 0) {
+	if ((r0 = BIO_write(_bioIn, data, nb_data)) <= 0) {
 
 		logInfo << "ERROR_OpenSslBIOWrite, BIO_write r0=" << r0;
 		return 1;
@@ -476,10 +476,10 @@ int32_t DtlsSession::decodeHandshake(Socket::Ptr sock, char *data, int32_t nb_da
 		return 1;
 	}
 
-	for (int32_t i = 0; i < 1024 && BIO_ctrl_pending(bioIn_) > 0; i++) {
+	for (int32_t i = 0; i < 1024 && BIO_ctrl_pending(_bioIn) > 0; i++) {
 		char buf[8092];
-		int32_t r0 = SSL_read(dtls_, buf, sizeof(buf));
-		int32_t r1 = SSL_get_error(dtls_, r0);
+		int32_t r0 = SSL_read(_dtls, buf, sizeof(buf));
+		int32_t r1 = SSL_get_error(_dtls, r0);
 		   if (r0 <= 0) {
 
 			if (r1 != SSL_ERROR_WANT_READ && r1 != SSL_ERROR_WANT_WRITE) {
@@ -487,7 +487,7 @@ int32_t DtlsSession::decodeHandshake(Socket::Ptr sock, char *data, int32_t nb_da
 			}
 
 			uint8_t *data = NULL;
-			int32_t size = BIO_get_mem_data(bioOut_, (char** )&data);
+			int32_t size = BIO_get_mem_data(_bioOut, (char** )&data);
 			if(size>0 && sock) {
                 if (sock->getSocketType() == SOCKET_TCP) {
                     uint8_t payload_ptr[2];
@@ -518,8 +518,8 @@ int DtlsSession::startActiveHandshake(Socket::Ptr sock)
     // although the DTLS server may receive the ClientHello immediately after sending out the ICE
     // response, this shouldn't be an issue as the handshake function is called before any DTLS
     // packets are received.
-    int r0 = SSL_do_handshake(dtls_);
-    int r1 = SSL_get_error(dtls_, r0); ERR_clear_error();
+    int r0 = SSL_do_handshake(_dtls);
+    int r1 = SSL_get_error(_dtls, r0); ERR_clear_error();
     // Fatal SSL error, for example, no available suite when peer is DTLS 1.0 while we are DTLS 1.2.
     if (r0 < 0 && (r1 != SSL_ERROR_NONE && r1 != SSL_ERROR_WANT_READ && r1 != SSL_ERROR_WANT_WRITE)) {
         logError << "handshake failed: r0=" << r0 << ", r1=" << r1;
@@ -533,7 +533,7 @@ int DtlsSession::startActiveHandshake(Socket::Ptr sock)
     }
 
     uint8_t *data = NULL;
-	int32_t size = BIO_get_mem_data(bioOut_, (char** )&data);
+	int32_t size = BIO_get_mem_data(_bioOut, (char** )&data);
 
 	// filter_data(data, size);
 
@@ -559,7 +559,7 @@ int DtlsSession::checkTimeout(Socket::Ptr sock)
 {
     int32_t r0 = 0; 
     timeval to = {0};
-    if ((r0 = DTLSv1_get_timeout(dtls_, &to)) == 0) {
+    if ((r0 = DTLSv1_get_timeout(_dtls, &to)) == 0) {
         // No timeout, for example?, wait for a default 50ms.
         return 50;
     }
@@ -574,15 +574,15 @@ int DtlsSession::checkTimeout(Socket::Ptr sock)
         return timeout / 1000;
     }
 
-    r0 = BIO_reset(bioOut_); 
-    int32_t r1 = SSL_get_error(dtls_, r0);
+    r0 = BIO_reset(_bioOut); 
+    int32_t r1 = SSL_get_error(_dtls, r0);
     if (r0 != 1) {
         logError << "OpenSslBIORese BIO_reset r0=" << r0 << ", r1=" << r1;
         return 0;
     }
 
-    r0 = DTLSv1_handle_timeout(dtls_); 
-    r1 = SSL_get_error(dtls_, r0);
+    r0 = DTLSv1_handle_timeout(_dtls); 
+    r1 = SSL_get_error(_dtls, r0);
     if (r0 == 0) {
         return 50; // No timeout had expired.
     }
@@ -594,7 +594,7 @@ int DtlsSession::checkTimeout(Socket::Ptr sock)
 
 
     uint8_t* data = NULL;
-    int32_t size = BIO_get_mem_data(bioOut_, (char**)&data);
+    int32_t size = BIO_get_mem_data(_bioOut, (char**)&data);
         // arq_count++;
     if (sock && size > 0) {
         if (sock->getSocketType() == SOCKET_TCP) {
@@ -612,26 +612,26 @@ int DtlsSession::checkTimeout(Socket::Ptr sock)
 
 void DtlsSession::sendApplicationData(Socket::Ptr socket, const char* data, int len)
 {
-    if (!handshakeFinish_) {
+    if (!_handshakeFinish) {
         return ;
     }
 
-    (void)BIO_reset(bioOut_);
+    (void)BIO_reset(_bioOut);
 
     int written;
-    written = SSL_write(dtls_, static_cast<const void*>(data), static_cast<int>(len));
+    written = SSL_write(_dtls, static_cast<const void*>(data), static_cast<int>(len));
     if (written != static_cast<int>(len))
     {
         logError << "OpenSSL SSL_write() wrote less (" << written << "bytes) than given data (" << len << " bytes)";
     }
 
-    if (BIO_eof(this->bioOut_))
+    if (BIO_eof(this->_bioOut))
         return;
 
     int64_t read;
     char* dataOut{ nullptr };
 
-    read = BIO_get_mem_data(bioOut_, &dataOut); // NOLINT
+    read = BIO_get_mem_data(_bioOut, &dataOut); // NOLINT
 
     if (read <= 0)
         return;
@@ -649,7 +649,7 @@ int DtlsSession::getSrtpKey(std::string& recvKey, std::string& sendKey)
 {	
     unsigned char material[SRTP_MASTER_KEY_LEN * 2] = {0};  // client(SRTP_MASTER_KEY_KEY_LEN + SRTP_MASTER_KEY_SALT_LEN) + server
     static const string dtls_srtp_lable = "EXTRACTOR-dtls_srtp";
-    if (!SSL_export_keying_material(dtls_, material, sizeof(material), dtls_srtp_lable.c_str(), dtls_srtp_lable.size(), nullptr, 0, 0)) {
+    if (!SSL_export_keying_material(_dtls, material, sizeof(material), dtls_srtp_lable.c_str(), dtls_srtp_lable.size(), nullptr, 0, 0)) {
 		cerr << "SSL export key failed. result [" << ERR_get_error() << "]";
 		return -1;
     }

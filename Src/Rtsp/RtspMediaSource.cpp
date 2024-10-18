@@ -64,12 +64,12 @@ void RtspMediaSource::addTrack(const RtspTrack::Ptr& track)
             strongSelf->_start = start;
         }
         strongSelf->_ring->addBytes(rtp->size());
-        logInfo << "on rtp seq: " << rtp->getSeq() << ", size: " << rtp->size() 
-                << ", type: " << rtp->type_ << ", start: " << start
-                << ", ssrc: " << rtp->getSSRC();
+        // logInfo << "on rtp seq: " << rtp->getSeq() << ", size: " << rtp->size() 
+        //         << ", type: " << rtp->type_ << ", start: " << start
+        //         << ", ssrc: " << rtp->getSSRC();
         if (rtp->getHeader()->mark || (!strongSelf->_hasVideo && strongSelf->_lastRtpStmp != rtp->getHeader()->stamp)) {
             strongSelf->_cache->emplace_back(std::move(rtp));
-            logInfo << "write cache size: " << strongSelf->_cache->size();
+            // logInfo << "write cache size: " << strongSelf->_cache->size();
             strongSelf->_ring->write(strongSelf->_cache, strongSelf->_start);
             strongSelf->_cache = std::make_shared<deque<RtpPacket::Ptr>>();
             strongSelf->_start = false;

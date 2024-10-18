@@ -11,11 +11,11 @@ SrtpSession::SrtpSession() {
 }
 
 SrtpSession::~SrtpSession() {
-    if (recvCtx_)  
-        srtp_dealloc(recvCtx_);
+    if (_recvCtx)  
+        srtp_dealloc(_recvCtx);
 	
-    if (sendCtx_) 
-        srtp_dealloc(sendCtx_);
+    if (_sendCtx) 
+        srtp_dealloc(_sendCtx);
 }
 
 bool SrtpSession::init(const std::string recvKey, const std::string sendKey) {
@@ -43,7 +43,7 @@ bool SrtpSession::init(const std::string recvKey, const std::string sendKey) {
     policy.key = rkey.get();
 
     srtp_err_status_t res = srtp_err_status_ok;
-    if ((res = srtp_create(&recvCtx_, &policy)) != srtp_err_status_ok) {
+    if ((res = srtp_create(&_recvCtx, &policy)) != srtp_err_status_ok) {
 		logError << "srtp create failed, result [" << res << "]";
 		return false;
     }
@@ -53,62 +53,62 @@ bool SrtpSession::init(const std::string recvKey, const std::string sendKey) {
     memcpy(skey.get(), sendKey.data(), sendKey.size());
     policy.key = skey.get();
 
-    if ((res = srtp_create(&sendCtx_, &policy)) != srtp_err_status_ok)  
+    if ((res = srtp_create(&_sendCtx, &policy)) != srtp_err_status_ok)  
 		logError << "srtp create failed, result [" << res << "]";		
 	
     return res == srtp_err_status_ok;
 }
 
 int SrtpSession::protectRtp(void* rtp, int* len) {	
-    if (!sendCtx_) {
+    if (!_sendCtx) {
 		logError << "srtp session have not init";
 		return -1;
     }
 
     srtp_err_status_t res = srtp_err_status_ok;
-    if ((res = srtp_protect(sendCtx_, rtp, len)) != srtp_err_status_ok) 
+    if ((res = srtp_protect(_sendCtx, rtp, len)) != srtp_err_status_ok) 
 		logError << "protect rtp failed, result [" << res << "]";
 
     return res == srtp_err_status_ok ? 0 : -1;
 }
 
 int SrtpSession::protectRtcp(const char* src, char* dst, int& dstLen) {
-    if (!sendCtx_) {
+    if (!_sendCtx) {
 		logError << "srtp session have not init";
 		return -1;
     }
 
     memcpy(dst, src, dstLen);
     srtp_err_status_t res = srtp_err_status_ok;
-    if ((res = srtp_protect_rtcp(sendCtx_, dst, &dstLen)) != srtp_err_status_ok)
+    if ((res = srtp_protect_rtcp(_sendCtx, dst, &dstLen)) != srtp_err_status_ok)
 		logError << "protect rtcp failed, result [" << res << "]";
 
     return res == srtp_err_status_ok ? 0 : -1;
 }
 
 int SrtpSession::unprotectRtp(const char* src, char* dst, int& dstLen) {
-    if (!recvCtx_) {
+    if (!_recvCtx) {
 		logError << "srtp session have not init";
 		return -1;
     }
 
     memcpy(dst, src, dstLen);
     srtp_err_status_t res = srtp_err_status_ok;
-    if ((res = srtp_unprotect(recvCtx_, dst, &dstLen)) != srtp_err_status_ok) 
+    if ((res = srtp_unprotect(_recvCtx, dst, &dstLen)) != srtp_err_status_ok) 
 		logError << "unprotect rtp failed, result [" << res << "]";
 
     return res == srtp_err_status_ok ? 0 : -1;
 }
 
 int SrtpSession::unprotectRtcp(const char* src, char* dst, int& dstLen) {
-    if (!recvCtx_) {
+    if (!_recvCtx) {
 		logError << "srtp session have not init";
 		return -1;
     }
 
     memcpy(dst, src, dstLen);
     srtp_err_status_t res = srtp_err_status_ok;
-    if ((res = srtp_unprotect_rtcp(recvCtx_, dst, &dstLen)) != srtp_err_status_ok) 
+    if ((res = srtp_unprotect_rtcp(_recvCtx, dst, &dstLen)) != srtp_err_status_ok) 
 		logError << "unprotect rtcp failed, result [" << res << "]";
 
     return res == srtp_err_status_ok ? 0 : -1;	

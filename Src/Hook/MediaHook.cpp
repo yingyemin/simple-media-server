@@ -114,6 +114,7 @@ void MediaHook::onPublish(const PublishInfo& info, const function<void(const Pub
         }, "Hook", "Http", "onPublish");
 
         reportByHttp(url, "GET", value.dump(), [cb](const string& err, const nlohmann::json& res){
+            logInfo << "on publish: " << url;
             PublishResponse rsp;
             if (!err.empty()) {
                 rsp.authResult = false;

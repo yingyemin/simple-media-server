@@ -172,10 +172,10 @@ bool FlvMuxerWithRtmp::sendMediaData(uint8_t type, uint64_t timestamp, const Str
 		return false;
 	}
 
-	is_playing_ = true;
+	_isPlaying = true;
 
 	if (type == RTMP_VIDEO) {
-		if (!has_key_frame_) {
+		if (!_hasKeyFrame) {
 			uint8_t frame_type = (payload->data()[0] >> 4) & 0x0f;
 			uint8_t codec_id = payload->data()[0] & 0x0f;
 
@@ -183,7 +183,7 @@ bool FlvMuxerWithRtmp::sendMediaData(uint8_t type, uint64_t timestamp, const Str
 					<< ", timestamp: " << timestamp;
 
 			if (frame_type == 1 && (codec_id == RTMP_CODEC_ID_H264 || codec_id == RTMP_CODEC_ID_H265)) {
-				has_key_frame_ = true;
+				_hasKeyFrame = true;
 			}
 			else {
 				return true;
@@ -193,7 +193,7 @@ bool FlvMuxerWithRtmp::sendMediaData(uint8_t type, uint64_t timestamp, const Str
 		sendVideoData(timestamp, payload, payload_size);
 	}
 	else if (type == RTMP_AUDIO) {
-		if (!has_key_frame_ && avc_sequence_header_size_ > 0) {
+		if (!_hasKeyFrame && _avcSequenceSeaderSize > 0) {
 			return true;
 		}
 		sendAudioData(timestamp, payload, payload_size);

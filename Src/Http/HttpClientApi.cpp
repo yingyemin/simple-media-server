@@ -61,3 +61,9 @@ void HttpClientApi::onHttpResponce()
         _onHttpResponce(_parser);
     }
 }
+
+void HttpClientApi::onError(const string& err)
+{
+    onHttpResponce();
+    HttpClient::onError(err);
+}

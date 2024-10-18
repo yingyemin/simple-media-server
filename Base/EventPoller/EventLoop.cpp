@@ -44,8 +44,13 @@ EventLoop::~EventLoop()
         close(_epollFd);
         _epollFd = -1;
     }
+
+    if (_loopThread) {
+        delete _loopThread;
+    }
 }
 
+// 获取后需要判空
 EventLoop::Ptr EventLoop::getCurrentLoop()
 {
     logInfo << "EventLoop::getCurrentLoop(): " << gCurrentLoop.lock();

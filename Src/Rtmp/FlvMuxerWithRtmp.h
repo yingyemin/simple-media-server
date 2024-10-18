@@ -25,7 +25,7 @@ public:
 	void setPeerIp(const string& ip) {_peerIp = ip;}
 	void setPeerPort(int port) {_peerPort = port;}
 	
-	virtual bool ssPlaying()  { return is_playing_; }
+	virtual bool ssPlaying()  { return _isPlaying; }
 	virtual bool ssPlayer()  { return true; }
 
 	virtual bool sendMediaData(uint8_t type, uint64_t timestamp, const StreamBuffer::Ptr& payload, uint32_t payload_size);
@@ -36,7 +36,7 @@ public:
 
 private:
 	void onPlay();
-	bool hasFlvHeader() const { return has_flv_header_; }
+	bool hasFlvHeader() const { return _hasFlvHeader; }
 	void sendFlvHeader();
 	int  sendFlvTag(uint8_t type, uint64_t timestamp, const StreamBuffer::Ptr& payload, uint32_t payload_size);
 	void send(const char* data, int len);
@@ -49,13 +49,13 @@ private:
 	int _peerPort = 0;
 	EventLoop::Ptr _loop;
 
-	StreamBuffer::Ptr avc_sequence_header_;
-	StreamBuffer::Ptr aac_sequence_header_;
-	uint32_t avc_sequence_header_size_ = 0;
-	uint32_t aac_sequence_header_size_ = 0;
-	bool has_key_frame_ = false;
-	bool has_flv_header_ = false;
-	bool is_playing_ = false;
+	StreamBuffer::Ptr _avcSequenceHeader;
+	StreamBuffer::Ptr _aacSequenceHeader;
+	uint32_t _avcSequenceSeaderSize = 0;
+	uint32_t _aacSequenceHeaderSize = 0;
+	bool _hasKeyFrame = false;
+	bool _hasFlvHeader = false;
+	bool _isPlaying = false;
 
 	UrlParser _urlParser;
 	RtmpMediaSource::Wptr _source;

@@ -67,28 +67,28 @@ public:
 
 	AmfObject(std::string str)
 	{
-		this->type = AMF_STRING; 
-		this->amfString = str; 
+		this->type_ = AMF_STRING; 
+		this->amfString_ = str; 
 	}
 
 	AmfObject(double number)
 	{
-		this->type = AMF_NUMBER; 
-		this->amfNumber = number; 
+		this->type_ = AMF_NUMBER; 
+		this->amfNumber_ = number; 
 	}
 
 	AmfObject(bool number)
 	{
-		this->type = AMF_BOOLEAN; 
-		this->amfBoolean = number; 
+		this->type_ = AMF_BOOLEAN; 
+		this->amfBoolean_ = number; 
 	}
 
 public:
-	AmfObjectType type;
+	AmfObjectType type_;
 
-	std::string amfString;
-	double amfNumber;
-	bool amfBoolean;  
+	std::string amfString_;
+	double amfNumber_;
+	bool amfBoolean_;  
 };
 
 typedef std::unordered_map<std::string, AmfObject> AmfObjects;
@@ -104,17 +104,17 @@ public:
 
     void reset()
     {
-        _obj.amfString = "";
-        _obj.amfNumber = 0;
-        _obj.amfBoolean = false;
+        _obj.amfString_ = "";
+        _obj.amfNumber_ = 0;
+        _obj.amfBoolean_ = false;
         _objs.clear();
     }
 
     std::string getString() const
-    { return _obj.amfString; }
+    { return _obj.amfString_; }
 
     double getNumber() const
-    { return _obj.amfNumber; }
+    { return _obj.amfNumber_; }
 
     bool hasObject(std::string key) const
     { return (_objs.find(key) != _objs.end()); }
@@ -137,6 +137,7 @@ private:
     static uint32_t decodeInt24(const char *data, int size);
     static uint32_t decodeInt32(const char *data, int size);
 
+private:
 	int _version;
     AmfObject _obj;
     AmfObjects _objs;    

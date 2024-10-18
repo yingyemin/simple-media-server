@@ -82,11 +82,11 @@ public:
     void TransportConnected();
     size_t GetMaxSctpMessageSize() const
     {
-        return this->maxSctpMessageSize;
+        return this->_maxSctpMessageSize;
     }
     SctpState GetState() const
     {
-        return this->state;
+        return this->_state;
     }
     void ProcessSctpData(const uint8_t* data, size_t len);
     void SendSctpMessage(const SctpStreamParameters &params, uint32_t ppid, const uint8_t* msg, size_t len);
@@ -106,20 +106,20 @@ public:
 
 private:
     // Passed by argument.
-    uint16_t os{ 1024u };
-    uint16_t mis{ 1024u };
+    uint16_t _os{ 1024u };
+    uint16_t _mis{ 1024u };
     int _localPort;
     int _peerPort;
-    size_t maxSctpMessageSize{ 262144u };
-    bool isDataChannel{ false };
+    size_t _maxSctpMessageSize{ 262144u };
+    bool _isDataChannel{ false };
     // Allocated by this.
-    uint8_t* messageBuffer{ nullptr };
+    uint8_t* _messageBuffer{ nullptr };
     // Others.
-    SctpState state{ SctpState::NEW };
-    struct socket* socket{ nullptr };
-    uint16_t desiredOs{ 0u };
-    size_t messageBufferLen{ 0u };
-    uint16_t lastSsnReceived{ 0u }; // Valid for us since no SCTP I-DATA support.
+    SctpState _state{ SctpState::NEW };
+    struct socket* _socket{ nullptr };
+    uint16_t _desiredOs{ 0u };
+    size_t _messageBufferLen{ 0u };
+    uint16_t _lastSsnReceived{ 0u }; // Valid for us since no SCTP I-DATA support.
     std::shared_ptr<SctpEnv> _env;
 
     function<void(SctpAssociation* sctpAssociation)> _onSctpAssociationConnecting;

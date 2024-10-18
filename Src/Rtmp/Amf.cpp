@@ -11,22 +11,24 @@ int AmfDecoder::decode(const char *data, int size, int n)
 		char type = data[bytes_used];
 		bytes_used += 1;
 
+		logInfo << "type: " << (int)type;
+
 		switch (type)
 		{
 		case AMF0_NUMBER:
-			_obj.type = AMF_NUMBER;
-			ret = decodeNumber(data + bytes_used, size - bytes_used, _obj.amfNumber);
+			_obj.type_ = AMF_NUMBER;
+			ret = decodeNumber(data + bytes_used, size - bytes_used, _obj.amfNumber_);
 			break;
 
 		case AMF0_BOOLEAN:
-			_obj.type = AMF_BOOLEAN;
-			ret = decodeBoolean(data + bytes_used, size - bytes_used, _obj.amfBoolean);
+			_obj.type_ = AMF_BOOLEAN;
+			ret = decodeBoolean(data + bytes_used, size - bytes_used, _obj.amfBoolean_);
 			break;
 
 		case AMF0_STRING:
 		// logInfo << "decode a string";
-			_obj.type = AMF_STRING;
-			ret = decodeString(data + bytes_used, size - bytes_used, _obj.amfString);
+			_obj.type_ = AMF_STRING;
+			ret = decodeString(data + bytes_used, size - bytes_used, _obj.amfString_);
 			break;
 
 		case AMF0_OBJECT:
@@ -98,12 +100,12 @@ int AmfDecoder::decodeString(const char *data, int size, std::string& amf_string
 	if (strSize == 0) {
 		return bytes_used;
 	}
-	// logInfo << "bytes_used: " << bytes_used;
-	// logInfo << "strSize: " << strSize;
-	// logInfo << "size: " << size;
+	logInfo << "bytes_used: " << bytes_used;
+	logInfo << "strSize: " << strSize;
+	logInfo << "size: " << size;
 
 	amf_string.assign(data + bytes_used, strSize);
-	// logInfo << "amf_string: " << amf_string;
+	logInfo << "amf_string: " << amf_string;
 	bytes_used += strSize;
 	return bytes_used;
 }
@@ -285,16 +287,16 @@ void AmfEncoder::encodeObjects(AmfObjects& objs)
 
 	for (auto iter : objs) {
 		encodeString(iter.first.c_str(), (int)iter.first.size(), false);
-		switch (iter.second.type)
+		switch (iter.second.type_)
 		{
 		case AMF_NUMBER:
-			encodeNumber(iter.second.amfNumber);
+			encodeNumber(iter.second.amfNumber_);
 			break;
 		case AMF_STRING:
-			encodeString(iter.second.amfString.c_str(), (int)iter.second.amfString.size());
+			encodeString(iter.second.amfString_.c_str(), (int)iter.second.amfString_.size());
 			break;
 		case AMF_BOOLEAN:
-			encodeBoolean(iter.second.amfBoolean);
+			encodeBoolean(iter.second.amfBoolean_);
 			break;
 		default:
 			break;
@@ -312,16 +314,16 @@ void AmfEncoder::encodeECMA(AmfObjects& objs)
 
 	for (auto iter : objs) {
 		encodeString(iter.first.c_str(), (int)iter.first.size(), false);
-		switch (iter.second.type)
+		switch (iter.second.type_)
 		{
 		case AMF_NUMBER:
-			encodeNumber(iter.second.amfNumber);
+			encodeNumber(iter.second.amfNumber_);
 			break;
 		case AMF_STRING:
-			encodeString(iter.second.amfString.c_str(), (int)iter.second.amfString.size());
+			encodeString(iter.second.amfString_.c_str(), (int)iter.second.amfString_.size());
 			break;
 		case AMF_BOOLEAN:
-			encodeBoolean(iter.second.amfBoolean);
+			encodeBoolean(iter.second.amfBoolean_);
 			break;
 		default:
 			break;

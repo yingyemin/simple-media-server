@@ -12,20 +12,20 @@ using namespace std;
 void GB28181Parser::parse(const char *data, size_t len)
 {
     // 从配置中获取
-    // static int maxRemainSize = 4 * 1024 * 1024;
+    static int maxRemainSize = 4 * 1024 * 1024;
 
-    // int remainSize = _remainData.size();
-    // if (remainSize > maxRemainSize) {
-    //     logError << "remain cache is too large";
-    //     _remainData.clear();
-    //     return ;
-    // }
+    int remainSize = _remainData.size();
+    if (remainSize > maxRemainSize) {
+        logError << "remain cache is too large";
+        _remainData.clear();
+        return ;
+    }
 
-    // if (remainSize > 0) {
-    //     _remainData.append(data, len);
-    //     data = _remainData.data();
-    //     len += remainSize;
-    // }
+    if (remainSize > 0) {
+        _remainData.append(data, len);
+        data = _remainData.data();
+        len += remainSize;
+    }
 
     auto start = data;
     auto end = data + len;
@@ -63,17 +63,18 @@ void GB28181Parser::parse(const char *data, size_t len)
             memcpy(payload, data, len);
             _rtpBuffer->setSize(len + _rtpBuffer->size());
             _contentLen -= len;
+            data += len;
             break;
         }
     }
 
-    // if (data < end) {
-    //     // logInfo << "have remain data: " << (end - data);
-    //     _remainData.assign(data, end - data);
-    // } else {
-    //     // logInfo << "don't have remain data";
-    //     _remainData.clear();
-    // }
+    if (data < end) {
+        // logInfo << "have remain data: " << (end - data);
+        _remainData.assign(data, end - data);
+    } else {
+        // logInfo << "don't have remain data";
+        _remainData.clear();
+    }
 }
 
 void GB28181Parser::setOnRtpPacket(const function<void(const StreamBuffer::Ptr& buffer)>& cb)

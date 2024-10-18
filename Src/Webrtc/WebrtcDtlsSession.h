@@ -22,17 +22,17 @@ public:
 	DtlsCertificate() {}
 	virtual ~DtlsCertificate();
     bool init();
-    X509* getCert() { return dtlsCert_; }
-    EVP_PKEY* getPublicKey() { return dtlsPkey_; }
-    EC_KEY* getEcdsaKey() { return eckey_; }
-    std::string getFingerprint() { return fingerprint_; }
+    X509* getCert() { return _dtlsCert; }
+    EVP_PKEY* getPublicKey() { return _dtlsPkey; }
+    EC_KEY* getEcdsaKey() { return _eckey; }
+    std::string getFingerprint() { return _fingerprint; }
 
 private:
-    bool ecdsaMode_ = true;
-    X509* dtlsCert_ = nullptr;
-    EVP_PKEY* dtlsPkey_ = nullptr;
-    EC_KEY* eckey_ = nullptr;
-	std::string fingerprint_;
+    bool _ecdsaMode = true;
+    X509* _dtlsCert = nullptr;
+    EVP_PKEY* _dtlsPkey = nullptr;
+    EC_KEY* _eckey = nullptr;
+	std::string _fingerprint;
 };
 
 class DtlsSession {
@@ -52,11 +52,11 @@ public:
 	
 private:
 	string _role;
-  	SSL_CTX* dtlsCtx_ = nullptr;
-    SSL* dtls_ = nullptr;
-    BIO* bioIn_ = nullptr;
-    BIO* bioOut_ = nullptr;
-	bool handshakeFinish_ = false;
+  	SSL_CTX* _dtlsCtx = nullptr;
+    SSL* _dtls = nullptr;
+    BIO* _bioIn = nullptr;
+    BIO* _bioOut = nullptr;
+	bool _handshakeFinish = false;
 	uint8_t _sslReadBuffer[2000] = {0};
 	function<void()> _onHandshakeDone;
 	function<void(const char* data, int len)> _onRecvApplicationData;

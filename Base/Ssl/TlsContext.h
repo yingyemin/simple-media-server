@@ -46,7 +46,7 @@ private:
     shared_ptr<SSL> _ssl;
     Socket::Ptr _socket;
 
-    deque<Buffer::Ptr> _buffer_send;
+    deque<Buffer::Ptr> _bufferSend;
     function<void(const StreamBuffer::Ptr& buffer)> _onConnRead;
     function<void(const Buffer::Ptr& buffer)> _onConnSend;
 };

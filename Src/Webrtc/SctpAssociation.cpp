@@ -140,8 +140,8 @@ SctpEnv::~SctpEnv() {
 SctpAssociation::SctpAssociation(
     int localPort, int peerPort,
     uint16_t os, uint16_t mis, size_t maxSctpMessageSize, bool isDataChannel)
-    : os(os), mis(mis), _localPort(localPort), _peerPort(peerPort), maxSctpMessageSize(maxSctpMessageSize),
-    isDataChannel(isDataChannel)
+    : _os(os), _mis(mis), _localPort(localPort), _peerPort(peerPort), _maxSctpMessageSize(maxSctpMessageSize),
+    _isDataChannel(isDataChannel)
 {
     // MS_TRACE();
     _env = SctpEnv::Instance().shared_from_this();
@@ -151,16 +151,16 @@ SctpAssociation::SctpAssociation(
 
     int ret;
 
-    this->socket = usrsctp_socket(
+    this->_socket = usrsctp_socket(
         AF_CONN, SOCK_STREAM, IPPROTO_SCTP, onRecvSctpData, nullptr, 0, static_cast<void*>(this));
 
-    if (this->socket == nullptr)
+    if (this->_socket == nullptr)
         MS_THROW_ERROR("usrsctp_socket() failed: %s", strerror(errno));
 
-    usrsctp_set_ulpinfo(this->socket, static_cast<void*>(this));
+    usrsctp_set_ulpinfo(this->_socket, static_cast<void*>(this));
 
-    // Make the socket non-blocking.
-    ret = usrsctp_set_non_blocking(this->socket, 1);
+    // Make the _socket non-blocking.
+    ret = usrsctp_set_non_blocking(this->_socket, 1);
 
     if (ret < 0)
         MS_THROW_ERROR("usrsctp_set_non_blocking() failed: %s", strerror(errno));
@@ -174,7 +174,7 @@ SctpAssociation::SctpAssociation(
     lingerOpt.l_onoff  = 1;
     lingerOpt.l_linger = 0;
 
-    ret = usrsctp_setsockopt(this->socket, SOL_SOCKET, SO_LINGER, &lingerOpt, sizeof(lingerOpt));
+    ret = usrsctp_setsockopt(this->_socket, SOL_SOCKET, SO_LINGER, &lingerOpt, sizeof(lingerOpt));
 
     if (ret < 0)
         MS_THROW_ERROR("usrsctp_setsockopt(SO_LINGER) failed: %s", std::strerror(errno));
@@ -185,7 +185,7 @@ SctpAssociation::SctpAssociation(
     av.assoc_value =
         SCTP_ENABLE_RESET_STREAM_REQ | SCTP_ENABLE_RESET_ASSOC_REQ | SCTP_ENABLE_CHANGE_ASSOC_REQ;
 
-    ret = usrsctp_setsockopt(this->socket, IPPROTO_SCTP, SCTP_ENABLE_STREAM_RESET, &av, sizeof(av));
+    ret = usrsctp_setsockopt(this->_socket, IPPROTO_SCTP, SCTP_ENABLE_STREAM_RESET, &av, sizeof(av));
 
     if (ret < 0)
     {
@@ -195,7 +195,7 @@ SctpAssociation::SctpAssociation(
     // Set SCTP_NODELAY.
     uint32_t noDelay = 1;
 
-    ret = usrsctp_setsockopt(this->socket, IPPROTO_SCTP, SCTP_NODELAY, &noDelay, sizeof(noDelay));
+    ret = usrsctp_setsockopt(this->_socket, IPPROTO_SCTP, SCTP_NODELAY, &noDelay, sizeof(noDelay));
 
     if (ret < 0)
         MS_THROW_ERROR("usrsctp_setsockopt(SCTP_NODELAY) failed: %s", std::strerror(errno));
@@ -210,7 +210,7 @@ SctpAssociation::SctpAssociation(
     {
         event.se_type = EventTypes[i];
 
-        ret = usrsctp_setsockopt(this->socket, IPPROTO_SCTP, SCTP_EVENT, &event, sizeof(event));
+        ret = usrsctp_setsockopt(this->_socket, IPPROTO_SCTP, SCTP_EVENT, &event, sizeof(event));
 
         if (ret < 0)
             MS_THROW_ERROR("usrsctp_setsockopt(SCTP_EVENT) failed: %s", std::strerror(errno));
@@ -220,10 +220,10 @@ SctpAssociation::SctpAssociation(
     struct sctp_initmsg initmsg; // NOLINT(cppcoreguidelines-pro-type-member-init)
 
     std::memset(&initmsg, 0, sizeof(initmsg));
-    initmsg.sinit_num_ostreams  = this->os;
-    initmsg.sinit_max_instreams = this->mis;
+    initmsg.sinit_num_ostreams  = this->_os;
+    initmsg.sinit_max_instreams = this->_mis;
 
-    ret = usrsctp_setsockopt(this->socket, IPPROTO_SCTP, SCTP_INITMSG, &initmsg, sizeof(initmsg));
+    ret = usrsctp_setsockopt(this->_socket, IPPROTO_SCTP, SCTP_INITMSG, &initmsg, sizeof(initmsg));
 
     if (ret < 0)
         MS_THROW_ERROR("usrsctp_setsockopt(SCTP_INITMSG) failed: %s", std::strerror(errno));
@@ -239,7 +239,7 @@ SctpAssociation::SctpAssociation(
     sconn.sconn_len = sizeof(sconn);
 #endif
 
-    ret = usrsctp_bind(this->socket, reinterpret_cast<struct sockaddr*>(&sconn), sizeof(sconn));
+    ret = usrsctp_bind(this->_socket, reinterpret_cast<struct sockaddr*>(&sconn), sizeof(sconn));
 
     if (ret < 0)
         MS_THROW_ERROR("usrsctp_bind() failed: %s", std::strerror(errno));
@@ -249,21 +249,21 @@ SctpAssociation::~SctpAssociation()
 {
     // MS_TRACE();
 
-    usrsctp_set_ulpinfo(this->socket, nullptr);
-    usrsctp_close(this->socket);
+    usrsctp_set_ulpinfo(this->_socket, nullptr);
+    usrsctp_close(this->_socket);
 
     // Deregister ourselves from usrsctp.
     usrsctp_deregister_address(static_cast<void*>(this));
 
-    delete[] this->messageBuffer;
+    delete[] this->_messageBuffer;
 }
 
 void SctpAssociation::TransportConnected()
 {
     // MS_TRACE();
 
-    // Just run the SCTP stack if our state is 'new'.
-    if (this->state != SctpState::NEW)
+    // Just run the SCTP stack if our _state is 'new'.
+    if (this->_state != SctpState::NEW)
         return;
 
     try
@@ -279,7 +279,7 @@ void SctpAssociation::TransportConnected()
         rconn.sconn_len = sizeof(rconn);
 #endif
 
-        ret = usrsctp_connect(this->socket, reinterpret_cast<struct sockaddr*>(&rconn), sizeof(rconn));
+        ret = usrsctp_connect(this->_socket, reinterpret_cast<struct sockaddr*>(&rconn), sizeof(rconn));
 
         if (ret < 0 && errno != EINPROGRESS)
             MS_THROW_ERROR("usrsctp_connect() failed: %s", std::strerror(errno));
@@ -296,18 +296,18 @@ void SctpAssociation::TransportConnected()
         peerAddrParams.spp_pathmtu = SctpMtu - sizeof(peerAddrParams);
 
         ret = usrsctp_setsockopt(
-            this->socket, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS, &peerAddrParams, sizeof(peerAddrParams));
+            this->_socket, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS, &peerAddrParams, sizeof(peerAddrParams));
 
         if (ret < 0)
             MS_THROW_ERROR("usrsctp_setsockopt(SCTP_PEER_ADDR_PARAMS) failed: %s", std::strerror(errno));
 
-        // Announce connecting state.
-        this->state = SctpState::CONNECTING;
+        // Announce connecting _state.
+        this->_state = SctpState::CONNECTING;
         this->onSctpAssociationConnecting(this);
     }
     catch (... /*error*/)
     {
-        this->state = SctpState::FAILED;
+        this->_state = SctpState::FAILED;
         this->onSctpAssociationFailed(this);
         throw;
     }
@@ -331,12 +331,12 @@ void SctpAssociation::SendSctpMessage(
 
     // This must be controlled by the DataConsumer.
     // MS_ASSERT(
-    //   len <= this->maxSctpMessageSize,
+    //   len <= this->_maxSctpMessageSize,
     //   "given message exceeds max allowed message size [message size:%zu, max message size:%zu]",
     //   len,
-    //   this->maxSctpMessageSize);
-    if (len > maxSctpMessageSize) {
-        printf("len(%ld) > maxSctpMessageSize(%ld)\n", len, maxSctpMessageSize);
+    //   this->_maxSctpMessageSize);
+    if (len > _maxSctpMessageSize) {
+        printf("len(%ld) > _maxSctpMessageSize(%ld)\n", len, _maxSctpMessageSize);
         throw;
     }
 
@@ -374,7 +374,7 @@ void SctpAssociation::SendSctpMessage(
     }
 
     int ret = usrsctp_sendv(
-        this->socket, msg, len, nullptr, 0, &spa, static_cast<socklen_t>(sizeof(spa)), SCTP_SENDV_SPA, 0);
+        this->_socket, msg, len, nullptr, 0, &spa, static_cast<socklen_t>(sizeof(spa)), SCTP_SENDV_SPA, 0);
 
     if (ret < 0)
     {
@@ -395,7 +395,7 @@ void SctpAssociation::HandleDataConsumer(const SctpStreamParameters &params)
     auto streamId = params.streamId;
 
     // We need more OS.
-    if (streamId > this->os - 1)
+    if (streamId > this->_os - 1)
         AddOutgoingStreams(/*force*/ false);
 }
 
@@ -407,7 +407,7 @@ void SctpAssociation::DataProducerClosed(const SctpStreamParameters &params)
 
     // Send SCTP_RESET_STREAMS to the remote.
     // https://tools.ietf.org/html/draft-ietf-rtcweb-data-channel-13#section-6.7
-    if (this->isDataChannel)
+    if (this->_isDataChannel)
         ResetSctpStream(streamId, StreamDirection::OUTGOING);
     else
         ResetSctpStream(streamId, StreamDirection::INCOMING);
@@ -428,7 +428,7 @@ void SctpAssociation::ResetSctpStream(uint16_t streamId, StreamDirection directi
     // MS_TRACE();
 
     // Do nothing if an outgoing stream that could not be allocated by us.
-    if (direction == StreamDirection::OUTGOING && streamId > this->os - 1)
+    if (direction == StreamDirection::OUTGOING && streamId > this->_os - 1)
         return;
 
     int ret;
@@ -438,7 +438,7 @@ void SctpAssociation::ResetSctpStream(uint16_t streamId, StreamDirection directi
 #ifndef SCTP_RECONFIG_SUPPORTED
 #define SCTP_RECONFIG_SUPPORTED         0x00000029
 #endif
-    ret = usrsctp_getsockopt(this->socket, IPPROTO_SCTP, SCTP_RECONFIG_SUPPORTED, &av, &len);
+    ret = usrsctp_getsockopt(this->_socket, IPPROTO_SCTP, SCTP_RECONFIG_SUPPORTED, &av, &len);
 
     if (ret == 0)
     {
@@ -478,7 +478,7 @@ void SctpAssociation::ResetSctpStream(uint16_t streamId, StreamDirection directi
     srs->srs_number_streams = 1;
     srs->srs_stream_list[0] = streamId; // No need for htonl().
 
-    ret = usrsctp_setsockopt(this->socket, IPPROTO_SCTP, SCTP_RESET_STREAMS, srs, len);
+    ret = usrsctp_setsockopt(this->_socket, IPPROTO_SCTP, SCTP_RESET_STREAMS, srs, len);
 
     if (ret == 0)
     {
@@ -498,29 +498,29 @@ void SctpAssociation::AddOutgoingStreams(bool force)
 
     uint16_t additionalOs{ 0 };
 
-    if (MaxSctpStreams - this->os >= 32)
+    if (MaxSctpStreams - this->_os >= 32)
         additionalOs = 32;
     else
-        additionalOs = MaxSctpStreams - this->os;
+        additionalOs = MaxSctpStreams - this->_os;
 
     if (additionalOs == 0)
     {
-        // MS_WARN_TAG(sctp, "cannot add more outgoing streams [OS:%" PRIu16 "]", this->os);
+        // MS_WARN_TAG(sctp, "cannot add more outgoing streams [OS:%" PRIu16 "]", this->_os);
 
         return;
     }
 
-    auto nextDesiredOs = this->os + additionalOs;
+    auto nextDesiredOs = this->_os + additionalOs;
 
     // Already in progress, ignore (unless forced).
-    if (!force && nextDesiredOs == this->desiredOs)
+    if (!force && nextDesiredOs == this->_desiredOs)
         return;
 
     // Update desired value.
-    this->desiredOs = nextDesiredOs;
+    this->_desiredOs = nextDesiredOs;
 
     // If not connected, defer it.
-    if (this->state != SctpState::CONNECTED)
+    if (this->_state != SctpState::CONNECTED)
     {
         // MS_DEBUG_TAG(sctp, "SCTP not connected, deferring OS increase");
 
@@ -536,7 +536,7 @@ void SctpAssociation::AddOutgoingStreams(bool force)
     // MS_DEBUG_TAG(sctp, "adding %" PRIu16 " outgoing streams", additionalOs);
 
     int ret = usrsctp_setsockopt(
-        this->socket, IPPROTO_SCTP, SCTP_ADD_STREAMS, &sas, static_cast<socklen_t>(sizeof(sas)));
+        this->_socket, IPPROTO_SCTP, SCTP_ADD_STREAMS, &sas, static_cast<socklen_t>(sizeof(sas)));
 
     // if (ret < 0)
     //     MS_WARN_TAG(sctp, "usrsctp_setsockopt(SCTP_ADD_STREAMS) failed: %s", std::strerror(errno));
@@ -566,68 +566,68 @@ void SctpAssociation::OnUsrSctpReceiveSctpData(
         return;
     }
 
-    if (this->messageBufferLen != 0 && ssn != this->lastSsnReceived)
+    if (this->_messageBufferLen != 0 && ssn != this->_lastSsnReceived)
     {
         // MS_WARN_TAG(
         //   sctp,
         //   "message chunk received with different SSN while buffer not empty, buffer discarded [ssn:%" PRIu16
         //   ", last ssn received:%" PRIu16 "]",
         //   ssn,
-        //   this->lastSsnReceived);
+        //   this->_lastSsnReceived);
 
-        this->messageBufferLen = 0;
+        this->_messageBufferLen = 0;
     }
 
     // Update last SSN received.
-    this->lastSsnReceived = ssn;
+    this->_lastSsnReceived = ssn;
 
     auto eor = static_cast<bool>(flags & MSG_EOR);
 
-    if (this->messageBufferLen + len > this->maxSctpMessageSize)
+    if (this->_messageBufferLen + len > this->_maxSctpMessageSize)
     {
         // MS_WARN_TAG(
         //   sctp,
         //   "ongoing received message exceeds max allowed message size [message size:%zu, max message size:%zu, eor:%u]",
-        //   this->messageBufferLen + len,
-        //   this->maxSctpMessageSize,
+        //   this->_messageBufferLen + len,
+        //   this->_maxSctpMessageSize,
         //   eor ? 1 : 0);
 
-        this->lastSsnReceived = 0;
+        this->_lastSsnReceived = 0;
 
         return;
     }
 
     // If end of message and there is no buffered data, notify it directly.
-    if (eor && this->messageBufferLen == 0)
+    if (eor && this->_messageBufferLen == 0)
     {
         // MS_DEBUG_DEV("directly notifying listener [eor:1, buffer len:0]");
 
         this->onSctpAssociationMessageReceived(this, streamId, ppid, data, len);
     }
     // If end of message and there is buffered data, append data and notify buffer.
-    else if (eor && this->messageBufferLen != 0)
+    else if (eor && this->_messageBufferLen != 0)
     {
-        std::memcpy(this->messageBuffer + this->messageBufferLen, data, len);
-        this->messageBufferLen += len;
+        std::memcpy(this->_messageBuffer + this->_messageBufferLen, data, len);
+        this->_messageBufferLen += len;
 
-        // MS_DEBUG_DEV("notifying listener [eor:1, buffer len:%zu]", this->messageBufferLen);
+        // MS_DEBUG_DEV("notifying listener [eor:1, buffer len:%zu]", this->_messageBufferLen);
 
         this->onSctpAssociationMessageReceived(
-            this, streamId, ppid, this->messageBuffer, this->messageBufferLen);
+            this, streamId, ppid, this->_messageBuffer, this->_messageBufferLen);
 
-        this->messageBufferLen = 0;
+        this->_messageBufferLen = 0;
     }
     // If non end of message, append data to the buffer.
     else if (!eor)
     {
         // Allocate the buffer if not already done.
-        if (!this->messageBuffer)
-            this->messageBuffer = new uint8_t[this->maxSctpMessageSize];
+        if (!this->_messageBuffer)
+            this->_messageBuffer = new uint8_t[this->_maxSctpMessageSize];
 
-        std::memcpy(this->messageBuffer + this->messageBufferLen, data, len);
-        this->messageBufferLen += len;
+        std::memcpy(this->_messageBuffer + this->_messageBufferLen, data, len);
+        this->_messageBufferLen += len;
 
-        // MS_DEBUG_DEV("data buffered [eor:0, buffer len:%zu]", this->messageBufferLen);
+        // MS_DEBUG_DEV("data buffered [eor:0, buffer len:%zu]", this->_messageBufferLen);
     }
 }
 
@@ -661,15 +661,15 @@ void SctpAssociation::OnUsrSctpReceiveSctpNotification(union sctp_notification* 
                     //   notification->sn_assoc_change.sac_inbound_streams);
 
                     // Update our OS.
-                    this->os = notification->sn_assoc_change.sac_outbound_streams;
+                    this->_os = notification->sn_assoc_change.sac_outbound_streams;
 
                     // Increase if requested before connected.
-                    if (this->desiredOs > this->os)
+                    if (this->_desiredOs > this->_os)
                         AddOutgoingStreams(/*force*/ true);
 
-                    if (this->state != SctpState::CONNECTED)
+                    if (this->_state != SctpState::CONNECTED)
                     {
-                        this->state = SctpState::CONNECTED;
+                        this->_state = SctpState::CONNECTED;
                         this->onSctpAssociationConnected(this);
                     }
 
@@ -698,9 +698,9 @@ void SctpAssociation::OnUsrSctpReceiveSctpNotification(union sctp_notification* 
                         // MS_DEBUG_TAG(sctp, "SCTP communication lost");
                     }
 
-                    if (this->state != SctpState::CLOSED)
+                    if (this->_state != SctpState::CLOSED)
                     {
-                        this->state = SctpState::CLOSED;
+                        this->_state = SctpState::CLOSED;
                         this->onSctpAssociationClosed(this);
                     }
 
@@ -716,15 +716,15 @@ void SctpAssociation::OnUsrSctpReceiveSctpNotification(union sctp_notification* 
                     //   notification->sn_assoc_change.sac_inbound_streams);
 
                     // Update our OS.
-                    this->os = notification->sn_assoc_change.sac_outbound_streams;
+                    this->_os = notification->sn_assoc_change.sac_outbound_streams;
 
                     // Increase if requested before connected.
-                    if (this->desiredOs > this->os)
+                    if (this->_desiredOs > this->_os)
                         AddOutgoingStreams(/*force*/ true);
 
-                    if (this->state != SctpState::CONNECTED)
+                    if (this->_state != SctpState::CONNECTED)
                     {
-                        this->state = SctpState::CONNECTED;
+                        this->_state = SctpState::CONNECTED;
                         this->onSctpAssociationConnected(this);
                     }
 
@@ -735,9 +735,9 @@ void SctpAssociation::OnUsrSctpReceiveSctpNotification(union sctp_notification* 
                 {
                     // MS_DEBUG_TAG(sctp, "SCTP association gracefully closed");
 
-                    if (this->state != SctpState::CLOSED)
+                    if (this->_state != SctpState::CLOSED)
                     {
-                        this->state = SctpState::CLOSED;
+                        this->_state = SctpState::CLOSED;
                         this->onSctpAssociationClosed(this);
                     }
 
@@ -762,9 +762,9 @@ void SctpAssociation::OnUsrSctpReceiveSctpNotification(union sctp_notification* 
                         // MS_WARN_TAG(sctp, "SCTP setup failed: %s", buffer);
                     }
 
-                    if (this->state != SctpState::FAILED)
+                    if (this->_state != SctpState::FAILED)
                     {
-                        this->state = SctpState::FAILED;
+                        this->_state = SctpState::FAILED;
                         this->onSctpAssociationFailed(this);
                     }
 
@@ -814,9 +814,9 @@ void SctpAssociation::OnUsrSctpReceiveSctpNotification(union sctp_notification* 
         {
             // MS_DEBUG_TAG(sctp, "remote SCTP association shutdown");
 
-            if (this->state != SctpState::CLOSED)
+            if (this->_state != SctpState::CLOSED)
             {
-                this->state = SctpState::CLOSED;
+                this->_state = SctpState::CLOSED;
                 this->onSctpAssociationClosed(this);
             }
 
@@ -898,7 +898,7 @@ void SctpAssociation::OnUsrSctpReceiveSctpNotification(union sctp_notification* 
 
             // Special case for WebRTC DataChannels in which we must also reset our
             // outgoing SCTP stream.
-            if (incoming && !outgoing && this->isDataChannel)
+            if (incoming && !outgoing && this->_isDataChannel)
             {
                 for (uint16_t i{ 0 }; i < numStreams; ++i)
                 {
@@ -946,7 +946,7 @@ void SctpAssociation::OnUsrSctpReceiveSctpNotification(union sctp_notification* 
             }
 
             // Update OS.
-            this->os = notification->sn_strchange_event.strchange_outstrms;
+            this->_os = notification->sn_strchange_event.strchange_outstrms;
 
             break;
         }
