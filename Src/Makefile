@@ -152,6 +152,33 @@ Api/ApiUtil.cpp.s:
 	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Api/ApiUtil.cpp.s
 .PHONY : Api/ApiUtil.cpp.s
 
+Api/FfmpegApi.o: Api/FfmpegApi.cpp.o
+
+.PHONY : Api/FfmpegApi.o
+
+# target to build an object file
+Api/FfmpegApi.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Api/FfmpegApi.cpp.o
+.PHONY : Api/FfmpegApi.cpp.o
+
+Api/FfmpegApi.i: Api/FfmpegApi.cpp.i
+
+.PHONY : Api/FfmpegApi.i
+
+# target to preprocess a source file
+Api/FfmpegApi.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Api/FfmpegApi.cpp.i
+.PHONY : Api/FfmpegApi.cpp.i
+
+Api/FfmpegApi.s: Api/FfmpegApi.cpp.s
+
+.PHONY : Api/FfmpegApi.s
+
+# target to generate assembly for a file
+Api/FfmpegApi.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Api/FfmpegApi.cpp.s
+.PHONY : Api/FfmpegApi.cpp.s
+
 Api/GB28181Api.o: Api/GB28181Api.cpp.o
 
 .PHONY : Api/GB28181Api.o
@@ -746,32 +773,32 @@ Common/MediaSource.cpp.s:
 	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Common/MediaSource.cpp.s
 .PHONY : Common/MediaSource.cpp.s
 
-Common/RecordReader.o: Common/RecordReader.cpp.o
+Common/RecordReaderBase.o: Common/RecordReaderBase.cpp.o
 
-.PHONY : Common/RecordReader.o
+.PHONY : Common/RecordReaderBase.o
 
 # target to build an object file
-Common/RecordReader.cpp.o:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Common/RecordReader.cpp.o
-.PHONY : Common/RecordReader.cpp.o
+Common/RecordReaderBase.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Common/RecordReaderBase.cpp.o
+.PHONY : Common/RecordReaderBase.cpp.o
 
-Common/RecordReader.i: Common/RecordReader.cpp.i
+Common/RecordReaderBase.i: Common/RecordReaderBase.cpp.i
 
-.PHONY : Common/RecordReader.i
+.PHONY : Common/RecordReaderBase.i
 
 # target to preprocess a source file
-Common/RecordReader.cpp.i:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Common/RecordReader.cpp.i
-.PHONY : Common/RecordReader.cpp.i
+Common/RecordReaderBase.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Common/RecordReaderBase.cpp.i
+.PHONY : Common/RecordReaderBase.cpp.i
 
-Common/RecordReader.s: Common/RecordReader.cpp.s
+Common/RecordReaderBase.s: Common/RecordReaderBase.cpp.s
 
-.PHONY : Common/RecordReader.s
+.PHONY : Common/RecordReaderBase.s
 
 # target to generate assembly for a file
-Common/RecordReader.cpp.s:
-	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Common/RecordReader.cpp.s
-.PHONY : Common/RecordReader.cpp.s
+Common/RecordReaderBase.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Common/RecordReaderBase.cpp.s
+.PHONY : Common/RecordReaderBase.cpp.s
 
 Common/StampAdjust.o: Common/StampAdjust.cpp.o
 
@@ -1015,6 +1042,87 @@ Ehome5/Ehome5Server.s: Ehome5/Ehome5Server.cpp.s
 Ehome5/Ehome5Server.cpp.s:
 	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Ehome5/Ehome5Server.cpp.s
 .PHONY : Ehome5/Ehome5Server.cpp.s
+
+Ffmpeg/TranscodeAudio.o: Ffmpeg/TranscodeAudio.cpp.o
+
+.PHONY : Ffmpeg/TranscodeAudio.o
+
+# target to build an object file
+Ffmpeg/TranscodeAudio.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Ffmpeg/TranscodeAudio.cpp.o
+.PHONY : Ffmpeg/TranscodeAudio.cpp.o
+
+Ffmpeg/TranscodeAudio.i: Ffmpeg/TranscodeAudio.cpp.i
+
+.PHONY : Ffmpeg/TranscodeAudio.i
+
+# target to preprocess a source file
+Ffmpeg/TranscodeAudio.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Ffmpeg/TranscodeAudio.cpp.i
+.PHONY : Ffmpeg/TranscodeAudio.cpp.i
+
+Ffmpeg/TranscodeAudio.s: Ffmpeg/TranscodeAudio.cpp.s
+
+.PHONY : Ffmpeg/TranscodeAudio.s
+
+# target to generate assembly for a file
+Ffmpeg/TranscodeAudio.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Ffmpeg/TranscodeAudio.cpp.s
+.PHONY : Ffmpeg/TranscodeAudio.cpp.s
+
+Ffmpeg/TranscodeTask.o: Ffmpeg/TranscodeTask.cpp.o
+
+.PHONY : Ffmpeg/TranscodeTask.o
+
+# target to build an object file
+Ffmpeg/TranscodeTask.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Ffmpeg/TranscodeTask.cpp.o
+.PHONY : Ffmpeg/TranscodeTask.cpp.o
+
+Ffmpeg/TranscodeTask.i: Ffmpeg/TranscodeTask.cpp.i
+
+.PHONY : Ffmpeg/TranscodeTask.i
+
+# target to preprocess a source file
+Ffmpeg/TranscodeTask.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Ffmpeg/TranscodeTask.cpp.i
+.PHONY : Ffmpeg/TranscodeTask.cpp.i
+
+Ffmpeg/TranscodeTask.s: Ffmpeg/TranscodeTask.cpp.s
+
+.PHONY : Ffmpeg/TranscodeTask.s
+
+# target to generate assembly for a file
+Ffmpeg/TranscodeTask.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Ffmpeg/TranscodeTask.cpp.s
+.PHONY : Ffmpeg/TranscodeTask.cpp.s
+
+Ffmpeg/TranscodeVideo.o: Ffmpeg/TranscodeVideo.cpp.o
+
+.PHONY : Ffmpeg/TranscodeVideo.o
+
+# target to build an object file
+Ffmpeg/TranscodeVideo.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Ffmpeg/TranscodeVideo.cpp.o
+.PHONY : Ffmpeg/TranscodeVideo.cpp.o
+
+Ffmpeg/TranscodeVideo.i: Ffmpeg/TranscodeVideo.cpp.i
+
+.PHONY : Ffmpeg/TranscodeVideo.i
+
+# target to preprocess a source file
+Ffmpeg/TranscodeVideo.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Ffmpeg/TranscodeVideo.cpp.i
+.PHONY : Ffmpeg/TranscodeVideo.cpp.i
+
+Ffmpeg/TranscodeVideo.s: Ffmpeg/TranscodeVideo.cpp.s
+
+.PHONY : Ffmpeg/TranscodeVideo.s
+
+# target to generate assembly for a file
+Ffmpeg/TranscodeVideo.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Ffmpeg/TranscodeVideo.cpp.s
+.PHONY : Ffmpeg/TranscodeVideo.cpp.s
 
 Flv/FlvDemuxer.o: Flv/FlvDemuxer.cpp.o
 
@@ -1744,6 +1852,33 @@ Http/HttpUtil.s: Http/HttpUtil.cpp.s
 Http/HttpUtil.cpp.s:
 	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Http/HttpUtil.cpp.s
 .PHONY : Http/HttpUtil.cpp.s
+
+Http/WebsocketClient.o: Http/WebsocketClient.cpp.o
+
+.PHONY : Http/WebsocketClient.o
+
+# target to build an object file
+Http/WebsocketClient.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Http/WebsocketClient.cpp.o
+.PHONY : Http/WebsocketClient.cpp.o
+
+Http/WebsocketClient.i: Http/WebsocketClient.cpp.i
+
+.PHONY : Http/WebsocketClient.i
+
+# target to preprocess a source file
+Http/WebsocketClient.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Http/WebsocketClient.cpp.i
+.PHONY : Http/WebsocketClient.cpp.i
+
+Http/WebsocketClient.s: Http/WebsocketClient.cpp.s
+
+.PHONY : Http/WebsocketClient.s
+
+# target to generate assembly for a file
+Http/WebsocketClient.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Http/WebsocketClient.cpp.s
+.PHONY : Http/WebsocketClient.cpp.s
 
 Http/WebsocketContext.o: Http/WebsocketContext.cpp.o
 
@@ -2581,6 +2716,33 @@ Record/RecordPs.s: Record/RecordPs.cpp.s
 Record/RecordPs.cpp.s:
 	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Record/RecordPs.cpp.s
 .PHONY : Record/RecordPs.cpp.s
+
+Record/RecordReader.o: Record/RecordReader.cpp.o
+
+.PHONY : Record/RecordReader.o
+
+# target to build an object file
+Record/RecordReader.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Record/RecordReader.cpp.o
+.PHONY : Record/RecordReader.cpp.o
+
+Record/RecordReader.i: Record/RecordReader.cpp.i
+
+.PHONY : Record/RecordReader.i
+
+# target to preprocess a source file
+Record/RecordReader.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Record/RecordReader.cpp.i
+.PHONY : Record/RecordReader.cpp.i
+
+Record/RecordReader.s: Record/RecordReader.cpp.s
+
+.PHONY : Record/RecordReader.s
+
+# target to generate assembly for a file
+Record/RecordReader.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Record/RecordReader.cpp.s
+.PHONY : Record/RecordReader.cpp.s
 
 Rtcp/RtcpPacket.o: Rtcp/RtcpPacket.cpp.o
 
@@ -3932,6 +4094,33 @@ Srt/SrtServer.cpp.s:
 	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Srt/SrtServer.cpp.s
 .PHONY : Srt/SrtServer.cpp.s
 
+Webrtc/SctpAssociation.o: Webrtc/SctpAssociation.cpp.o
+
+.PHONY : Webrtc/SctpAssociation.o
+
+# target to build an object file
+Webrtc/SctpAssociation.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Webrtc/SctpAssociation.cpp.o
+.PHONY : Webrtc/SctpAssociation.cpp.o
+
+Webrtc/SctpAssociation.i: Webrtc/SctpAssociation.cpp.i
+
+.PHONY : Webrtc/SctpAssociation.i
+
+# target to preprocess a source file
+Webrtc/SctpAssociation.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Webrtc/SctpAssociation.cpp.i
+.PHONY : Webrtc/SctpAssociation.cpp.i
+
+Webrtc/SctpAssociation.s: Webrtc/SctpAssociation.cpp.s
+
+.PHONY : Webrtc/SctpAssociation.s
+
+# target to generate assembly for a file
+Webrtc/SctpAssociation.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Webrtc/SctpAssociation.cpp.s
+.PHONY : Webrtc/SctpAssociation.cpp.s
+
 Webrtc/Webrtc.o: Webrtc/Webrtc.cpp.o
 
 .PHONY : Webrtc/Webrtc.o
@@ -4403,6 +4592,9 @@ help:
 	@echo "... Api/ApiUtil.o"
 	@echo "... Api/ApiUtil.i"
 	@echo "... Api/ApiUtil.s"
+	@echo "... Api/FfmpegApi.o"
+	@echo "... Api/FfmpegApi.i"
+	@echo "... Api/FfmpegApi.s"
 	@echo "... Api/GB28181Api.o"
 	@echo "... Api/GB28181Api.i"
 	@echo "... Api/GB28181Api.s"
@@ -4469,9 +4661,9 @@ help:
 	@echo "... Common/MediaSource.o"
 	@echo "... Common/MediaSource.i"
 	@echo "... Common/MediaSource.s"
-	@echo "... Common/RecordReader.o"
-	@echo "... Common/RecordReader.i"
-	@echo "... Common/RecordReader.s"
+	@echo "... Common/RecordReaderBase.o"
+	@echo "... Common/RecordReaderBase.i"
+	@echo "... Common/RecordReaderBase.s"
 	@echo "... Common/StampAdjust.o"
 	@echo "... Common/StampAdjust.i"
 	@echo "... Common/StampAdjust.s"
@@ -4499,6 +4691,15 @@ help:
 	@echo "... Ehome5/Ehome5Server.o"
 	@echo "... Ehome5/Ehome5Server.i"
 	@echo "... Ehome5/Ehome5Server.s"
+	@echo "... Ffmpeg/TranscodeAudio.o"
+	@echo "... Ffmpeg/TranscodeAudio.i"
+	@echo "... Ffmpeg/TranscodeAudio.s"
+	@echo "... Ffmpeg/TranscodeTask.o"
+	@echo "... Ffmpeg/TranscodeTask.i"
+	@echo "... Ffmpeg/TranscodeTask.s"
+	@echo "... Ffmpeg/TranscodeVideo.o"
+	@echo "... Ffmpeg/TranscodeVideo.i"
+	@echo "... Ffmpeg/TranscodeVideo.s"
 	@echo "... Flv/FlvDemuxer.o"
 	@echo "... Flv/FlvDemuxer.i"
 	@echo "... Flv/FlvDemuxer.s"
@@ -4580,6 +4781,9 @@ help:
 	@echo "... Http/HttpUtil.o"
 	@echo "... Http/HttpUtil.i"
 	@echo "... Http/HttpUtil.s"
+	@echo "... Http/WebsocketClient.o"
+	@echo "... Http/WebsocketClient.i"
+	@echo "... Http/WebsocketClient.s"
 	@echo "... Http/WebsocketContext.o"
 	@echo "... Http/WebsocketContext.i"
 	@echo "... Http/WebsocketContext.s"
@@ -4673,6 +4877,9 @@ help:
 	@echo "... Record/RecordPs.o"
 	@echo "... Record/RecordPs.i"
 	@echo "... Record/RecordPs.s"
+	@echo "... Record/RecordReader.o"
+	@echo "... Record/RecordReader.i"
+	@echo "... Record/RecordReader.s"
 	@echo "... Rtcp/RtcpPacket.o"
 	@echo "... Rtcp/RtcpPacket.i"
 	@echo "... Rtcp/RtcpPacket.s"
@@ -4823,6 +5030,9 @@ help:
 	@echo "... Srt/SrtServer.o"
 	@echo "... Srt/SrtServer.i"
 	@echo "... Srt/SrtServer.s"
+	@echo "... Webrtc/SctpAssociation.o"
+	@echo "... Webrtc/SctpAssociation.i"
+	@echo "... Webrtc/SctpAssociation.s"
 	@echo "... Webrtc/Webrtc.o"
 	@echo "... Webrtc/Webrtc.i"
 	@echo "... Webrtc/Webrtc.s"

@@ -87,7 +87,7 @@ void MediaHook::onStreamStatus(const StreamStatusInfo& info)
             logInfo << "Hook url: " << url;
         }, "Hook", "Http", "onStreamStatus");
 
-        reportByHttp(url, "GET", value.dump());
+        reportByHttp(url, "POST", value.dump());
     }
 }
 
@@ -113,7 +113,7 @@ void MediaHook::onPublish(const PublishInfo& info, const function<void(const Pub
             logInfo << "Hook url: " << url;
         }, "Hook", "Http", "onPublish");
 
-        reportByHttp(url, "GET", value.dump(), [cb](const string& err, const nlohmann::json& res){
+        reportByHttp(url, "POST", value.dump(), [cb](const string& err, const nlohmann::json& res){
             logInfo << "on publish: " << url;
             PublishResponse rsp;
             if (!err.empty()) {
@@ -158,7 +158,7 @@ void MediaHook::onPlay(const PlayInfo& info, const function<void(const PlayRespo
             logInfo << "Hook url: " << url;
         }, "Hook", "Http", "onPlay");
 
-        reportByHttp(url, "GET", value.dump(), [cb](const string& err, const nlohmann::json& res){
+        reportByHttp(url, "POST", value.dump(), [cb](const string& err, const nlohmann::json& res){
             PlayResponse rsp;
             if (!err.empty()) {
                 rsp.authResult = false;
@@ -204,7 +204,7 @@ void MediaHook::onPlayer(const PlayerInfo& info)
             logInfo << "Hook url: " << url;
         }, "Hook", "Http", "onPlayer");
 
-        reportByHttp(url, "GET", value.dump(), [](const string& err, const nlohmann::json& res){
+        reportByHttp(url, "POST", value.dump(), [](const string& err, const nlohmann::json& res){
             
         });
     }
@@ -225,6 +225,6 @@ void MediaHook::onNonePlayer(const string& protocol, const string& uri,
             logInfo << "Hook url: " << url;
         }, "Hook", "Http", "onNonePlayer");
 
-        reportByHttp(url, "GET", value.dump());
+        reportByHttp(url, "POST", value.dump());
     }
 }

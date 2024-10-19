@@ -425,6 +425,7 @@ void MediaSource::pullStreamFromOrigin(const string& uri, const string& vhost, c
 
     _player->setOnClose([uri](){
         MediaClient::delMediaClient(uri);
+        _player = nullptr;
     });
 
     // TODO 

@@ -74,6 +74,7 @@ ssize_t JT1078Connection::send(Buffer::Ptr pkt)
 
 void JT1078Connection::onRtpPacket(const JT1078RtpPacket::Ptr& buffer)
 {
+    // logInfo << "simcode: " << buffer->getSimCode();
     if (!_source.lock()) {
         UrlParser parser;
         parser.path_ = "/live/" + buffer->getSimCode() + "_" + to_string(buffer->getLogicNo());
@@ -135,7 +136,7 @@ void JT1078Connection::onRtpPacket(const JT1078RtpPacket::Ptr& buffer)
     } else {
         return ;
     }
-    logInfo << "codec: " << buffer->getCodecType() << ", index: " << index;
+    // logInfo << "codec: " << buffer->getCodecType() << ", index: " << index;
     auto iter = _mapTrack.find(index);
     if (iter == _mapTrack.end()) {
         auto track = make_shared<JT1078DecodeTrack>(index);

@@ -51,7 +51,7 @@ string JT1078RtpPacket::getCodecType()
         _codec = "g711u";
         break;
     case 19:
-        _codec = "adpcm";
+        _codec = "aac";
         break;
     case 98:
         _codec = "h264";
@@ -60,6 +60,7 @@ string JT1078RtpPacket::getCodecType()
         _codec = "h265";
         break;
     default:
+        logInfo << "invalid payload type: " << (int)_header->pt;
         break;
     }
 
