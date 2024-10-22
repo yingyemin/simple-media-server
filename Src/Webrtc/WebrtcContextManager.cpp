@@ -186,6 +186,7 @@ void WebrtcContextManager::delContext(const string& key)
 
 WebrtcContext::Ptr WebrtcContextManager::getContext(uint64_t hash)
 {
+    WebrtcContext::Ptr delContex;
     auto iter = _mapContextPerThread.find(hash);
     if (iter != _mapContextPerThread.end())
     {
@@ -194,18 +195,25 @@ WebrtcContext::Ptr WebrtcContextManager::getContext(uint64_t hash)
             if (context->isAlive()) {
                 return context;
             } else {
+                auto key = iter->first;
+                delContex = context;
                 _mapContextPerThread.erase(iter);
                 lock_guard<mutex> loc(_contextLck);
-                _mapAddrToContext.erase(iter->first);
+                _mapAddrToContext.erase(key);
 
-                return nullptr;
+                // return nullptr;
             }
         } else {
             _mapContextPerThread.erase(iter);
         }
     }
 
-    WebrtcContext::Ptr delContex;
+    if (delContex) {
+        lock_guard<mutex> lock(_contextLck);
+        _mapContext.erase(delContex->getUsername());
+        return nullptr;
+    }
+
     {
         lock_guard<mutex> lock(_addrToContextLck);
         auto iterAll = _mapAddrToContext.find(hash);
@@ -218,7 +226,7 @@ WebrtcContext::Ptr WebrtcContextManager::getContext(uint64_t hash)
             } else {
                 _mapAddrToContext.erase(iterAll);
                 delContex = context;
-                return nullptr;
+                // return nullptr;
             }
         }
     }
