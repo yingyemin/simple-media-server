@@ -27,6 +27,7 @@
 #include "Api/HttpStreamApi.h"
 #include "Api/RecordApi.h"
 #include "Api/TestApi.h"
+#include "Api/JT1078Api.h"
 
 #include "Rtmp/RtmpClient.h"
 #include "Rtsp/RtspClient.h"
@@ -119,6 +120,7 @@ int main(int argc, char** argv)
     HttpStreamApi::initApi();
     RecordApi::initApi();
     TestApi::initApi();
+    JT1078Api::initApi();
 
     RtspClient::init();
     RtmpClient::init();
