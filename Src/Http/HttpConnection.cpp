@@ -190,7 +190,7 @@ void HttpConnection::onHttpRequest()
                     }
                 });
             };
-        } else if (startWith(_urlParser.path_, "/api/v1")) {
+        } else if (startWith(_urlParser.path_, "/api/v1") && _parser._method != "OPTIONS") {
             HttpResponse rsp;
             rsp._status = 400;
             json value;
