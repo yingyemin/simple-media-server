@@ -30,6 +30,10 @@ string trimWithChar(string &str, const string& chars){
 
 string trim(string &str, const string& chars)
 {
+    if (str.empty()) {
+        return "";
+    }
+
     str = trimFront(str, chars);
     str = trimBack(str, chars);
     return str;
@@ -37,6 +41,9 @@ string trim(string &str, const string& chars)
 
 string trimFront(string &str, const string& chars)
 {
+    if (str.empty()) {
+        return "";
+    }
     // regex pattern("^[" + chars + "]");
     // return regex_replace(str, pattern, "");
 
@@ -48,6 +55,9 @@ string trimFront(string &str, const string& chars)
 }
 string trimBack(string &str, const string& chars)
 {
+    if (str.empty()) {
+        return "";
+    }
     // regex pattern("[" + chars + "]$");
     // return regex_replace(str, pattern, "");
 

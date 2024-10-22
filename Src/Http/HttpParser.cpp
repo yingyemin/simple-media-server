@@ -129,6 +129,7 @@ void HttpParser::parse(const char *data, size_t len)
 
             transform(key.begin(), key.end(), key.begin(), ::tolower);
             
+            logInfo << "value is: " << value;
             auto res = trim(value, " ");
             _mapHeaders[key] = res;
             if (key == "content-length") {
@@ -138,6 +139,8 @@ void HttpParser::parse(const char *data, size_t len)
             // logInfo << "_stage == 3";
             // handle content
             int leftSize = len - (data - start);
+            // logInfo << "leftSize: " << leftSize;
+            // logInfo << "_contentLen: " << _contentLen;
             if (_contentLen == -1 || leftSize < _contentLen) {
                 // logInfo << "on http body";
                 onHttpBody(data, leftSize);

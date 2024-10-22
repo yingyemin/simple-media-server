@@ -33,7 +33,7 @@ void HttpClientApi::onConnect()
 }
 
 void HttpClientApi::onRecvContent(const char *data, uint64_t len) {
-    if (len == 0) {
+    if (len == 0 && _parser._contentLen == 0) {
         HttpClient::close();
         onHttpResponce();
     }else if (_parser._contentLen == len) {

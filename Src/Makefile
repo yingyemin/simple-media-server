@@ -260,6 +260,33 @@ Api/HttpStreamApi.cpp.s:
 	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Api/HttpStreamApi.cpp.s
 .PHONY : Api/HttpStreamApi.cpp.s
 
+Api/JT1078Api.o: Api/JT1078Api.cpp.o
+
+.PHONY : Api/JT1078Api.o
+
+# target to build an object file
+Api/JT1078Api.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Api/JT1078Api.cpp.o
+.PHONY : Api/JT1078Api.cpp.o
+
+Api/JT1078Api.i: Api/JT1078Api.cpp.i
+
+.PHONY : Api/JT1078Api.i
+
+# target to preprocess a source file
+Api/JT1078Api.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Api/JT1078Api.cpp.i
+.PHONY : Api/JT1078Api.cpp.i
+
+Api/JT1078Api.s: Api/JT1078Api.cpp.s
+
+.PHONY : Api/JT1078Api.s
+
+# target to generate assembly for a file
+Api/JT1078Api.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/Api/JT1078Api.cpp.s
+.PHONY : Api/JT1078Api.cpp.s
+
 Api/RecordApi.o: Api/RecordApi.cpp.o
 
 .PHONY : Api/RecordApi.o
@@ -4604,6 +4631,9 @@ help:
 	@echo "... Api/HttpStreamApi.o"
 	@echo "... Api/HttpStreamApi.i"
 	@echo "... Api/HttpStreamApi.s"
+	@echo "... Api/JT1078Api.o"
+	@echo "... Api/JT1078Api.i"
+	@echo "... Api/JT1078Api.s"
 	@echo "... Api/RecordApi.o"
 	@echo "... Api/RecordApi.i"
 	@echo "... Api/RecordApi.s"

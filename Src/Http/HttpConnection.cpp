@@ -190,6 +190,13 @@ void HttpConnection::onHttpRequest()
                     }
                 });
             };
+        } else if (startWith(_urlParser.path_, "/api/v1")) {
+            HttpResponse rsp;
+            rsp._status = 400;
+            json value;
+            value["msg"] = "unsupport api: " + _urlParser.path_;
+            rsp.setContent(value.dump());
+            writeHttpResponse(rsp);
         } else {
             auto method = _parser._method;
             static unordered_map<string, void (HttpConnection::*)()> httpHandle {

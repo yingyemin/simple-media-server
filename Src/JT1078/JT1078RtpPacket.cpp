@@ -60,7 +60,7 @@ string JT1078RtpPacket::getCodecType()
         _codec = "h265";
         break;
     default:
-        logInfo << "invalid payload type: " << (int)_header->pt;
+        // logInfo << "invalid payload type: " << (int)_header->pt;
         break;
     }
 

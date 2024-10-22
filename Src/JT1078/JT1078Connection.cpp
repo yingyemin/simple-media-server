@@ -12,6 +12,9 @@
 
 using namespace std;
 
+mutex JT1078Connection::_lck;
+unordered_map<string, JT1078Info> JT1078Connection::_mapJt1078Info;
+
 JT1078Connection::JT1078Connection(const EventLoop::Ptr& loop, const Socket::Ptr& socket)
     :TcpConnection(loop, socket)
     ,_loop(loop)
@@ -28,6 +31,10 @@ JT1078Connection::~JT1078Connection()
         jtSrc->release();
         jtSrc->delConnection(this);
     }
+
+    // if (!_key.empty()) {
+    //     delJt1078Info(_key);
+    // }
 }
 
 void JT1078Connection::init()
@@ -77,7 +84,20 @@ void JT1078Connection::onRtpPacket(const JT1078RtpPacket::Ptr& buffer)
     // logInfo << "simcode: " << buffer->getSimCode();
     if (!_source.lock()) {
         UrlParser parser;
-        parser.path_ = "/live/" + buffer->getSimCode() + "_" + to_string(buffer->getLogicNo());
+        if (_path.empty()) {
+            string key = buffer->getSimCode() + "_" + to_string(buffer->getLogicNo())
+                        + "_" + to_string(_socket->getLocalPort());
+            auto info = getJt1078Info(key);
+            if (!info.streamName.empty()) {
+                // _key = key;
+                parser.path_ = "/" + info.appName + "/" + info.streamName;
+                delJt1078Info(key);
+            } else {
+                parser.path_ = "/live/" + buffer->getSimCode() + "_" + to_string(buffer->getLogicNo());
+            }
+        } else {
+            parser.path_ = _path;
+        }
         parser.vhost_ = DEFAULT_VHOST;
         parser.protocol_ = PROTOCOL_JT1078;
         parser.type_ = DEFAULT_TYPE;
@@ -149,3 +169,30 @@ void JT1078Connection::onRtpPacket(const JT1078RtpPacket::Ptr& buffer)
 
     _mapTrack[index]->onRtpPacket(buffer);
 }
+
+void JT1078Connection::addJt1078Info(const string& key, const JT1078Info& info)
+{
+    logInfo << "add info, key: " << key;
+    lock_guard<mutex> lck(_lck);
+    _mapJt1078Info.emplace(key, info);
+}
+
+JT1078Info JT1078Connection::getJt1078Info(const string& key)
+{
+    logInfo << "get info, key: " << key;
+    lock_guard<mutex> lck(_lck);
+    JT1078Info info;
+    if (_mapJt1078Info.find(key) == _mapJt1078Info.end()) {
+        return info;
+    }
+
+    return _mapJt1078Info[key];
+}
+
+void JT1078Connection::delJt1078Info(const string& key)
+{
+    logInfo << "del info, key: " << key;
+    lock_guard<mutex> lck(_lck);
+    _mapJt1078Info.erase(key);
+}
+

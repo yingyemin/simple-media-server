@@ -152,6 +152,9 @@ int Fmp4Muxer::inputFrame_l(int trackIndex, const void* data, size_t bytes, int6
 	sample->dts = dts;
 	sample->offset = _mdatSize;
 
+	cout << "add track sample: " << _mapTrackInfo[trackIndex] << endl;
+	cout << "track->sample_count: " << track->sample_count + 1 << endl;
+	cout << "track->sample size: " << track->samples.size() << endl;
 	sample->data = malloc(bytes);
 	if (NULL == sample->data)
 		return -ENOMEM;
@@ -795,6 +798,7 @@ int Fmp4Muxer::fmp4_write_fragment()
 		if (_flags & MOV_FLAG_SEGMENT)
 			writeMdatSize(_moofOffset - 52 * (uint64_t)(_trackCount - i) + 40, (0 << 31) | (refsize & 0x7fffffff));
 
+		cout << "_track->offset = 0" << endl;
 		_track->offset = 0; // reset
 	}
 
@@ -820,8 +824,9 @@ int Fmp4Muxer::fmp4_write_fragment()
 			_track = _tracks[i];
 			while (_track->offset < _track->sample_count && n == _track->samples[_track->offset]->offset)
             {
-				// logTrace << "_track->offset: " << _track->offset;
-				// logTrace << "_track->sample_count: " << _track->sample_count;
+				cout << "_track i: " << i << endl;
+				cout << "_track->offset: " << _track->offset << endl;
+				cout << "_track->sample_count: " << _track->sample_count << endl;
                 write((char*)_track->samples[_track->offset]->data, _track->samples[_track->offset]->bytes);
                 free(_track->samples[_track->offset]->data); // free av packet memory
                 n += _track->samples[_track->offset]->bytes;
@@ -835,7 +840,7 @@ int Fmp4Muxer::fmp4_write_fragment()
 	{
 		_tracks[i]->sample_count = 0;
 		_tracks[i]->offset = 0;
-		_track->samples.clear();
+		_tracks[i]->samples.clear();
 	}
 	_mdatSize = 0;
 
