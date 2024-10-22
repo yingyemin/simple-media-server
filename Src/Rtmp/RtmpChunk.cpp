@@ -189,7 +189,7 @@ int RtmpChunk::parseChunkHeader(uint8_t* buf, uint32_t size, uint32_t &bytesUsed
 	}
 
 	if (!msg.payload) {
-		logInfo << "create a buffer: " << msg.length;
+		// logInfo << "create a buffer: " << msg.length;
 		msg.payload = make_shared<StreamBuffer>(msg.length + 1);
 	}
 
@@ -234,10 +234,10 @@ int RtmpChunk::parseChunkBody(uint8_t* buf, uint32_t size, uint32_t &bytesUsed)
 		chunkSize = _inChunkSize;
 	}
 
-	logInfo << "size: " << size;
-	logInfo << "chunkSize: " << chunkSize;
-	logInfo << "bodyBytesUsed: " << bodyBytesUsed;
-	logInfo << "msg.index: " << msg.index;
+	// logInfo << "size: " << size;
+	// logInfo << "chunkSize: " << chunkSize;
+	// logInfo << "bodyBytesUsed: " << bodyBytesUsed;
+	// logInfo << "msg.index: " << msg.index;
 	if (size < (chunkSize + bodyBytesUsed)) {
 		return 0;
 	}

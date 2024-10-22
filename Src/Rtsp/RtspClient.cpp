@@ -334,7 +334,7 @@ void RtspClient::sendSetup()
             MediaSource::Ptr source;
             _sdpParser.parse(_parser._content);
 
-            if (_sdpParser._vecSdpMedia.size() == 1) {
+            while (_sdpParser._vecSdpMedia.size() == 1) {
                 auto iter = _sdpParser._vecSdpMedia.begin();
                 if (toLower((*iter)->codec_) == "mp2p") {
                     _localUrlParser.type_ = "ps";
@@ -343,6 +343,8 @@ void RtspClient::sendSetup()
                                 , [this](){
                                     return make_shared<RtspPsMediaSource>(_localUrlParser, _loop);
                                 });
+                } else {
+                    break;
                 }
 
                 if (!source) {

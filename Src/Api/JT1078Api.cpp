@@ -26,14 +26,33 @@ void JT1078Api::create(const HttpParser& parser, const UrlParser& urlParser,
     JT1078Info info;
     info.appName = parser._body["appName"];
     info.streamName = parser._body["streamName"];
-    JT1078Connection::addJt1078Info(key, info);
+    bool res = JT1078Connection::addJt1078Info(key, info);
 
     HttpResponse rsp;
     rsp._status = 200;
     json value;
 
-    value["code"] = "200";
-    value["msg"] = "success";
+    if (res) {
+        static int createKeyTimeout = Config::instance()->getAndListen([](const json& config){
+            createKeyTimeout = Config::instance()->get("JT1078", "Server", "Server1", "createKeyTimeout");
+            logInfo << "createKeyTimeout: " << createKeyTimeout;
+        }, "JT1078", "Server", "Server1", "createKeyTimeout");
+
+        if (createKeyTimeout == 0) {
+            createKeyTimeout = 15;
+        }
+
+        auto loop = EventLoop::getCurrentLoop();
+        loop->addTimerTask(createKeyTimeout * 1000, [key](){
+            JT1078Connection::delJt1078Info(key);
+            return 0;
+        }, nullptr);
+        value["code"] = "200";
+        value["msg"] = "success";
+    } else {
+        value["code"] = "400";
+        value["msg"] = "add jt1078 info failed";
+    }
     rsp.setContent(value.dump());
     rspFunc(rsp);
 }

@@ -170,11 +170,13 @@ void JT1078Connection::onRtpPacket(const JT1078RtpPacket::Ptr& buffer)
     _mapTrack[index]->onRtpPacket(buffer);
 }
 
-void JT1078Connection::addJt1078Info(const string& key, const JT1078Info& info)
+bool JT1078Connection::addJt1078Info(const string& key, const JT1078Info& info)
 {
     logInfo << "add info, key: " << key;
     lock_guard<mutex> lck(_lck);
-    _mapJt1078Info.emplace(key, info);
+    auto res = _mapJt1078Info.emplace(key, info);
+
+    return res.second;
 }
 
 JT1078Info JT1078Connection::getJt1078Info(const string& key)

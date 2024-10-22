@@ -43,7 +43,7 @@ public:
     void setPath(const string& path) {_path = path;}
     void onRtpPacket(const JT1078RtpPacket::Ptr& buffer);
 
-    static void addJt1078Info(const string& key, const JT1078Info& info);
+    static bool addJt1078Info(const string& key, const JT1078Info& info);
     static JT1078Info getJt1078Info(const string& key);
     static void delJt1078Info(const string& key);
 

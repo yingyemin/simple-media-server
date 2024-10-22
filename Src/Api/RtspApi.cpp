@@ -69,7 +69,19 @@ void RtspApi::startRtspPlay(const HttpParser& parser, const UrlParser& urlParser
 void RtspApi::stopRtspPlay(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc)
 {
-    
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    checkArgs(parser._body, {"appName", "streamName"});
+
+    string key = "/" + parser._body["appName"].get<string>() + "/" + parser._body["streamName"].get<string>();
+    MediaClient::delMediaClient(key);
+
+    value["code"] = "200";
+    value["msg"] = "success";
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
 }
 
 void RtspApi::listRtspPlayInfo(const HttpParser& parser, const UrlParser& urlParser, 
@@ -118,7 +130,19 @@ void RtspApi::startRtspPublish(const HttpParser& parser, const UrlParser& urlPar
 void RtspApi::stopRtspPublish(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc)
 {
-    
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    checkArgs(parser._body, {"url"});
+
+    string key = parser._body["url"];
+    MediaClient::delMediaClient(key);
+
+    value["code"] = "200";
+    value["msg"] = "success";
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
 }
 
 void RtspApi::listRtspPublishInfo(const HttpParser& parser, const UrlParser& urlParser, 
