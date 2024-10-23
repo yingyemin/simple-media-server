@@ -160,6 +160,9 @@ void HttpApi::getSourceList(const HttpParser& parser, const UrlParser& urlParser
     auto totalSource = MediaSource::getAllSource();
     for (auto& iter : totalSource) {
         auto source = iter.second;
+        if (!source) {
+            continue;
+        }
         json item;
         item["path"] = source->getPath();
         item["type"] = source->getType();

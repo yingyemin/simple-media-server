@@ -141,6 +141,9 @@ int Fmp4Muxer::inputFrame_l(int trackIndex, const void* data, size_t bytes, int6
 	pts = pts * track->mdhd.timescale / 1000;
 	dts = dts * track->mdhd.timescale / 1000;
 
+	logInfo << "pts ============= " << pts;
+	logInfo << "dts ============= " << dts;
+
     auto samplePtr = make_shared<mov_sample_t>();
     track->samples.push_back(samplePtr);
 

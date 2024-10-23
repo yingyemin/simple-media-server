@@ -54,6 +54,10 @@ MediaSource::Ptr MediaSource::get(const string& uri, const string& vhost)
     }
     lock_guard<recursive_mutex> lck(_mtxTotalSource);
     string key = uri + "_" + vhost;
+    if (_totalSource.find(key) == _totalSource.end())
+    {
+        return nullptr;
+    }
     return _totalSource[key];
 }
 
