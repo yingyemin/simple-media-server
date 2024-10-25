@@ -44,6 +44,7 @@ private:
 
 private:
     bool _startEncode = false;
+    bool _sendMetaFrame = false;
     int _lastVideoId = 0xE0;
     int _lastAudioId = 0xC0;
     int _audioCodec = 0;

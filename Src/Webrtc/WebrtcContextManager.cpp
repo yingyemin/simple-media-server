@@ -81,7 +81,9 @@ void WebrtcContextManager::onDtlsPacket(const Socket::Ptr& socket, const StreamB
 	auto context = getContext(hash);
 	if (context) {
         if (socket->getLoop() != context->getLoop()) {
-            context->changeLoop(socket->getLoop());
+            logInfo << "changeLoop ========= ";
+            // context->changeLoop(socket->getLoop());
+            return ;
         }
 
 		context->onDtlsPacket(socket, buffer, addr, len);
@@ -95,6 +97,10 @@ void WebrtcContextManager::onRtcpPacket(const Socket::Ptr& socket, const StreamB
     
 	auto context = getContext(hash);
 	if (context) {
+        if (socket->getLoop() != context->getLoop()) {
+            logInfo << "changeLoop ========= ";
+            return ;
+        }
 		context->onRtcpPacket(socket, buffer, addr, len);
     }
 }
@@ -112,6 +118,10 @@ void WebrtcContextManager::onStunPacket(const Socket::Ptr& socket, const StreamB
 	auto context = getContext(username);
 
 	if (context) {
+        if (context->getLoop() && socket->getLoop() != context->getLoop()) {
+            logInfo << "changeLoop ========= ";
+            return ;
+        }
         context->onStunPacket(socket, stunReq, addr, len);
 
 		uint64_t hash = sockAddrHash((struct sockaddr_in*)addr);
@@ -130,6 +140,10 @@ void WebrtcContextManager::onRtpPacket(const Socket::Ptr& socket, const RtpPacke
     uint64_t hash = sockAddrHash((struct sockaddr_in*)addr);
     auto context = getContext(hash);
 	if (context) {
+        if (socket->getLoop() != context->getLoop()) {
+            logInfo << "changeLoop ========= ";
+            return ;
+        }
 		context->onRtpPacket(socket, rtp, addr, len);
     }
 }
@@ -182,6 +196,14 @@ void WebrtcContextManager::delContext(const string& key)
 
     lock_guard<mutex> lock(_contextLck);
     _mapContext.erase(key);
+}
+
+void WebrtcContextManager::delContext(uint64_t hash)
+{
+    logDebug << "del context: " << hash;
+
+    lock_guard<mutex> loc(_contextLck);
+    _mapAddrToContext.erase(hash);
 }
 
 WebrtcContext::Ptr WebrtcContextManager::getContext(uint64_t hash)

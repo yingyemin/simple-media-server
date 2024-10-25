@@ -102,6 +102,13 @@ void GB28181Client::start()
 
         return 0;
     });
+
+    _socket->setErrorCb([wSelf](){
+        auto self = wSelf.lock();
+        if (self) {
+            self->stop();
+        }
+    });
 }
 
 void GB28181Client::stop()

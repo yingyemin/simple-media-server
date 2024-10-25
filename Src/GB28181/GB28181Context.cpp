@@ -150,10 +150,14 @@ void GB28181Context::onRtpPacket(const RtpPacket::Ptr& rtp, struct sockaddr* add
     } else {
         if (rtp->getHeader()->pt == 104 || rtp->getHeader()->pt == 8 || rtp->getHeader()->pt == 0) {
             rtp->trackIndex_ = AudioTrackType;
-            _audioTrack->onRtpPacket(rtp);
+            if (_audioTrack) {
+                _audioTrack->onRtpPacket(rtp);
+            }
         } else if (rtp->getHeader()->pt == 96) {
             rtp->trackIndex_ = VideoTrackType;
-            _videoTrack->onRtpPacket(rtp);
+            if (_videoTrack) {
+                _videoTrack->onRtpPacket(rtp);
+            }
         }
     }
 

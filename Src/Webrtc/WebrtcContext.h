@@ -70,6 +70,7 @@ private:
     bool _alive = true;
     bool _isPlayer = true;
     bool _rtcpPliTimerCreated = false;
+    bool _hasInitSrtp = false;
     int _videoFirst = 0;
     uint64_t _lastRecvTime;
 

@@ -22,6 +22,7 @@ GB28181EncodeTrack::GB28181EncodeTrack(int trackIndex)
     _trackInfo->index_ = 0;
     _trackInfo->samplerate_ = 90000;
     _trackInfo->ssrc_ = _trackInfo->index_;
+    _trackInfo->payloadType_ = 96;
 }
 
 void GB28181EncodeTrack::startEncode()

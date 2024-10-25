@@ -58,7 +58,7 @@ GB28181ConnectionSend::~GB28181ConnectionSend()
 
 void GB28181ConnectionSend::init()
 {
-    weak_ptr<GB28181ConnectionSend> wSelf = static_pointer_cast<GB28181ConnectionSend>(shared_from_this());
+    weak_ptr<GB28181ConnectionSend> wSelf = dynamic_pointer_cast<GB28181ConnectionSend>(shared_from_this());
     // get source
     string uri = "/" + _app + "/" + _stream;
     MediaSource::getOrCreateAsync(uri, DEFAULT_VHOST, PROTOCOL_GB28181, to_string(_ssrc), 
@@ -127,7 +127,7 @@ void GB28181ConnectionSend::initReader()
             close();
             return ;
         }
-        weak_ptr<GB28181ConnectionSend> wSelf = static_pointer_cast<GB28181ConnectionSend>(shared_from_this());
+        weak_ptr<GB28181ConnectionSend> wSelf = dynamic_pointer_cast<GB28181ConnectionSend>(shared_from_this());
         _playReader = gbSrc->getRing()->attach(_socket->getLoop(), true);
         _playReader->setGetInfoCB([wSelf]() {
             auto self = wSelf.lock();
@@ -145,7 +145,7 @@ void GB28181ConnectionSend::initReader()
             if (!strong_self) {
                 return;
             }
-            // strong_self->shutdown(SockException(Err_shutdown, "rtsp ring buffer detached"));
+            // // strong_self->shutdown(SockException(Err_shutdown, "rtsp ring buffer detached"));
             strong_self->close();
         });
         logInfo << "setReadCB =================";

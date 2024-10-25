@@ -35,7 +35,7 @@ WebrtcContext::WebrtcContext()
 
 WebrtcContext::~WebrtcContext()
 {
-    WebrtcContextManager::instance()->delContext(_username);
+    // WebrtcContextManager::instance()->delContext(_username);
     auto rtcSrc = _source.lock();
     
     if (!_isPlayer && rtcSrc) {
@@ -179,11 +179,15 @@ void WebrtcContext::initPublisher(const string& appName, const string& streamNam
             std::string recv_key, send_key;
             if (0 != self->_dtlsSession->getSrtpKey(recv_key, send_key)) {
                 logError << "dtls get srtp key failed";
+            throw runtime_error("dtls get srtp key failed");
             }
 
             if (!self->_srtpSession->init(recv_key, send_key)) {
                 logError << "srtp session init failed";
+            throw runtime_error("srtp session init failed");
             }
+
+            self->_hasInitSrtp = true;
         }
     });
 }
@@ -650,6 +654,9 @@ void WebrtcContext::sendRtcpPli(int ssrc)
 
 void WebrtcContext::onRtpPacket(const Socket::Ptr& socket, const RtpPacket::Ptr& rtp, struct sockaddr* addr, int len)
 {
+    if (!_srtpSession || !_hasInitSrtp) {
+        return ;
+    }
     // logInfo << "get a rtp packet: " << rtp->size();
     _lastPktClock.update();
 
@@ -889,6 +896,10 @@ void WebrtcContext::onDtlsPacket(const Socket::Ptr& socket, const StreamBuffer::
 
 void WebrtcContext::onRtcpPacket(const Socket::Ptr& socket, const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)
 {
+    if (!_srtpSession || !_hasInitSrtp) {
+        logInfo << "_srtpSession is empty";
+        return ;
+    }
     _lastPktClock.update();
 
     // logInfo << "WebrtcContext::onRtcpPacket =============== " << buffer->size();
@@ -1083,16 +1094,21 @@ void WebrtcContext::startPlay()
         });
     }
 
+    logInfo << "start init _srtpSession";
     if (_enbaleSrtp && !_srtpSession) {
 		_srtpSession.reset(new SrtpSession());
 		std::string recv_key, send_key;
 		if (0 != _dtlsSession->getSrtpKey(recv_key, send_key)) {
-			cerr << "dtls get srtp key failed";
+			logError << "dtls get srtp key failed";
+            throw runtime_error("dtls get srtp key failed");
 		}
 
         if (!_srtpSession->init(recv_key, send_key)) {
-            cerr << "srtp session init failed";
+            logError << "srtp session init failed";
+            throw runtime_error("srtp session init failed");
         }
+
+        _hasInitSrtp = true;
 	}
 
     _urlParser.path_ = _path;
@@ -1147,7 +1163,7 @@ void WebrtcContext::startPlay(const MediaSource::Ptr &src)
 
     if (!_playReader/* && _rtp_type != Rtsp::RTP_MULTICAST*/) {
         logInfo << "start play attach ring";
-        weak_ptr<WebrtcContext> weak_self = static_pointer_cast<WebrtcContext>(shared_from_this());
+        weak_ptr<WebrtcContext> weak_self = shared_from_this();
         _playReader = rtcSrc->getRing()->attach(_loop, true);
         _playReader->setGetInfoCB([weak_self]() {
             auto self = weak_self.lock();
@@ -1207,6 +1223,11 @@ void WebrtcContext::close()
 {
     logInfo << "close webrtc context";
     _alive = false;
+    if (_addr) {
+        auto hash = ntohl(((sockaddr_in*)_addr)->sin_addr.s_addr) << 32 + ntohs(((sockaddr_in*)_addr)->sin_port);
+        WebrtcContextManager::instance()->delContext(hash);
+    }
+    WebrtcContextManager::instance()->delContext(_username);
 }
 
 string WebrtcContext::getLocalSdp() 
@@ -1220,6 +1241,10 @@ string WebrtcContext::getLocalSdp()
 
 void WebrtcContext::sendRtpPacket(const WebrtcMediaSource::DataType &pack)
 {
+    if (!_srtpSession || !_hasInitSrtp) {
+        logInfo << "_srtpSession is empty";
+        return ;
+    }
     int i = 0;
     int len = pack->size() - 1;
     auto pktlist = *(pack.get());

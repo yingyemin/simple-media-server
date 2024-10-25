@@ -4,6 +4,8 @@
 #include "Common/Track.h"
 #include "Common/Frame.h"
 #include "Net/Buffer.h"
+#include "Codec/H264Track.h"
+#include "Codec/H265Track.h"
 #include "PsMuxer.h"
 #include "Log/Logger.h"
 #include "Mpeg.h"
@@ -22,6 +24,28 @@ void PsMuxer::onFrame(const FrameBuffer::Ptr& frame)
 {
     if (!_startEncode) {
         return ;
+    }
+
+    if (frame->metaFrame()) {
+        _sendMetaFrame = true;
+    }
+
+    if (frame->keyFrame()) {
+        if (!_sendMetaFrame) {
+            auto track = _mapTrackInfo[frame->getTrackIndex()];
+            if (track->codec_ == "h264") {
+                auto h264Track = dynamic_pointer_cast<H264Track>(track);
+                encode(h264Track->_sps);
+                encode(h264Track->_pps);
+            } else if (track->codec_ == "h265") {
+                auto h265Track = dynamic_pointer_cast<H265Track>(track);
+                encode(h265Track->_vps);
+                encode(h265Track->_sps);
+                encode(h265Track->_pps);
+            }
+        } else {
+            _sendMetaFrame = false;
+        }
     }
     
     // _mapStampAdjust[frame->_index]->inputStamp(frame->_pts, frame->_dts, 1);
@@ -73,6 +97,9 @@ void PsMuxer::addTrackInfo(const shared_ptr<TrackInfo>& trackInfo)
  
 int PsMuxer::encode(const FrameBuffer::Ptr& frame)
 {
+    if (!frame) {
+        return 0;
+    }
     _psFrame = make_shared<FrameBuffer>();
     // _psFrame->_buffer.resize(256);
 

@@ -30,6 +30,7 @@ public:
     void addContext(const string& key, const WebrtcContext::Ptr& context);
     WebrtcContext::Ptr getContext(const string& key);
     void delContext(const string& key);
+    void delContext(uint64_t hash);
     WebrtcContext::Ptr getContext(uint64_t hash);
 
 private:

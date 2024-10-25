@@ -92,7 +92,7 @@ int Fmp4Muxer::inputFrame(int trackIndex, const void* data, size_t bytes, int64_
 int Fmp4Muxer::inputFrame_l(int trackIndex, const void* data, size_t bytes, int64_t pts, int64_t dts, int flags, int add_nalu_size)
 {
 	// logTrace << "Fmp4Muxer::inputFrame_l ============= ";
-	if (flags || _timeClock.startToNow() > 50) {
+	if (true || flags || _timeClock.startToNow() > 50) {
 		fmp4_writer_save_segment();
 		_timeClock.update();
 		if (_onFmp4Segment) {
@@ -138,8 +138,19 @@ int Fmp4Muxer::inputFrame_l(int trackIndex, const void* data, size_t bytes, int6
 	// 	track->sample_offset += 1024;
 	// }
 
-	pts = pts * track->mdhd.timescale / 1000;
-	dts = dts * track->mdhd.timescale / 1000;
+	static int64_t firstDts = -1;
+	static int64_t firstPts = -1;
+
+	if (firstDts == -1) {
+		firstDts = dts;
+	}
+
+	if (firstPts == -1) {
+		firstPts = pts;
+	}
+
+	pts = (pts - firstPts) * track->mdhd.timescale / 1000;
+	dts = (dts - firstDts) * track->mdhd.timescale / 1000;
 
 	logInfo << "pts ============= " << pts;
 	logInfo << "dts ============= " << dts;
@@ -256,11 +267,14 @@ void Fmp4Muxer::addVideoTrack(const shared_ptr<TrackInfo>& trackInfo)
     auto video = track->stsd.current = make_shared<mov_sample_entry_t>();
     track->stsd.entries.push_back(video);
 
+	int width, height, fps;
+	trackInfo->getWidthAndHeight(width, height, fps);
+
     video->data_reference_index = 1;
     video->object_type_indication = getVideoObject(trackInfo->codec_);;
     video->stream_type = MP4_STREAM_VISUAL;
-    video->u.visual.width = trackInfo->_width;
-    video->u.visual.height = trackInfo->_height;
+    video->u.visual.width = width;
+    video->u.visual.height = height;
     video->u.visual.depth = 0x0018;
     video->u.visual.frame_count = 1;
     video->u.visual.horizresolution = 0x00480000;
@@ -276,8 +290,8 @@ void Fmp4Muxer::addVideoTrack(const shared_ptr<TrackInfo>& trackInfo)
     track->tkhd.track_ID = _mvhd.next_track_ID;
     track->tkhd.creation_time = _mvhd.creation_time;
     track->tkhd.modification_time = _mvhd.modification_time;
-    track->tkhd.width = trackInfo->_width << 16;
-    track->tkhd.height = trackInfo->_height << 16;
+    track->tkhd.width = width << 16;
+    track->tkhd.height = height << 16;
     track->tkhd.volume = 0;
     track->tkhd.duration = 0; // placeholder
 
@@ -450,6 +464,7 @@ size_t Fmp4Muxer::mov_write_trun(uint32_t from, uint32_t count, uint32_t moof)
 		if (flags & MOV_TRUN_FLAG_SAMPLE_DURATION_PRESENT)
 		{
             delta = (uint32_t)(i + 1 < track->sample_count ? track->samples[i + 1]->dts - track->samples[i]->dts : track->turn_last_duration);
+			logInfo << "delta: " << delta;
 			write32BE(delta); /* sample_duration */
 			size += 4;
 		}
@@ -532,6 +547,8 @@ size_t Fmp4Muxer::mov_write_tfdt()
 
     baseMediaDecodeTime = _track->samples[0]->dts - _track->start_dts;
     version = baseMediaDecodeTime > INT32_MAX ? 1 : 0;
+
+	logInfo << "baseMediaDecodeTime: " << baseMediaDecodeTime;
 
     write32BE(0 == version ? 16 : 20); /* size */
     write("tfdt", 4);
@@ -633,8 +650,8 @@ size_t Fmp4Muxer::fmp4_write_sidx()
 
 size_t Fmp4Muxer::mov_write_sidx(uint64_t offset)
 {
-    uint32_t duration;
-    uint64_t earliest_presentation_time;
+    uint32_t duration = 0;
+    uint64_t earliest_presentation_time = 0;
     const struct mov_track_t* track = _track.get();
 
     if (track->sample_count > 0)
@@ -647,6 +664,9 @@ size_t Fmp4Muxer::mov_write_sidx(uint64_t offset)
         duration = 0;
         earliest_presentation_time = 0;
     }
+
+	logInfo << "earliest_presentation_time == " << earliest_presentation_time;
+	logInfo << "duration == " << duration;
 
     write32BE(52); /* size */
     write("sidx", 4);
@@ -714,6 +734,7 @@ size_t Fmp4Muxer::mov_write_tfra()
 
 	for (i = 0; i < track->frag_count; i++)
 	{
+		logInfo << "track->frags[i]->time: " << track->frags[i]->time;
 		write64BE(track->frags[i]->time);
 		write64BE(track->frags[i]->offset); /* moof_offset */
 		write8BE(1); /* traf number */
@@ -955,8 +976,10 @@ int Fmp4Muxer::fmp4_writer_save_segment()
 	if (0 == (_flags & MOV_FLAG_SEGMENT))
 	{
 		fmp4_write_mfra();
-		for (i = 0; i < _trackCount; i++)
+		for (i = 0; i < _trackCount; i++) {
 			_tracks[i]->frag_count = 0; // don't free frags memory
+			_tracks[i]->frags.clear();
+		}
 	}
 
 	return 0;

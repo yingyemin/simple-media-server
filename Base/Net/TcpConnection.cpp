@@ -75,13 +75,15 @@ void TcpConnection::onManager()
 void TcpConnection::close() 
 {
     logInfo << "close";
-    auto self = shared_from_this();
-    if (_loop->isCurrent()) {
-        _closeCb(self);
-    } else {
-        _loop->async([self](){
-            self->_closeCb(self);
-        }, true, true);
+    if (_closeCb) {
+        auto self = shared_from_this();
+        if (_loop->isCurrent()) {
+            _closeCb(self);
+        } else {
+            _loop->async([self](){
+                self->_closeCb(self);
+            }, true, true);
+        }
     }
 }
 

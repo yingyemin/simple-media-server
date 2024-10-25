@@ -156,7 +156,7 @@ FrameBuffer::Ptr AacADTSHeader::toFrame()
 string adtsToConfig(const char* data, int &samplerate, int& channel)
 {
 	// auto data = frame->data();
-	if (!(data[0] == 0xFF && (data[1] & 0xF0) == 0xF0)) {
+	if (!((uint8_t)data[0] == 0xFF && ((uint8_t)data[1] & 0xF0) == 0xF0)) {
         return "";
     }
 	unsigned char profile = (data[2] & 0xC0) >> 6; // 2 bits
@@ -287,6 +287,7 @@ void AacTrack::setAacInfo(int profile, int channel, int sampleRate)
 void AacTrack::setAacInfoByAdts(const char* data, int len)
 {
 	_aacConfig = adtsToConfig(data, samplerate_, channel_);
+	getSampleFromConfig(_aacConfig, samplerate_, channel_);
 }
 
 string AacTrack::getAdtsHeader(int frameSize)

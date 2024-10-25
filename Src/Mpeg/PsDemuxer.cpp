@@ -661,9 +661,11 @@ FrameBuffer::Ptr PsDemuxer::createFrame(int index)
             frame = make_shared<H265Frame>();
         }
 
+        frame->_trackType = VideoTrackType;
         _videoFrame = frame;
     } else {
         frame = make_shared<FrameBuffer>();
+        frame->_trackType = AudioTrackType;
     }
 
     return frame;

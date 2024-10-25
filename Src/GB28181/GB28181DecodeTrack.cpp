@@ -209,9 +209,9 @@ void GB28181DecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
         }
     }
     // if (frame->_index == VideoTrackType) {
-    //     FILE* fp = fopen("test3.264", "ab+");
-    //     fwrite(frame->_buffer.data(), 1, frame->_buffer.size(), fp);
-    //     fclose(fp);
+        // FILE* fp = fopen("test3.aac", "ab+");
+        // fwrite(frame->_buffer.data(), 1, frame->_buffer.size(), fp);
+        // fclose(fp);
     // }
     // logInfo << "decode a frame: " << frame->_index << ", decoder codec: " << _trackInfo->codec_;
 }

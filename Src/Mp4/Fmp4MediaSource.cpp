@@ -252,7 +252,7 @@ void Fmp4MediaSource::onFrame(const FrameBuffer::Ptr& frame)
         return ;
     }
     // logInfo << "on muxer a frame";
-    _fmp4EncodeTrack->inputFrame_l(frame->getTrackIndex(), frame->data(), frame->size(), frame->pts(), frame->dts(), frame->keyFrame(), 1);
+    _fmp4EncodeTrack->inputFrame_l(frame->getTrackIndex(), frame->data() + frame->startSize(), frame->size() - frame->startSize(), frame->pts(), frame->dts(), frame->keyFrame(), 1);
 }
 
 void Fmp4MediaSource::stopDecode()

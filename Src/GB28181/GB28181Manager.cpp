@@ -47,9 +47,10 @@ void GB28181Manager::onRtpPacket(const RtpPacket::Ptr& rtp, struct sockaddr* add
             if (context->isAlive()) {
                 context->onRtpPacket(rtp, addr, len, true);
             } else {
+                auto key = iter->first;
                 _mapContextPerThread.erase(iter);
                 lock_guard<mutex> loc(_contextLck);
-                _mapContext.erase(iter->first);
+                _mapContext.erase(key);
             }
             return ;
         } else {
