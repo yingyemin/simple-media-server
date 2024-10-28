@@ -41,7 +41,7 @@ MP4Muxer::~MP4Muxer()
 void MP4Muxer::write64BE(uint64_t value)
 {
     char strValue[8];
-    writeUint32BE(strValue, value >> 8);
+    writeUint32BE(strValue, value >> 32);
     write(strValue, 4);
     writeUint32BE(strValue, value);
     write(strValue, 4);
@@ -135,7 +135,7 @@ void MP4Muxer::addAudioTrack(const shared_ptr<TrackInfo>& trackInfo)
     audio->object_type_indication = getAudioObject(trackInfo->codec_);
     audio->stream_type = MP4_STREAM_AUDIO;
     audio->u.audio.channelcount = trackInfo->channel_;
-    audio->u.audio.samplesize = (uint16_t)trackInfo->bitPerSample_;
+    audio->u.audio.samplesize = (uint16_t)trackInfo->bitPerSample_ * (uint16_t)trackInfo->channel_;
     audio->u.audio.samplerate = (trackInfo->samplerate_ > 56635 ? 0 : trackInfo->samplerate_) << 16;
 
     track->tag = mov_object_to_tag(audio->object_type_indication);

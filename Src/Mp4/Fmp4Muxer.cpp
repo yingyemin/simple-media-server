@@ -103,6 +103,10 @@ int Fmp4Muxer::inputFrame_l(int trackIndex, const void* data, size_t bytes, int6
 		_segmentOffset = 0;
 	}
 
+	if (trackIndex == VideoTrackType) {
+		add_nalu_size = 1;
+	}
+
 	if (flags) {
 		_keyframe = true;
 	}
@@ -149,8 +153,8 @@ int Fmp4Muxer::inputFrame_l(int trackIndex, const void* data, size_t bytes, int6
 		firstPts = pts;
 	}
 
-	pts = (pts - firstPts) * track->mdhd.timescale / 1000;
-	dts = (dts - firstDts) * track->mdhd.timescale / 1000;
+	pts = pts * track->mdhd.timescale / 1000;
+	dts = dts * track->mdhd.timescale / 1000;
 
 	logInfo << "pts ============= " << pts;
 	logInfo << "dts ============= " << dts;
@@ -221,7 +225,7 @@ void Fmp4Muxer::addAudioTrack(const shared_ptr<TrackInfo>& trackInfo)
     audio->object_type_indication = getAudioObject(trackInfo->codec_);
     audio->stream_type = MP4_STREAM_AUDIO;
     audio->u.audio.channelcount = trackInfo->channel_;
-    audio->u.audio.samplesize = (uint16_t)trackInfo->bitPerSample_;
+    audio->u.audio.samplesize = (uint16_t)trackInfo->bitPerSample_ * (uint16_t)trackInfo->channel_;
     audio->u.audio.samplerate = (trackInfo->samplerate_ > 56635 ? 0 : trackInfo->samplerate_) << 16;
 
     track->tag = mov_object_to_tag(audio->object_type_indication);

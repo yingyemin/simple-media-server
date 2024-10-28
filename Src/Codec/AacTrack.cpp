@@ -287,7 +287,7 @@ void AacTrack::setAacInfo(int profile, int channel, int sampleRate)
 void AacTrack::setAacInfoByAdts(const char* data, int len)
 {
 	_aacConfig = adtsToConfig(data, samplerate_, channel_);
-	getSampleFromConfig(_aacConfig, samplerate_, channel_);
+	// getSampleFromConfig(_aacConfig, samplerate_, channel_);
 }
 
 string AacTrack::getAdtsHeader(int frameSize)
