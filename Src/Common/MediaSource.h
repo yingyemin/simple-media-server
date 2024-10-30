@@ -134,6 +134,9 @@ private:
     static MediaClient::Ptr _player;
     static unordered_map<MediaClient*, MediaClient::Ptr> _mapPusher;
 
+    static mutex _mtxRegister;
+    static unordered_map<string/*uri_vhost_protocol_type*/ , vector<onReadyFunc>> _mapRegisterEvent;
+
 private:
     bool _hasReady = false;
     Socket::Wptr _originSocket;

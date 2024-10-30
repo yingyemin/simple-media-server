@@ -9,7 +9,7 @@
 
 #include "Common/MediaSource.h"
 #include "JT1078DecodeTrack.h"
-// #include "GB28181EncodeTrack.h"
+#include "JT1078EncodeTrack.h"
 #include "Common/DataQue.h"
 
 using namespace std;
@@ -31,25 +31,30 @@ public:
     void addTrack(const shared_ptr<TrackInfo>& track) override;
     void addSink(const MediaSource::Ptr &src) override;
     void delSink(const MediaSource::Ptr &src) override;
-    // void onFrame(const FrameBuffer::Ptr& frame) override;
+    void onFrame(const FrameBuffer::Ptr& frame) override;
     void onReady() override;
     uint64_t getBytes() override { return _ring ? _ring->getBytes() : 0;}
     unordered_map<int/*index*/, JT1078DecodeTrack::Ptr> getDecodeTrack()
     {
         return _mapJT1078DecodeTrack;
     }
-    // unordered_map<int/*index*/, GB28181EncodeTrack::Ptr> getEncodeTrack()
-    // {
-    //     return _mapGB28181EncodeTrack;
-    // }
+    unordered_map<int/*index*/, JT1078EncodeTrack::Ptr> getEncodeTrack()
+    {
+        return _mapJT1078EncodeTrack;
+    }
 
     RingType::Ptr getRing() {return _ring;}
+
+    void setSimCode(const string& simCode) {_simCode = simCode;}
+    void setChannel(int channel) {_channel = channel;}
 
 private:
     bool _muxer;
     bool _probeFinish = false;
     int _ringSize = 512;
+    int _channel;
 
+    string _simCode;
     mutex _mtxSdp;
     string _sdp;
 
@@ -58,7 +63,7 @@ private:
 
     mutex _mtxTrack;
     unordered_map<int/*index*/, JT1078DecodeTrack::Ptr> _mapJT1078DecodeTrack;
-    // unordered_map<int/*index*/, GB28181EncodeTrack::Ptr> _mapGB28181EncodeTrack;
+    unordered_map<int/*index*/, JT1078EncodeTrack::Ptr> _mapJT1078EncodeTrack;
 };
 
 

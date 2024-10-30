@@ -20,6 +20,9 @@ unordered_map<string/*uri*/ , MediaSource::Ptr> MediaSource::_totalSource;
 MediaClient::Ptr MediaSource::_player;
 unordered_map<MediaClient*, MediaClient::Ptr> MediaSource::_mapPusher;
 
+mutex MediaSource::_mtxRegister;
+unordered_map<string/*uri_vhost_protocol_type*/ , vector<MediaSource::onReadyFunc>> MediaSource::_mapRegisterEvent;
+
 MediaSource::MediaSource(const UrlParser& urlParser, const EventLoop::Ptr& loop)
     :_urlParser(urlParser)
     ,_loop(loop)
@@ -154,6 +157,7 @@ void MediaSource::getOrCreateAsync(const string& uri, const string& vhost, const
     }
 
     string key = uri + "_" + vhost;
+    auto loop = EventLoop::getCurrentLoop();
     logInfo << "getOrCreateAsync find src, key: " << key;
     do {
         MediaSource::Ptr src;
@@ -161,6 +165,14 @@ void MediaSource::getOrCreateAsync(const string& uri, const string& vhost, const
             static int enableLoadFromFile = Config::instance()->getAndListen([](const json &config){
                 enableLoadFromFile = Config::instance()->get("Util", "enableLoadFromFile");
             }, "Util", "enableLoadFromFile");
+
+            static int waitStreamOnlineTimeMS = Config::instance()->getAndListen([](const json &config){
+                waitStreamOnlineTimeMS = Config::instance()->get("Util", "waitStreamOnlineTimeMS");
+            }, "Util", "waitStreamOnlineTimeMS");
+
+            if (!waitStreamOnlineTimeMS) {
+                waitStreamOnlineTimeMS = 15000;
+            }
 
             static string mode = Config::instance()->getAndListen([](const json &config){
                 mode = Config::instance()->get("Cdn", "mode");
@@ -175,7 +187,28 @@ void MediaSource::getOrCreateAsync(const string& uri, const string& vhost, const
                     pullStreamFromOrigin(uri, vhost, protocol, type, cb, create, connKey);
                     return ;
                 } else {
-                    break;
+                    string key = uri + "_" + vhost + "_" + protocol + "_" + type;
+                    {
+                        lock_guard<mutex> lckRegister(_mtxRegister);
+                        _mapRegisterEvent[key].push_back([uri, vhost, protocol, type, cb, create, connKey, loop](){
+                            loop->async([uri, vhost, protocol, type, cb, create, connKey](){
+                                MediaSource::getOrCreateAsync(uri, vhost, protocol, type, cb, create, connKey);
+                            }, true);
+                        });
+                    }
+                    loop->addTimerTask(waitStreamOnlineTimeMS, [key, cb](){
+                        {
+                            lock_guard<mutex> lckRegister(_mtxRegister);
+                            if (_mapRegisterEvent.find(key) == _mapRegisterEvent.end()) {
+                                return 0;
+                            }
+                            _mapRegisterEvent.erase(key);
+                        }
+                        cb(nullptr);
+
+                        return 0;
+                    }, nullptr);
+                    return ;
                 }
             }
             logInfo << "getOrCreateAsync find the src, key: " << key;
@@ -189,7 +222,29 @@ void MediaSource::getOrCreateAsync(const string& uri, const string& vhost, const
                     pullStreamFromOrigin(uri, vhost, protocol, type, cb, create, connKey);
                     return ;
                 } else {
-                    break;
+                    string key = uri + "_" + vhost + "_" + protocol + "_" + type;
+                    {
+                        lock_guard<mutex> lckRegister(_mtxRegister);
+                        _mapRegisterEvent[key].push_back([uri, vhost, protocol, type, cb, create, connKey, loop](){
+                            loop->async([uri, vhost, protocol, type, cb, create, connKey](){
+                                MediaSource::getOrCreateAsync(uri, vhost, protocol, type, cb, create, connKey);
+                            }, true);
+                        });
+                    }
+                    loop->addTimerTask(waitStreamOnlineTimeMS, [key, cb](){
+                        {
+                            lock_guard<mutex> lckRegister(_mtxRegister);
+                            if (_mapRegisterEvent.find(key) == _mapRegisterEvent.end()) {
+                                return 0;
+                            }
+                            _mapRegisterEvent.erase(key);
+                        }
+                        cb(nullptr);
+
+                        return 0;
+                    }, nullptr);
+
+                    return ;
                 }
             }
             // logInfo << "protocol: " << protocol;
@@ -206,8 +261,10 @@ void MediaSource::getOrCreateAsync(const string& uri, const string& vhost, const
                 }
             } else {
                 logInfo << "source is not ready";
-                src->addOnReady(connKey, [uri, vhost, protocol, type, cb, create, connKey](){
-                    MediaSource::getOrCreateAsync(uri, vhost, protocol, type, cb, create, connKey);
+                src->addOnReady(connKey, [uri, vhost, protocol, type, cb, create, connKey, loop](){
+                    loop->async([uri, vhost, protocol, type, cb, create, connKey](){
+                        MediaSource::getOrCreateAsync(uri, vhost, protocol, type, cb, create, connKey);
+                    }, true);
                 });
                 return ;
             }
@@ -686,6 +743,18 @@ void MediaSource::onReady()
     StreamStatusInfo statusInfo{_urlParser.protocol_, _urlParser.path_, _urlParser.vhost_, 
                                 _urlParser.type_, "on", "200"};
     MediaHook::instance()->onStreamStatus(statusInfo);
+
+    {
+        string key = _urlParser.path_ + "_" + _urlParser.vhost_ + "_" + _urlParser.protocol_ + "_" + _urlParser.type_;
+        lock_guard<mutex> lckRegister(_mtxRegister);
+        auto iter = _mapRegisterEvent.find(key);
+        if (iter != _mapRegisterEvent.end()) {
+            for (auto& func : iter->second) {
+                func();
+            }
+            _mapRegisterEvent.erase(iter);
+        }
+    }
 
     lock_guard<recursive_mutex> lck(_mtxStreamSource);
     _status = SourceStatus::AVAILABLE;

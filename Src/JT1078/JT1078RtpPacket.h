@@ -2,6 +2,7 @@
 #define JT1078RtpPacket_H
 
 #include "Buffer.h"
+#include "Common/Track.h"
 #include <unordered_map>
 
 using namespace std;
@@ -66,6 +67,8 @@ class JT1078RtpPacket
 public:
     using Ptr = shared_ptr<JT1078RtpPacket>;
     JT1078RtpPacket(const StreamBuffer::Ptr& buffer);
+
+    static JT1078RtpPacket::Ptr create(const shared_ptr<TrackInfo>& trackInfo, int len, uint64_t pts, uint32_t ssrc, uint16_t seq, bool mark);
 
 public:
     // 有效负载，跳过csrc、ext

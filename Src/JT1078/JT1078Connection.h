@@ -22,6 +22,14 @@ public:
     string streamName;
 };
 
+class JT1078TalkInfo
+{
+public:
+    string simCode;
+    int channel;
+    UrlParser urlParser;
+};
+
 class JT1078Connection : public TcpConnection
 {
 public:
@@ -41,23 +49,40 @@ public:
     ssize_t send(Buffer::Ptr pkt) override;
 
     void setPath(const string& path) {_path = path;}
+    void setTalkFlag() {_isTalk = true;}
     void onRtpPacket(const JT1078RtpPacket::Ptr& buffer);
 
     static bool addJt1078Info(const string& key, const JT1078Info& info);
     static JT1078Info getJt1078Info(const string& key);
     static void delJt1078Info(const string& key);
 
+    static bool addTalkInfo(const string& key, const JT1078TalkInfo& info);
+    static JT1078TalkInfo getTalkInfo(const string& key);
+    static void delTalkInfo(const string& key);
+
 private:
+    void onJT1078Talk(const JT1078RtpPacket::Ptr& buffer);
+    void startSendTalkData(const JT1078MediaSource::Ptr &src, const JT1078TalkInfo& talkInfo);
+    void sendRtpPacket(const JT1078MediaSource::RingDataType &pkt);
+
+private:
+    bool _isTalk = false;
     string _path;
     string _key;
     JT1078Parser _parser;
     EventLoop::Ptr _loop;
     Socket::Ptr _socket;
     JT1078MediaSource::Wptr _source;
+    JT1078MediaSource::Wptr _talkSource;
     unordered_map<int, JT1078DecodeTrack::Ptr> _mapTrack;
+    JT1078MediaSource::RingType::DataQueReaderT::Ptr _playReader;
 
     static mutex _lck;
     static unordered_map<string, JT1078Info> _mapJt1078Info;
+
+    static mutex _talkLck;
+    // 关联语音对讲的信息
+    static unordered_map<string, JT1078TalkInfo> _mapTalkInfo;
 };
 
 

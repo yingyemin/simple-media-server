@@ -49,7 +49,7 @@ void JT1078Server::setStreamPath(int port, const string& path)
     _serverInfo[port] = info;
 }
 
-void JT1078Server::start(const string& ip, int port, int count)
+void JT1078Server::start(const string& ip, int port, int count, bool isTalk)
 {
     string path;
     {
@@ -60,14 +60,14 @@ void JT1078Server::start(const string& ip, int port, int count)
         }
     }
     JT1078Server::Wptr wSelf = shared_from_this();
-    EventLoopPool::instance()->for_each_loop([ip, port, wSelf, path](const EventLoop::Ptr& loop){
+    EventLoopPool::instance()->for_each_loop([ip, port, wSelf, path, isTalk](const EventLoop::Ptr& loop){
         auto self = wSelf.lock();
         if (!self) {
             return ;
         }
 
         TcpServer::Ptr server = make_shared<TcpServer>(loop, ip.data(), port, 0, 0);
-        server->setOnCreateSession([wSelf, path](const EventLoop::Ptr& loop, const Socket::Ptr& socket) -> JT1078Connection::Ptr {
+        server->setOnCreateSession([wSelf, path, isTalk](const EventLoop::Ptr& loop, const Socket::Ptr& socket) -> JT1078Connection::Ptr {
             auto self = wSelf.lock();
             if (!self) {
                 return nullptr;
@@ -75,6 +75,9 @@ void JT1078Server::start(const string& ip, int port, int count)
             auto connection = make_shared<JT1078Connection>(loop, socket);
             if (!path.empty()) {
                 connection->setPath(path);
+            }
+            if (isTalk) {
+                connection->setTalkFlag();
             }
             return connection;
         });

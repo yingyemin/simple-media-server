@@ -33,7 +33,7 @@ public:
 
     // 可多次调用，为了可以动态的增减端口或者线程数
     // 比如想动态换一个监听端口，或者动态加一个监听端口
-    void start(const string& ip, int port, int count);
+    void start(const string& ip, int port, int count, bool isTalk = false);
     void stopByPort(int port, int count);
 
     // 后面考虑增加IP参数

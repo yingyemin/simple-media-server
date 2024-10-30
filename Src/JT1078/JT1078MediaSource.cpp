@@ -139,48 +139,48 @@ void JT1078MediaSource::addTrack(const shared_ptr<TrackInfo>& track)
 {
     MediaSource::addTrack(track);
     
-    // std::weak_ptr<JT1078MediaSource> weakSelf = std::static_pointer_cast<JT1078MediaSource>(shared_from_this());
-    // if (!_ring) {
-    //     auto lam = [weakSelf](int size) {
-    //         auto strongSelf = weakSelf.lock();
-    //         if (!strongSelf) {
-    //             return;
-    //         }
-    //         strongSelf->getLoop()->async([weakSelf, size](){
-    //             auto strongSelf = weakSelf.lock();
-    //             if (!strongSelf) {
-    //                 return;
-    //             }
-    //             strongSelf->onReaderChanged(size);
-    //         }, true, true); 
-    //     };
-    //     logInfo << "create _ring";
-    //     _ring = std::make_shared<RingType>(_ringSize, std::move(lam));
-    // }
-    // auto rtspTrack = make_shared<GB28181EncodeTrack>(track->index_, track);
-    // {
-    //     lock_guard<mutex> lck(_mtxTrack);
-    //     logInfo << "add track, index: " << track->index_;
-    //     _mapGB28181EncodeTrack.emplace(track->index_, rtspTrack);
-    // }
-    // if (_muxer) {
-    //     rtspTrack->setOnRtpPacket([weakSelf](const RtpPacket::Ptr& rtp){
-    //         // logInfo << "mux a rtp packet";
-    //         auto strongSelf = weakSelf.lock();
-    //         if (!strongSelf) {
-    //             return;
-    //         }
-    //         if (rtp->getHeader()->mark) {
-    //             strongSelf->_cache->emplace_back(std::move(rtp));
-    //             strongSelf->_ring->write(strongSelf->_cache);
-    //             strongSelf->_cache = std::make_shared<list<RtpPacket::Ptr>>();
-    //         } else {
-    //             strongSelf->_cache->emplace_back(std::move(rtp));
-    //         }
-    //     });
-    //     // if (_mapSink.size() > 0)
-    //         rtspTrack->startEncode();
-    // }
+    std::weak_ptr<JT1078MediaSource> weakSelf = std::static_pointer_cast<JT1078MediaSource>(shared_from_this());
+    if (!_ring) {
+        auto lam = [weakSelf](int size) {
+            auto strongSelf = weakSelf.lock();
+            if (!strongSelf) {
+                return;
+            }
+            strongSelf->getLoop()->async([weakSelf, size](){
+                auto strongSelf = weakSelf.lock();
+                if (!strongSelf) {
+                    return;
+                }
+                strongSelf->onReaderChanged(size);
+            }, true, true); 
+        };
+        logInfo << "create _ring";
+        _ring = std::make_shared<RingType>(_ringSize, std::move(lam));
+    }
+    auto jt1078Track = make_shared<JT1078EncodeTrack>(track, _simCode, _channel);
+    {
+        lock_guard<mutex> lck(_mtxTrack);
+        logInfo << "add track, index: " << track->index_;
+        _mapJT1078EncodeTrack.emplace(track->index_, jt1078Track);
+    }
+    if (_muxer) {
+        jt1078Track->setOnRtpPacket([weakSelf](const JT1078RtpPacket::Ptr& rtp){
+            // logInfo << "mux a rtp packet";
+            auto strongSelf = weakSelf.lock();
+            if (!strongSelf) {
+                return;
+            }
+            if (rtp->getHeader()->mark) {
+                strongSelf->_cache->emplace_back(std::move(rtp));
+                strongSelf->_ring->write(strongSelf->_cache);
+                strongSelf->_cache = std::make_shared<list<JT1078RtpPacket::Ptr>>();
+            } else {
+                strongSelf->_cache->emplace_back(std::move(rtp));
+            }
+        });
+        // if (_mapSink.size() > 0)
+            jt1078Track->startEncode();
+    }
 }
 
 void JT1078MediaSource::addDecodeTrack(const shared_ptr<TrackInfo>& track)
@@ -255,13 +255,13 @@ void JT1078MediaSource::delSink(const MediaSource::Ptr &src)
     _mapSource.clear();
 }
 
-// void JT1078MediaSource::onFrame(const FrameBuffer::Ptr& frame)
-// {
-//     // logInfo << "on get a frame: index : " << frame->getTrackIndex();
-//     auto it = _mapGB28181EncodeTrack.find(frame->getTrackIndex());
-//     if (it == _mapGB28181EncodeTrack.end()) {
-//         return ;
-//     }
-//     // logInfo << "on muxer a frame";
-//     it->second->onFrame(frame);
-// }
+void JT1078MediaSource::onFrame(const FrameBuffer::Ptr& frame)
+{
+    // logInfo << "on get a frame: index : " << frame->getTrackIndex();
+    auto it = _mapJT1078EncodeTrack.find(frame->getTrackIndex());
+    if (it == _mapJT1078EncodeTrack.end()) {
+        return ;
+    }
+    // logInfo << "on muxer a frame";
+    it->second->onFrame(frame);
+}

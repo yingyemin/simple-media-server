@@ -2,9 +2,11 @@
 #include "ApiUtil.h"
 #include "Logger.h"
 #include "Common/Config.h"
+#include "Common/Define.h"
 #include "Util/String.h"
 #include "JT1078/JT1078Connection.h"
 #include "JT1078/JT1078Server.h"
+#include "JT1078/JT1078Client.h"
 
 using namespace std;
 
@@ -16,6 +18,10 @@ void JT1078Api::initApi()
     g_mapApi.emplace("/api/v1/jt1078/create", JT1078Api::create);
     g_mapApi.emplace("/api/v1/jt1078/server/open", JT1078Api::openServer);
     g_mapApi.emplace("/api/v1/jt1078/server/close", JT1078Api::closeServer);
+    g_mapApi.emplace("/api/v1/jt1078/talk/start", JT1078Api::startTalk);
+    g_mapApi.emplace("/api/v1/jt1078/talk/stop", JT1078Api::stopTalk);
+    g_mapApi.emplace("/api/v1/jt1078/push/start", JT1078Api::startSend);
+    g_mapApi.emplace("/api/v1/jt1078/push/stop", JT1078Api::stopSend);
 }
 
 void JT1078Api::create(const HttpParser& parser, const UrlParser& urlParser, 
@@ -85,6 +91,133 @@ void JT1078Api::closeServer(const HttpParser& parser, const UrlParser& urlParser
 
     checkArgs(parser._body, {"port"});
     JT1078Server::instance()->stopByPort(toInt(parser._body["port"]), 1);
+
+    value["code"] = "200";
+    value["msg"] = "success";
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void JT1078Api::startTalk(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    // recv参数，对讲设备的参数
+    // send参数，准备发往对讲设备的源流的参数
+    checkArgs(parser._body, {"recvSimCode", "recvChannel", "recvPort", 
+                            "sendAppName", "sendStreamName", "sendSimCode", "sendChannel"});
+    string key = parser._body["recvSimCode"].get<string>() + "_" + parser._body["recvChannel"].get<string>()
+                 + "_" + parser._body["recvPort"].get<string>();
+    JT1078TalkInfo info;
+    info.channel = toInt(parser._body["sendChannel"]);
+    info.simCode = parser._body["sendSimCode"];
+    string appName = parser._body["sendAppName"];
+    string streamName = parser._body["sendStreamName"];
+
+    info.urlParser.path_ = "/" + appName + "/" + streamName;
+    info.urlParser.vhost_ = DEFAULT_VHOST;
+    info.urlParser.protocol_ = PROTOCOL_JT1078;
+    info.urlParser.type_ = "talk";
+    bool res = JT1078Connection::addTalkInfo(key, info);
+
+    if (res) {
+        static int createKeyTimeout = Config::instance()->getAndListen([](const json& config){
+            createKeyTimeout = Config::instance()->get("JT1078", "Server", "Server1", "createKeyTimeout");
+            logInfo << "createKeyTimeout: " << createKeyTimeout;
+        }, "JT1078", "Server", "Server1", "createKeyTimeout");
+
+        if (createKeyTimeout == 0) {
+            createKeyTimeout = 15;
+        }
+
+        auto loop = EventLoop::getCurrentLoop();
+        loop->addTimerTask(createKeyTimeout * 1000, [key](){
+            JT1078Connection::delJt1078Info(key);
+            return 0;
+        }, nullptr);
+
+        value["code"] = "200";
+        value["msg"] = "success";
+    } else {
+        value["code"] = "400";
+        value["msg"] = "add jt1078 info failed";
+    }
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void JT1078Api::stopTalk(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    UrlParser taslUrlParser;
+    checkArgs(parser._body, {"appName", "streamName"});
+    string appName = parser._body["sendAppName"];
+    string streamName = parser._body["sendStreamName"];
+    taslUrlParser.path_ = "/" + appName + "/" + streamName;
+    taslUrlParser.vhost_ = DEFAULT_VHOST;
+    taslUrlParser.protocol_ = PROTOCOL_JT1078;
+    taslUrlParser.type_ = "talk";
+
+    auto source = MediaSource::get(taslUrlParser.path_, taslUrlParser.vhost_, taslUrlParser.protocol_, taslUrlParser.type_);
+    if (source) {
+        source->release();
+    }
+
+    value["code"] = "200";
+    value["msg"] = "success";
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void JT1078Api::startSend(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    checkArgs(parser._body, {"url", "appName", "streamName", "simCode", "channel"});
+
+    static int timeout = Config::instance()->getAndListen([](const json &config){
+        timeout = Config::instance()->get("JT1078", "Server", "Server1", "timeout");
+    }, "JT1078", "Server", "Server1", "timeout");
+
+    auto client = make_shared<JT1078Client>(MediaClientType_Push, parser._body["appName"], parser._body["streamName"]);
+    client->setSimCode(parser._body["simCode"]);
+    client->setChannel(toInt(parser._body["channel"]));
+    client->start("0.0.0.0", 0, parser._body["url"], timeout);
+
+    string key = parser._body["url"];
+    MediaClient::addMediaClient(key, client);
+
+    client->setOnClose([key](){
+        MediaClient::delMediaClient(key);
+    });
+
+    value["code"] = "200";
+    value["msg"] = "success";
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void JT1078Api::stopSend(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    checkArgs(parser._body, {"url"});
+
+    string key = parser._body["url"];
+    MediaClient::delMediaClient(key);
 
     value["code"] = "200";
     value["msg"] = "success";
