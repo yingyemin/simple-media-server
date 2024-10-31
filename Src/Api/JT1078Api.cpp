@@ -20,8 +20,8 @@ void JT1078Api::initApi()
     g_mapApi.emplace("/api/v1/jt1078/server/close", JT1078Api::closeServer);
     g_mapApi.emplace("/api/v1/jt1078/talk/start", JT1078Api::startTalk);
     g_mapApi.emplace("/api/v1/jt1078/talk/stop", JT1078Api::stopTalk);
-    g_mapApi.emplace("/api/v1/jt1078/push/start", JT1078Api::startSend);
-    g_mapApi.emplace("/api/v1/jt1078/push/stop", JT1078Api::stopSend);
+    g_mapApi.emplace("/api/v1/jt1078/send/start", JT1078Api::startSend);
+    g_mapApi.emplace("/api/v1/jt1078/send/stop", JT1078Api::stopSend);
 }
 
 void JT1078Api::create(const HttpParser& parser, const UrlParser& urlParser, 

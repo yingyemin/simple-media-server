@@ -113,7 +113,7 @@ void JT1078Client::onConnect()
         source->setChannel(self->_channel);
 
         return source;
-    }, this);;
+    }, this);
 }
 
 void JT1078Client::onError(const string& err)
@@ -133,6 +133,8 @@ void JT1078Client::startSendTalkData(const JT1078MediaSource::Ptr &jtSrc)
     if (!jtSrc) {
         return ;
     }
+
+    _source = jtSrc;
 
     if (!_playReader) {
         logInfo << "set _playReader";
@@ -190,7 +192,8 @@ void JT1078Client::sendRtpPacket(const JT1078MediaSource::RingDataType &pkt)
     logInfo << "JT1078Client::sendRtpPacket";
     for (auto it = pkt->begin(); it != pkt->end(); ++it) {
         auto packet = it->get();
-        _socket->send(packet->buffer());
+        logInfo << "packet size: " << packet->size();
+        _socket->send(packet->buffer(), 0);
     };
     _socket->send((Buffer::Ptr)nullptr, 1);
 }

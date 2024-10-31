@@ -110,6 +110,10 @@ void JT1078EncodeTrack::createSingleRtp(const FrameBuffer::Ptr& frame)
     rtp->type_ = _trackInfo->trackType_;
     rtp->trackIndex_ = _trackInfo->index_;
 
+    buffer->data()[0] = 0x30;
+    buffer->data()[1] = 0x31;
+    buffer->data()[2] = 0x63;
+    buffer->data()[3] = 0x64;
     header->version = 2;
     header->p = 0;
     header->extend = 0;
@@ -135,6 +139,9 @@ void JT1078EncodeTrack::createSingleRtp(const FrameBuffer::Ptr& frame)
     }
     
     writeUint16BE(buffer->data() + index, frame->size());
+    index += 2;
+
+    memcpy(buffer->data() + index, frame->data(), frame->size());
 
     onRtpPacket(rtp);
 }
@@ -142,24 +149,27 @@ void JT1078EncodeTrack::createSingleRtp(const FrameBuffer::Ptr& frame)
 void JT1078EncodeTrack::createMultiRtp(const FrameBuffer::Ptr& frame)
 {
     auto trackType = frame->getTrackType();
-    int len;
+    int headerLen;
     uint8_t dataType;
     if (trackType == VideoTrackType) {
-        len = frame->size() + 30;
+        headerLen = 30;
         if (frame->keyFrame()) {
             dataType = JT1078_VideoI;
         } else {
             dataType = JT1078_VideoP;
         }
     } else {
-        len = frame->size() + 26;
+        headerLen = 26;
         dataType = JT1078_Audio;
     }
 
     size_t length = frame->size();
+    int frameIndex = 0;
     bool first = true;
     while (length > 0) {
-        StreamBuffer::Ptr buffer = make_shared<StreamBuffer>(len + 1);
+        int rtpLen = length > 950 ? 950 : length;
+
+        StreamBuffer::Ptr buffer = make_shared<StreamBuffer>(rtpLen + headerLen + 1);
         auto rtp = make_shared<JT1078RtpPacket>(buffer);
         auto header = rtp->getHeader();
         rtp->type_ = _trackInfo->trackType_;
@@ -175,6 +185,10 @@ void JT1078EncodeTrack::createMultiRtp(const FrameBuffer::Ptr& frame)
             subPackageHandleMark = JT1078_Last;
         }
 
+        buffer->data()[0] = 0x30;
+        buffer->data()[1] = 0x31;
+        buffer->data()[2] = 0x63;
+        buffer->data()[3] = 0x64;
         header->version = 2;
         header->p = 0;
         header->extend = 0;
@@ -199,7 +213,10 @@ void JT1078EncodeTrack::createMultiRtp(const FrameBuffer::Ptr& frame)
             index += 4;
         }
         
-        writeUint16BE(buffer->data() + index, length > 950 ? 950 : length);
+        writeUint16BE(buffer->data() + index, rtpLen);
+        index += 2;
+        memcpy(buffer->data() + index, frame->data() + frameIndex, rtpLen);
+        frameIndex += rtpLen;
 
         onRtpPacket(rtp);
 
@@ -213,14 +230,14 @@ void JT1078EncodeTrack::createMultiRtp(const FrameBuffer::Ptr& frame)
 
 void JT1078EncodeTrack::onRtpPacket(const JT1078RtpPacket::Ptr& rtp)
 {
-    auto data = rtp->data();
-    data[0] = (rtp->size() - 2) >> 8;
-    data[1] = (rtp->size() - 2) & 0x00FF;
+    // auto data = rtp->data();
+    // data[0] = (rtp->size() - 2) >> 8;
+    // data[1] = (rtp->size() - 2) & 0x00FF;
 
     if (_onRtpPacket) {
         _onRtpPacket(rtp);
     }
-    logInfo << "encode a rtp packet";
+    logInfo << "encode a rtp packet: " << rtp->size();
     // _ssrc = rtp->getSSRC();
     // _seq = rtp->getSeq();
     // _timestap = rtp->getStamp();

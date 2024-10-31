@@ -280,6 +280,7 @@ void JT1078Connection::sendRtpPacket(const JT1078MediaSource::RingDataType &pkt)
     logInfo << "JT1078Connection::sendRtpPacket";
     for (auto it = pkt->begin(); it != pkt->end(); ++it) {
         auto packet = it->get();
+
         _socket->send(packet->buffer());
     };
     _socket->send((Buffer::Ptr)nullptr, 1);
