@@ -67,7 +67,7 @@ void JT1078Client::pause()
 
 void JT1078Client::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)
 {
-    // logInfo << "get a buffer: " << buffer->size();
+    logInfo << "get a buffer: " << buffer->size();
     // _parser.parse(buffer->data(), buffer->size());
 }
 
@@ -189,10 +189,10 @@ void JT1078Client::startSendTalkData(const JT1078MediaSource::Ptr &jtSrc)
 
 void JT1078Client::sendRtpPacket(const JT1078MediaSource::RingDataType &pkt)
 {
-    logInfo << "JT1078Client::sendRtpPacket";
+    // logInfo << "JT1078Client::sendRtpPacket";
     for (auto it = pkt->begin(); it != pkt->end(); ++it) {
         auto packet = it->get();
-        logInfo << "packet size: " << packet->size();
+        // logInfo << "packet size: " << packet->size();
         _socket->send(packet->buffer(), 0);
     };
     _socket->send((Buffer::Ptr)nullptr, 1);

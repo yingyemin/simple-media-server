@@ -188,6 +188,15 @@ void JT1078Connection::onJT1078Talk(const JT1078RtpPacket::Ptr& buffer)
     }
     delTalkInfo(key);
 
+    // 写死信息，方便测试，测试完注意改回上面的代码
+    // JT1078TalkInfo info;
+    // info.channel = 1;
+    // info.simCode = "13333333333";
+    // info.urlParser.vhost_ = DEFAULT_VHOST;
+    // info.urlParser.path_ = "/live/test";
+    // info.urlParser.type_ = DEFAULT_TYPE;
+    // info.urlParser.protocol_ = PROTOCOL_JT1078;
+
     weak_ptr<JT1078Connection> wSelf = dynamic_pointer_cast<JT1078Connection>(shared_from_this());
     MediaSource::getOrCreateAsync(info.urlParser.path_, info.urlParser.vhost_, info.urlParser.protocol_, info.urlParser.type_, 
     [wSelf, info](const MediaSource::Ptr &src){
@@ -281,7 +290,7 @@ void JT1078Connection::sendRtpPacket(const JT1078MediaSource::RingDataType &pkt)
     for (auto it = pkt->begin(); it != pkt->end(); ++it) {
         auto packet = it->get();
 
-        _socket->send(packet->buffer());
+        _socket->send(packet->buffer(), 0);
     };
     _socket->send((Buffer::Ptr)nullptr, 1);
 }

@@ -237,7 +237,7 @@ void JT1078EncodeTrack::onRtpPacket(const JT1078RtpPacket::Ptr& rtp)
     if (_onRtpPacket) {
         _onRtpPacket(rtp);
     }
-    logInfo << "encode a rtp packet: " << rtp->size();
+    // logInfo << "encode a rtp packet: " << rtp->size();
     // _ssrc = rtp->getSSRC();
     // _seq = rtp->getSeq();
     // _timestap = rtp->getStamp();
