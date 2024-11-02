@@ -112,6 +112,22 @@ unordered_map<string, string> split(const string &str, const string &vecDelim, c
     return ret;
 }
 
+string replace(string str, string old_str, string new_str)
+{
+    std::string ret = str;
+    
+    if (old_str == new_str) {
+        return ret;
+    }
+    
+    size_t pos = 0;
+    while ((pos = ret.find(old_str, pos)) != std::string::npos) {
+        ret = ret.replace(pos, old_str.length(), new_str);
+    }
+    
+    return ret;
+}
+
 static bool compareIgnoreCase(unsigned char a, unsigned char b) {
 	return std::tolower(a) == std::tolower(b);
 }

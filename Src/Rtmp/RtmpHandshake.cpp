@@ -29,67 +29,69 @@ int RtmpHandshake::parse(const StreamBuffer::Ptr& buffer)
         buf_size = _remainBuffer.size();
     }
 
-	if (_state == HANDSHAKE_S0S1S2) {
-		if (buf_size < (1 + 1536 + 1536)) { //S0S1S2		
-			return res_size;
-		}
+	do {
+		if (_state == HANDSHAKE_S0S1S2) {
+			if (buf_size < (1 + 1536 + 1536)) { //S0S1S2		
+				break;
+			}
 
-		if (buf[0] != RTMP_VERSION) {
-            logError << "unsupported rtmp version " << buf[0];
-			return -1;
-		}
-
-		pos += 1 + 1536 + 1536;
-		res_size = 1536;
-		// memcpy(res_buf, buf + 1, 1536); //C2
-        auto resBuffer = StreamBuffer::create();
-        resBuffer->assign((char*)buf + 1, 1536); //C2
-		onHandshake(resBuffer);
-		_state = HANDSHAKE_COMPLETE;
-	}
-	else if (_state == HANDSHAKE_C0C1)
-	{
-        logInfo << "get a c0c1: " << buf_size;
-		if (buf_size < 1537) { //c0c1
-			return res_size;
-		}
-		else
-		{
 			if (buf[0] != RTMP_VERSION) {
+				logError << "unsupported rtmp version " << buf[0];
 				return -1;
 			}
 
-			pos += 1537;
-			res_size = 1 + 1536 + 1536;
-            auto resBuffer = StreamBuffer::create();
-            resBuffer->setCapacity(res_size + 1);
-            auto resBuf = resBuffer->data();
-			memset(resBuf, 0, 1537); //S0 S1 S2  
-			resBuf[0] = RTMP_VERSION;
-
-			char *p = resBuf; p += 9;
-			for (int i = 0; i < 1528; i++) {
-				*p++ = rd();
-			}
-			memcpy(p, buf + 1, 1536);
-            onHandshake(resBuffer);
-			_state = HANDSHAKE_C2;
-		}
-	}
-	else if (_state == HANDSHAKE_C2)
-	{
-        logInfo << "get a c2: " << buf_size;
-		if (buf_size < 1536) { //c2
-			return res_size;
-		}
-		else {
-			pos = 1536;
+			pos += 1 + 1536 + 1536;
+			res_size = 1536;
+			// memcpy(res_buf, buf + 1, 1536); //C2
+			auto resBuffer = StreamBuffer::create();
+			resBuffer->assign((char*)buf + 1, 1536); //C2
+			onHandshake(resBuffer);
 			_state = HANDSHAKE_COMPLETE;
 		}
-	}
-	else {
-		return -1;
-	}
+		else if (_state == HANDSHAKE_C0C1)
+		{
+			logInfo << "get a c0c1: " << buf_size;
+			if (buf_size < 1537) { //c0c1
+				break;
+			}
+			else
+			{
+				if (buf[0] != RTMP_VERSION) {
+					return -1;
+				}
+
+				pos += 1537;
+				res_size = 1 + 1536 + 1536;
+				auto resBuffer = StreamBuffer::create();
+				resBuffer->setCapacity(res_size + 1);
+				auto resBuf = resBuffer->data();
+				memset(resBuf, 0, 1537); //S0 S1 S2  
+				resBuf[0] = RTMP_VERSION;
+
+				char *p = resBuf; p += 9;
+				for (int i = 0; i < 1528; i++) {
+					*p++ = rd();
+				}
+				memcpy(p, buf + 1, 1536);
+				onHandshake(resBuffer);
+				_state = HANDSHAKE_C2;
+			}
+		}
+		else if (_state == HANDSHAKE_C2)
+		{
+			logInfo << "get a c2: " << buf_size;
+			if (buf_size < 1536) { //c2
+				break;
+			}
+			else {
+				pos = 1536;
+				_state = HANDSHAKE_COMPLETE;
+			}
+		}
+		else {
+			return -1;
+		}
+	} while (0);
 
 	// buffer.Retrieve(pos);
     if (pos < buf_size) {

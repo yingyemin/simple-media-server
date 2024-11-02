@@ -15,6 +15,7 @@ public:
     int samplerate_;
     int channel_;
     int index_;
+    int port_;
     string trackType_;
     string codec_;
     string fmtp_;

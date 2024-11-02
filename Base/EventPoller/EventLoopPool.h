@@ -23,6 +23,8 @@ protected:
     int _threadSize = 0;
 };
 
+#ifdef ENABLE_SRT
+
 class SrtEventLoopPool
 {
 public:
@@ -39,5 +41,7 @@ protected:
     int _index = 0;
     int _threadSize = 0;
 };
+
+#endif
 
 #endif //EventLoopPool_h

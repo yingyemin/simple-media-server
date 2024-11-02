@@ -120,6 +120,7 @@ MediaSource::Ptr MediaSource::getOrCreate(const string& uri, const string& vhost
 MediaSource::Ptr MediaSource::getOrCreateInSrt(const string& uri, const string& vhost, const string &protocol, 
             const string& type, const std::function<MediaSource::Ptr()> &create)
 {
+#ifdef ENABLE_SRT
     if (uri.empty() || vhost.empty()) {
         return nullptr;
     }
@@ -143,6 +144,9 @@ MediaSource::Ptr MediaSource::getOrCreateInSrt(const string& uri, const string& 
         return nullptr;
     }
     return src;
+#else
+    return nullptr;
+#endif
 }
 
 void MediaSource::getOrCreateAsync(const string& uri, const string& vhost, const string &protocol, 

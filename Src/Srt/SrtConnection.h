@@ -14,6 +14,8 @@
 
 using namespace std;
 
+#ifdef ENABLE_SRT
+
 class SrtConnection : public enable_shared_from_this<SrtConnection>
 {
 public:
@@ -49,5 +51,6 @@ private:
     function<void()> _onClose;
 };
 
+#endif
 
 #endif //Ehome2Connection_H

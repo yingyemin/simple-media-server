@@ -4,6 +4,8 @@
 
 using namespace std;
 
+#ifdef ENABLE_SRT
+
 SrtServer::SrtServer()
 {}
 
@@ -120,3 +122,5 @@ void SrtServer::for_each_socket(const function<void(const SrtSocket::Ptr &)> &cb
         }
     }
 }
+
+#endif

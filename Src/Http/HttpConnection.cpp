@@ -168,7 +168,7 @@ void HttpConnection::onHttpRequest()
                 auto iter = self->_parser._mapHeaders.find("content-type");
                 if (iter == self->_parser._mapHeaders.end()) {
                     logInfo << "no content-type";
-                } else if (iter->second == "application/json") {
+                } else if (iter->second.find("application/json") != string::npos) {
                     logInfo << "self->_parser._content: " << self->_parser._content;
                     self->_parser._body = json::parse(self->_parser._content);
                 } else if (iter->second == "application/x-www-form-urlencoded") {

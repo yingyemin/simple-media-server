@@ -15,6 +15,8 @@
 
 using namespace std;
 
+#ifdef ENABLE_SRT
+
 class SrtEventHander {
 public:
     using eventCallback = function<void(int event, void* args)>;
@@ -80,5 +82,7 @@ private:
     std::list<asyncEventFunc> _asyncEvents;
     unordered_map<int, SrtEventHander> _mapHander;
 };
+
+#endif
 
 #endif //EventLoop_h

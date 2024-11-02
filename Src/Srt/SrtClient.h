@@ -15,6 +15,8 @@
 
 using namespace std;
 
+#ifdef ENABLE_SRT
+
 class SrtClient : public MediaClient, public enable_shared_from_this<SrtClient>
 {
 public:
@@ -56,5 +58,6 @@ private:
     unordered_map<string, string> _mapParam;
 };
 
+#endif
 
 #endif //Ehome2Connection_H

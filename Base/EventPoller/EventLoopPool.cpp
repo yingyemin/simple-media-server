@@ -64,6 +64,8 @@ EventLoop::Ptr EventLoopPool::getLoopByCircle()
 
 //////////////////////////////////////////////////////////////
 
+#ifdef ENABLE_SRT
+
 SrtEventLoopPool::SrtEventLoopPool()
 {}
 
@@ -113,3 +115,5 @@ SrtEventLoop::Ptr SrtEventLoopPool::getLoopByCircle()
 {
     return _loops[_index++ % _threadSize];
 }
+
+#endif

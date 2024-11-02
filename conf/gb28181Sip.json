@@ -1,0 +1,25 @@
+{
+    "LocalIp" : "172.24.6.9",
+    "Log" : { 
+        "logLevel" : 0,
+        "console" : 1,
+        "maxDay" : 7,
+        "maxSize" : 1024,
+        "maxCount" : 100
+    },
+    "EventLoopPool" : {
+        "size" : 0
+    },
+    "Sip" : {
+        "serverIp" : "172.24.6.9",
+        "serverPort" : 15060,
+        "serverId" : "34020000002000000001",
+        "serverRealm" : "3402000000",
+        "localIp" : "172.24.6.9",
+        "localPort" : 0,
+        "localId" : "34020000001320000001",
+        "channelNum" : 1,
+        "channelStart" : "3402000000",
+        "localPassword" : "12345678"
+    }
+}

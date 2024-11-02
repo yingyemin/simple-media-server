@@ -12,6 +12,8 @@
 
 using namespace std;
 
+#ifdef ENABLE_SRT
+
 SrtClient::SrtClient(MediaClientType type, const string& appName, const string& streamName)
 {
     logInfo << "SrtClient";
@@ -261,3 +263,5 @@ void SrtClient::handlePull(const StreamBuffer::Ptr& buffer)
     }, true);
     
 }
+
+#endif

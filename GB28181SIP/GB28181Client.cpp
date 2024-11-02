@@ -29,7 +29,7 @@
 #include "Common/Track.h"
 #include "Util/String.h"
 #include "Rtsp/RtspSdpParser.h"
-// #include "Extension/H264.h"
+#include "Http/HttpClientApi.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -37,75 +37,24 @@
 #include <sys/time.h>
 #include <iostream>  
 #include <map>
+#include <unistd.h>
 
 using namespace std;
 using namespace tinyxml2;
 
-int findStartCode(unsigned char *buf, int zeros_in_startcode)
-{
-    int info;
-    int i;
- 
-    info = 1;
-    for (i = 0; i < zeros_in_startcode; i++)
-        if (buf[i] != 0)
-            info = 0;
- 
-    if (buf[i] != 1)
-        info = 0;
-    return info;
-}
- 
-int getNextNalu(FILE* inpf, unsigned char* buf)
-{
-    int pos = 0;
-    int startCodeFound = 0;
-    int info2 = 0;
-    int info3 = 0;
- 
-    while (!feof(inpf) && (buf[pos++] = fgetc(inpf)) == 0);
- 
-    while (!startCodeFound)
-    {
-        if (feof(inpf))
-        {
-            return pos - 1;
-        }
-        buf[pos++] = fgetc(inpf);
-        info3 = findStartCode(&buf[pos - 4], 3);
-        startCodeFound = (info3 == 1);
-        if (info3 != 1)
-            info2 = findStartCode(&buf[pos - 3], 2);
-        startCodeFound = (info2 == 1 || info3 == 1);
-    }
-    if (info2)
-    {
-        fseek(inpf, -3, SEEK_CUR);
-        return pos - 3;
-    }
-    if (info3)
-    {
-        fseek(inpf, -4, SEEK_CUR);
-        return pos - 4;
-    }
-}
-
-
-namespace mediakit{
-
 GB28181Client::GB28181Client()
 {
     _req.reset(new SipRequest());
-    _req->peer_ip = Config::instance()->get("sip", "serverIp");
-    _req->peer_port = Config::instance()->get("sip", "serverPort");
-    _req->serial = Config::instance()->get("sip", "serverId");
-    _req->realm = Config::instance()->get("sip", "serverRealm");
-    _req->host = Config::instance()->get("sip", "localIp");
-    _req->host_port = Config::instance()->get("sip", "localPort");
-    _req->sip_auth_id = Config::instance()->get("sip", "localId");
-    _req->sip_auth_pwd = Config::instance()->get("sip", "localPassword");
-    _channelNum = Config::instance()->get("sip", "channelNum");
-    _channelStartId = Config::instance()->get("sip", "channelStart");
+    _req->peer_ip = Config::instance()->get("Sip", "serverIp");
+    _req->peer_port = Config::instance()->get("Sip", "serverPort");
+    _req->serial = Config::instance()->get("Sip", "serverId");
+    _req->realm = Config::instance()->get("Sip", "serverRealm");
+    _req->host = Config::instance()->get("Sip", "localIp");
+    _req->host_port = Config::instance()->get("Sip", "localPort");
+    _req->sip_auth_id = Config::instance()->get("Sip", "localId");
+    _req->sip_auth_pwd = Config::instance()->get("Sip", "localPassword");
+    _channelNum = Config::instance()->get("Sip", "channelNum");
+    _channelStartId = Config::instance()->get("Sip", "channelStart");
     //_device.reset(new DevChannel("__defaultVhost__", "live", "test", 0, false, true, false, false));
 }
 
@@ -133,7 +82,7 @@ void GB28181Client::keepalive()
 
 string GB28181Client::sendDevice(const string& callId, CatalogInfo& info)
 {
-        logTrace << "_channelNum is: " << info._channelNum << endl;
+    logTrace << "_channelNum is: " << info._channelNum << endl;
     if (info._channelNum <= 0) {
         logTrace << "_callid2Catalog size is: " << _callid2Catalog.size() << endl;
         return "";
@@ -252,6 +201,7 @@ void GB28181Client::sendDeviceStatus(shared_ptr<SipRequest> req)
 
 void GB28181Client::onWholeSipPacket(shared_ptr<SipRequest> req)
 {
+    weak_ptr<GB28181Client> wSelf = shared_from_this();
     std::string session_id = req->sip_auth_id;
 
     if (req->is_register()) {
@@ -259,15 +209,19 @@ void GB28181Client::onWholeSipPacket(shared_ptr<SipRequest> req)
         if (req->status == "200") {
             logInfo << "register success" << endl;
             _registerStatus = 1;
-            _aliveTimer = std::make_shared<Timer>(6, [this]() {
-                if (_aliveStatus != 0) {
-                    _aliveStatus = 0;
-                    gbRegister(_req);
-                    return false;
+            _loop->addTimerTask(5000, [wSelf](){
+                auto self = wSelf.lock();
+                if (!self) {
+                    return 0;
                 }
-                _aliveStatus = 1;
-                keepalive();
-                return true;
+                if (self->_aliveStatus != 0) {
+                    self->_aliveStatus = 0;
+                    self->gbRegister(self->_req);
+                    return 0;
+                }
+                self->_aliveStatus = 1;
+                self->keepalive();
+                return 5000;
             }, nullptr);
         } else if (req->status == "401") {
             logInfo << "www_authenticate is: " << req->www_authenticate << endl;
@@ -382,38 +336,87 @@ void GB28181Client::onWholeSipPacket(shared_ptr<SipRequest> req)
         RtspSdpParser sdp;
         sdp.parse(req->content);
         auto track = sdp._vecSdpMedia[VideoTrackType];
-        string ssrc = track->_other['y'];
-        string ip = track->_ip;
-        int port = track->_port;
+        string ssrc = track->mapmedia_['y'];
+        auto cVec = split(sdp._title->mapTitle_['c'], " ");
+        string ip = cVec[2];
+        int port = track->port_;
         bool isUdp = true;
 
-        if (track->_m.find("TCP") != string::npos)
+        if (track->mapmedia_['m'].find("TCP") != string::npos)
         {
             isUdp = false;
         }
 
         logInfo << "ssrc is: " << ssrc << endl;
 
-        // function<void(const SockException &ex)> cb = [](const SockException &ex){
-        //     WarnL << "error is: " << ex.what() << endl;
-        // };
+        // // function<void(const SockException &ex)> cb = [](const SockException &ex){
+        // //     WarnL << "error is: " << ex.what() << endl;
+        // // };
         req->host = _req->host;
         req->host_port = _req->host_port;
         req->peer_ip = _req->peer_ip;
         req->peer_port = _req->peer_port;
         req->sip_channel_id = req->sip_auth_id;
-        req->sdp = sdp;
+        // req->sdp = sdp;
         logInfo << "save sip_channel_id: " << req->sip_channel_id << endl;
-        // req->_device.reset(new DevChannel("__defaultVhost__", "live", req->sip_channel_id, 0, false, true, false, false));
-        // req->_device->addTrack(std::make_shared<H264Track>());
-        // req->_device->addTrackCompleted();
-        // logInfo << "ip: " << ip << "; port: " << port << endl;
-        // req->_device->startSendRtp(*((MediaSource*)this), ip, port, ssrc, isUdp, cb);
+        // // req->_device.reset(new DevChannel("__defaultVhost__", "live", req->sip_channel_id, 0, false, true, false, false));
+        // // req->_device->addTrack(std::make_shared<H264Track>());
+        // // req->_device->addTrackCompleted();
+        logInfo << "ip: " << ip << "; port: " << port << endl;
+        // // req->_device->startSendRtp(*((MediaSource*)this), ip, port, ssrc, isUdp, cb);
         _channel2Req[req->sip_channel_id][req->call_id] = req;
         std::stringstream ss;
         _sipStack.resp_invite(ss, req, ssrc);
 
         sendMessage(ss.str());
+
+        static int timeout = Config::instance()->getAndListen([](const json& config){
+            timeout = Config::instance()->get("Hook", "Http", "timeout");
+        }, "Hook", "Http", "timeout");
+
+        if (!timeout) {
+            timeout = 5;
+        }
+        
+        shared_ptr<HttpClientApi> client;
+        string url = "http://127.0.0.1/api/v1/gb28181/send/create";
+        json body;
+        body["active"] = true;
+        body["ssrc"] = stoi(ssrc);
+        body["port"] = track->port_;
+        body["socketType"] = isUdp ? 2 : 1;
+        body["streamName"] = "test";
+        body["appName"] = "live";
+        body["ip"] = ip;
+        client = make_shared<HttpClientApi>(EventLoop::getCurrentLoop());
+        client->addHeader("Content-Type", "application/json;charset=UTF-8");
+        client->setMethod("GET");
+        client->setContent(body.dump());
+        client->setOnHttpResponce([client](const HttpParser &parser){
+            // logInfo << "uri: " << parser._url;
+            // logInfo << "status: " << parser._version;
+            // logInfo << "method: " << parser._method;
+            // logInfo << "_content: " << parser._content;
+            if (parser._url != "200") {
+                // cb("http error", "");
+                logInfo << "http error";
+                const_cast<shared_ptr<HttpClientApi> &>(client).reset();
+                return ;
+            }
+            try {
+                json value = json::parse(parser._content);
+                // cb("", value);
+            } catch (exception& ex) {
+                logInfo << "json parse failed: " << ex.what();
+                // cb(ex.what(), nullptr);
+            }
+
+            const_cast<shared_ptr<HttpClientApi> &>(client).reset();
+        });
+        logInfo << "connect to utl: " << url;
+        if (client->sendHeader(url, timeout) != 0) {
+            logInfo << "connect to url: " << url << " failed";
+        }
     }else if (req->is_bye()) {
         stringstream ss;
         _sipStack.resp_status(ss, req);
@@ -442,35 +445,33 @@ void GB28181Client::onWholeSipPacket(shared_ptr<SipRequest> req)
         auto creq = _channel2Req[req->sip_auth_id][req->call_id];
         
         
-        auto track = creq->sdp.getTrack(VideoTrackType);
-        string ssrc = track->_other['y'];
-        string ip = track->_ip;
-        int port = track->_port;
-        int64_t dts = 0;
-        creq->_start = true;
-        // function<void(const SockException &ex)> cb = [](const SockException &ex){};
-        _channel2Timer[req->sip_auth_id][req->call_id] = std::make_shared<Timer>(67.0 / 1000,[this, dts, fp, creq]() {
-            if (!creq->_start) {
-                _channel2Req[creq->sip_channel_id][creq->call_id].reset();
-                _channel2Req[creq->sip_channel_id].erase(creq->call_id);
-                _channel2Timer[creq->sip_channel_id].erase(creq->call_id);
-                return false;
-            }
-            int size = getNextNalu(fp, (unsigned char*)_buf);
-            //cout << "get a frame. size is: " << size << endl;
-            if (size <= 0) {
-                fseek(fp, 0, SEEK_SET);
-                size = getNextNalu(fp, (unsigned char*)_buf);
-            }
-            // creq->_device->inputH264(_buf, size, dts);
-            //logInfo << creq->sip_channel_id << " ====> send a frame" << endl;
-            return true;
-        }, nullptr);
+        // auto track = creq->sdp.getTrack(VideoTrackType);
+        // string ssrc = track->_other['y'];
+        // string ip = track->_ip;
+        // int port = track->_port;
+        // int64_t dts = 0;
+        // creq->_start = true;
+        // // function<void(const SockException &ex)> cb = [](const SockException &ex){};
+        // _channel2Timer[req->sip_auth_id][req->call_id] = std::make_shared<Timer>(67.0 / 1000,[this, dts, fp, creq]() {
+        //     if (!creq->_start) {
+        //         _channel2Req[creq->sip_channel_id][creq->call_id].reset();
+        //         _channel2Req[creq->sip_channel_id].erase(creq->call_id);
+        //         _channel2Timer[creq->sip_channel_id].erase(creq->call_id);
+        //         return false;
+        //     }
+        //     int size = getNextNalu(fp, (unsigned char*)_buf);
+        //     //cout << "get a frame. size is: " << size << endl;
+        //     if (size <= 0) {
+        //         fseek(fp, 0, SEEK_SET);
+        //         size = getNextNalu(fp, (unsigned char*)_buf);
+        //     }
+        //     // creq->_device->inputH264(_buf, size, dts);
+        //     //logInfo << creq->sip_channel_id << " ====> send a frame" << endl;
+        //     return true;
+        // }, nullptr);
     }else{
         //srs_trace("gb28181: ingor request method=%s", req->method.c_str());
         logTrace << "gb28181: ingor request method=" << req->method.c_str() << endl;
     }
 }
-
-}//namespace mediakit
 

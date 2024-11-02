@@ -2,6 +2,7 @@
 #define CRC32_H_
 
 #include <string>
+#include <cstdint>
 
 class CRC32
 {

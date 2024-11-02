@@ -49,6 +49,7 @@ void RtspSdpParser::parse(const string& sdp)
                         return ;
                     }
                     media->trackType_ = vecM[0];
+                    media->port_ = stoi(vecM[1]);
                     media->payloadType_ = stoi(vecM[3]);
                     break;
                 }

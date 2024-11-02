@@ -13,6 +13,8 @@
 
 using namespace std;
 
+#ifdef ENABLE_SRT
+
 class SrtServer : public enable_shared_from_this<SrtServer> {
 public:
     using Ptr = shared_ptr<SrtServer>;
@@ -43,5 +45,7 @@ private:
     unordered_map<int, vector<Socket::Ptr>> _Sockets;
     unordered_map<int, SrtConnection::Ptr> _mapSrtConn;
 };
+
+#endif
 
 #endif //GB28181Server_h

@@ -21,37 +21,41 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZLMEDIAKIT_GB28181_UDP_CLIENT_H
-#define ZLMEDIAKIT_GB28181_UDP_CLIENT_H
+#ifndef GB28181_TCP_CLIENT_H
+#define GB28181_TCP_CLIENT_H
 
 #include <string>
 #include <vector>
 #include <sstream>
-#include <memory>
 
 #include "GB28181Client.h"
-#include "Network/Socket.h"
+#include "Net/TcpClient.h"
 
 using namespace std;
-using namespace toolkit;
-
-namespace mediakit {
 
 // The gb28181 client.
-class GB28181UdpClient : public GB28181Client
+class GB28181TcpClient : public TcpClient, public GB28181Client
 {
 public:
-    GB28181UdpClient();
-    ~GB28181UdpClient();
+    GB28181TcpClient();
+    ~GB28181TcpClient();
 public:
+    //for GB28181Client override
     void start() override;
     void sendMessage(const string& message) override;
+    
+    //for Tcpclient override
+    void onRead(const StreamBuffer::Ptr &buf, struct sockaddr* addr, int len) override;
+    void onConnect() override;
+    void onError(const string &ex) override;
+
+    //for HttpRequestSplitter override
+    // int64_t onRecvHeader(const char *data,uint64_t len) override;
+    // void onRecvContent(const char *data,uint64_t len) override;
 
 private:
-    Socket::Ptr _pSock;
+
 };
 
-} // namespace mediakit
-
-#endif //ZLMEDIAKIT_GB28181_UDP_CLIENT_H
+#endif //GB28181_TCP_CLIENT_H
 

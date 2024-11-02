@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <cstdint>
 
 using namespace std;
 
@@ -14,6 +15,7 @@ string trimFront(string &str, const string& chars);
 string trimBack(string &str, const string& chars);
 vector<string> split(const string &s, const string& delim);
 unordered_map<string, string> split(const string &str, const string &vecDelim, const string &mapDelim, const string &trimStr = " ", bool tolower = false);
+string replace(string str, string old_str, string new_str);
 bool endWith(const string& str, const string& suffix);
 bool endWithIgnoreCase(const string& str, const string& suffix);
 bool startWith(const string& str, const string& suffix);

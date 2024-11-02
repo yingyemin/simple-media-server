@@ -271,7 +271,7 @@ void GB28181ConnectionSend::sendRtpPacket(const GB28181MediaSource::RingDataType
                     // if (++i == len) {
                     //     _socket->send(packet->buffer(), 1);
                     // } else {
-                        _socket->send(packet->buffer(), 2);
+                        _socket->send(packet->buffer());
                     // }
                     // if (++i == len) {
                     //     break;
@@ -309,7 +309,7 @@ void GB28181ConnectionSend::sendRtpPacket(const GB28181MediaSource::RingDataType
                     // logInfo << "send rtp seq: " << packet->getSeq() << ", rtp size: " << packet->size() << ", rtp time: " << packet->getStamp();
                     // logInfo << "send rtp time: " << packet->getStamp() << ", mark:" << packet->getHeader()->mark;
                     
-                    _socket->send(packet->buffer(), 1, 4);
+                    _socket->send(packet->buffer(), 1, 2);
                     // if (++i == len) {
                     //     break;
                     // }

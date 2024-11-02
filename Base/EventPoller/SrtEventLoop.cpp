@@ -13,12 +13,15 @@
 #include "Util/TimeClock.h"
 #include "Util/Thread.h"
 
+#ifdef ENABLE_SRT
+
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
 #include "srt/srt.h"
 #include <unistd.h>
 
 using namespace std;
+
 
 #define EPOLL_SIZE 1024
 
@@ -333,3 +336,5 @@ void SrtEventLoop::modifyEvent(int fd, int event, PollCompleteCB cb) {
         modifyEvent(fd, event, std::move(const_cast<PollCompleteCB &>(cb)));
     }, true, false);
 }
+
+#endif

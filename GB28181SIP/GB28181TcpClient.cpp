@@ -22,7 +22,7 @@
  */
 
 #include "GB28181TcpClient.h"
-#include "Util/logger.h"
+#include "Log/Logger.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -33,9 +33,8 @@
 
 using namespace std;
 
-namespace mediakit{
-
 GB28181TcpClient::GB28181TcpClient()
+    :TcpClient(EventLoop::getCurrentLoop())
 {}
 
 GB28181TcpClient::~GB28181TcpClient()
@@ -47,65 +46,76 @@ void GB28181TcpClient::start()
     string localIp = "0.0.0.0";
 
     create(_req->peer_ip, _req->peer_port);
-
-    _req->host_port = get_local_port();
-
-    if (_req->host_port != 0) {
-        startConnect();
+    if (TcpClient::create(localIp, 0) < 0) {
+        close();
+        logInfo << "TcpClient::create failed: " << strerror(errno);
+        return ;
     }
+
+    int timeout = 15;
+    if (TcpClient::connect(_req->peer_ip, _req->peer_port, timeout) < 0) {
+        close();
+        logInfo << "TcpClient::connect, ip: " << _req->peer_ip << ", peerPort: " 
+                << _req->peer_port << ", failed: " << strerror(errno);
+        return ;
+    }
+
+    // _req->host_port = getSocket()->getLocalPort();
+
+    // if (_req->host_port != 0) {
+    //     startConnect();
+    // }
 }
 
 void GB28181TcpClient::sendMessage(const string& message)
 {
-    BufferString::Ptr buffer(new BufferString(message, 0, message.size()));
+    StringBuffer::Ptr buffer(new StringBuffer(message));
     send(buffer);
 }
 
-void GB28181TcpClient::onErr(const SockException &ex) {
+void GB28181TcpClient::onError(const string &ex) {
     //连接失败
     //TODO 重试以及日志上报
 }
 
-void GB28181TcpClient::onConnect(const SockException &err) {
-    if (err) {
-        //连接失败
-        //TODO 重试以及日志上报
-        return;
-    }
+void GB28181TcpClient::onConnect() {
+    // if (err) {
+    //     //连接失败
+    //     //TODO 重试以及日志上报
+    //     return;
+    // }
+    _req->host_port = getSocket()->getLocalPort();
     //推流器不需要多大的接收缓存，节省内存占用
     //_sock->setReadBuffer(std::make_shared<BufferRaw>(1 * 1024));
     gbRegister(_req);
 }
 
-void GB28181TcpClient::onRecv(const Buffer::Ptr &buf){
+void GB28181TcpClient::onRead(const StreamBuffer::Ptr &buf, struct sockaddr* addr, int len){
     try {
-        input(buf->data(), buf->size());
+        // input(buf->data(), buf->size());
     } catch (exception &e) {
-        SockException ex(Err_other, e.what());
         //连接失败
         //TODO 重试以及日志上报
     }
 }
 
-int64_t GB28181TcpClient::onRecvHeader(const char *data, uint64_t len) {
-    TraceL << "get message header: " << data << endl;
-    _sipStack.parse_request(_req, data, len);
-    if (!_req) {
-        return 0;
-    }
+// int64_t GB28181TcpClient::onRecvHeader(const char *data, uint64_t len) {
+//     TraceL << "get message header: " << data << endl;
+//     _sipStack.parse_request(_req, data, len);
+//     if (!_req) {
+//         return 0;
+//     }
 
-    auto ret = _req->content_length;
-    if(ret == 0){
-        onWholeSipPacket(_req);
-    }
-    return ret;
-}
+//     auto ret = _req->content_length;
+//     if(ret == 0){
+//         onWholeSipPacket(_req);
+//     }
+//     return ret;
+// }
 
-void GB28181TcpClient::onRecvContent(const char *data, uint64_t len) {
-    TraceL << "message body is: " << endl;
-    _req->content = string(data,len);
-    onWholeSipPacket(_req);
-}
-
-}//namespace mediakit
+// void GB28181TcpClient::onRecvContent(const char *data, uint64_t len) {
+//     TraceL << "message body is: " << endl;
+//     _req->content = string(data,len);
+//     onWholeSipPacket(_req);
+// }
 

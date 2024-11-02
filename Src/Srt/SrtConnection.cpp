@@ -12,6 +12,8 @@
 
 using namespace std;
 
+#ifdef ENABLE_SRT
+
 static unordered_map<string, string> parseSid(char *sid, int len)
 {
     string strSid(sid, len);
@@ -278,3 +280,5 @@ void SrtConnection::handlePush(const StreamBuffer::Ptr& buffer)
     }, true);
     
 }
+
+#endif

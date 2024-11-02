@@ -21,8 +21,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZLMEDIAKIT_GB28181_CLIENT_H
-#define ZLMEDIAKIT_GB28181_CLIENT_H
+#ifndef GB28181_CLIENT_H
+#define GB28181_CLIENT_H
 
 #include <string>
 #include <vector>
@@ -30,10 +30,9 @@
 #include <memory>
 
 #include "SipMessage.h"
-#include "EventPoller/Timer.h"
+#include "EventPoller/EventLoop.h"
 
 using namespace std;
-using namespace toolkit;
 
 class CatalogInfo
 {
@@ -46,7 +45,7 @@ public:
 };
 
 // The gb28181 client.
-class GB28181Client
+class GB28181Client : public enable_shared_from_this<GB28181Client>
 {
 public:
     GB28181Client();
@@ -76,10 +75,10 @@ protected:
     SipStack _sipStack;
     shared_ptr<SipRequest> _req = NULL;
     map<string, map<string, Timer::Ptr>> _channel2Timer;
-    Timer::Ptr _aliveTimer;
+    EventLoop::Ptr _loop;
     map<string, CatalogInfo> _callid2Catalog;
     char _buf[1024 * 1024];
 };
 
-#endif //ZLMEDIAKIT_GB28181_CLIENT_H
+#endif //GB28181_CLIENT_H
 

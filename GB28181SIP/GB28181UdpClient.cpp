@@ -22,6 +22,8 @@
  */
 
 #include "GB28181UdpClient.h"
+#include "Log/Logger.h"
+#include "EventPoller/EventLoopPool.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -29,10 +31,9 @@
 #include <sys/time.h>
 #include <iostream>  
 #include <map>
+#include <arpa/inet.h>
 
 using namespace std;
-
-namespace mediakit{
 
 GB28181UdpClient::GB28181UdpClient()
 {}
@@ -44,44 +45,53 @@ void GB28181UdpClient::start()
 {
     //get local config
     string localIp = "0.0.0.0";
-    _pSock = std::make_shared<Socket>(nullptr);
-    if (!_pSock->bindUdpSock(0, localIp.data())) {
+    _loop = EventLoopPool::instance()->getLoopByCircle();
+    _pSock = std::make_shared<Socket>(_loop);
+    _pSock->createSocket(SOCKET_UDP);
+    if (_pSock->bind(0, localIp.data()) < 0) {
         //分配端口失败
         throw runtime_error("open udp socket failed");
     }
-    InfoL << "bind port is: " << _pSock->get_local_port() << endl;
-    _req->host_port = _pSock->get_local_port();
-    SockUtil::setRecvBuf(_pSock->rawFD(), 14 * 1024 * 1024);
+    logInfo << "bind port is: " << _pSock->getLocalPort() << endl;
+    _req->host_port = _pSock->getLocalPort();
+    _pSock->setRecvBuf(14 * 1024 * 1024);
     struct sockaddr_in peerAddr;
     //设置rtp发送目标地址
     peerAddr.sin_family = AF_INET;
     peerAddr.sin_port = htons(_req->peer_port);
     peerAddr.sin_addr.s_addr = inet_addr(_req->peer_ip.data());
     bzero(&(peerAddr.sin_zero), sizeof peerAddr.sin_zero);
-    _pSock->setSendPeerAddr((struct sockaddr *)(&peerAddr));
+    _pSock->bindPeerAddr((struct sockaddr *)(&peerAddr));
 
-    TraceL << "send to ip: " << _req->peer_ip << "; port: " << _req->peer_port << endl;
+    logTrace << "send to ip: " << _req->peer_ip << "; port: " << _req->peer_port << endl;
 
-    _pSock->setOnRead([this](const Buffer::Ptr &buf, struct sockaddr *addr, int) {
-        InfoL << "get a message: " << buf->data() << endl;
-        shared_ptr<SipRequest> req;
-        int err = _sipStack.parse_request(req, buf->data(), buf->size());
-        if (err != 0 || !req) {
-            ErrorL << "parse req error, err = " << err << endl;
-            return ;
+    weak_ptr<GB28181UdpClient> wSelf = dynamic_pointer_cast<GB28181UdpClient>(shared_from_this());
+    _pSock->setReadCb([wSelf](const StreamBuffer::Ptr &buf, struct sockaddr *addr, int) {
+        auto self = wSelf.lock();
+        if (!self) {
+            return -1;
         }
-        onWholeSipPacket(req);
+        logInfo << "get a message: " << buf->data() << endl;
+        shared_ptr<SipRequest> req;
+        int err = self->_sipStack.parse_request(req, buf->data(), buf->size());
+        if (err != 0 || !req) {
+            logError << "parse req error, err = " << err << endl;
+            return -1;
+        }
+        self->onWholeSipPacket(req);
+
+        return 0;
     });
+
+    _pSock->addToEpoll();
 
     gbRegister(_req);
 }
 
 void GB28181UdpClient::sendMessage(const string& message)
 {
-    InfoL << "send a message: " << message << endl;
-    BufferString::Ptr buffer(new BufferString(message, 0, message.size()));
-    _pSock->send(buffer, nullptr, 0, true);
+    logInfo << "send a message: " << message << endl;
+    StringBuffer::Ptr buffer(new StringBuffer(message));
+    _pSock->send(buffer);
 }
-
-}//namespace mediakit
 

@@ -71,7 +71,9 @@ int main(int argc, char** argv)
     // 多线程开启epoll
     EventLoopPool::instance()->init(0, true, true);
     WorkLoopPool::instance()->init(0, true, true);
+#ifdef ENABLE_SRT
     SrtEventLoopPool::instance()->init(1, true, true);
+#endif
 
     // config
     Config::instance()->load(configPath);
@@ -125,8 +127,9 @@ int main(int argc, char** argv)
     RtspClient::init();
     RtmpClient::init();
     WebrtcClient::init();
-
+#ifdef ENABLE_SRT
     SrtSocket::initSrt();
+#endif
 
     // 开启RTSP SERVER
     // 参数需要改成从配置读取
@@ -261,10 +264,15 @@ int main(int argc, char** argv)
         const string ip = jt1078Config["ip"];
         int port = jt1078Config["port"];
         int count = jt1078Config["threads"];
+        int isTalk = jt1078Config.value("isTalk", 0);
 
-        logInfo << "start jt1078 server, port: " << port;
+        if (isTalk) {
+            logInfo << "start jt1078 talk server, port: " << port;
+        } else {
+            logInfo << "start jt1078 server, port: " << port;
+        }
         if (port) {
-            JT1078Server::instance()->start(ip, port, count);
+            JT1078Server::instance()->start(ip, port, count, isTalk);
         }
         // logInfo << "start rtsps server, sslPort: " << sslPort;
         // if (sslPort) {
@@ -322,6 +330,7 @@ int main(int argc, char** argv)
         // }
     }
 
+#ifdef ENABLE_SRT
     auto srtConfigVec = configJson["Srt"]["Server"];
     for (auto server : srtConfigVec.items()) {
         string serverId = server.key();
@@ -345,12 +354,14 @@ int main(int argc, char** argv)
         //     RtspServer::instance()->start(ip, sslPort, count);
         // }
     }
+#endif
     
     while (true) {
         // TODO 可做一些巡检工作
         sleep(5);
     }
-
+#ifdef ENABLE_SRT
     SrtSocket::uninitSrt();
+#endif
     return 0;
 }

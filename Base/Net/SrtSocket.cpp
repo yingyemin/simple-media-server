@@ -17,6 +17,8 @@
 
 using namespace std;
 
+#ifdef ENABLE_SRT
+
 #define POLLING_TIME 1
 
 bool SrtSocket::_srtInited = false;
@@ -840,3 +842,5 @@ string SrtSocket::getPeerIp() {
         return _peerIp;
     }
 }
+
+#endif

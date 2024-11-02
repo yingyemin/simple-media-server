@@ -8,6 +8,8 @@
 
 using namespace std;
 
+#ifdef ENABLE_SRT
+
 extern unordered_map<string, function<void(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc)>> g_mapApi;
 
@@ -74,3 +76,5 @@ void SrtApi::createPushClient(const HttpParser& parser, const UrlParser& urlPars
     rsp.setContent(value.dump());
     rspFunc(rsp);
 }
+
+#endif

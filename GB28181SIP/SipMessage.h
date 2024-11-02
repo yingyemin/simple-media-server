@@ -21,8 +21,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZLMEDIAKIT_SIPMESSAGE_H
-#define ZLMEDIAKIT_SIPMESSAGE_H
+#ifndef SIPMESSAGE_H
+#define SIPMESSAGE_H
 
 #include <string>
 #include <vector>
@@ -104,8 +104,8 @@ public:
 
 public:
     bool _start = false;
-    DevChannel::Ptr _device;
-    SdpParser sdp;
+    // DevChannel::Ptr _device;
+    // SdpParser sdp;
 public:
     SipRequest();
     virtual ~SipRequest();
@@ -128,7 +128,7 @@ private:
     // The cached bytes buffer.
     std::vector<char> buf;
     long sn;
-    string _role;
+    std::string _role;
 public:
     SipStack();
     virtual ~SipStack();
@@ -138,25 +138,25 @@ protected:
     virtual int do_parse_request(std::shared_ptr<SipRequest> req, const char *recv_msg);
 
 public:
-    virtual void resp_status(std::stringstream& ss, shared_ptr<SipRequest> req);
-    virtual void resp_keepalive(std::stringstream& ss, shared_ptr<SipRequest> req);
-    virtual void resp_ack(std::stringstream& ss, shared_ptr<SipRequest> req);
+    virtual void resp_status(std::stringstream& ss, std::shared_ptr<SipRequest> req);
+    virtual void resp_keepalive(std::stringstream& ss, std::shared_ptr<SipRequest> req);
+    virtual void resp_ack(std::stringstream& ss, std::shared_ptr<SipRequest> req);
      
-    virtual void req_invite(std::stringstream& ss, shared_ptr<SipRequest> req, std::string ip, int port, uint32_t ssrc);
-	virtual void req_invite_playback(std::stringstream& ss, shared_ptr<SipRequest> req, std::string ip, 
+    virtual void req_invite(std::stringstream& ss, std::shared_ptr<SipRequest> req, std::string ip, int port, uint32_t ssrc);
+	virtual void req_invite_playback(std::stringstream& ss, std::shared_ptr<SipRequest> req, std::string ip, 
         int port, uint32_t ssrc, std::string start_time, std::string end_time);
-    virtual void req_bye(std::stringstream& ss, shared_ptr<SipRequest> req);
-    virtual void req_401_unauthorized(std::stringstream& ss, shared_ptr<SipRequest> req);
-    virtual std::string req_record_info(std::stringstream& ss, shared_ptr<SipRequest> req, 
+    virtual void req_bye(std::stringstream& ss, std::shared_ptr<SipRequest> req);
+    virtual void req_401_unauthorized(std::stringstream& ss, std::shared_ptr<SipRequest> req);
+    virtual std::string req_record_info(std::stringstream& ss, std::shared_ptr<SipRequest> req, 
                     const std::string& deviceId, const std::string& startTime, const std::string& endTime);
-    virtual void req_register(std::stringstream& ss, shared_ptr<SipRequest> req);
-    virtual void req_registerWithAuth(std::stringstream& ss, shared_ptr<SipRequest> req);
-    virtual void req_keepalive(std::stringstream& ss, shared_ptr<SipRequest> req);
-    virtual void resp_invite(std::stringstream& ss, shared_ptr<SipRequest> req, const std::string& ssrc);
-    virtual string resp_catalog(std::stringstream& ss, shared_ptr<SipRequest> req, const std::string& strSN, int total, int num, uint64_t startId, const std::string& channelStartId);
-    virtual void resp_deviceinfo(std::stringstream& ss, shared_ptr<SipRequest> req, const string& strSn, int num);
-    virtual void resp_devicestatus(std::stringstream& ss, shared_ptr<SipRequest> req, const string& strSn);
+    virtual void req_register(std::stringstream& ss, std::shared_ptr<SipRequest> req);
+    virtual void req_registerWithAuth(std::stringstream& ss, std::shared_ptr<SipRequest> req);
+    virtual void req_keepalive(std::stringstream& ss, std::shared_ptr<SipRequest> req);
+    virtual void resp_invite(std::stringstream& ss, std::shared_ptr<SipRequest> req, const std::string& ssrc);
+    virtual std::string resp_catalog(std::stringstream& ss, std::shared_ptr<SipRequest> req, const std::string& strSN, int total, int num, uint64_t startId, const std::string& channelStartId);
+    virtual void resp_deviceinfo(std::stringstream& ss, std::shared_ptr<SipRequest> req, const std::string& strSn, int num);
+    virtual void resp_devicestatus(std::stringstream& ss, std::shared_ptr<SipRequest> req, const std::string& strSn);
 };
 
-#endif //ZLMEDIAKIT_SIPMESSAGE_H
+#endif //SIPMESSAGE_H
 

@@ -35,6 +35,11 @@ JT1078Connection::~JT1078Connection()
         jtSrc->delConnection(this);
     }
 
+    auto talkSrc = _talkSource.lock();
+    if (talkSrc) {
+        jtSrc->delConnection(this);
+    }
+
     // if (!_key.empty()) {
     //     delJt1078Info(_key);
     // }
@@ -233,6 +238,8 @@ void JT1078Connection::startSendTalkData(const JT1078MediaSource::Ptr &jtSrc, co
     if (!jtSrc) {
         return ;
     }
+    _talkSource = jtSrc;
+
     if (!_playReader) {
         logInfo << "set _playReader";
         weak_ptr<JT1078Connection> wSelf = dynamic_pointer_cast<JT1078Connection>(shared_from_this());

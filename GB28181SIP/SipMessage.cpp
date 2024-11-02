@@ -26,6 +26,7 @@
 #include "Common/config.h"
 #include "Log/Logger.h"
 #include "Util/String.h"
+#include "Util/TimeClock.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -71,7 +72,7 @@ std::string  sip_get_form_to_uri(std::string  msg)
         return msg;
     }
 
-    std::string_view msgView = msg.substr(pos+1);
+    std::string msgView = msg.substr(pos+1);
 
     size_t pos2 = msgView.find(">");
     if (pos2 == string::npos) {
@@ -103,21 +104,8 @@ std::string sip_get_param(std::string msg, std::string param)
     return "";
 }
 
-auto gettest()
-{
-    return make_pair(1,"test");
-}
-
 SipRequest::SipRequest()
 {
-    int i;
-    string s;
-    tie(seq, method) = gettest();
-    any k = i;
-    auto ss = any_cast<string>(k);
-    if (int j = 0; j == 0) {
-
-    }
     seq = 0;
     content_length = 0;
     // sdp = NULL;
@@ -305,7 +293,7 @@ int SipStack::do_parse_request(shared_ptr<SipRequest> req, const char* recv_msg)
                     //ex: CSeq: 100 MESSAGE  header is 'CSeq:',content is '100 MESSAGE'
                     std::string head = oneline.substr(0, pos+1);
                     std::string content = oneline.substr(pos+1, oneline.length()-pos-1);
-                    content = string_replace(content, "\r\n", "");
+                    content = replace(content, "\r\n", "");
                     content = trim(content, " ");
                     char *phead = (char*)head.c_str();
 
@@ -333,16 +321,16 @@ int SipStack::do_parse_request(shared_ptr<SipRequest> req, const char* recv_msg)
                         req->method = vec_seq.at(1);
                     } 
                     else if (!strcasecmp(phead, "from:")) {
-                        content = string_replace(content, "sip:", "");
+                        content = replace(content, "sip:", "");
                         req->from = sip_get_form_to_uri(content.c_str());
-                        if (string_contains(content, "tag")) {
+                        if (content.find("tag") != string::npos) {
                             req->from_tag = sip_get_param(content.c_str(), "tag");
                         }
                     } 
                     else if (!strcasecmp(phead, "to:")) {
-                        content = string_replace(content, "sip:", "");
+                        content = replace(content, "sip:", "");
                         req->to = sip_get_form_to_uri(content.c_str());
-                        if (string_contains(content, "tag")) {
+                        if (content.find("tag") != string::npos) {
                             req->to_tag = sip_get_param(content.c_str(), "tag");
                         }
                     } 
@@ -393,7 +381,7 @@ int SipStack::do_parse_request(shared_ptr<SipRequest> req, const char* recv_msg)
             authLine = req->from;
         }
         vector<string> str = split(authLine, "@");
-        req->sip_auth_id = string_replace(str.at(0), "sip:", "");
+        req->sip_auth_id = replace(str.at(0), "sip:", "");
   
     }else {//request first line text :MESSAGE sip:34020000002000000001@3402000000 SIP/2.0
         req->cmdtype = SipCmdRequest;
@@ -409,7 +397,7 @@ int SipStack::do_parse_request(shared_ptr<SipRequest> req, const char* recv_msg)
         }
 
         vector<string> str = split(authLine, "@");
-        req->sip_auth_id = string_replace(str.at(0), "sip:", "");
+        req->sip_auth_id = replace(str.at(0), "sip:", "");
     }
 
     req->sip_username =  req->sip_auth_id;
@@ -1449,7 +1437,7 @@ void SipStack::resp_invite(std::stringstream& ss, shared_ptr<SipRequest> req, co
     << "t=0 0" << RTSP_CRLF
     //TODO 97 98 99 current no support
     //<< "m=video " << port <<" RTP/AVP 96 97 98 99" << RTSP_CRLF
-    << "m=video " << req->_device->_port <<" RTP/AVP 96" << RTSP_CRLF
+    << "m=video " << 34876 <<" RTP/AVP 96" << RTSP_CRLF
     << "a=sendonly" << RTSP_CRLF
     << "a=rtpmap:96 PS/90000" << RTSP_CRLF
     << "a=username:" << req->sip_channel_id << RTSP_CRLF
@@ -1710,7 +1698,7 @@ void SipStack::resp_devicestatus(std::stringstream& ss, shared_ptr<SipRequest> r
            <<     "<Status>ON</Status>" << RTSP_CRLF
            <<     "<Encode>OFF</Encode>" << RTSP_CRLF
            <<     "<Record>ON</Record>" << RTSP_CRLF
-           <<     "<DeviceTime>" << getTimeStr("%Y-%m-%d") << "T" << getTimeStr("%H:%M:%S") << "</DeviceTime>" << RTSP_CRLF
+           <<     "<DeviceTime>" << TimeClock::getFmtTime("%Y-%m-%d") << "T" << TimeClock::getFmtTime("%H:%M:%S") << "</DeviceTime>" << RTSP_CRLF
            << "</Response>" << RTSP_CRLF;
 
     string content = ssBody.str();

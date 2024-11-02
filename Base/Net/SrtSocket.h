@@ -1,6 +1,8 @@
 ﻿#ifndef SrtSocket_h
 #define SrtSocket_h
 
+#ifdef ENABLE_SRT
+
 #include "EventPoller/SrtEventLoop.h"
 #include "Buffer.h"
 #include "srt/srt.h"
@@ -141,5 +143,7 @@ private:
     onWriteCb _onAccept;
     onErrorCb _onError;
 };
+
+#endif
 
 #endif //Socket_h

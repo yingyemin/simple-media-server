@@ -12,6 +12,8 @@
 
 using namespace std;
 
+#ifdef ENABLE_SRT
+
 class SrtApi
 {
 public:
@@ -22,5 +24,7 @@ public:
     static void createPushClient(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc);
 };
+
+#endif
 
 #endif
