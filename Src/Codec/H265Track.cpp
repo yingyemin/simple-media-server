@@ -25,7 +25,7 @@ typedef signed long  int64;
  
 struct vc_params_t
 {
-	int width, height;
+	int width, height, fps;
 	int profile, level;
 	int nal_length_size;
 	uint32_t PicSizeInCtbsY;

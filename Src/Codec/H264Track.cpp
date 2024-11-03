@@ -55,17 +55,20 @@ void H264Track::getWidthAndHeight(int& width, int& height, int& fps)
     if (_width && _height) {
         width = _width;
         height = _height;
-        fps = samplerate_;
+        fps = fps_;
 
         return ;
     }
     auto sps = _sps->data() + _sps->startSize();
     auto size = _sps->size() - _sps->startSize();
-    h264_decode_sps((unsigned char*)sps, size, _width, _height, samplerate_);
+    auto spsBuffer = new char[size];
+    memcpy(spsBuffer, sps, size);
+    h264_decode_sps((unsigned char*)spsBuffer, size, _width, _height, fps_);
+    delete []spsBuffer;
 
     width = _width;
     height = _height;
-    fps = samplerate_;
+    fps = fps_;
 }
 
 string H264Track::getConfig()
