@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "Net/Buffer.h"
+#include "Frame.h"
 
 using namespace std;
 
@@ -35,6 +36,12 @@ public:
     virtual string getConfig() {return "";}
     virtual void getWidthAndHeight(int& width, int& height, int& fps) {}
     virtual bool isBFrame(unsigned char* data, int size) {return false;}
+    virtual void getVpsSpsPps(FrameBuffer::Ptr& vps, FrameBuffer::Ptr& sps, FrameBuffer::Ptr& pps)
+    {
+        vps = nullptr;
+        sps = nullptr;
+        pps = nullptr;
+    }
 public:
     int payloadType_;
     int samplerate_;

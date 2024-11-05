@@ -28,6 +28,13 @@ public:
     string getConfig() override;
     void getWidthAndHeight(int& width, int& height, int& fps);
     bool isBFrame(unsigned char* data, int size);
+    
+    void getVpsSpsPps(FrameBuffer::Ptr& vps, FrameBuffer::Ptr& sps, FrameBuffer::Ptr& pps) override
+    {
+        vps = _vps;
+        sps = _sps;
+        pps = _pps;
+    }
 
 public:
     FrameBuffer::Ptr _vps;

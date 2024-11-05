@@ -78,12 +78,7 @@ int RtmpDecodeTrack::createTrackInfo(int trackType, int codeId)
 {
     if (trackType == VideoTrackType) {
         if (codeId == RTMP_CODEC_ID_H264) {
-            _trackInfo = make_shared<H264Track>();
-            _trackInfo->codec_ = "h264";
-            _trackInfo->index_ = VideoTrackType;
-            _trackInfo->trackType_ = "video";
-            _trackInfo->payloadType_ = 96;
-            _trackInfo->samplerate_ = 90000;
+            _trackInfo = H264Track::createTrack(VideoTrackType, 96, 90000);
         } else if (codeId == RTMP_CODEC_ID_H265) {
             _trackInfo = make_shared<H265Track>();
             _trackInfo->codec_ = "h265";

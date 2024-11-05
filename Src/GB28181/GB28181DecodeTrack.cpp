@@ -230,7 +230,7 @@ void GB28181DecodeTrack::createVideoTrack(const string& videoCodec)
 {
     // TrackInfo::Ptr track;
     if (videoCodec == "h264") {
-        _trackInfo = make_shared<H264Track>();
+        _trackInfo = H264Track::createTrack(0, 96, 90000);
     } else if (videoCodec == "h265") {
         _trackInfo = make_shared<H265Track>();
     }

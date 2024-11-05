@@ -38,6 +38,7 @@ public:
     FrameRingType::Ptr getRing() {return _ring;}
 
 private:
+    bool _sendConfig = false;
     int _ring_size = 25;
     FrameRingType::Ptr _ring;
 };

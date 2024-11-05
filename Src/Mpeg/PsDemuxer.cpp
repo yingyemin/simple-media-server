@@ -337,12 +337,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
                     _video_es_type = type;
                     if (_video_es_type == STREAM_TYPE_VIDEO_H264) {
                         _videoCodec = "h264";
-                        auto trackInfo = make_shared<H264Track>();
-                        trackInfo->index_ = VideoTrackType;
-                        trackInfo->codec_ = "h264";
-                        trackInfo->trackType_ = "video";
-                        trackInfo->samplerate_ = 90000;
-                        trackInfo->payloadType_ = 96;
+                        auto trackInfo = H264Track::createTrack(VideoTrackType, 96, 90000);
                         addTrackInfo(trackInfo);
                         _firstVps = false;
                     } else if (_video_es_type == STREAM_TYPE_VIDEO_HEVC) {

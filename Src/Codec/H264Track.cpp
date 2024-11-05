@@ -115,3 +115,15 @@ string H264Track::getConfig()
 
     return config;
 }
+
+H264Track::Ptr H264Track::createTrack(int index, int payloadType, int samplerate)
+{
+    auto trackInfo = make_shared<H264Track>();
+    trackInfo->index_ = index;
+    trackInfo->codec_ = "h264";
+    trackInfo->payloadType_ = payloadType;
+    trackInfo->trackType_ = "video";
+    trackInfo->samplerate_ = samplerate;
+
+    return trackInfo;
+}

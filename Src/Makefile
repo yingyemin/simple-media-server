@@ -2096,6 +2096,33 @@ HttpStream/HttpTsClient.cpp.s:
 	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/HttpStream/HttpTsClient.cpp.s
 .PHONY : HttpStream/HttpTsClient.cpp.s
 
+JT1078/JT1078Client.o: JT1078/JT1078Client.cpp.o
+
+.PHONY : JT1078/JT1078Client.o
+
+# target to build an object file
+JT1078/JT1078Client.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/JT1078/JT1078Client.cpp.o
+.PHONY : JT1078/JT1078Client.cpp.o
+
+JT1078/JT1078Client.i: JT1078/JT1078Client.cpp.i
+
+.PHONY : JT1078/JT1078Client.i
+
+# target to preprocess a source file
+JT1078/JT1078Client.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/JT1078/JT1078Client.cpp.i
+.PHONY : JT1078/JT1078Client.cpp.i
+
+JT1078/JT1078Client.s: JT1078/JT1078Client.cpp.s
+
+.PHONY : JT1078/JT1078Client.s
+
+# target to generate assembly for a file
+JT1078/JT1078Client.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/JT1078/JT1078Client.cpp.s
+.PHONY : JT1078/JT1078Client.cpp.s
+
 JT1078/JT1078Connection.o: JT1078/JT1078Connection.cpp.o
 
 .PHONY : JT1078/JT1078Connection.o
@@ -2149,6 +2176,33 @@ JT1078/JT1078DecodeTrack.s: JT1078/JT1078DecodeTrack.cpp.s
 JT1078/JT1078DecodeTrack.cpp.s:
 	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/JT1078/JT1078DecodeTrack.cpp.s
 .PHONY : JT1078/JT1078DecodeTrack.cpp.s
+
+JT1078/JT1078EncodeTrack.o: JT1078/JT1078EncodeTrack.cpp.o
+
+.PHONY : JT1078/JT1078EncodeTrack.o
+
+# target to build an object file
+JT1078/JT1078EncodeTrack.cpp.o:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/JT1078/JT1078EncodeTrack.cpp.o
+.PHONY : JT1078/JT1078EncodeTrack.cpp.o
+
+JT1078/JT1078EncodeTrack.i: JT1078/JT1078EncodeTrack.cpp.i
+
+.PHONY : JT1078/JT1078EncodeTrack.i
+
+# target to preprocess a source file
+JT1078/JT1078EncodeTrack.cpp.i:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/JT1078/JT1078EncodeTrack.cpp.i
+.PHONY : JT1078/JT1078EncodeTrack.cpp.i
+
+JT1078/JT1078EncodeTrack.s: JT1078/JT1078EncodeTrack.cpp.s
+
+.PHONY : JT1078/JT1078EncodeTrack.s
+
+# target to generate assembly for a file
+JT1078/JT1078EncodeTrack.cpp.s:
+	cd /mnt/hgfs/code/SimpleMediaServer && $(MAKE) -f Src/CMakeFiles/src.dir/build.make Src/CMakeFiles/src.dir/JT1078/JT1078EncodeTrack.cpp.s
+.PHONY : JT1078/JT1078EncodeTrack.cpp.s
 
 JT1078/JT1078MediaSource.o: JT1078/JT1078MediaSource.cpp.o
 
@@ -4835,12 +4889,18 @@ help:
 	@echo "... HttpStream/HttpTsClient.o"
 	@echo "... HttpStream/HttpTsClient.i"
 	@echo "... HttpStream/HttpTsClient.s"
+	@echo "... JT1078/JT1078Client.o"
+	@echo "... JT1078/JT1078Client.i"
+	@echo "... JT1078/JT1078Client.s"
 	@echo "... JT1078/JT1078Connection.o"
 	@echo "... JT1078/JT1078Connection.i"
 	@echo "... JT1078/JT1078Connection.s"
 	@echo "... JT1078/JT1078DecodeTrack.o"
 	@echo "... JT1078/JT1078DecodeTrack.i"
 	@echo "... JT1078/JT1078DecodeTrack.s"
+	@echo "... JT1078/JT1078EncodeTrack.o"
+	@echo "... JT1078/JT1078EncodeTrack.i"
+	@echo "... JT1078/JT1078EncodeTrack.s"
 	@echo "... JT1078/JT1078MediaSource.o"
 	@echo "... JT1078/JT1078MediaSource.i"
 	@echo "... JT1078/JT1078MediaSource.s"

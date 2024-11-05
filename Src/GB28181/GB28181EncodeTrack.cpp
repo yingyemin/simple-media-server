@@ -55,39 +55,39 @@ void GB28181EncodeTrack::onFrame(const FrameBuffer::Ptr& frame)
 {
     if (_muxer) {
         logInfo << "ps mux a frame";
-        if (frame->keyFrame()) {
-            if (_mapTrackInfo[frame->_index]->codec_ == "h264") {
-                auto trackinfo = dynamic_pointer_cast<H264Track>(_mapTrackInfo[frame->_index]);
-                trackinfo->_sps->_dts = frame->_dts;
-                trackinfo->_sps->_pts = frame->_pts;
-                trackinfo->_sps->_index = frame->_index;
-                _muxer->onFrame(trackinfo->_sps);
+        // if (frame->keyFrame()) {
+        //     if (_mapTrackInfo[frame->_index]->codec_ == "h264") {
+        //         auto trackinfo = dynamic_pointer_cast<H264Track>(_mapTrackInfo[frame->_index]);
+        //         trackinfo->_sps->_dts = frame->_dts;
+        //         trackinfo->_sps->_pts = frame->_pts;
+        //         trackinfo->_sps->_index = frame->_index;
+        //         _muxer->onFrame(trackinfo->_sps);
 
-                trackinfo->_pps->_dts = frame->_dts;
-                trackinfo->_pps->_pts = frame->_pts;
-                trackinfo->_pps->_index = frame->_index;
-                _muxer->onFrame(trackinfo->_pps);
-            } else if (_mapTrackInfo[frame->_index]->codec_ == "h265") {
-                auto trackinfo = dynamic_pointer_cast<H265Track>(_mapTrackInfo[frame->_index]);
-                trackinfo->_vps->_dts = frame->_dts;
-                trackinfo->_vps->_pts = frame->_pts;
-                trackinfo->_vps->_index = frame->_index;
-                _muxer->onFrame(trackinfo->_vps);
+        //         trackinfo->_pps->_dts = frame->_dts;
+        //         trackinfo->_pps->_pts = frame->_pts;
+        //         trackinfo->_pps->_index = frame->_index;
+        //         _muxer->onFrame(trackinfo->_pps);
+        //     } else if (_mapTrackInfo[frame->_index]->codec_ == "h265") {
+        //         auto trackinfo = dynamic_pointer_cast<H265Track>(_mapTrackInfo[frame->_index]);
+        //         trackinfo->_vps->_dts = frame->_dts;
+        //         trackinfo->_vps->_pts = frame->_pts;
+        //         trackinfo->_vps->_index = frame->_index;
+        //         _muxer->onFrame(trackinfo->_vps);
 
-                trackinfo->_sps->_dts = frame->_dts;
-                trackinfo->_sps->_pts = frame->_pts;
-                trackinfo->_sps->_index = frame->_index;
-                _muxer->onFrame(trackinfo->_sps);
+        //         trackinfo->_sps->_dts = frame->_dts;
+        //         trackinfo->_sps->_pts = frame->_pts;
+        //         trackinfo->_sps->_index = frame->_index;
+        //         _muxer->onFrame(trackinfo->_sps);
 
-                trackinfo->_pps->_dts = frame->_dts;
-                trackinfo->_pps->_pts = frame->_pts;
-                trackinfo->_pps->_index = frame->_index;
-                _muxer->onFrame(trackinfo->_pps);
-            }
-            // FILE* fp = fopen("psmuxer.sps", "ab+");
-            // fwrite(trackinfo->_sps->data(), trackinfo->_sps->size(), 1, fp);
-            // fclose(fp);
-        }
+        //         trackinfo->_pps->_dts = frame->_dts;
+        //         trackinfo->_pps->_pts = frame->_pts;
+        //         trackinfo->_pps->_index = frame->_index;
+        //         _muxer->onFrame(trackinfo->_pps);
+        //     }
+        //     // FILE* fp = fopen("psmuxer.sps", "ab+");
+        //     // fwrite(trackinfo->_sps->data(), trackinfo->_sps->size(), 1, fp);
+        //     // fclose(fp);
+        // }
         _muxer->onFrame(frame);
     }
 }

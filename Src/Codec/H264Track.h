@@ -21,11 +21,21 @@ public:
     virtual ~H264Track() {}
 
 public:
+    static H264Track::Ptr createTrack(int index, int payloadType, int samplerate);
+
+public:
     void setSps(const FrameBuffer::Ptr& sps) {_sps = sps;}
     void setPps(const FrameBuffer::Ptr& pps) {_pps = pps;}
     string getSdp() override;
     string getConfig() override;
     void getWidthAndHeight(int& width, int& height, int& fps);
+    
+    void getVpsSpsPps(FrameBuffer::Ptr& vps, FrameBuffer::Ptr& sps, FrameBuffer::Ptr& pps) override
+    {
+        vps = nullptr;
+        sps = _sps;
+        pps = _pps;
+    }
 
 public:
     FrameBuffer::Ptr _sps;

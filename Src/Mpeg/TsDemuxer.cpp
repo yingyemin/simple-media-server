@@ -1202,12 +1202,7 @@ void TsDemuxer::createTrackInfo(const string& codec)
 
         _videoCodec = "g711u";
     } else if (codec == "h264") {
-        auto trackInfo = make_shared<H264Track>();
-        trackInfo->index_ = VideoTrackType;
-        trackInfo->codec_ = "h264";
-        trackInfo->trackType_ = "video";
-        trackInfo->samplerate_ = 90000;
-        trackInfo->payloadType_ = 96;
+        auto trackInfo = H264Track::createTrack(VideoTrackType, 96, 90000);
         addTrackInfo(trackInfo);
 
         _videoCodec = "h264";

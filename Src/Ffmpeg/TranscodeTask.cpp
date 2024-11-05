@@ -73,8 +73,7 @@ std::string TranscodeTask::addTask(const std::string& uri, const std::string& vi
             option.codec_ = videoCodec;
             TrackInfo::Ptr newTrack;
             if (videoCodec == "libx264") {
-                newTrack = make_shared<H264Track>();
-                newTrack->codec_ = "h264";
+                newTrack = H264Track::createTrack(track->index_, track->payloadType_, 90000);
             } else if (videoCodec == "libx265") {
                 newTrack = make_shared<H265Track>();
                 newTrack->codec_ = "h265";

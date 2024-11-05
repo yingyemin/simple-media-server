@@ -509,15 +509,10 @@ int MP4Demuxer::mov_reader_getinfo()
 			{
 			case MOV_VIDEO:
                 if (entry->object_type_indication == MOV_OBJECT_H264) {
-                    auto trackInfo = make_shared<H264Track>();
-                    trackInfo->index_ = track->tkhd.track_ID;
+                    auto trackInfo = H264Track::createTrack(track->tkhd.track_ID, 96, 90000);
                     trackInfo->_width = entry->u.visual.width;
                     trackInfo->_height = entry->u.visual.height;
                     trackInfo->_avcc = entry->extra_data;
-                    trackInfo->codec_ = "h264";
-                    trackInfo->payloadType_ = 96;
-                    trackInfo->trackType_ = "video";
-                    trackInfo->samplerate_ = 90000;
 
 					onTrackInfo(trackInfo);
                     _mapTrackInfo.emplace(trackInfo->index_, trackInfo);

@@ -26,12 +26,7 @@ void JT1078DecodeTrack::onRtpPacket(const JT1078RtpPacket::Ptr& rtp)
     if (!_trackInfo) {
         if (rtp->getTrackType() == "video") {
             if (rtp->getCodecType() == "h264") {
-                auto trackInfo = make_shared<H264Track>();
-                trackInfo->codec_ = "h264";
-                trackInfo->index_ = _index;
-                trackInfo->trackType_ = "video";
-                trackInfo->payloadType_ = 96;
-                trackInfo->samplerate_ = 90000;
+                auto trackInfo = H264Track::createTrack(_index, 96, 90000);
                 _trackInfo = dynamic_pointer_cast<TrackInfo>(trackInfo);
                 onTrackInfo(_trackInfo);
                 _frame = make_shared<H264Frame>();

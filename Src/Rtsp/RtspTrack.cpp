@@ -52,7 +52,7 @@ static shared_ptr<TrackInfo> createTrackBySdp(const shared_ptr<SdpMedia>& media)
         trackInfo->codec_ = "g711u";
     } else if (strcasecmp(media->codec_.data(), "h264") == 0) {
         logInfo << "createTrackBySdp h264";
-        auto h264TrackInfo = make_shared<H264Track>();
+        auto h264TrackInfo = H264Track::createTrack(media->index_, media->payloadType_, media->samplerate_);
         //a=fmtp:96 packetization-mode=1;profile-level-id=42C01F;sprop-parameter-sets=Z0LAH9oBQBboQAAAAwBAAAAPI8YMqA==,aM48gA==
         // auto mapFmtp = split(findSubStr(media->fmtp_," ", ""),";","=");
         auto mapFmtp = split(media->fmtp_,";","=");
@@ -82,7 +82,7 @@ static shared_ptr<TrackInfo> createTrackBySdp(const shared_ptr<SdpMedia>& media)
         h264TrackInfo->setPps(ppsFrame);
         logInfo << "createTrackBySdp start trackInfo";
         trackInfo = h264TrackInfo;
-        trackInfo->codec_ = "h264";
+        // trackInfo->codec_ = "h264";
         logInfo << "createTrackBySdp trackInfo";
     } else if (strcasecmp(media->codec_.data(), "h265") == 0) {
         auto h265TrackInfo = make_shared<H265Track>();

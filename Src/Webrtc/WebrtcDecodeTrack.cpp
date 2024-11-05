@@ -53,7 +53,7 @@ static shared_ptr<TrackInfo> createTrackBySdp(int index, const shared_ptr<Webrtc
         trackInfo->trackType_ = "audio";
     } else if (strcasecmp(piInfo->codec_.data(), "h264") == 0) {
         logInfo << "createTrackBySdp h264";
-        auto h264TrackInfo = make_shared<H264Track>();
+        auto h264TrackInfo = H264Track::createTrack(index, piInfo->payloadType_, piInfo->samplerate_);
         //a=fmtp:96 packetization-mode=1;profile-level-id=42C01F;sprop-parameter-sets=Z0LAH9oBQBboQAAAAwBAAAAPI8YMqA==,aM48gA==
         // auto mapFmtp = split(findSubStr(piInfo->fmtp_," ", ""),";","=");
         // auto sps_pps = mapFmtp["sprop-parameter-sets"];
@@ -82,8 +82,8 @@ static shared_ptr<TrackInfo> createTrackBySdp(int index, const shared_ptr<Webrtc
         // h264TrackInfo->setPps(ppsFrame);
         logInfo << "createTrackBySdp start trackInfo";
         trackInfo = h264TrackInfo;
-        trackInfo->codec_ = "h264";
-        trackInfo->trackType_ = "video";
+        // trackInfo->codec_ = "h264";
+        // trackInfo->trackType_ = "video";
         logInfo << "createTrackBySdp trackInfo";
     } else if (strcasecmp(piInfo->codec_.data(), "h265") == 0) {
         auto h265TrackInfo = make_shared<H265Track>();
