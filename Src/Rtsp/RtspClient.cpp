@@ -292,9 +292,9 @@ void RtspClient::sendDescribeWithAuthInfo()
     auto authMap = split(content, ",", "=", " \"");
     string realm = authMap["realm"];
     string nonce = authMap["nonce"];
-    string username = "admin";
+    string username = _username;
 
-    string pwd = "123456";
+    string pwd = _pwd;
     string encPwd = MD5(username+ ":" + realm + ":" + pwd).hexdigest();
     auto encRes = MD5( encPwd + ":" + nonce + ":" + MD5(string("DESCRIBE") + ":" + _url).hexdigest()).hexdigest();
 

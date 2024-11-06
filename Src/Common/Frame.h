@@ -35,6 +35,7 @@ public:
     virtual uint8_t getNalType() { return 0;}
     virtual void split(const function<void(const FrameBuffer::Ptr& frame)>& cb) {cb(shared_from_this());}
     virtual bool isBFrame() {return false;}
+    virtual bool isNewNalu() {return true;}
 
 public:
     int _profile = 0;

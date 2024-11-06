@@ -74,3 +74,32 @@ void H265Frame::split(const function<void(const FrameBuffer::Ptr& frame)>& cb)
 
     cb(subFrame);
 }
+
+bool H265Frame::isNewNalu()
+{
+    auto nalu = data() + startSize();
+    auto bytes = size() - startSize();
+
+    uint8_t nal_type;
+    uint8_t nuh_layer_id;
+    
+    if(bytes < 3)
+        return 0;
+    
+    nal_type = (nalu[0] >> 1) & 0x3f;
+    nuh_layer_id = ((nalu[0] & 0x01) << 5) | ((nalu[1] >> 3) &0x1F);
+    
+    // 7.4.2.4.4 Order of NAL units and coded pictures and their association to access units
+    if(H265_VPS == nal_type || H265_SPS == nal_type || H265_PPS == nal_type ||
+       (nuh_layer_id == 0 && (H265_AUD == nal_type || H265_SEI_PREFIX == nal_type || (41 <= nal_type && nal_type <= 44) || (48 <= nal_type && nal_type <= 55))))
+        return 1;
+        
+    // 7.4.2.4.5 Order of VCL NAL units and association to coded pictures
+    if (nal_type <= 31)
+    {
+        //first_slice_segment_in_pic_flag 0x80
+        return (nalu[2] & 0x80) ? 1 : 0;
+    }
+    
+    return 0;
+}

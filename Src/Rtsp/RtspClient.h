@@ -39,6 +39,9 @@ public:
 public:
     static void init();
 
+    void setUsername(const string& username) {_username = username;}
+    void setPassword(const string& pwd) {_pwd = pwd;}
+
 public:
     // override MediaClient
     void start(const string& localIp, int localPort, const string& url, int timeout) override;
@@ -73,6 +76,8 @@ private:
     bool _hasAuth = false;
     int _seq = 0;
     int _setupIndex = 0;
+    string _username;
+    string _pwd;
     TransportType _rtpType = Transport_TCP;
     RtspState _state = RTSP_SEND_OPTION;
     MediaClientType _type;

@@ -45,6 +45,33 @@ bool H264Frame::isBFrame()
     return false;
 }
 
+bool H264Frame::isNewNalu()
+{  
+    auto nalu = data() + startSize();
+    auto bytes = size() - startSize();
+    uint8_t nal_type;
+    
+    if(bytes < 2)
+        return 0;
+    
+    nal_type = nalu[0] & 0x1f;
+    
+    // 7.4.1.2.3 Order of NAL units and coded pictures and association to access units
+    if(H264_AUD == nal_type || H264_SPS == nal_type || H264_PPS == nal_type || H264_SEI == nal_type || (14 <= nal_type && nal_type <= 18))
+        return 1;
+    
+    // 7.4.1.2.4 Detection of the first VCL NAL unit of a primary coded picture
+    if(H264_IDR == nal_type || H264_DataPartitionA == nal_type || H264_BP == nal_type)
+    {
+        // Live555 H264or5VideoStreamParser::parse
+        // The high-order bit of the byte after the "nal_unit_header" tells us whether it's
+        // the start of a new 'access unit' (and thus the current NAL unit ends an 'access unit'):
+        return (nalu[1] & 0x80) ? 1 : 0; // first_mb_in_slice
+    }
+    
+    return 0;
+}
+
 void H264Frame::split(const function<void(const FrameBuffer::Ptr& frame)>& cb)
 {
     auto ptr = _buffer.data();

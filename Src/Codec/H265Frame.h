@@ -55,6 +55,8 @@ public:
     
     H265Frame(const H265Frame::Ptr& frame);
 
+    bool isNewNalu() override;
+
     bool keyFrame() const override
     {
         uint8_t type = ((uint8_t)(_buffer[_startSize]) >> 1) & 0x3f;

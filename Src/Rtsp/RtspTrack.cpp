@@ -70,7 +70,7 @@ static shared_ptr<TrackInfo> createTrackBySdp(const shared_ptr<SdpMedia>& media)
         // fwrite(spsFrame->_buffer.data(), 1, spsFrame->_buffer.size(), fp);
         // fclose(fp);
         
-        auto ppsFrame = make_shared<FrameBuffer>();
+        auto ppsFrame = make_shared<H264Frame>();
         ppsFrame->_startSize = 4;
         ppsFrame->_buffer.assign("\x00\x00\x00\x01", 4);
         ppsFrame->_buffer.append(Base64::decode(base64_PPS));
@@ -89,17 +89,17 @@ static shared_ptr<TrackInfo> createTrackBySdp(const shared_ptr<SdpMedia>& media)
         //a=fmtp:96 sprop-sps=QgEBAWAAAAMAsAAAAwAAAwBdoAKAgC0WNrkky/AIAAADAAgAAAMBlQg=; sprop-pps=RAHA8vA8kAA=
         // auto mapFmtp = split(findSubStr(media->fmtp_," ", ""),";","=");
         auto mapFmtp = split(media->fmtp_,";","=");
-        auto vpsFrame = make_shared<FrameBuffer>();
+        auto vpsFrame = make_shared<H265Frame>();
         vpsFrame->_startSize = 4;
         vpsFrame->_buffer.assign("\x00\x00\x00\x01", 4);
         vpsFrame->_buffer.append(Base64::decode(mapFmtp["sprop-vps"]));
         
-        auto spsFrame = make_shared<FrameBuffer>();
+        auto spsFrame = make_shared<H265Frame>();
         spsFrame->_startSize = 4;
         spsFrame->_buffer.assign("\x00\x00\x00\x01", 4);
         spsFrame->_buffer.append(Base64::decode(mapFmtp["sprop-sps"]));
 
-        auto ppsFrame = make_shared<FrameBuffer>();
+        auto ppsFrame = make_shared<H265Frame>();
         ppsFrame->_startSize = 4;
         ppsFrame->_buffer.assign("\x00\x00\x00\x01", 4);
         ppsFrame->_buffer.append(Base64::decode(mapFmtp["sprop-pps"]));

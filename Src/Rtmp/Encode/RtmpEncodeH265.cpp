@@ -154,9 +154,13 @@ void RtmpEncodeH265::encode(const FrameBuffer::Ptr& frame)
         enhancedExtraSize = 3;
     }
 
+    // if (frame->getNalType() == H265_AUD || frame->getNalType() == H265_SEI_PREFIX) {
+    //     return ;
+    // }
+
     auto msg = make_shared<RtmpMessage>();
 
-    if (!_append && !_vecFrame.empty()) { 
+    if (!_append && !_vecFrame.empty()) {
         if (_lastStamp != frame->pts() || frame->startSize() > 0) {
             auto msg = make_shared<RtmpMessage>();
             msg->payload = make_shared<StreamBuffer>(_msgLength + 1);
@@ -167,7 +171,7 @@ void RtmpEncodeH265::encode(const FrameBuffer::Ptr& frame)
             for (auto& it : _vecFrame) {
                 auto data = msg->payload->data() + index;
                 auto h265It = dynamic_pointer_cast<H265Frame>(it);
-                auto keyFrame = h265It->keyFrame();
+                auto keyFrame = h265It->keyFrame() || h265It->metaFrame();
                 int cts = it->pts() - it->dts();
                 int length = it->size() - it->startSize();
                 

@@ -224,6 +224,7 @@ void RtpDecodeH265::setOnDecode(const function<void(const FrameBuffer::Ptr& fram
 void RtpDecodeH265::onFrame(const FrameBuffer::Ptr& frame)
 {
     // TODO 存在B帧时如何处理。可参考ffmpeg
+    logInfo << "frame size: " << frame->size() << ", pts: " << frame->pts() << ", type: " << (int)frame->getNalType();
     frame->_dts = frame->_pts;
     frame->_index = _trackInfo->index_;
     if (_onFrame) {

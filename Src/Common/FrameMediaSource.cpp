@@ -26,38 +26,52 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
             if (frame->startFrame()) {
                 keyframe = true;
                 _sendConfig = true;
-            } else if (frame->keyFrame()) {
-                if (!_sendConfig) {
-                    FrameBuffer::Ptr vps;
-                    FrameBuffer::Ptr sps;
-                    FrameBuffer::Ptr pps;
-                    _mapTrackInfo[frame->_index]->getVpsSpsPps(vps, sps, pps);
 
-                    if (_mapTrackInfo[frame->_index]->codec_ == "h264") {
-                        keyframe = true;
-                    } else if (_mapTrackInfo[frame->_index]->codec_ == "h265") {
-                        keyframe = false;
-                        vps->_dts = frame->_dts;
-                        vps->_pts = frame->_pts;
-                        vps->_index = frame->_index;
-                        _ring->write(vps, true);
+                _ring->write(frame, keyframe);
+            } else if (frame->isNewNalu() && _frame) {
+                if (_frame->keyFrame()) {
+                    if (!_sendConfig) {
+                        FrameBuffer::Ptr vps;
+                        FrameBuffer::Ptr sps;
+                        FrameBuffer::Ptr pps;
+                        _mapTrackInfo[_frame->_index]->getVpsSpsPps(vps, sps, pps);
+
+                        if (_mapTrackInfo[_frame->_index]->codec_ == "h264") {
+                            keyframe = true;
+                        } else if (_mapTrackInfo[_frame->_index]->codec_ == "h265") {
+                            keyframe = false;
+                            vps->_dts = _frame->_dts;
+                            vps->_pts = _frame->_pts;
+                            vps->_index = _frame->_index;
+                            _ring->write(vps, true);
+                        }
+                        
+                        sps->_dts = _frame->_dts;
+                        sps->_pts = _frame->_pts;
+                        sps->_index = _frame->_index;
+                        _ring->write(sps, keyframe);
+
+                        pps->_dts = _frame->_dts;
+                        pps->_pts = _frame->_pts;
+                        pps->_index = _frame->_index;
+                        _ring->write(pps, false);
                     }
-                    
-                    sps->_dts = frame->_dts;
-                    sps->_pts = frame->_pts;
-                    sps->_index = frame->_index;
-                    _ring->write(sps, keyframe);
-
-                    pps->_dts = frame->_dts;
-                    pps->_pts = frame->_pts;
-                    pps->_index = frame->_index;
-                    _ring->write(pps, false);
+                    _sendConfig = false;
                 }
-                _sendConfig = false;
+                _ring->write(_frame, keyframe);
+                _frame = frame;
+            } else {
+                if (!_frame) {
+                    _frame = frame;
+                } else {
+                    _frame->_buffer.append(frame->_buffer);
+                }
             }
+        } else {
+            _ring->write(frame, false);
         }
         // logInfo << "keyframe: " << keyframe << ", size: " << frame->size() << ", type: " << (int)frame->getNalType();
-        _ring->write(frame, keyframe);
+        // _ring->write(frame, keyframe);
     // }
 }
 

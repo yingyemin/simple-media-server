@@ -82,6 +82,8 @@ public:
 
     bool isBFrame() override;
 
+    bool isNewNalu() override;
+
     static uint8_t getNalType(uint8_t nalByte)
     {
         return nalByte & 0x1F;

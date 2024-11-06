@@ -50,8 +50,14 @@ void RtspApi::startRtspPlay(const HttpParser& parser, const UrlParser& urlParser
     
     auto client = make_shared<RtspClient>(MediaClientType_Pull, parser._body["appName"], parser._body["streamName"]);
     client->setTransType(rtpType);
-    client->start("0.0.0.0", 0, parser._body["url"], timeout);
 
+    client->start("0.0.0.0", 0, parser._body["url"], timeout);
+    if (parser._body.find("username") != parser._body.end()) {
+        client->setUsername(parser._body["username"]);
+    }
+    if (parser._body.find("password") != parser._body.end()) {
+        client->setPassword(parser._body["password"]);
+    }
     // stringstream key;
     string key = "/" + parser._body["appName"].get<string>() + "/" + parser._body["streamName"].get<string>();
     MediaClient::addMediaClient(key, client);
