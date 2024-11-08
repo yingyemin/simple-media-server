@@ -33,7 +33,7 @@ void RtspParser::parse(const char *data, size_t len)
     if (_stage == 3) {
         if (len < _contentLen) {
             // 数据还是不够
-            _remainData.clear();
+            // _remainData.clear();
             return ;
         } else {
             // 解析content
@@ -132,10 +132,10 @@ void RtspParser::parse(const char *data, size_t len)
                     // 处理content
                     _stage = 1;
                     _content = string(data, _contentLen);
+                    data += _contentLen;
                     _contentLen = 0;
                     // logInfo << "on rtsp packet";
                     onRtspPacket();
-                    data += len;
                     continue;
                 }
             }

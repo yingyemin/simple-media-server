@@ -1339,7 +1339,7 @@ void SipStack::req_keepalive(std::stringstream& ss, shared_ptr<SipRequest> req)
    
 }
 
-void SipStack::resp_invite(std::stringstream& ss, shared_ptr<SipRequest> req, const string& ssrc)
+void SipStack::resp_invite(std::stringstream& ss, shared_ptr<SipRequest> req, const string& ssrc, bool isUdp)
 {
     /* 
     //request: sip-agent <-------INVITE------ sip-server
@@ -1434,11 +1434,17 @@ void SipStack::resp_invite(std::stringstream& ss, shared_ptr<SipRequest> req, co
     << "o=" << req->sip_channel_id << " 0 0 IN IP4 " << req->host << RTSP_CRLF
     << "s=Play" << RTSP_CRLF
     << "c=IN IP4 " << req->host << RTSP_CRLF
-    << "t=0 0" << RTSP_CRLF
+    << "t=0 0" << RTSP_CRLF;
     //TODO 97 98 99 current no support
     //<< "m=video " << port <<" RTP/AVP 96 97 98 99" << RTSP_CRLF
-    << "m=video " << 34876 <<" RTP/AVP 96" << RTSP_CRLF
-    << "a=sendonly" << RTSP_CRLF
+    if (isUdp) {
+        sdp << "m=video " << 34876 <<" RTP/AVP 96" << RTSP_CRLF;
+    } else {
+        sdp << "m=video " << 34876 <<" TCP/RTP/AVP 96" << RTSP_CRLF
+            << "a=setup:passive" << RTSP_CRLF
+            << "a=connection:new" << RTSP_CRLF;
+    }
+    sdp << "a=sendonly" << RTSP_CRLF
     << "a=rtpmap:96 PS/90000" << RTSP_CRLF
     << "a=username:" << req->sip_channel_id << RTSP_CRLF
     << "a=password:" << req->sip_auth_pwd << RTSP_CRLF

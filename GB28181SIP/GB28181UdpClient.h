@@ -35,7 +35,7 @@
 using namespace std;
 
 // The gb28181 client.
-class GB28181UdpClient : public GB28181Client
+class GB28181UdpClient : public GB28181Client, public enable_shared_from_this<GB28181UdpClient>
 {
 public:
     GB28181UdpClient();
@@ -43,6 +43,7 @@ public:
 public:
     void start() override;
     void sendMessage(const string& message) override;
+    void addTimerTask() override;
 
 private:
     Socket::Ptr _pSock;

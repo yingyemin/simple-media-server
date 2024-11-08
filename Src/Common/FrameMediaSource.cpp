@@ -19,6 +19,7 @@ FrameMediaSource::~FrameMediaSource()
 
 void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
 {
+    logInfo << "before adjust frame pts: " << frame->_pts << ", frame dts: " << frame->_dts;
     // for (auto& sink : _mapSink) {
         // logInfo << "on frame to sink";
         bool keyframe = false;
@@ -27,6 +28,7 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
                 keyframe = true;
                 _sendConfig = true;
 
+                _videoStampAdjust->inputStamp(frame->_pts, frame->_dts, 1);
                 _ring->write(frame, keyframe);
             } else if (frame->isNewNalu() && _frame) {
                 if (_frame->keyFrame()) {
@@ -58,6 +60,8 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
                     }
                     _sendConfig = false;
                 }
+
+                _videoStampAdjust->inputStamp(frame->_pts, frame->_dts, 1);
                 _ring->write(_frame, keyframe);
                 _frame = frame;
             } else {
@@ -68,8 +72,16 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
                 }
             }
         } else {
+            int samples = 0;
+            if (frame->_codec == "aac") {
+                samples = 1024;
+            } else if (frame->_codec == "g711a" || frame->_codec == "g711u") {
+                samples = frame->size() - frame->startSize();
+            }
+            _audioStampAdjust->inputStamp(frame->_pts, frame->_dts, samples);
             _ring->write(frame, false);
         }
+        logInfo << "frame pts: " << frame->_pts << ", frame dts: " << frame->_dts;
         // logInfo << "keyframe: " << keyframe << ", size: " << frame->size() << ", type: " << (int)frame->getNalType();
         // _ring->write(frame, keyframe);
     // }
@@ -79,6 +91,11 @@ void FrameMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
 {
     logInfo << "on add track to sink";
     MediaSource::addTrack(track);
+    if (track->trackType_ == "video") {
+        _videoStampAdjust = make_shared<VideoStampAdjust>(0);
+    } else if (track->trackType_ == "audio") {
+        _audioStampAdjust = make_shared<AudioStampAdjust>(0);
+    }
 
     for (auto& sink : _mapSink) {
         logInfo << "on add track to sink";

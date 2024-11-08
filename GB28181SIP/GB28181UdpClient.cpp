@@ -95,3 +95,23 @@ void GB28181UdpClient::sendMessage(const string& message)
     _pSock->send(buffer);
 }
 
+void GB28181UdpClient::addTimerTask()
+{
+    weak_ptr<GB28181UdpClient> wSelf = shared_from_this();
+    
+    _loop->addTimerTask(5000, [wSelf](){
+        auto self = wSelf.lock();
+        if (!self) {
+            return 0;
+        }
+        if (self->_aliveStatus != 0) {
+            self->_aliveStatus = 0;
+            self->gbRegister(self->_req);
+            return 0;
+        }
+        self->_aliveStatus = 1;
+        self->keepalive();
+        return 5000;
+    }, nullptr);
+}
+

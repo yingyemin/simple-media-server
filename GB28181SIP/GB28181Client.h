@@ -45,7 +45,7 @@ public:
 };
 
 // The gb28181 client.
-class GB28181Client : public enable_shared_from_this<GB28181Client>
+class GB28181Client
 {
 public:
     GB28181Client();
@@ -53,6 +53,7 @@ public:
 public:
     virtual void start() = 0;
     virtual void sendMessage(const string& message) = 0;
+    virtual void addTimerTask() = 0;
     void gbRegister(shared_ptr<SipRequest> req);
     void keepalive();
     string sendDevice(const string& callId, CatalogInfo& info);

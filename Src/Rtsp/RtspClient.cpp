@@ -279,6 +279,11 @@ void RtspClient::sendDescribeWithAuthInfo()
         return ;
     }
 
+    if (_username.empty() && !_peerUrlParser.username_.empty()) {
+        _username = _peerUrlParser.username_;
+        _pwd = _peerUrlParser.password_;
+    }
+
     // logInfo << "rtspAuth authStr";
     //请求中包含认证信息
     auto pos = authStr.find_first_of(" ");
@@ -301,7 +306,7 @@ void RtspClient::sendDescribeWithAuthInfo()
     stringstream ss;
     ss << "DESCRIBE " << _url << " RTSP/1.0" << CRLF
        << "CSeq: " << ++_seq << CRLF
-       << "Authorization: Digest username=\"admin\"" << ", realm=\"" << realm << "\", nonce=\""
+       << "Authorization: Digest username=\"" << username << "\"" << ", realm=\"" << realm << "\", nonce=\""
             << nonce << "\", uri=\"" << _url << "\", response=\"" << encRes << CRLF
        << "User-Agent: " << "SMS v0.1" << CRLF
        << "Accept: application/sdp" << CRLF

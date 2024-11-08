@@ -23,6 +23,7 @@
 
 #include "GB28181TcpClient.h"
 #include "Log/Logger.h"
+#include "EventPoller/EventLoopPool.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -34,18 +35,29 @@
 using namespace std;
 
 GB28181TcpClient::GB28181TcpClient()
-    :TcpClient(EventLoop::getCurrentLoop())
-{}
+    :TcpClient(EventLoopPool::instance()->getLoopByCircle())
+{
+    GB28181Client::_loop = getLoop();
+}
 
 GB28181TcpClient::~GB28181TcpClient()
 {}
 
 void GB28181TcpClient::start()
 {
+    weak_ptr<GB28181TcpClient> wSelf = static_pointer_cast<GB28181TcpClient>(shared_from_this());
+    _parser.setOnGB28181Packet([wSelf](const char* data, int len){
+        auto self = wSelf.lock();
+        if (!self) {
+            return ;
+        }
+        self->onGB28181Packet(data, len);
+    });
+
     //get local config
     string localIp = "0.0.0.0";
 
-    create(_req->peer_ip, _req->peer_port);
+    // create(_req->peer_ip, _req->peer_port);
     if (TcpClient::create(localIp, 0) < 0) {
         close();
         logInfo << "TcpClient::create failed: " << strerror(errno);
@@ -69,8 +81,30 @@ void GB28181TcpClient::start()
 
 void GB28181TcpClient::sendMessage(const string& message)
 {
+    logInfo << "send a message: " << message << endl;
+
     StringBuffer::Ptr buffer(new StringBuffer(message));
     send(buffer);
+}
+
+void GB28181TcpClient::addTimerTask()
+{
+    weak_ptr<GB28181TcpClient> wSelf = dynamic_pointer_cast<GB28181TcpClient>(shared_from_this());
+
+    GB28181Client::_loop->addTimerTask(5000, [wSelf](){
+        auto self = wSelf.lock();
+        if (!self) {
+            return 0;
+        }
+        if (self->_aliveStatus != 0) {
+            self->_aliveStatus = 0;
+            self->gbRegister(self->_req);
+            return 0;
+        }
+        self->_aliveStatus = 1;
+        self->keepalive();
+        return 5000;
+    }, nullptr);
 }
 
 void GB28181TcpClient::onError(const string &ex) {
@@ -93,29 +127,23 @@ void GB28181TcpClient::onConnect() {
 void GB28181TcpClient::onRead(const StreamBuffer::Ptr &buf, struct sockaddr* addr, int len){
     try {
         // input(buf->data(), buf->size());
+        _parser.parse(buf->data(), buf->size());
     } catch (exception &e) {
         //连接失败
         //TODO 重试以及日志上报
     }
 }
 
-// int64_t GB28181TcpClient::onRecvHeader(const char *data, uint64_t len) {
-//     TraceL << "get message header: " << data << endl;
-//     _sipStack.parse_request(_req, data, len);
-//     if (!_req) {
-//         return 0;
-//     }
+void GB28181TcpClient::onGB28181Packet(const char *data, uint64_t len) {
+    logTrace << "message  is: " << string(data, len);
+    shared_ptr<SipRequest> req;
+    _sipStack.parse_request(req, data, len);
+    if (!req) {
+        logInfo << "parse request error: " << string(data, len);
+        return ;
+    }
 
-//     auto ret = _req->content_length;
-//     if(ret == 0){
-//         onWholeSipPacket(_req);
-//     }
-//     return ret;
-// }
-
-// void GB28181TcpClient::onRecvContent(const char *data, uint64_t len) {
-//     TraceL << "message body is: " << endl;
-//     _req->content = string(data,len);
-//     onWholeSipPacket(_req);
-// }
+    // _req->content = string(data,len);
+    onWholeSipPacket(req);
+}
 

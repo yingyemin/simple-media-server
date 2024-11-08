@@ -29,6 +29,7 @@
 #include <sstream>
 
 #include "GB28181Client.h"
+#include "GB28181SIPParser.h"
 #include "Net/TcpClient.h"
 
 using namespace std;
@@ -43,6 +44,7 @@ public:
     //for GB28181Client override
     void start() override;
     void sendMessage(const string& message) override;
+    void addTimerTask() override;
     
     //for Tcpclient override
     void onRead(const StreamBuffer::Ptr &buf, struct sockaddr* addr, int len) override;
@@ -51,10 +53,10 @@ public:
 
     //for HttpRequestSplitter override
     // int64_t onRecvHeader(const char *data,uint64_t len) override;
-    // void onRecvContent(const char *data,uint64_t len) override;
+    void onGB28181Packet(const char *data, uint64_t len);
 
 private:
-
+    GB28181SIPParser _parser;
 };
 
 #endif //GB28181_TCP_CLIENT_H

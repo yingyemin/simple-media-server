@@ -54,7 +54,13 @@ void UrlParser::parse(string url)
     string host = url.substr(0, pos);
     if (host.find("@") != string::npos) {
         // 127.0.0.1
+        string userInfo = findSubStr(host, "", "@");
         host = findSubStr(host, "@", "");
+        auto vecUser = split(userInfo, ":");
+        if (vecUser.size() == 2) {
+            username_ = vecUser[0];
+            password_ = vecUser[1];
+        }
     }
     logInfo << host;
     if (host[0] == '[') {

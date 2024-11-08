@@ -213,7 +213,9 @@ void RtspDecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
             samples = frame->size() - frame->startSize();
         }
     }
+    // logInfo << "before adjust frame pts: " << frame->_pts << ", frame dts: " << frame->_dts;
     // _stampAdjust->inputStamp(frame->_pts, frame->_dts, samples);
+    // logInfo << "frame pts: " << frame->_pts << ", frame dts: " << frame->_dts;
     if (_onFrame) {
         _onFrame(frame);
     }

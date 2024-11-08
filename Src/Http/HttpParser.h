@@ -24,7 +24,7 @@ public:
     void parse(const char *data, size_t len);
     void onHttpRequest();
     void setOnHttpRequest(const function<void()>& cb);
-;
+
     void onHttpBody(const char* data, int len);
     void setOnHttpBody(const function<void(const char* data, int len)>& cb);
     void clear();

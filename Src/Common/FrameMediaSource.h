@@ -17,6 +17,7 @@
 #include <functional>
 #include "MediaSource.h"
 #include "Track.h"
+#include "StampAdjust.h"
 
 #define RTP_GOP_SIZE 512
 
@@ -40,6 +41,8 @@ public:
 private:
     bool _sendConfig = false;
     int _ring_size = 25;
+    shared_ptr<StampAdjust> _videoStampAdjust;
+    shared_ptr<StampAdjust> _audioStampAdjust;
     FrameRingType::Ptr _ring;
     FrameBuffer::Ptr _frame;
 };

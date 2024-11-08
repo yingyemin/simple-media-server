@@ -21,6 +21,8 @@ public:
     string url_;
     string vhost_ = "default";
     string type_ = "default";
+    string username_;
+    string password_;
     unordered_map<string, string> vecParam_;
 
 private:

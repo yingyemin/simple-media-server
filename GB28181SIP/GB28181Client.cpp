@@ -201,7 +201,7 @@ void GB28181Client::sendDeviceStatus(shared_ptr<SipRequest> req)
 
 void GB28181Client::onWholeSipPacket(shared_ptr<SipRequest> req)
 {
-    weak_ptr<GB28181Client> wSelf = shared_from_this();
+    // weak_ptr<GB28181Client> wSelf = shared_from_this();
     std::string session_id = req->sip_auth_id;
 
     if (req->is_register()) {
@@ -209,20 +209,21 @@ void GB28181Client::onWholeSipPacket(shared_ptr<SipRequest> req)
         if (req->status == "200") {
             logInfo << "register success" << endl;
             _registerStatus = 1;
-            _loop->addTimerTask(5000, [wSelf](){
-                auto self = wSelf.lock();
-                if (!self) {
-                    return 0;
-                }
-                if (self->_aliveStatus != 0) {
-                    self->_aliveStatus = 0;
-                    self->gbRegister(self->_req);
-                    return 0;
-                }
-                self->_aliveStatus = 1;
-                self->keepalive();
-                return 5000;
-            }, nullptr);
+            // _loop->addTimerTask(5000, [wSelf](){
+            //     auto self = wSelf.lock();
+            //     if (!self) {
+            //         return 0;
+            //     }
+            //     if (self->_aliveStatus != 0) {
+            //         self->_aliveStatus = 0;
+            //         self->gbRegister(self->_req);
+            //         return 0;
+            //     }
+            //     self->_aliveStatus = 1;
+            //     self->keepalive();
+            //     return 5000;
+            // }, nullptr);
+            
         } else if (req->status == "401") {
             logInfo << "www_authenticate is: " << req->www_authenticate << endl;
             auto space = split(req->www_authenticate, ",");
@@ -366,7 +367,7 @@ void GB28181Client::onWholeSipPacket(shared_ptr<SipRequest> req)
         // // req->_device->startSendRtp(*((MediaSource*)this), ip, port, ssrc, isUdp, cb);
         _channel2Req[req->sip_channel_id][req->call_id] = req;
         std::stringstream ss;
-        _sipStack.resp_invite(ss, req, ssrc);
+        _sipStack.resp_invite(ss, req, ssrc, isUdp);
 
         sendMessage(ss.str());
 

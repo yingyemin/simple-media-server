@@ -60,6 +60,7 @@ enum SipCmdType{
 class SipRequest
 {
 public:
+    using Ptr = std::shared_ptr<SipRequest>;
     //sip header member
     std::string method;
     std::string uri;
@@ -152,7 +153,7 @@ public:
     virtual void req_register(std::stringstream& ss, std::shared_ptr<SipRequest> req);
     virtual void req_registerWithAuth(std::stringstream& ss, std::shared_ptr<SipRequest> req);
     virtual void req_keepalive(std::stringstream& ss, std::shared_ptr<SipRequest> req);
-    virtual void resp_invite(std::stringstream& ss, std::shared_ptr<SipRequest> req, const std::string& ssrc);
+    virtual void resp_invite(std::stringstream& ss, std::shared_ptr<SipRequest> req, const std::string& ssrc, bool isUdp);
     virtual std::string resp_catalog(std::stringstream& ss, std::shared_ptr<SipRequest> req, const std::string& strSN, int total, int num, uint64_t startId, const std::string& channelStartId);
     virtual void resp_deviceinfo(std::stringstream& ss, std::shared_ptr<SipRequest> req, const std::string& strSn, int num);
     virtual void resp_devicestatus(std::stringstream& ss, std::shared_ptr<SipRequest> req, const std::string& strSn);
