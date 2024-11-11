@@ -32,7 +32,7 @@ public:
     void close() override;
     ssize_t send(Buffer::Ptr pkt) override;
 
-    void onSipPacket(const SipRequest::Ptr& req);
+    void onSipPacket(const Socket::Ptr& socket, const SipRequest::Ptr& req);
 
 private:
     bool _isClose = false;

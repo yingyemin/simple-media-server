@@ -142,12 +142,13 @@ public:
     virtual void resp_status(std::stringstream& ss, std::shared_ptr<SipRequest> req);
     virtual void resp_keepalive(std::stringstream& ss, std::shared_ptr<SipRequest> req);
     virtual void resp_ack(std::stringstream& ss, std::shared_ptr<SipRequest> req);
+    virtual void resp_401_unauthorized(std::stringstream& ss, std::shared_ptr<SipRequest> req);
+    virtual void req_query_catalog(std::stringstream& ss, std::shared_ptr<SipRequest> req);
      
-    virtual void req_invite(std::stringstream& ss, std::shared_ptr<SipRequest> req, std::string ip, int port, uint32_t ssrc);
+    virtual std::string req_invite(std::stringstream& ss, std::shared_ptr<SipRequest> req, std::string ip, int port, uint32_t ssrc);
 	virtual void req_invite_playback(std::stringstream& ss, std::shared_ptr<SipRequest> req, std::string ip, 
         int port, uint32_t ssrc, std::string start_time, std::string end_time);
     virtual void req_bye(std::stringstream& ss, std::shared_ptr<SipRequest> req);
-    virtual void req_401_unauthorized(std::stringstream& ss, std::shared_ptr<SipRequest> req);
     virtual std::string req_record_info(std::stringstream& ss, std::shared_ptr<SipRequest> req, 
                     const std::string& deviceId, const std::string& startTime, const std::string& endTime);
     virtual void req_register(std::stringstream& ss, std::shared_ptr<SipRequest> req);

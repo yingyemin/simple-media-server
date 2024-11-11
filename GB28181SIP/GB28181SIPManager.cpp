@@ -36,7 +36,7 @@ void GB28181SIPManager::init(const EventLoop::Ptr& loop)
     });
 }
 
-void GB28181SIPManager::onSipPacket(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)
+void GB28181SIPManager::onSipPacket(const Socket::Ptr& socket, const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)
 {
     shared_ptr<SipRequest> req;
     _sipStack.parse_request(req, buffer->data(), buffer->size());
@@ -53,7 +53,7 @@ void GB28181SIPManager::onSipPacket(const StreamBuffer::Ptr& buffer, struct sock
         auto context = iter->second.lock();
         if (context) {
             if (context->isAlive()) {
-                context->onSipPacket(req, addr, len, true);
+                context->onSipPacket(socket, req, addr, len, true);
             } else {
                 auto key = iter->first;
                 _mapContextPerThread.erase(iter);
@@ -73,7 +73,7 @@ void GB28181SIPManager::onSipPacket(const StreamBuffer::Ptr& buffer, struct sock
         {
             auto context = iterAll->second;
             if (context->isAlive()) {
-                context->onSipPacket(req, addr, len, true);
+                context->onSipPacket(socket, req, addr, len, true);
                 _mapContextPerThread[deviceId] = context;
             } else {
                 _mapContext.erase(iterAll);
@@ -89,7 +89,7 @@ void GB28181SIPManager::onSipPacket(const StreamBuffer::Ptr& buffer, struct sock
     if (!context->init()) {
         return ;
     }
-    context->onSipPacket(req, addr, len, true);
+    context->onSipPacket(socket, req, addr, len, true);
     logInfo << "_mapContextPerThread, deviceId: " << deviceId;
     _mapContextPerThread[deviceId] = context;
     lock_guard<mutex> lock(_contextLck);

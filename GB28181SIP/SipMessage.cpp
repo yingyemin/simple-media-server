@@ -464,7 +464,7 @@ void SipStack::resp_status(stringstream& ss, shared_ptr<SipRequest> req)
         */
         if (req->authorization.empty()){
             //TODO: fixme supoort 401
-            //return req_401_unauthorized(ss, req);
+            return resp_401_unauthorized(ss, req);
         }
 
         ss << SIP_VERSION <<" 200 OK" << RTSP_CRLF
@@ -524,7 +524,143 @@ void SipStack::resp_status(stringstream& ss, shared_ptr<SipRequest> req)
    
 }
 
-void SipStack::req_invite(stringstream& ss, shared_ptr<SipRequest> req, string ip, int port, uint32_t ssrc)
+void SipStack::req_query_catalog(std::stringstream& ss, shared_ptr<SipRequest> req)
+{
+    /*
+    //request: sip-agent <----MESSAGE Query Catalog--- sip-server
+    MESSAGE sip:34020000001110000001@192.168.1.21:5060 SIP/2.0
+    Via: SIP/2.0/UDP 192.168.1.17:5060;rport;branch=z9hG4bK563315752
+    From: <sip:34020000001110000001@3402000000>;tag=387315752
+    To: <sip:34020000001110000001@192.168.1.21:5060>
+    Call-ID: 728315752
+    CSeq: 32 MESSAGE
+    Content-Type: Application/MANSCDP+xml
+    Max-Forwards: 70
+    User-Agent: SRS/4.0.20(Leo)
+    Content-Length: 162
+
+    <?xml version="1.0" encoding="UTF-8"?>
+    <Query>
+        <CmdType>Catalog</CmdType>
+        <SN>419315752</SN>
+        <DeviceID>34020000001110000001</DeviceID>
+    </Query>
+    SIP/2.0 200 OK
+    Via: SIP/2.0/UDP 192.168.1.17:5060;rport=5060;branch=z9hG4bK563315752
+    From: <sip:34020000001110000001@3402000000>;tag=387315752
+    To: <sip:34020000001110000001@192.168.1.21:5060>;tag=1420696981
+    Call-ID: 728315752
+    CSeq: 32 MESSAGE
+    User-Agent: Embedded Net DVR/NVR/DVS
+    Content-Length: 0
+
+    //response: sip-agent ----MESSAGE Query Catalog---> sip-server
+    SIP/2.0 200 OK
+    Via: SIP/2.0/UDP 192.168.1.17:5060;rport=5060;received=192.168.1.17;branch=z9hG4bK563315752
+    From: <sip:34020000001110000001@3402000000>;tag=387315752
+    To: <sip:34020000001110000001@192.168.1.21:5060>;tag=1420696981
+    CSeq: 32 MESSAGE
+    Call-ID: 728315752
+    User-Agent: SRS/4.0.20(Leo)
+    Content-Length: 0
+
+    //request: sip-agent ----MESSAGE Response Catalog---> sip-server
+    MESSAGE sip:34020000001110000001@3402000000.spvmn.cn SIP/2.0
+    Via: SIP/2.0/UDP 192.168.1.21:5060;rport;branch=z9hG4bK1681502633
+    From: <sip:34020000001110000001@3402000000.spvmn.cn>;tag=1194168247
+    To: <sip:34020000001110000001@3402000000.spvmn.cn>
+    Call-ID: 685380150
+    CSeq: 20 MESSAGE
+    Content-Type: Application/MANSCDP+xml
+    Max-Forwards: 70
+    User-Agent: Embedded Net DVR/NVR/DVS
+    Content-Length:   909
+
+    <?xml version="1.0" encoding="gb2312"?>
+    <Response>
+    <CmdType>Catalog</CmdType>
+    <SN>419315752</SN>
+    <DeviceID>34020000001110000001</DeviceID>
+    <SumNum>8</SumNum>
+    <DeviceList Num="2">
+    <Item>
+    <DeviceID>34020000001320000001</DeviceID>
+    <Name>Camera 01</Name>
+    <Manufacturer>Manufacturer</Manufacturer>
+    <Model>Camera</Model>
+    <Owner>Owner</Owner>
+    <CivilCode>CivilCode</CivilCode>
+    <Address>192.168.254.18</Address>
+    <Parental>0</Parental>
+    <SafetyWay>0</SafetyWay>
+    <RegisterWay>1</RegisterWay>
+    <Secrecy>0</Secrecy>
+    <Status>ON</Status>
+    </Item>
+    <Item>
+    <DeviceID>34020000001320000002</DeviceID>
+    <Name>IPCamera 02</Name>
+    <Manufacturer>Manufacturer</Manufacturer>
+    <Model>Camera</Model>
+    <Owner>Owner</Owner>
+    <CivilCode>CivilCode</CivilCode>
+    <Address>192.168.254.14</Address>
+    <Parental>0</Parental>
+    <SafetyWay>0</SafetyWay>
+    <RegisterWay>1</RegisterWay>
+    <Secrecy>0</Secrecy>
+    <Status>OFF</Status>
+    </Item>
+    </DeviceList>
+    </Response>
+
+    */
+
+    std::stringstream xml;
+    std::string xmlbody;
+
+    xml << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << RTSP_CRLF
+    << "<Query>" << RTSP_CRLF
+    << "<CmdType>Catalog</CmdType>" << RTSP_CRLF
+    << "<SN>" << sip_random(1000, 9999) << "</SN>" << RTSP_CRLF
+    << "<DeviceID>" << req->sip_auth_id << "</DeviceID>" << RTSP_CRLF
+    << "</Query>" << RTSP_CRLF;
+    xmlbody = xml.str();
+
+    std::stringstream from, to, uri, branch, from_tag;
+    //"INVITE sip:34020000001320000001@3402000000 SIP/2.0\r\n
+    uri << "sip:" <<  req->sip_auth_id << "@" << req->realm;
+    //From: <sip:34020000002000000001@%s:%s>;tag=500485%d\r\n
+    from << req->serial << "@" << req->host << ":"  << req->host_port;
+    to << req->sip_auth_id <<  "@" << req->realm;
+ 
+    req->from = from.str();
+    req->to   = to.str();
+    req->uri  = uri.str();
+
+    int rand = sip_random(1000, 9999);
+
+    branch << "z9hG4bK3420" << rand;
+    from_tag << "51235" << rand;
+    req->branch = branch.str();
+    req->from_tag = from_tag.str();
+    req->call_id = sip_random(10000000, 99999999);
+
+    ss << "MESSAGE " << req->uri << " " << SIP_VERSION << RTSP_CRLF
+    << "Via: " << SIP_VERSION << "/UDP "<< req->host << ":" << req->host_port << ";rport;branch=" << req->branch << RTSP_CRLF
+    << "From: <sip:" << req->from << ">;tag=" << req->from_tag << RTSP_CRLF
+    << "To: <sip:" << req->to << ">" << RTSP_CRLF
+    << "Call-ID: " << req->call_id << RTSP_CRLF
+    << "CSeq: " << sip_random(22, 99) << " MESSAGE" << RTSP_CRLF
+    << "Content-Type: Application/MANSCDP+xml" << RTSP_CRLF
+    << "Max-Forwards: 70" << RTSP_CRLF
+    << "User-Agent: " << SIP_USER_AGENT << RTSP_CRLF
+    << "Content-Length: " << xmlbody.length() << RTSP_CRLFCRLF
+    << xmlbody;
+
+}
+
+string SipStack::req_invite(stringstream& ss, shared_ptr<SipRequest> req, string ip, int port, uint32_t ssrc)
 {
     /* 
     //request: sip-agent <-------INVITE------ sip-server
@@ -648,6 +784,8 @@ void SipStack::req_invite(stringstream& ss, shared_ptr<SipRequest> req, string i
     << "Subject: "<< req->sip_auth_id << ":" << ssrc << "," << req->serial << ":0" << RTSP_CRLF
     << "Content-Length: " << sdp.str().length() << RTSP_CRLFCRLF
     << sdp.str();
+
+    return to_string(20000) + to_string(rand);
 }
 
 void SipStack::req_invite_playback(std::stringstream& ss, shared_ptr<SipRequest> req, std::string ip, 
@@ -794,7 +932,7 @@ void SipStack::req_invite_playback(std::stringstream& ss, shared_ptr<SipRequest>
     << sdp.str();*/
 }
 
-void SipStack::req_401_unauthorized(std::stringstream& ss, shared_ptr<SipRequest> req)
+void SipStack::resp_401_unauthorized(std::stringstream& ss, shared_ptr<SipRequest> req)
 {
     /* sip-agent <-----401 Unauthorized ------ sip-server
     SIP/2.0 401 Unauthorized

@@ -8,6 +8,7 @@
 #include <memory>
 
 #include "GB28181SIPContext.h"
+#include "Net/Socket.h"
 
 using namespace std;
 
@@ -23,7 +24,7 @@ public:
     static GB28181SIPManager::Ptr& instance();
 
     void init(const EventLoop::Ptr& loop);
-    void onSipPacket(const StreamBuffer::Ptr& req, struct sockaddr* addr, int len);
+    void onSipPacket(const Socket::Ptr& socket, const StreamBuffer::Ptr& req, struct sockaddr* addr, int len);
     void heartbeat();
     void addContext(const string& deviceId, const GB28181SIPContext::Ptr& context);
     void delContext(const string& deviceId);

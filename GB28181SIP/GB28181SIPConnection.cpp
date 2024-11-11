@@ -40,7 +40,7 @@ void GB28181SIPConnection::init()
         self->_sipStack.parse_request(req, data, len);
         // auto buffer = StreamBuffer::create();
         // buffer->assign(data + 2, len - 2);
-        self->onSipPacket(req);
+        self->onSipPacket(self->_socket, req);
     });
 }
 
@@ -74,7 +74,7 @@ ssize_t GB28181SIPConnection::send(Buffer::Ptr pkt)
     return TcpConnection::send(pkt);
 }
 
-void GB28181SIPConnection::onSipPacket(const SipRequest::Ptr& req)
+void GB28181SIPConnection::onSipPacket(const Socket::Ptr& socket, const SipRequest::Ptr& req)
 {
     if (_isClose) {
         return ;
@@ -84,6 +84,10 @@ void GB28181SIPConnection::onSipPacket(const SipRequest::Ptr& req)
     } else if (_deviceId != req->sip_username) {
         logInfo << _deviceId << ": 收到了其他的包或者tcp丢数据了，ssrc：" << req->sip_username;
         return ;
+    }
+
+    if (!_socket) {
+        _socket = socket;
     }
     
     if (!_context)
@@ -102,5 +106,5 @@ void GB28181SIPConnection::onSipPacket(const SipRequest::Ptr& req)
         return ;
     }
 
-    _context->onSipPacket(req);
+    _context->onSipPacket(socket, req);
 }

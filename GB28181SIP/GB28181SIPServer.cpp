@@ -48,10 +48,10 @@ void GB28181SIPServer::start(const string& ip, int port, int count, int sockType
             socket->addToEpoll();
             static auto gbManager = GB28181SIPManager::instance();
             gbManager->init(loop);
-            socket->setReadCb([](const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len){
+            socket->setReadCb([socket](const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len){
                 // auto rtp = make_shared<RtpPacket>(buffer, 0);
                 // create rtpmanager
-                gbManager->onSipPacket(buffer, addr, len);
+                gbManager->onSipPacket(socket, buffer, addr, len);
 
                 return 0;
             });
