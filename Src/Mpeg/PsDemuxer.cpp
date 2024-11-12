@@ -416,7 +416,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
             }
             
             // logInfo << "_lastVideoPts: " << _lastVideoPts << ", video_pts: " << video_pts;
-            if (_lastVideoPts != -1 && _lastVideoPts != video_pts) {
+            if (_lastVideoPts != -1 && _lastVideoPts != video_pts && _videoFrame) {
                 // onDecode(_videoStream);
                 if (_videoCodec != "unknown" && _videoFrame->size() > 0) {
                     // static int i = 0;
@@ -654,6 +654,8 @@ FrameBuffer::Ptr PsDemuxer::createFrame(int index)
             frame = make_shared<H264Frame>();
         } else if (_videoCodec == "h265") {
             frame = make_shared<H265Frame>();
+        } else {
+            return frame;
         }
 
         frame->_trackType = VideoTrackType;
