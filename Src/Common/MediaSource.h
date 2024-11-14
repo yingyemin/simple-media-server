@@ -113,6 +113,8 @@ public:
     string getVhost() {return _urlParser.vhost_;}
     uint64_t getCreateTime() { return _createTime; }
 
+    bool isReady() {return _hasReady;}
+
 protected:
     bool _origin = false;
     uint64_t _createTime = 0;

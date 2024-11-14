@@ -34,6 +34,7 @@ public:
     void setOnTrackInfo(const function<void(const shared_ptr<TrackInfo>& trackInfo)>& cb);
     void onTrackInfo(const shared_ptr<TrackInfo>& trackInfo);
     void createFrame();
+    bool isReady() {return _ready;}
 
 private:
     bool _startDecode = false;

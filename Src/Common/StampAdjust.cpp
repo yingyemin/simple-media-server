@@ -29,7 +29,7 @@ void AudioStampAdjust::inputStamp(uint64_t& pts, uint64_t& dts, int samples)
         _lastPts = pts;
 
         pts = 0;
-        dts = pts - dts;
+        dts = pts > dts ? (pts - dts) : 0;
 
         _adjustPts = 0;
 
@@ -39,8 +39,12 @@ void AudioStampAdjust::inputStamp(uint64_t& pts, uint64_t& dts, int samples)
     int step = pts - _lastPts;
     // TODO: 从配置里读
     // logInfo << "audio step: " << step;
-    if ((step < -500 || step > 500) && _samplerate) {
-        step = (samples * 1.0 / _samplerate) * 1000;
+    if ((step < -500 || step > 500 || step == 0)) {
+        if (_samplerate) {
+            step = (samples * 1.0 / _samplerate) * 1000;
+        } else {
+            step = _avgStep;
+        }
     }
     
     _totalSysTime = TimeClock::now() - _startTime;
@@ -48,6 +52,9 @@ void AudioStampAdjust::inputStamp(uint64_t& pts, uint64_t& dts, int samples)
     ++_count;
     _avgStep = _totalStamp / _count;
 
+    // logInfo << "step: " << step;
+    // logInfo << "audio _avgStep: " << _avgStep;
+    // logInfo << "audio _lastPts: " << _lastPts;
     // logInfo << "audio pts: " << pts;
     // logInfo << "audio _adjustPts: " << _adjustPts;
     _adjustPts += step;
@@ -59,12 +66,14 @@ void AudioStampAdjust::inputStamp(uint64_t& pts, uint64_t& dts, int samples)
     }
     pts = _adjustPts;
 
-    if (_totalSysTime > _totalStamp && ((_totalSysTime - _totalStamp) > 5000)) {
-        auto diff = _totalSysTime - _totalStamp;
-        auto diffTmp = diff % step;
+    // logInfo << "_totalSysTime: " << _totalSysTime;
+    // logInfo << "_totalStamp: " << _totalStamp;
+    // if (_totalSysTime > _totalStamp && ((_totalSysTime - _totalStamp) > 5000)) {
+    //     auto diff = _totalSysTime - _totalStamp;
+    //     auto diffTmp = diff % step;
 
-        _adjustPts += diff - diffTmp;
-    }
+    //     _adjustPts += diff - diffTmp;
+    // }
 }
 
 ////////////////VideoStampAdjust///////////////////////////
@@ -88,7 +97,7 @@ void VideoStampAdjust::inputStamp(uint64_t& pts, uint64_t& dts, int samples)
         _lastPts = pts;
 
         pts = 0;
-        dts = pts - dts;
+        dts = pts > dts ? (pts - dts) : 0;
 
         _adjustPts = 0;
 
@@ -105,6 +114,10 @@ void VideoStampAdjust::inputStamp(uint64_t& pts, uint64_t& dts, int samples)
             _guessFps = _fps;
         } else {
             // 平均帧率
+            // logInfo << "_count: " << _count;
+            // logInfo << "_totalSysTime: " << _totalSysTime;
+            // logInfo << "avgFps: " << avgFps;
+            // logInfo << "_guessFps: " << _guessFps;
             _guessFps = avgFps;
         }
     }
@@ -116,6 +129,7 @@ void VideoStampAdjust::inputStamp(uint64_t& pts, uint64_t& dts, int samples)
     // 增量太大或者太小或者为0，认为不合理，通过计算的帧率重新算一下
     if ((step < -500 || step > 500 || step == 0) && _guessFps) {
         step = (samples * 1.0 / _guessFps) * 1000;
+        // logInfo << "step: " << step;
     }
     
     // 系统时间过了多久
@@ -144,10 +158,12 @@ void VideoStampAdjust::inputStamp(uint64_t& pts, uint64_t& dts, int samples)
     // logInfo << "video adjust dts: " << dts;
 
     // 系统时间计算的总时间大于pts计算的总时间，超过5秒
-    if (_totalSysTime > _totalStamp && ((_totalSysTime - _totalStamp) > 5000)) {
-        auto diff = _totalSysTime - _totalStamp;
-        auto diffTmp = diff % step;
+    // logInfo << "_totalSysTime: " << _totalSysTime;
+    // logInfo << "_totalStamp: " << _totalStamp;
+    // if (_totalSysTime > _totalStamp && ((_totalSysTime - _totalStamp) > 5000)) {
+    //     auto diff = _totalSysTime - _totalStamp;
+    //     auto diffTmp = diff % step;
 
-        _adjustPts += diff - diffTmp;
-    }
+    //     _adjustPts += diff - diffTmp;
+    // }
 }

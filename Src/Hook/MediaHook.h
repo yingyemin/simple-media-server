@@ -95,6 +95,7 @@ public:
                         const string& vhost, const string& type);
 
 private:
+    bool _enableHook = true;
     string _type = "http";
 };
 

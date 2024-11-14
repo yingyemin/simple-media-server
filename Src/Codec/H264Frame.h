@@ -84,6 +84,19 @@ public:
 
     bool isNewNalu() override;
 
+    bool isNonPicNalu() override
+    {
+        uint8_t type = (uint8_t)(_buffer[_startSize]) & 0x1F;
+        switch(type){
+            case H264NalType::H264_SPS:
+            case H264NalType::H264_PPS:
+            case H264NalType::H264_AUD:
+            case H264NalType::H264_SEI:
+                return true;
+            default : return false;
+        }
+    }
+
     static uint8_t getNalType(uint8_t nalByte)
     {
         return nalByte & 0x1F;

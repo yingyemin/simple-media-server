@@ -25,6 +25,14 @@ void MediaHook::init()
         self->_type = Config::instance()->get("Hook", "Type");
         logInfo << "Hook type: " << self->_type;
     }, "Hook", "Type");
+    _enableHook = Config::instance()->getAndListen([wSelf](const json& config){
+        auto self = wSelf.lock();
+        if (!self) {
+            return ;
+        }
+        self->_enableHook = Config::instance()->get("Hook", "EnableHook");
+        logInfo << "Hook type: " << self->_enableHook;
+    }, "Hook", "EnableHook");
 }
 
 void MediaHook::reportByHttp(const string& url, const string&method, const string& msg, const function<void(const string& err, const json& res)>& cb)
@@ -95,6 +103,14 @@ void MediaHook::onStreamStatus(const StreamStatusInfo& info)
 // 本项目使用类主要是图方便，谨慎用之
 void MediaHook::onPublish(const PublishInfo& info, const function<void(const PublishResponse& rsp)>& cb)
 {
+    if (!_enableHook) {
+        PublishResponse rsp;
+        rsp.authResult = true;
+
+        cb(rsp);
+        return ;
+    }
+
     json value;
     value["protocol"] = info.protocol;
     value["type"] = info.type;
@@ -140,6 +156,14 @@ void MediaHook::onPublish(const PublishInfo& info, const function<void(const Pub
 
 void MediaHook::onPlay(const PlayInfo& info, const function<void(const PlayResponse& rsp)>& cb)
 {
+    if (!_enableHook) {
+        PlayResponse rsp;
+        rsp.authResult = true;
+
+        cb(rsp);
+        return ;
+    }
+
     json value;
     value["protocol"] = info.protocol;
     value["type"] = info.type;

@@ -125,3 +125,14 @@ void GB28181SIPManager::delContext(const string& deviceId)
     _mapContext.erase(deviceId);
 }
 
+GB28181SIPContext::Ptr GB28181SIPManager::getContext(const string& deviceId)
+{
+    lock_guard<mutex> lock(_contextLck);
+    auto iter = _mapContext.find(deviceId);
+    if (iter == _mapContext.end()) 
+    {
+        return nullptr;
+    }
+    return iter->second;
+}
+

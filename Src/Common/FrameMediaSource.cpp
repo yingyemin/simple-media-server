@@ -19,11 +19,15 @@ FrameMediaSource::~FrameMediaSource()
 
 void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
 {
-    logInfo << "before adjust frame pts: " << frame->_pts << ", frame dts: " << frame->_dts;
+    // logInfo << "before adjust frame pts: " << frame->_pts << ", frame dts: " << frame->_dts << ", type: " << frame->_trackType;
     // for (auto& sink : _mapSink) {
         // logInfo << "on frame to sink";
         bool keyframe = false;
         if (frame->getTrackType() == VideoTrackType) {
+            // logInfo << "nal type: " << (int)frame->getNalType();
+            if (frame->isNonPicNalu()) {
+                return ;
+            }
             if (frame->startFrame()) {
                 keyframe = true;
                 _sendConfig = true;
@@ -61,11 +65,13 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
                     _sendConfig = false;
                 }
 
-                _videoStampAdjust->inputStamp(frame->_pts, frame->_dts, 1);
                 _ring->write(_frame, keyframe);
+                
+                _videoStampAdjust->inputStamp(frame->_pts, frame->_dts, 1);
                 _frame = frame;
             } else {
                 if (!_frame) {
+                    _videoStampAdjust->inputStamp(frame->_pts, frame->_dts, 1);
                     _frame = frame;
                 } else {
                     _frame->_buffer.append(frame->_buffer);
@@ -81,7 +87,7 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
             _audioStampAdjust->inputStamp(frame->_pts, frame->_dts, samples);
             _ring->write(frame, false);
         }
-        logInfo << "frame pts: " << frame->_pts << ", frame dts: " << frame->_dts;
+        // logInfo << "frame pts: " << frame->_pts << ", frame dts: " << frame->_dts << ", type: " << frame->_trackType;
         // logInfo << "keyframe: " << keyframe << ", size: " << frame->size() << ", type: " << (int)frame->getNalType();
         // _ring->write(frame, keyframe);
     // }

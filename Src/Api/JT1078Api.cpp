@@ -70,8 +70,12 @@ void JT1078Api::openServer(const HttpParser& parser, const UrlParser& urlParser,
     rsp._status = 200;
     json value;
 
-    checkArgs(parser._body, {"port", "appName", "streamName"});
-    string path = "/" + parser._body["appName"].get<string>() + "/" + parser._body["streamName"].get<string>();
+    checkArgs(parser._body, {"port"});
+    string path;
+    if (parser._body.find("appName") != parser._body.end() 
+            && parser._body.find("streamName") != parser._body.end()) {
+        path = "/" + parser._body["appName"].get<string>() + "/" + parser._body["streamName"].get<string>();
+    }
     JT1078Server::instance()->setStreamPath(toInt(parser._body["port"]), path);
 
     JT1078Server::instance()->start("0.0.0.0", toInt(parser._body["port"]), 1);

@@ -1011,7 +1011,7 @@ void WebrtcContext::sendMedia(const RtpPacket::Ptr& rtp)
 
     int startSize = rtp->getStartSize();
 
-    logInfo << "WebrtcContext::sendMedia: " << startSize << ", rtp size: " << rtp->size();
+    // logInfo << "WebrtcContext::sendMedia: " << startSize << ", rtp size: " << rtp->size();
 	int nb_cipher = rtp->size() - startSize;
     // char data[1500];
     auto buffer = make_shared<StreamBuffer>(1500 + 1);
@@ -1036,7 +1036,7 @@ void WebrtcContext::sendMedia(const RtpPacket::Ptr& rtp)
         }
 		// lastest_packet_send_time_ = time(nullptr);
 	}
-    logInfo << "protect rtp size: " << nb_cipher;
+    // logInfo << "protect rtp size: " << nb_cipher;
     if (_socket->getSocketType() == SOCKET_TCP) {
         uint8_t payload_ptr[2];
         payload_ptr[0] = nb_cipher >> 8;

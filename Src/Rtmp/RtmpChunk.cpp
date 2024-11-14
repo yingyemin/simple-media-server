@@ -337,15 +337,48 @@ int RtmpChunk::createChunk(uint32_t csid, RtmpMessage& msg)
 
 	uint32_t length = msg.length;
 	uint64_t dts = msg.abs_timestamp;
-	// if (msg.type_id == RTMP_VIDEO) {
-	// 	_videoStampAdjust.inputStamp(dts, dts);
-	// } else {
-	// 	_audioStampAdjust.inputStamp(dts, dts, length);
-	// }
+	if (msg.type_id == RTMP_VIDEO) {
+		// _videoStampAdjust.inputStamp(dts, dts);
+		// _firstVideo = false;
+		// if (_firstVideo) {
+		// 	if (_firstAudio) {
+		// 		_lastVideoPts = dts;
+		// 	} else {
+		// 		_lastVideoPts = _lastPts;
+		// 		dts += _lastVideoPts;
+		// 	}
+		// 	_firstVideo = false;
+		// } else {
+		// 	dts += _lastVideoPts;
+		// 	if (_firstAudio) {
+		// 		_lastPts = dts;
+		// 	}
+		// }
+	} else if (msg.type_id == RTMP_AUDIO) {
+		// if (_firstVideo) {
+		// 	return 0;
+		// }
+		// _audioStampAdjust.inputStamp(dts, dts, length);
+		// if (_firstAudio) {
+		// 	if (_firstVideo) {
+		// 		_lastAudioPts = dts;
+		// 	} else {
+		// 		_lastAudioPts = _lastPts;
+		// 		dts += _lastAudioPts;
+		// 	}
+		// 	_firstAudio = false;
+		// } else {
+		// 	dts += _lastAudioPts;
+		// 	if (_firstVideo) {
+		// 		_lastPts = dts;
+		// 	}
+		// }
+	}
 
 	auto basicBuffer = createBasicHeader(0, csid); //first chunk
 	_socket->send(basicBuffer, 0);
 
+	// logInfo << "type: " << (int)msg.type_id << ", dts: " << dts;
 	createMessageHeader(0, msg, dts);
 
 	StreamBuffer::Ptr extBuffer;

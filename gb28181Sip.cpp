@@ -6,6 +6,7 @@
 #include "Common/Config.h"
 #include "gb28181Sip/GB28181TcpClient.h"
 #include "gb28181Sip/GB28181UdpClient.h"
+#include "gb28181Sip/GB28181SIPServer.h"
 
 #include <unistd.h>
 #include <string.h>
@@ -81,15 +82,40 @@ int main(int argc, char** argv)
     auto sslCrt = Config::instance()->get("Ssl", "cert");
     TlsContext::setKeyFile(sslKey, sslCrt);
 
-    shared_ptr<GB28181Client> client(new GB28181UdpClient());
-    client->start();
+    auto gb28181SipConfigVec = configJson["SipServer"];
+    for (auto server : gb28181SipConfigVec.items()) {
+        string serverId = server.key();
+        auto gb28181SipConfig = server.value();
+
+        if (!gb28181SipConfig.is_object()) {
+            continue;
+        }
+
+        const string ip = gb28181SipConfig["ip"];
+        int port = gb28181SipConfig["port"];
+        int count = gb28181SipConfig["threads"];
+        int sockType = gb28181SipConfig["sockType"];
+
+        logInfo << "start gb28181 sip server, port: " << port;
+        if (port) {
+            GB28181SIPServer::instance()->start(ip, port, count, sockType);
+            // RtcServer::Instance().Start(EventLoopPool::instance()->getLoopByCircle(), port, "0.0.0.0");
+        }
+        // logInfo << "start rtsps server, sslPort: " << sslPort;
+        // if (sslPort) {
+        //     RtspServer::instance()->start(ip, sslPort, count);
+        // }
+    }
+
+    // shared_ptr<GB28181Client> client(new GB28181TcpClient());
+    // client->start();
     
     while (true) {
-        // TODO 可做一些巡检工作
+    //     // TODO 可做一些巡检工作
         sleep(5);
-        if (!client->isRegister()) {
-            client->gbRegister(nullptr);
-        }
+    //     if (!client->isRegister()) {
+    //         client->gbRegister(nullptr);
+    //     }
     }
 
     return 0;

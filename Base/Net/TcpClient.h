@@ -40,6 +40,7 @@ public:
     string getLocalIp() {return _localIp;}
     string getPeerIp() {return _peerIp;}
     Socket::Ptr getSocket() {return _socket;}
+    EventLoop::Ptr getLoop() {return _loop;}
 
 private:
     bool _firstWrite = true;

@@ -18,11 +18,13 @@ TcpServer::TcpServer(EventLoop::Ptr loop, const string& host, int port, int maxC
     ,_loop(loop)
     ,_socket(make_shared<Socket>(_loop))
 {
-    
+    logTrace << "TcpServer::TcpServer " << _ip << ":" << _port;
 }
 
 TcpServer::~TcpServer()
-{}
+{
+    logTrace << "TcpServer::~TcpServer " << _ip << ":" << _port;
+}
 
 void TcpServer::start(NetType type)
 {
@@ -30,9 +32,17 @@ void TcpServer::start(NetType type)
     _socket->bind(_port, _ip.data());
     _socket->listen(1024);
 
-    _loop->addEvent(_socket->getFd(), EPOLLIN | EPOLLHUP | EPOLLERR | 0, std::bind(&TcpServer::accept, shared_from_this(), placeholders::_1, placeholders::_2), nullptr);
-
     TcpServer::Wptr weakServer = shared_from_this();
+    _loop->addEvent(_socket->getFd(), EPOLLIN | EPOLLHUP | EPOLLERR | 0, [weakServer](int event, void* args){
+        auto server = weakServer.lock();
+        if (!server) {
+            logInfo << "server exit";
+            return ;
+        }
+        server->accept(event, args);
+    }, nullptr);
+    // std::bind(&TcpServer::accept, shared_from_this(), placeholders::_1, placeholders::_2), nullptr);
+
     _loop->addTimerTask(2000, [weakServer](){
         auto server = weakServer.lock();
         if (!server) {

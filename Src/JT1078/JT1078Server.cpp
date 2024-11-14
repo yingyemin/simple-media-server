@@ -92,7 +92,11 @@ void JT1078Server::start(const string& ip, int port, int count, bool isTalk)
 void JT1078Server::stopByPort(int port, int count)
 {
     lock_guard<mutex> lck(_mtx);
-    _tcpServers.erase(port);
+    if (_tcpServers.find(port) != _tcpServers.end()) {
+        _tcpServers[port].clear();
+        _tcpServers.erase(port);
+    }
+    
     _serverInfo.erase(port);
 }
 

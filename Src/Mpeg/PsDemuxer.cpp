@@ -9,6 +9,7 @@
 #include "Codec/H264Frame.h"
 #include "Codec/H265Frame.h"
 #include "Mpeg.h"
+#include "EventPoller/EventLoop.h"
 
 #include <sys/socket.h>
 #include <netdb.h>
@@ -22,7 +23,7 @@ using namespace std;
 //#define W_AUDIO_FILE
 //#define W_UNKONW_FILE
 
-static bool parseAacFrame(const char* buf, int len)
+static bool parseAacFrame(const unsigned char* buf, int len)
 {
     // unsigned char buf[10 * 1024] = {0};
     // int n = fread(buf, 1, 7, fp);
@@ -291,6 +292,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
 
                 /* remember mapping from stream id to stream type */
                 if (es_id >= PS_AUDIO_ID && es_id <= PS_AUDIO_ID_END){
+                    _hasAudio = true;
                     if (_audio_es_type != type){
                         // srs_trace("gb28181: ps map audio es_type=%s(%x), es_id=%0x, es_info_length=%d", 
                         //  s_type.c_str(), type, es_id, es_info_length);
@@ -326,7 +328,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
                         _firstAac = false;
                     }
                 }else if (es_id >= PS_VIDEO_ID && es_id <= PS_VIDEO_ID_END){
-                    
+                    _hasVideo = true;
                     if (_video_es_type != type){
                         // srs_trace("gb28181: ps map video es_type=%s(%x), es_id=%0x, es_info_length=%d", 
                         //  s_type.c_str(), type, es_id, es_info_length);
@@ -538,7 +540,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
                 char* frame = NULL;
                 int frame_size = 0;
 
-                if (!parseAacFrame(next_ps_pack, payload_len)) {
+                if (!parseAacFrame((unsigned char*)next_ps_pack, payload_len)) {
                     // srs_info("gb28181: client_id %s, audio data not aac adts (%#x/%u) %02x %02x %02x %02x\n", 
                     //          channel_id.c_str(), ssrc, timestamp, p1, p2, p3, p4);  
                     // srs_error_reset(err);
@@ -676,16 +678,10 @@ void PsDemuxer::onDecode(const FrameBuffer::Ptr& frame, int index, int pts, int 
             auto aacTrack = dynamic_pointer_cast<AacTrack>(_mapTrackInfo[AudioTrackType]);
             aacTrack->setAacInfoByAdts(frame->data(), 7);
             _firstAac = false;
-            if (/*_hasVideoReady && */_onReady) {
-                _hasReady = true;
-                _onReady();
-            }
+            onReady(AudioTrackType);
         }
     } else if (!_audioCodec.empty() && frame->getTrackType() == AudioTrackType) {
-        if (!_hasReady) {
-            _hasReady = true;
-            _onReady();
-        }
+        onReady(AudioTrackType);
     }
 
     // FrameBuffer::Ptr frame = createFrame(index);
@@ -731,13 +727,7 @@ void PsDemuxer::onDecode(const FrameBuffer::Ptr& frame, int index, int pts, int 
                     }
                 }else {
                     logInfo << "gb28181 _onReady";
-                    if (!_hasReady && _onReady) {
-                        if (!_firstAac) {
-                            _onReady();
-                        }
-                        _hasReady = true;
-                        _hasVideoReady = true;
-                    }
+                    onReady(VideoTrackType);
                 }
                 if (_onFrame) {
                     _onFrame(subFrame);
@@ -765,13 +755,7 @@ void PsDemuxer::onDecode(const FrameBuffer::Ptr& frame, int index, int pts, int 
                     }
                 } else {
                     // logInfo << "gb28181 _onReady";
-                    if (!_hasReady && _onReady) {
-                        if (!_firstAac) {
-                            _onReady();
-                        }
-                        _hasReady = true;
-                        _hasVideoReady = true;
-                    }
+                    onReady(VideoTrackType);
                 }
                 if (_onFrame) {
                     _onFrame(subFrame);
@@ -820,6 +804,26 @@ void PsDemuxer::setOnTrackInfo(const function<void(const shared_ptr<TrackInfo>& 
 void PsDemuxer::setOnReady(const function<void()>& cb)
 {
     _onReady = cb;
+}
+
+void PsDemuxer::onReady(int trackType)
+{
+    if (_hasReady) {
+        return ;
+    }
+    if (trackType == VideoTrackType) {
+        _hasVideoReady = true;
+        if ((_hasAudioReady || !_hasAudio) && _onReady) {
+            _onReady();
+            _hasReady = true;
+        }
+    } else if (trackType == AudioTrackType) {
+        _hasAudioReady = true;
+        if ((_hasVideoReady || !_hasVideo) && _onReady) {
+            _onReady();
+            _hasReady = true;
+        }
+    }
 }
 
 void PsDemuxer::clear()

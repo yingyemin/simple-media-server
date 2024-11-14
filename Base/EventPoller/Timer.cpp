@@ -15,12 +15,12 @@ static inline uint64_t getTick() {
 
 TimerTask::TimerTask()
 {
-    logInfo << "TimerTask()";
+    logTrace << "TimerTask()";
 }
 
 TimerTask::~TimerTask()
 {
-    logInfo << "~TimerTask(): " << this;
+    logTrace << "~TimerTask(): " << this;
 }
 
 Timer::Timer()
@@ -40,7 +40,7 @@ shared_ptr<TimerTask> Timer::addTimer(uint64_t ms, const TimerTask::timerHander 
 
 void Timer::delTimer(const shared_ptr<TimerTask> &task)
 {
-    logInfo << "delTimer task";
+    logTrace << "delTimer task";
     _tasks.erase(task);
 }
 

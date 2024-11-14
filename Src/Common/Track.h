@@ -42,6 +42,8 @@ public:
         sps = nullptr;
         pps = nullptr;
     }
+
+    virtual bool isReady() {return true;}
 public:
     int payloadType_;
     int samplerate_;

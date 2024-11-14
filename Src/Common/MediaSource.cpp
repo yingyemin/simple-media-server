@@ -191,7 +191,8 @@ void MediaSource::getOrCreateAsync(const string& uri, const string& vhost, const
                     pullStreamFromOrigin(uri, vhost, protocol, type, cb, create, connKey);
                     return ;
                 } else {
-                    string key = uri + "_" + vhost + "_" + protocol + "_" + type;
+                    string key = uri + "_" + vhost;// + "_" + protocol + "_" + type;
+                    logInfo << "get a key: " << key;
                     {
                         lock_guard<mutex> lckRegister(_mtxRegister);
                         _mapRegisterEvent[key].push_back([uri, vhost, protocol, type, cb, create, connKey, loop](){
@@ -202,6 +203,7 @@ void MediaSource::getOrCreateAsync(const string& uri, const string& vhost, const
                     }
                     loop->addTimerTask(waitStreamOnlineTimeMS, [key, cb](){
                         {
+                            logInfo << "get a key: " << key;
                             lock_guard<mutex> lckRegister(_mtxRegister);
                             if (_mapRegisterEvent.find(key) == _mapRegisterEvent.end()) {
                                 return 0;
@@ -226,7 +228,7 @@ void MediaSource::getOrCreateAsync(const string& uri, const string& vhost, const
                     pullStreamFromOrigin(uri, vhost, protocol, type, cb, create, connKey);
                     return ;
                 } else {
-                    string key = uri + "_" + vhost + "_" + protocol + "_" + type;
+                    string key = uri + "_" + vhost;// + "_" + protocol + "_" + type;
                     {
                         lock_guard<mutex> lckRegister(_mtxRegister);
                         _mapRegisterEvent[key].push_back([uri, vhost, protocol, type, cb, create, connKey, loop](){
@@ -749,7 +751,8 @@ void MediaSource::onReady()
     MediaHook::instance()->onStreamStatus(statusInfo);
 
     {
-        string key = _urlParser.path_ + "_" + _urlParser.vhost_ + "_" + _urlParser.protocol_ + "_" + _urlParser.type_;
+        string key = _urlParser.path_ + "_" + _urlParser.vhost_;// + "_" + _urlParser.protocol_ + "_" + _urlParser.type_;
+        logInfo << "get a key: " << key;
         lock_guard<mutex> lckRegister(_mtxRegister);
         auto iter = _mapRegisterEvent.find(key);
         if (iter != _mapRegisterEvent.end()) {

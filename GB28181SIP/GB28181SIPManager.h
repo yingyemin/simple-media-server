@@ -28,6 +28,7 @@ public:
     void heartbeat();
     void addContext(const string& deviceId, const GB28181SIPContext::Ptr& context);
     void delContext(const string& deviceId);
+    GB28181SIPContext::Ptr getContext(const string& deviceId);
 
 private:
     bool _isInited = false;

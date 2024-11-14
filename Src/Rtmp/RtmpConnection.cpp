@@ -776,6 +776,18 @@ void RtmpConnection::responsePlay(const MediaSource::Ptr &src)
         sendRtmpChunks(RTMP_CHUNK_VIDEO_ID, rtmp_msg);
     }
 
+    if (rtmpSrc->_aacHeader) {
+        logInfo << "send a aac header";
+        RtmpMessage rtmp_msg;
+        rtmp_msg.abs_timestamp = 0;
+        rtmp_msg.stream_id = _streamId;
+        rtmp_msg.payload = rtmpSrc->_aacHeader;
+        rtmp_msg.length = rtmpSrc->_aacHeaderSize;
+
+        rtmp_msg.type_id = RTMP_AUDIO;
+        sendRtmpChunks(RTMP_CHUNK_AUDIO_ID, rtmp_msg);
+    }
+
     if (!_playReader) {
         logInfo << "set _playReader";
         static int interval = Config::instance()->getAndListen([](const json &config){

@@ -55,9 +55,14 @@ private:
 	int createMessageHeader(uint8_t fmt, RtmpMessage& rtmp_msg, uint64_t dts);
 
 private:
+	bool _firstAudio = true;
+	bool _firstVideo = true;
 	State _state;
 	int _chunkStreamId = 0;
 	int _streamId = 0;
+	uint64_t _lastPts = 0;
+	uint64_t _lastVideoPts = 0;
+	uint64_t _lastAudioPts = 0;
 	uint32_t _inChunkSize = 128;
 	uint32_t _outChunkSize = 128;
 	VideoStampAdjust _videoStampAdjust;

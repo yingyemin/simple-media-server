@@ -62,6 +62,7 @@ public:
     void addTrackInfo(const shared_ptr<TrackInfo>& trackInfo);
     void setOnTrackInfo(const function<void(const shared_ptr<TrackInfo>& trackInfo)>& cb);
     void setOnReady(const function<void()>& cb);
+    void onReady(int trackType);
     FrameBuffer::Ptr createFrame(int index);
 
     void clear();
@@ -72,7 +73,7 @@ private:
 
     bool _hasReady = false;
     bool _hasVideoReady = false;
-    // bool _hasAudioReady = false;
+    bool _hasAudioReady = false;
 
     bool _firstAac = true;
     bool _firstVps = true;

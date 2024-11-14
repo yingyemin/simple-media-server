@@ -37,6 +37,8 @@ public:
     virtual bool isBFrame() {return false;}
     virtual bool isNewNalu() {return true;}
 
+    virtual bool isNonPicNalu() {return false;}
+
 public:
     int _profile = 0;
     int _index;

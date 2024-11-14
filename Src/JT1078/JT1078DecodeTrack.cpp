@@ -98,7 +98,7 @@ void JT1078DecodeTrack::stopDecode()
 void JT1078DecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
 {
     // static int ii = 0;
-    // string name = "testjt1078split" + to_string(ii++) + ".h264";
+    // string name = "testjt1078split" + to_string(ii) + ".h264";
     // FILE* fp = fopen(name.data(), "ab+");
     // fwrite(frame->data(), 1, frame->size(), fp);
     // fclose(fp);
@@ -116,10 +116,11 @@ void JT1078DecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
             }
 
             if (h264Track->_sps && h264Track->_pps) {
+                logInfo << "video ready ======================";
+                _ready = true;
                 if (_onReady) {
                     _onReady();
                 }
-                _ready = true;
             }
         } else if (_trackInfo->codec_ == "h265") {
             auto h265Frame = dynamic_pointer_cast<H265Frame>(frame);
@@ -133,10 +134,10 @@ void JT1078DecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
             }
 
             if (h265Track->_sps && h265Track->_pps && h265Track->_vps) {
+                _ready = true;
                 if (_onReady) {
                     _onReady();
                 }
-                _ready = true;
             }
         }
     } else if (!_setAacCfg && _trackInfo->trackType_ == "audio") {
@@ -144,11 +145,14 @@ void JT1078DecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
             auto aacTrack = dynamic_pointer_cast<AacTrack>(_trackInfo);
             aacTrack->setAacInfo(string(frame->data(), 7));
             _setAacCfg = true;
+            _ready = true;
             if (_onReady) {
                 _onReady();
             }
         } else {
             _setAacCfg = true;
+            _ready = true;
+            logInfo << "audio ready ======================";
             if (_onReady) {
                 _onReady();
             }
@@ -184,7 +188,7 @@ void JT1078DecodeTrack::decodeRtp(const JT1078RtpPacket::Ptr& rtp)
         return ;
     }
 
-    logInfo << "rtp->getSeq(): " << rtp->getSeq() << ", rtp->getTimestamp(): " << rtp->getTimestamp() << ", codec : " << _trackInfo->codec_;
+    // logInfo << "rtp->getSeq(): " << rtp->getSeq() << ", rtp->getTimestamp(): " << rtp->getTimestamp() << ", codec : " << _trackInfo->codec_;
 
     auto subMark = rtp->getSubMark();
     // static int ii = 0;

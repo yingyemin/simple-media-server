@@ -30,10 +30,10 @@ public:
 
 private:
     int _samplerate;
-    uint64_t _count;
+    uint64_t _count = 0;
     uint64_t _lastPts;
-    uint64_t _avgStep;
-    uint64_t _totalStamp;
+    uint64_t _avgStep = 0;
+    uint64_t _totalStamp = 0;
     uint64_t _startTime = 0;
     uint64_t _totalSysTime;
 
@@ -54,10 +54,10 @@ public:
 private:
     int _fps;
     int _guessFps = 25;
-    uint64_t _count;
+    uint64_t _count = 0;
     uint64_t _lastPts;
-    uint64_t _avgStep;
-    uint64_t _totalStamp;
+    uint64_t _avgStep = 0;
+    uint64_t _totalStamp = 0;
     uint64_t _startTime = 0;
     uint64_t _totalSysTime;
 

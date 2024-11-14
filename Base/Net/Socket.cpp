@@ -76,7 +76,7 @@ Socket::Socket(const EventLoop::Ptr& loop)
     :_loop(loop)
     ,_sendBuffer(make_shared<SocketBuffer>())
 {
-    logInfo << "Socket(" << this << ")";
+    logTrace << "Socket(" << this << ")";
 }
 
 Socket::Socket(const EventLoop::Ptr& loop, int fd)
@@ -84,12 +84,12 @@ Socket::Socket(const EventLoop::Ptr& loop, int fd)
     ,_fd(fd)
     ,_sendBuffer(make_shared<SocketBuffer>())
 {
-    logInfo << "Socket(" << this << ")";
+    logTrace << "Socket(" << this << ")";
 }
 
 Socket::~Socket()
 {
-    logInfo << "~Socket(" << this << "), fd: " << _fd;
+    logTrace << "~Socket(" << this << "), fd: " << _fd;
     close();
 }
 
@@ -465,7 +465,7 @@ void Socket::handleEvent(int event, void* args)
         onRead(args);
     } 
     if (event & EPOLLOUT) {
-        logInfo << "handle write: " << this;
+        logTrace << "handle write: " << this;
         if (!_isConnected) {
             _isConnected = true;
         }
@@ -572,7 +572,7 @@ int Socket::onWrite(void* args)
     }
 
     if (_readyBuffer.size() == 0 && _sendBuffer->length == 0) {
-        logInfo << "no buffer to send";
+        logTrace << "no buffer to send";
         _loop->modifyEvent(_fd, EPOLLIN | EPOLLHUP | EPOLLERR | 0, nullptr);
         return 0;
     }
@@ -584,7 +584,7 @@ int Socket::onWrite(void* args)
 
 int Socket::onError(void* args)
 {
-    logError << "get a socket err: " << strerror(errno);
+    logInfo << "get a socket err: " << strerror(errno);
     weak_ptr<Socket> weakSelf = shared_from_this();
     _loop->async([weakSelf](){
         auto self = weakSelf.lock();

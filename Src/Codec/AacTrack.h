@@ -22,7 +22,8 @@ public:
 
 public:
     string getSdp() override;
-    string getConfig() override {return _aacConfig;};
+    string getConfig() override {return _aacConfig;}
+    bool isReady() override {return !_aacConfig.empty();}
     string getAacInfo();
     void setAacInfo(const string& aacConfig);
     void setAacInfo(int profile, int channel, int sampleRate);
