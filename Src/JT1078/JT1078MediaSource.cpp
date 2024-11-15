@@ -59,9 +59,9 @@ void JT1078MediaSource::addTrack(const JT1078DecodeTrack::Ptr& track)
             strongSelf->_ring->write(strongSelf->_cache);
             strongSelf->_cache = std::make_shared<list<JT1078RtpPacket::Ptr>>();
             if (strongSelf->_probeFinish) {
-                // if (strongSelf->_mapSink.empty()) {
+                if (strongSelf->_mapSink.empty()) {
                     strongSelf->_ring->delOnWrite(strongSelf.get());
-                // }
+                }
                 strongSelf->_probeFinish = false;
             }
         } else {
@@ -145,6 +145,11 @@ void JT1078MediaSource::onReady()
                     return 0;
                 }
 
+                if (self->_forceReady) {
+                    self->MediaSource::onReady();
+                    return 0;
+                }
+
                 bool allReady = true;
                 for (auto& track : self->_mapJT1078DecodeTrack) {
                     if (!track.second->isReady()) {
@@ -153,6 +158,7 @@ void JT1078MediaSource::onReady()
                 }
 
                 if (self->_mapJT1078DecodeTrack.size() == 2 && !allReady) {
+                    self->_forceReady = true;
                     return 5000;
                 }
 
@@ -253,7 +259,7 @@ void JT1078MediaSource::addSink(const MediaSource::Ptr &src)
     //     return ;
     // }
     std::weak_ptr<JT1078MediaSource> weakSelf = std::static_pointer_cast<JT1078MediaSource>(shared_from_this());
-    _ring->addOnWrite(src.get(), [weakSelf](RingDataType in, bool is_key){
+    _ring->addOnWrite(this, [weakSelf](RingDataType in, bool is_key){
         auto strongSelf = weakSelf.lock();
         if (!strongSelf) {
             return;
@@ -280,9 +286,10 @@ void JT1078MediaSource::delSink(const MediaSource::Ptr &src)
         }, true, false);
     }
     MediaSource::delSink(src);
-    _ring->delOnWrite(src.get());
+    // _ring->delOnWrite(src.get());
     lock_guard<mutex> lck(_mtxTrack);
     if (_mapSink.size() == 0) {
+        _ring->delOnWrite(this);
         for (auto& track : _mapJT1078DecodeTrack) {
             track.second->stopDecode();
         }

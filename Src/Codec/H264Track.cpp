@@ -17,6 +17,19 @@ H264Track::H264Track()
 
 }
 
+void H264Track::setPps(const FrameBuffer::Ptr& pps)
+{
+    // if (!pps) {
+    //     return ;
+    // }
+
+    _pps = pps;
+
+    // while (_pps->size() - _pps->startSize() < 5) {
+    //     _pps->_buffer.append("\x00", 1);
+    // }
+}
+
 string H264Track::getSdp()
 {
     stringstream ss;

@@ -60,9 +60,9 @@ void WebrtcMediaSource::addTrack(const WebrtcDecodeTrack::Ptr& track)
             strongSelf->_ring->write(strongSelf->_cache);
             strongSelf->_cache = std::make_shared<deque<RtpPacket::Ptr>>();
             if (strongSelf->_probeFinish) {
-                // if (strongSelf->_mapSink.empty()) {
+                if (strongSelf->_mapSink.empty()) {
                     strongSelf->_ring->delOnWrite(strongSelf.get());
-                // }
+                }
                 strongSelf->_probeFinish = false;
             }
         } else {
@@ -188,7 +188,7 @@ void WebrtcMediaSource::addSink(const MediaSource::Ptr &src)
     //     return ;
     // }
     weak_ptr<WebrtcMediaSource> weakSelf = std::static_pointer_cast<WebrtcMediaSource>(shared_from_this());
-    _ring->addOnWrite(src.get(), [weakSelf](DataType in, bool is_key){
+    _ring->addOnWrite(this, [weakSelf](DataType in, bool is_key){
         auto strongSelf = weakSelf.lock();
         if (!strongSelf) {
             return;
@@ -215,9 +215,10 @@ void WebrtcMediaSource::delSink(const MediaSource::Ptr &src)
         }, true, false);
     }
     MediaSource::delSink(src);
-    _ring->delOnWrite(src.get());
+    // _ring->delOnWrite(src.get());
     lock_guard<mutex> lck(_mtxTrack);
-    if (_mapSink.size() == 0) {        
+    if (_mapSink.size() == 0) {      
+        _ring->delOnWrite(this);   
         for (auto& track : _mapWebrtcDecodeTrack) {
             track.second->stopDecode();
         }

@@ -25,7 +25,7 @@ public:
 
 public:
     void setSps(const FrameBuffer::Ptr& sps) {_sps = sps;}
-    void setPps(const FrameBuffer::Ptr& pps) {_pps = pps;}
+    void setPps(const FrameBuffer::Ptr& pps);
     string getSdp() override;
     string getConfig() override;
     bool isReady() override {return _sps && _pps;}

@@ -114,11 +114,11 @@ int RtspRtpTransport::sendRtpPacket(const shared_ptr<deque<RtpPacket::Ptr>> &pkt
                     // tcpHeader->assign((char*)payload_ptr, 4);
                     // _socket->send(tcpHeader, 0);
 
-                    logInfo << "send rtp seq: " << packet->getSeq() 
-                            << ", rtp size: " << packet->size() 
-                            << ", rtp time: " << packet->getStamp() 
-                            << ", index: " << packet->trackIndex_
-                            << ", start: " << RtpDecodeH264::isStartGop(*it);
+                    // logInfo << "send rtp seq: " << packet->getSeq() 
+                    //         << ", rtp size: " << packet->size() 
+                    //         << ", rtp time: " << packet->getStamp() 
+                    //         << ", index: " << packet->trackIndex_
+                    //         << ", start: " << RtpDecodeH264::isStartGop(*it);
                     // if (++i == len) {
                     //     _socket->send(packet->buffer(), 1);
                     // } else {

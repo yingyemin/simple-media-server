@@ -69,9 +69,9 @@ void RtspPsMediaSource::addTrack(const RtspPsDecodeTrack::Ptr& track)
             strongSelf->_start = false;
             
             if (strongSelf->_probeFinish) {
-                // if (strongSelf->_mapSink.empty()) {
+                if (strongSelf->_mapSink.empty()) {
                     strongSelf->_ring->delOnWrite(strongSelf.get());
-                // }
+                }
                 strongSelf->_probeFinish = false;
             }
         } else {
@@ -274,7 +274,7 @@ void RtspPsMediaSource::addSink(const MediaSource::Ptr &src)
     //     return ;
     // }
     weak_ptr<RtspPsMediaSource> weakSelf = std::static_pointer_cast<RtspPsMediaSource>(shared_from_this());
-    _ring->addOnWrite(src.get(), [weakSelf](DataType in, bool is_key){
+    _ring->addOnWrite(this, [weakSelf](DataType in, bool is_key){
         auto strongSelf = weakSelf.lock();
         if (!strongSelf) {
             return;
@@ -303,10 +303,10 @@ void RtspPsMediaSource::delSink(const MediaSource::Ptr &src)
         }, true, false);
     }
     MediaSource::delSink(src);
-    _ring->delOnWrite(src.get());
+    // _ring->delOnWrite(src.get());
     lock_guard<mutex> lck(_mtxTrack);
     if (_mapSink.size() == 0) {
-        
+        _ring->delOnWrite(this); 
         // for (auto& track : _mapRtspTrack) {
             _psDecode->stopDecode();
         // }

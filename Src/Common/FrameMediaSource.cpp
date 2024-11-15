@@ -19,7 +19,8 @@ FrameMediaSource::~FrameMediaSource()
 
 void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
 {
-    // logInfo << "before adjust frame pts: " << frame->_pts << ", frame dts: " << frame->_dts << ", type: " << frame->_trackType;
+    // logInfo << "before adjust frame pts: " << frame->_pts << ", frame dts: " << frame->_dts << ", type: " << frame->_trackType
+    //         << ", size: " << frame->size();
     // for (auto& sink : _mapSink) {
         // logInfo << "on frame to sink";
         bool keyframe = false;

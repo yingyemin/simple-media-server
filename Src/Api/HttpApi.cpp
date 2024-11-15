@@ -52,6 +52,7 @@ void HttpApi::initApi()
     g_mapApi.emplace("/api/v1/onNonePlayer", HttpApi::onNonePlayer);
     g_mapApi.emplace("/api/v1/getSourceList", HttpApi::getSourceList);
     g_mapApi.emplace("/api/v1/getSourceInfo", HttpApi::getSourceInfo);
+    g_mapApi.emplace("/api/v1/closeSource", HttpApi::closeSource);
     g_mapApi.emplace("/api/v1/getClientList", HttpApi::getClientList);
     g_mapApi.emplace("/api/v1/closeClient", HttpApi::closeClient);
     g_mapApi.emplace("/api/v1/getLoopList", HttpApi::getLoopList);
@@ -224,6 +225,41 @@ void HttpApi::getSourceList(const HttpParser& parser, const UrlParser& urlParser
 
     value["code"] = "200";
     value["msg"] = "success";
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void HttpApi::closeSource(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    json body = parser._body;
+    checkArgs(body, {"path"});
+
+    auto source = MediaSource::get(body["path"], body.value("vhost", DEFAULT_VHOST));
+    if (source) {
+        value["code"] = "200";
+        value["msg"] = "success";
+
+        auto loop = source->getLoop();
+        if (loop) {
+            weak_ptr<MediaSource> weakSelf = source;
+            loop->async([weakSelf](){
+                auto source = weakSelf.lock();
+                if (source) {
+                    source->release();
+                }
+            }, true);
+        }
+    } else {
+        rsp._status = 404;
+        value["code"] = "404";
+        value["msg"] = "source is not exist";
+    }
+
     rsp.setContent(value.dump());
     rspFunc(rsp);
 }

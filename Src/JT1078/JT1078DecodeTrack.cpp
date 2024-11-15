@@ -43,7 +43,7 @@ void JT1078DecodeTrack::onRtpPacket(const JT1078RtpPacket::Ptr& rtp)
                 _frame = make_shared<H265Frame>();
                 _frame->_startSize = 4;
             } else {
-                logInfo << "unsurpport video codec";
+                // logInfo << "unsurpport video codec" << rtp->getCodecType();
                 return ;
             }
         } else if (rtp->getTrackType() == "audio") {
@@ -73,7 +73,7 @@ void JT1078DecodeTrack::onRtpPacket(const JT1078RtpPacket::Ptr& rtp)
                 _trackInfo = dynamic_pointer_cast<TrackInfo>(trackInfo);
                 onTrackInfo(_trackInfo);
             } else {
-                // logInfo << "unsurpport audio codec";
+                // logInfo << "unsurpport audio codec" << rtp->getCodecType();
                 return ;
             }
             _frame = make_shared<FrameBuffer>();
@@ -103,7 +103,7 @@ void JT1078DecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
     // fwrite(frame->data(), 1, frame->size(), fp);
     // fclose(fp);
 
-    // logInfo << "JT1078DecodeTrack::onFrame";
+    // logInfo << "JT1078DecodeTrack::onFrame pts: " << frame->pts() << " size: " << frame->size();
     if (!_ready && _trackInfo->trackType_ == "video") {
         if (_trackInfo->codec_ == "h264") {
             auto h264Frame = dynamic_pointer_cast<H264Frame>(frame);
@@ -198,7 +198,7 @@ void JT1078DecodeTrack::decodeRtp(const JT1078RtpPacket::Ptr& rtp)
     case JT1078_Atomic:
         _frame->_buffer.assign(rtp->getPayload(), rtp->getPayloadSize());
         _frame->_pts = rtp->getTimestamp();
-        // _frame->_startSize = 4;
+        _frame->_startSize = 4;
         // fwrite(_frame->data(), 1, _frame->size(), fp);
         // fclose(fp);
         _frame->split([this](const FrameBuffer::Ptr &subFrame){
@@ -227,7 +227,7 @@ void JT1078DecodeTrack::decodeRtp(const JT1078RtpPacket::Ptr& rtp)
         }
         _frame->_pts = rtp->getTimestamp();
         _frame->_buffer.append(rtp->getPayload(), rtp->getPayloadSize());
-        // _frame->_startSize = 4;
+        _frame->_startSize = 4;
         // fwrite(_frame->data(), 1, _frame->size(), fp);
         // fclose(fp);
         _frame->split([this](const FrameBuffer::Ptr &subFrame){

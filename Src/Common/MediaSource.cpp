@@ -332,6 +332,10 @@ bool MediaSource::getOrCreateAsync(const string &protocol, const string& type,
     logInfo << "getOrCreateAsync find frame src";
 
     src = create();
+    if (!src) {
+        cb(nullptr);
+        return true;
+    }
     src->setLoop(_loop);
     src->addConnection(connKey);
     wsrc = src;
