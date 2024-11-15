@@ -59,9 +59,9 @@ void JT1078MediaSource::addTrack(const JT1078DecodeTrack::Ptr& track)
             strongSelf->_ring->write(strongSelf->_cache);
             strongSelf->_cache = std::make_shared<list<JT1078RtpPacket::Ptr>>();
             if (strongSelf->_probeFinish) {
-                if (strongSelf->_mapSink.empty()) {
+                // if (strongSelf->_mapSink.empty()) {
                     strongSelf->_ring->delOnWrite(strongSelf.get());
-                }
+                // }
                 strongSelf->_probeFinish = false;
             }
         } else {
@@ -249,9 +249,9 @@ void JT1078MediaSource::addSink(const MediaSource::Ptr &src)
             track.second->startDecode();
         }
     }
-    if (_ring->getOnWriteSize() > 0) {
-        return ;
-    }
+    // if (_ring->getOnWriteSize() > 0) {
+    //     return ;
+    // }
     std::weak_ptr<JT1078MediaSource> weakSelf = std::static_pointer_cast<JT1078MediaSource>(shared_from_this());
     _ring->addOnWrite(src.get(), [weakSelf](RingDataType in, bool is_key){
         auto strongSelf = weakSelf.lock();

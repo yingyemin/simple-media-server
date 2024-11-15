@@ -60,9 +60,9 @@ void GB28181MediaSource::addTrack(const GB28181DecodeTrack::Ptr& track)
             strongSelf->_ring->write(strongSelf->_cache);
             strongSelf->_cache = std::make_shared<list<RtpPacket::Ptr>>();
             if (strongSelf->_probeFinish) {
-                if (strongSelf->_mapSink.empty()) {
+                // if (strongSelf->_mapSink.empty()) {
                     strongSelf->_ring->delOnWrite(strongSelf.get());
-                }
+                // }
                 strongSelf->_probeFinish = false;
             }
         } else {
@@ -241,9 +241,9 @@ void GB28181MediaSource::addSink(const MediaSource::Ptr &src)
             track.second->startDecode();
         }
     }
-    if (_ring->getOnWriteSize() > 0) {
-        return ;
-    }
+    // if (_ring->getOnWriteSize() > 0) {
+    //     return ;
+    // }
     weak_ptr<GB28181MediaSource> weakSelf = std::static_pointer_cast<GB28181MediaSource>(shared_from_this());
     _ring->addOnWrite(src.get(), [weakSelf](RingDataType in, bool is_key){
         auto strongSelf = weakSelf.lock();

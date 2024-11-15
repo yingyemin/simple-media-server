@@ -583,6 +583,9 @@ void DataQue<T>::sendMessage(const ClientInfo &data)
 template <typename T>
 void DataQue<T>::addOnWrite(void* key, onWriteFunc onWrite) 
 {
+    if (_on_write_map.find(key) != _on_write_map.end()) {
+        return ;
+    }
     _on_write_map.emplace(key, onWrite);
 
     // if (onWrite)
