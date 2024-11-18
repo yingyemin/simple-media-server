@@ -40,6 +40,10 @@ JT1078Connection::~JT1078Connection()
         jtSrc->delConnection(this);
     }
 
+    if (_onClose) {
+        _onClose();
+    }
+
     // if (!_key.empty()) {
     //     delJt1078Info(_key);
     // }

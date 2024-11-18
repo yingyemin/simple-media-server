@@ -26,7 +26,7 @@ void GB28181Manager::init(const EventLoop::Ptr& loop)
     loop->addTimerTask(5000, [wSelf](){
         auto self = wSelf.lock();
         if (!self) {
-            return -1;
+            return 0;
         }
 
         self->heartbeat();

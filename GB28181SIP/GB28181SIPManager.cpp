@@ -26,7 +26,7 @@ void GB28181SIPManager::init(const EventLoop::Ptr& loop)
     loop->addTimerTask(5000, [wSelf](){
         auto self = wSelf.lock();
         if (!self) {
-            return -1;
+            return 0;
         }
 
         self->heartbeat();
@@ -38,6 +38,7 @@ void GB28181SIPManager::init(const EventLoop::Ptr& loop)
 
 void GB28181SIPManager::onSipPacket(const Socket::Ptr& socket, const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)
 {
+    logTrace << "get a message: " << buffer->data();
     shared_ptr<SipRequest> req;
     _sipStack.parse_request(req, buffer->data(), buffer->size());
 

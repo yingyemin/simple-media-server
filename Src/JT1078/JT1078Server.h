@@ -2,6 +2,7 @@
 #define JT1078Server_h
 
 #include "TcpServer.h"
+#include "Common/PortManager.h"
 
 #include <string>
 #include <unordered_map>
@@ -14,6 +15,7 @@ using namespace std;
 class JT1078ServerInfo
 {
 public:
+    int expire_ = 0;
     string serverId_;
     string path_;
 };
@@ -39,7 +41,10 @@ public:
     // 后面考虑增加IP参数
     // void stopByIp(int port, int count);
     void setServerId(const string& key);
-    void setStreamPath(int port, const string& path);
+    void setStreamPath(int port, const string& path, int expire);
+    void setPortRange(int minPort, int maxPort);
+    int getPort() {return _portManager.get();}
+    PortInfo getPortInfo() {return _portManager.getPortInfo();}
     
     void for_each_server(const function<void(const TcpServer::Ptr &)> &cb);
 
@@ -48,6 +53,8 @@ private:
     string _ip;
     string _serverId;
     string _path;
+    PortManager _portManager;
+
     mutex _mtx;
     // int : port
     unordered_map<int, vector<TcpServer::Ptr>> _tcpServers;

@@ -51,6 +51,7 @@ public:
     void setPath(const string& path) {_path = path;}
     void setTalkFlag() {_isTalk = true;}
     void onRtpPacket(const JT1078RtpPacket::Ptr& buffer);
+    void setOnClose(const function<void()>& cb) {_onClose = cb;}
 
     static bool addJt1078Info(const string& key, const JT1078Info& info);
     static JT1078Info getJt1078Info(const string& key);
@@ -76,6 +77,7 @@ private:
     JT1078MediaSource::Wptr _talkSource;
     unordered_map<int, JT1078DecodeTrack::Ptr> _mapTrack;
     JT1078MediaSource::RingType::DataQueReaderT::Ptr _playReader;
+    function<void()> _onClose;
 
     static mutex _lck;
     static unordered_map<string, JT1078Info> _mapJt1078Info;

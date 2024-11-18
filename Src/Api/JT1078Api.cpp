@@ -22,6 +22,7 @@ void JT1078Api::initApi()
     g_mapApi.emplace("/api/v1/jt1078/talk/stop", JT1078Api::stopTalk);
     g_mapApi.emplace("/api/v1/jt1078/send/start", JT1078Api::startSend);
     g_mapApi.emplace("/api/v1/jt1078/send/stop", JT1078Api::stopSend);
+    g_mapApi.emplace("/api/v1/jt1078/port/info", JT1078Api::getPortInfo);
 }
 
 void JT1078Api::create(const HttpParser& parser, const UrlParser& urlParser, 
@@ -47,9 +48,14 @@ void JT1078Api::create(const HttpParser& parser, const UrlParser& urlParser,
         if (createKeyTimeout == 0) {
             createKeyTimeout = 15;
         }
+        
+        int expire = createKeyTimeout; //second
+        if (parser._body.find("expire") != parser._body.end()) {
+            expire = toInt(parser._body["expire"]);
+        }
 
         auto loop = EventLoop::getCurrentLoop();
-        loop->addTimerTask(createKeyTimeout * 1000, [key](){
+        loop->addTimerTask(expire * 1000, [key](){
             JT1078Connection::delJt1078Info(key);
             return 0;
         }, nullptr);
@@ -70,18 +76,32 @@ void JT1078Api::openServer(const HttpParser& parser, const UrlParser& urlParser,
     rsp._status = 200;
     json value;
 
-    checkArgs(parser._body, {"port"});
+    // checkArgs(parser._body, {"port"});
+    int port = JT1078Server::instance()->getPort();
+    if (port < 0) {
+        value["code"] = "400";
+        value["msg"] = "port is empty";
+        rsp.setContent(value.dump());
+        rspFunc(rsp);
+        return ;
+    }
+    int expire = 15; //second
+    if (parser._body.find("expire") != parser._body.end()) {
+        expire = toInt(parser._body["expire"]);
+    }
+
     string path;
     if (parser._body.find("appName") != parser._body.end() 
             && parser._body.find("streamName") != parser._body.end()) {
         path = "/" + parser._body["appName"].get<string>() + "/" + parser._body["streamName"].get<string>();
     }
-    JT1078Server::instance()->setStreamPath(toInt(parser._body["port"]), path);
+    JT1078Server::instance()->setStreamPath(port, path, expire);
 
-    JT1078Server::instance()->start("0.0.0.0", toInt(parser._body["port"]), 1);
+    JT1078Server::instance()->start("0.0.0.0", port, 1);
 
     value["code"] = "200";
     value["msg"] = "success";
+    value["port"] = port;
     rsp.setContent(value.dump());
     rspFunc(rsp);
 }
@@ -222,6 +242,30 @@ void JT1078Api::stopSend(const HttpParser& parser, const UrlParser& urlParser,
 
     string key = parser._body["url"];
     MediaClient::delMediaClient(key);
+
+    value["code"] = "200";
+    value["msg"] = "success";
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void JT1078Api::getPortInfo(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    auto info = JT1078Server::instance()->getPortInfo();
+    value["portInfo"]["maxPort"] = info.maxPort_;
+    value["portInfo"]["minPort"] = info.minPort_;
+    for (auto port : info.portFreeList_) {
+        value["portInfo"]["freePort"].emplace_back(port);
+    }
+    
+    for (auto port : info.portUseList_) {
+        value["portInfo"]["usePort"].emplace_back(port);
+    }
 
     value["code"] = "200";
     value["msg"] = "success";

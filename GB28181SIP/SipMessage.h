@@ -131,7 +131,7 @@ private:
     long sn;
     std::string _role;
 public:
-    SipStack();
+    SipStack(const std::string& role = "server");
     virtual ~SipStack();
 public:
     virtual int parse_request(std::shared_ptr<SipRequest>& preq, const char *recv_msg, int nb_buf);

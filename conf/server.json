@@ -21,6 +21,7 @@
     },
     "Hook" : {
         "Type" : "http",
+        "EnableHook" : false,
         "Http" : {
             "timeout" : 10,
             "onStreamStatus" : "http://127.0.0.1/api/v1/onStreamStatus",
@@ -119,13 +120,13 @@
     "JT1078" : {
         "Server" : {
             "timeout" : 5000,
+            "portMax" : 20000,
+            "portMin" : 16000,
             "Server1" : {
                 "ip" : "0.0.0.0",
                 "port" : 17000,
                 "threads" : 1,
-                "sockType" : 3,
-                "udpPortMax" : 20000,
-                "udpPortMin" : 16000
+                "sockType" : 3
             },
             "Talk" : {
                 "ip" : "0.0.0.0",

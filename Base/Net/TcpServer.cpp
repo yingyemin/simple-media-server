@@ -1,5 +1,6 @@
 ﻿#include "TcpServer.h"
 #include "Logger.h"
+#include "Util/TimeClock.h"
 
 #include <cstring>
 #include <iostream>
@@ -47,7 +48,7 @@ void TcpServer::start(NetType type)
         auto server = weakServer.lock();
         if (!server) {
             logInfo << "server exit";
-            return -1;
+            return 0;
         }
         server->onManager();
         return 2000;
@@ -59,6 +60,8 @@ void TcpServer::accept(int event, void* args)
     int connFd = -1;
     struct sockaddr_storage peer_addr;
     socklen_t addr_len = sizeof(peer_addr);
+
+    _lastAcceptTime = TimeClock::now();
 
     while(true) {
         if (event & EPOLLIN) {
@@ -78,7 +81,7 @@ void TcpServer::accept(int event, void* args)
                 // 然后立即关闭，断开与客户端连接，就不会忙等(busy-loop)
                 _loop->addTimerTask(100, [this, event, args](){
                     accept(event, args);
-                    return -1;
+                    return 0;
                 }, nullptr);
                 logWarn << "accept errno=EMFILE";
             // 对方传输完毕, 为啥此处直接break?

@@ -29,10 +29,12 @@ public:
     void setOnCreateSession(createSessionCb cb) {_createSessionCb = cb;}
     void onManager();
     int getPort() {return _port;}
+    int getLastAcceptTime() {return _lastAcceptTime;}
 private:
     int _maxConns;
     int _threadNum;
     int _port;
+    int _lastAcceptTime = 0;
     string _ip;
     EventLoop::Ptr _loop;
     Socket::Ptr _socket;

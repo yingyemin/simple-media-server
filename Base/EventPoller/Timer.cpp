@@ -60,6 +60,8 @@ uint64_t Timer::flushTimerTask()
         {
             break;
         }
+        // logTrace << "it->first->click: " << it->first->click;
+        // logTrace << "now: " << now;
         if (it->first->click > now) {
             break;
         }
@@ -75,6 +77,8 @@ uint64_t Timer::flushTimerTask()
         // logInfo << "(delay > 0 && !task->quit): " << (delay > 0 && !task->quit);
         if (delay > 0 && !task->quit) {
             task->click = now + delay;
+            // logTrace << "add task->click: " << task->click;
+            // logTrace << "delay: " << delay;
             tmp.emplace_back(task);
         }
     }
@@ -105,6 +109,7 @@ uint64_t Timer::flushTimerTask()
     if (it == _tasks.end()) {
         return 2000;
     }
+    // logTrace << "it->first->click: " << it->first->click;
     uint64_t delay = it->first->click - now;
     // logInfo << "task delay: " << delay;
     return delay > 0 ? delay : 2000;

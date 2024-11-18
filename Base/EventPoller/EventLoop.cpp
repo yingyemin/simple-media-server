@@ -74,6 +74,7 @@ void EventLoop::start()
         loopStrat = TimeClock::now();
 
         uint64_t minDelay = _timer->flushTimerTask();
+        // logTrace << "next epoll run time: " << minDelay;
         _delayTaskDuration = TimeClock::now() - loopStrat;
 
         computeLoad();

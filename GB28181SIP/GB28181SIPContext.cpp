@@ -58,6 +58,7 @@ void GB28181SIPContext::onSipPacket(const Socket::Ptr& socket, const SipRequest:
             }
         } else if (memcmp(_addr.get(), addr, sizeof(struct sockaddr)) != 0) {
             // 记录一下这个流，提供切换流的api
+            logWarn<< "收到 sip 包，但已经存在一个相同的设备，忽略";
             return ;
         }
     }
@@ -78,9 +79,34 @@ void GB28181SIPContext::onSipPacket(const Socket::Ptr& socket, const SipRequest:
         if (req->cmdtype == SipCmdRequest) {
             _sipStack.resp_status(ss, req);
         }
+    } else if (req->is_invite()) {
+        MediaInfo info;
+        {
+            lock_guard<mutex> lck(_mtx);
+            if (_mapMediaInfo[req->sip_auth_id].count(req->call_id) > 0) {
+                info = _mapMediaInfo[req->sip_auth_id][req->call_id];
+            } else {
+                _sipStack.resp_ack(ss, req);
+                sendMessage(ss.str().data(), ss.str().size());
+                return ;
+            }
+        }
+        
+        if (req->cmdtype == SipCmdRespone){
+            if (req->status == "200") {
+                _sipStack.resp_ack(ss, req);
+            }else if (req->status == "100") {
+                
+            }else{
+
+            }
+        }
+       
+    } else if (req->is_bye()) {
+        _sipStack.resp_status(ss, req);
     }
 
-    socket->send(ss.str().data(), ss.str().size(), 1, _addr.get(), sizeof(sockaddr));
+    sendMessage(ss.str().data(), ss.str().size());
 
     _timeClock.update();
 }
@@ -110,12 +136,15 @@ void GB28181SIPContext::catalog()
     req->host = _req->host;
     req->host_port = _req->host_port;
     req->realm = _req->realm;
-    req->serial = _req->serial;
+    req->serial = _deviceId;
+    req->sip_auth_id = _deviceId;
 
     std::stringstream ss;
     _sipStack.req_query_catalog(ss, req);
 
-    _socket->send(ss.str().data(), ss.str().size(), 1, _addr.get(), sizeof(sockaddr));
+    // TODO 记住SN，根据SN收包
+
+    sendMessage(ss.str().data(), ss.str().size());
 }
 
 void GB28181SIPContext::invite(const MediaInfo& mediainfo)
@@ -135,7 +164,7 @@ void GB28181SIPContext::invite(const MediaInfo& mediainfo)
     std::stringstream ss;
     string callId = _sipStack.req_invite(ss, req, mediainfo.ip, mediainfo.port, mediainfo.ssrc);
 
-    _socket->send(ss.str().data(), ss.str().size(), 1, _addr.get(), sizeof(sockaddr));
+    sendMessage(ss.str().data(), ss.str().size());
 
     lock_guard<mutex> lck(_mtx);
     _mapMediaInfo[mediainfo.channelId][callId] = mediainfo;
@@ -154,7 +183,7 @@ void GB28181SIPContext::bye(const string& channelId, const string& callId)
     std::stringstream ss;
     _sipStack.req_bye(ss, req);
 
-    _socket->send(ss.str().data(), ss.str().size(), 1, _addr.get(), sizeof(sockaddr));
+    sendMessage(ss.str().data(), ss.str().size());
 
     lock_guard<mutex> lck(_mtx);
     _mapMediaInfo[channelId].erase(callId);
@@ -200,8 +229,14 @@ void GB28181SIPContext::bye(const MediaInfo& mediainfo)
     std::stringstream ss;
     _sipStack.req_bye(ss, req);
 
-    _socket->send(ss.str().data(), ss.str().size(), 1, _addr.get(), sizeof(sockaddr));
+    sendMessage(ss.str().data(), ss.str().size());
 
     lock_guard<mutex> lck(_mtx);
     _mapMediaInfo[mediainfo.channelId].erase(callId);
+}
+
+void GB28181SIPContext::sendMessage(const char* msg, size_t size)
+{
+    logTrace << "send a message" << msg;
+    _socket->send(msg, size, 1, _addr.get(), sizeof(sockaddr));
 }

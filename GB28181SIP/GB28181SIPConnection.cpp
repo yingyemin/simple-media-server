@@ -40,6 +40,7 @@ void GB28181SIPConnection::init()
         self->_sipStack.parse_request(req, data, len);
         // auto buffer = StreamBuffer::create();
         // buffer->assign(data + 2, len - 2);
+        logTrace << "get a message: " << data;
         self->onSipPacket(self->_socket, req);
     });
 }

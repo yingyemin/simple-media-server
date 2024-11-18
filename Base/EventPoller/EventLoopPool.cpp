@@ -49,9 +49,13 @@ void EventLoopPool::init(int size, int priority, bool affinity)
     }
 }
 
-void EventLoopPool::for_each_loop(const function<void(const EventLoop::Ptr &)> &cb)
+void EventLoopPool::for_each_loop(const function<void(const EventLoop::Ptr &)> &cb, int count)
 {
+    int index = 0;
     for (auto& loop : _loops) {
+        if (count && index++ >= count) {
+            break;
+        }
         cb(loop);
     }
 }

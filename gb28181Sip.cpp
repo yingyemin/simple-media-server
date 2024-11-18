@@ -4,9 +4,11 @@
 #include "Util/Thread.h"
 #include "Ssl/TlsContext.h"
 #include "Common/Config.h"
-#include "gb28181Sip/GB28181TcpClient.h"
-#include "gb28181Sip/GB28181UdpClient.h"
-#include "gb28181Sip/GB28181SIPServer.h"
+#include "GB28181SIP/GB28181TcpClient.h"
+#include "GB28181SIP/GB28181UdpClient.h"
+#include "GB28181SIP/GB28181SIPServer.h"
+#include "Http/HttpServer.h"
+#include "GB28181SIP/GB28181SIPApi.h"
 
 #include <unistd.h>
 #include <string.h>
@@ -77,6 +79,7 @@ int main(int argc, char** argv)
     Logger::instance()->setLevel((LogLevel)logLevel);
 
     setFileLimits();
+    GB28181SIPApi::initApi();
 
     auto sslKey = Config::instance()->get("Ssl", "key");
     auto sslCrt = Config::instance()->get("Ssl", "cert");
@@ -105,6 +108,30 @@ int main(int argc, char** argv)
         // if (sslPort) {
         //     RtspServer::instance()->start(ip, sslPort, count);
         // }
+    }
+
+    auto httpApiConfigVec = configJson["Http"]["Api"];
+    for (auto server : httpApiConfigVec.items()) {
+        string serverId = server.key();
+        auto httpApiConfig = server.value();
+
+        if (!httpApiConfig.is_object()) {
+            continue;
+        }
+
+        const string ip = httpApiConfig["ip"];
+        int port = httpApiConfig["port"];
+        int sslPort = httpApiConfig["sslPort"];
+        int count = httpApiConfig["threads"];
+
+        logInfo << "start http api, port: " << port;
+        if (port) {
+            HttpServer::instance()->start(ip, port, count);
+        }
+        logInfo << "start https server, sslPort: " << sslPort;
+        if (sslPort) {
+            HttpServer::instance()->start(ip, sslPort, count, true);
+        }
     }
 
     // shared_ptr<GB28181Client> client(new GB28181TcpClient());

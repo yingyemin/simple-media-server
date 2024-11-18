@@ -36,6 +36,9 @@ public:
                         
     static void stopSend(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc);
+                        
+    static void getPortInfo(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc);
 };
 
 #endif //JT1078Api_h

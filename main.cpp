@@ -253,6 +253,10 @@ int main(int argc, char** argv)
     }
 
     auto jt1078ConfigVec = configJson["JT1078"]["Server"];
+    int maxPort = jt1078ConfigVec.value("portMax", 0);
+    int minPort = jt1078ConfigVec.value("portMin", 0);
+    JT1078Server::instance()->setPortRange(minPort, maxPort);
+
     for (auto server : jt1078ConfigVec.items()) {
         string serverId = server.key();
         auto jt1078Config = server.value();

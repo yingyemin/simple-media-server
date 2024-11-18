@@ -14,7 +14,7 @@ public:
 public:
     static std::shared_ptr<EventLoopPool> instance();
     void init(int size, int priority, bool affinity);
-    void for_each_loop(const function<void(const EventLoop::Ptr &)> &cb);
+    void for_each_loop(const function<void(const EventLoop::Ptr &)> &cb, int count = 0);
     EventLoop::Ptr getLoopByCircle();
 
 protected:

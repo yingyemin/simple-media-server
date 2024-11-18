@@ -230,7 +230,8 @@ void SipRequest::copy(SipRequest* src)
      peer_port = src->peer_port;
 }
 
-SipStack::SipStack()
+SipStack::SipStack(const string& role)
+    :_role(role)
 {
     //buf = new SrsSimpleStream();
     sn = 0;

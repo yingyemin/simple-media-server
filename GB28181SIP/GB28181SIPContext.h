@@ -38,6 +38,7 @@ public:
     void invite(const MediaInfo& mediainfo);
     void bye(const string& channelId, const string& callId);
     void bye(const MediaInfo& mediainfo);
+    void sendMessage(const char* msg, size_t size);
 
 private:
     bool _alive = true;
