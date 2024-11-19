@@ -14,6 +14,10 @@ int guessType(const StreamBuffer::Ptr& buffer)
     uint8_t* data = (uint8_t*)buffer->data();
 	size_t len = buffer->size();
 
+	if (len < 2) {
+		return kUnkown;
+	}
+
 	// 0x0001 stun bind request
 	if (data[0] == 0 && data[1] == 1) {
 		return kStunPkt;
