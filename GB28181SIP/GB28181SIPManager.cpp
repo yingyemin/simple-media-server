@@ -43,9 +43,11 @@ void GB28181SIPManager::onSipPacket(const Socket::Ptr& socket, const StreamBuffe
     _sipStack.parse_request(req, buffer->data(), buffer->size());
 
     string deviceId;
-    if (req->cmdtype == SipCmdRequest) {
+    // if (req->cmdtype == SipCmdRequest) {
         deviceId = req->sip_username;
-    }
+    // }
+
+    logInfo << "get a deviceId: " << deviceId;
 
     // auto ssrc = req->sip_channel_id;
     auto iter = _mapContextPerThread.find(deviceId);

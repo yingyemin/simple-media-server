@@ -82,6 +82,7 @@ void GB28181SIPContext::onSipPacket(const Socket::Ptr& socket, const SipRequest:
     } else if (req->is_invite()) {
         MediaInfo info;
         {
+            logInfo << "channelId:" << req->sip_auth_id << ", callid:" << req->call_id << this;
             lock_guard<mutex> lck(_mtx);
             if (_mapMediaInfo[req->sip_auth_id].count(req->call_id) > 0) {
                 info = _mapMediaInfo[req->sip_auth_id][req->call_id];
@@ -94,6 +95,10 @@ void GB28181SIPContext::onSipPacket(const Socket::Ptr& socket, const SipRequest:
         
         if (req->cmdtype == SipCmdRespone){
             if (req->status == "200") {
+                req->realm = _req->realm;
+                req->serial = _req->serial;
+                req->host = _req->host;
+                req->host_port = _req->host_port;
                 _sipStack.resp_ack(ss, req);
             }else if (req->status == "100") {
                 
@@ -166,6 +171,7 @@ void GB28181SIPContext::invite(const MediaInfo& mediainfo)
 
     sendMessage(ss.str().data(), ss.str().size());
 
+    logInfo << "channelId:" << mediainfo.channelId << ", callid:" << callId << this;
     lock_guard<mutex> lck(_mtx);
     _mapMediaInfo[mediainfo.channelId][callId] = mediainfo;
 }
@@ -185,6 +191,7 @@ void GB28181SIPContext::bye(const string& channelId, const string& callId)
 
     sendMessage(ss.str().data(), ss.str().size());
 
+    logInfo << "channelId:" << channelId << ", callid:" << callId;
     lock_guard<mutex> lck(_mtx);
     _mapMediaInfo[channelId].erase(callId);
 }
@@ -231,6 +238,7 @@ void GB28181SIPContext::bye(const MediaInfo& mediainfo)
 
     sendMessage(ss.str().data(), ss.str().size());
 
+    logInfo << "channelId:" << mediainfo.channelId << ", callid:" << callId;
     lock_guard<mutex> lck(_mtx);
     _mapMediaInfo[mediainfo.channelId].erase(callId);
 }

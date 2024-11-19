@@ -36,6 +36,11 @@ void GB28181SIPApi::invite(const HttpParser& parser, const UrlParser& urlParser,
                         const function<void(HttpResponse& rsp)>& rspFunc)
 {
     checkArgs(parser._body, {"deviceId", "channelId", "channelNum", "ip", "port", "ssrc"});
+
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
     MediaInfo info;
     info.channelId = parser._body["channelId"];
     info.channelNum = toInt(parser._body["channelNum"]);
@@ -44,11 +49,15 @@ void GB28181SIPApi::invite(const HttpParser& parser, const UrlParser& urlParser,
     info.ssrc = toInt(parser._body["ssrc"]);
 
     auto deviceCtx = GB28181SIPManager::instance()->getContext(parser._body["deviceId"]);
+    if (!deviceCtx) {
+        value["code"] = "400";
+        value["msg"] = "device is not exist";
+        rsp.setContent(value.dump());
+        rspFunc(rsp);
+    }
+    GB28181SIPManager::instance()->addContext(info.channelId, deviceCtx);
     deviceCtx->invite(info);
-
-    HttpResponse rsp;
-    rsp._status = 200;
-    json value;
+    
     value["code"] = "200";
     value["msg"] = "success";
     rsp.setContent(value.dump());
