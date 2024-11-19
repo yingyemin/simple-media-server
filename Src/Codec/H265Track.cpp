@@ -335,6 +335,12 @@ void H265Track::getWidthAndHeight(int& width, int& height, int& fps)
         width = _width;
         height = _height;
     }
+	
+	if (!_sps || !_vps || !_pps) {
+		logError << "no sps/pps/vps";
+		return ;
+	}
+
     vc_params_t params = {0};
     ParseSequenceParameterSet((uint8_t*)(_sps->data() + _sps->startSize()), _sps->size() - _sps->startSize(), params);
     _width = params.width;

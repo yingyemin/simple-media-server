@@ -72,6 +72,10 @@ void H264Track::getWidthAndHeight(int& width, int& height, int& fps)
 
         return ;
     }
+    if (!_sps || !_pps) {
+        logWarn << "sps or pps is null";
+        return ;
+    }
     auto sps = _sps->data() + _sps->startSize();
     auto size = _sps->size() - _sps->startSize();
     auto spsBuffer = new char[size];

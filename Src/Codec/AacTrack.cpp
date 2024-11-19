@@ -292,6 +292,11 @@ void AacTrack::setAacInfoByAdts(const char* data, int len)
 
 string AacTrack::getAdtsHeader(int frameSize)
 {
+	if (_aacConfig.empty()) {
+		logError << "aac config is empty";
+		return "";
+	}
+	
 	auto adts = configToAdts(_aacConfig, frameSize + 7);
 	auto frame = adts.toFrame();
 	return string(frame->data(), frame->size());
