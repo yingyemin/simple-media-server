@@ -32,6 +32,10 @@ static bool parseAacFrame(const unsigned char* buf, int len)
     //     return false;
     // }
     // avs->read_bytes((char*)buf, 7);
+    if (buf == nullptr || len < 7) {
+        logWarn << "Invalid input: buf is null or len < 7" << endl;
+        return false;
+    }
 
     int frame_size = 0;
     if((buf[0] == 0xff) && ((buf[1] & 0xff) == 0xf1)){
@@ -45,6 +49,10 @@ static bool parseAacFrame(const unsigned char* buf, int len)
         return false;
     }
     logInfo << "frame_size is: " << frame_size << endl;
+    if (frame_size <= 0 || frame_size > len) {
+        logWarn << "Invalid frame size: " << frame_size << endl;
+        return false;
+    }
     // n = fread(buf + 7, 1, frame_size - 7, fp);
     // if (n < frame_size - 7) {
     //     logWarn << "size < " << frame_size << endl;
@@ -104,31 +112,35 @@ PsDemuxer::PsDemuxer()
     
 }
 
-int64_t PsDemuxer::parsePsTimestamp(const uint8_t* p)
+uint64_t PsDemuxer::parsePsTimestamp(const uint8_t* p)
 {
-	unsigned long b;
+    if (p == nullptr) {
+        return 0;
+    }
+
+	unsigned long byte;
 	//total 33 bits
-	unsigned long val, val2, val3;
+	unsigned long part1, part2, part3;
 
 	//1st byte, 5、6、7 bit
-	b = *p++;
-	val = (b & 0x0e);
+	byte = *p++;
+	part1 = (byte & 0x0e);
 
 	//2 byte, all bit 
-	b = (*(p++)) << 8;
+	byte = (*(p++)) << 8;
     //3 bytes 1--7 bit
-	b += *(p++);
-	val2 = (b & 0xfffe) >> 1;
+	byte += *(p++);
+	part2 = (byte & 0xfffe) >> 1;
 	
 	//4 byte, all bit
-	b = (*(p++)) << 8;
+	byte = (*(p++)) << 8;
     //5 byte 1--7 bit
-	b += *(p++);
-	val3 = (b & 0xfffe) >> 1;
+	byte += *(p++);
+	part3 = (byte & 0xfffe) >> 1;
 
-    //<32--val--30> <29----val2----15> <14----val3----0>
-	val = (val << 29) | (val2 << 15) | val3;
-	return val;
+    //<32--part1--30> <29----part2----15> <14----part3----0>
+	uint64_t timestamp  = (part1  << 29) | (part2 << 15) | part3;
+	return timestamp ;
 }
 
 // TODO 需要支持将剩下的buffer保存下来，下次拼接使用
@@ -144,6 +156,10 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
         incomplete_len = _remainBuffer.size();
         next_ps_pack = _remainBuffer.data();
         ps_size = incomplete_len;
+    }
+
+    if (!next_ps_pack || incomplete_len == 0) {
+        return -1;
     }
     // logInfo << "incomplete_len: " << incomplete_len;
     char* end = next_ps_pack + incomplete_len;
@@ -384,6 +400,26 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
 
             PsePacket* pse_pack = (PsePacket*)next_ps_pack;
 
+            int packlength = htons(pse_pack->length);
+            int payloadlen = packlength - 2 - 1 - pse_pack->stuffingLength;
+            if (payloadlen <= 0) {
+                logInfo << "payloadlen <= 0";
+                return -1;
+            }
+
+            // logInfo << "incomplete_len: " << incomplete_len;
+            // logInfo << "end - next_ps_pack: " << (end - next_ps_pack);
+            // logInfo << "need_len: " << (sizeof(PsePacket) + pse_pack->stuffingLength + payloadlen);
+            if (incomplete_len < sizeof(PsePacket) + pse_pack->stuffingLength + payloadlen) {
+                _remainBuffer.assign(next_ps_pack, incomplete_len);
+                logInfo << "_remainBuffer size: " << _remainBuffer.size();
+                return -1;
+            }
+
+            if (incomplete_len < 19) {
+                return -1;
+            }
+
             unsigned char pts_dts_flags = (pse_pack->info[0] & 0xF0) >> 6;
             //in a frame of data, pts is obtained from the first PSE packet
             if (/*pse_index == 0 && */pts_dts_flags > 0) {
@@ -395,18 +431,6 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
                 }
 			}
             // pse_index +=1;
-
-            int packlength = htons(pse_pack->length);
-            int payloadlen = packlength - 2 - 1 - pse_pack->stuffingLength;
-
-            // logInfo << "incomplete_len: " << incomplete_len;
-            // logInfo << "end - next_ps_pack: " << (end - next_ps_pack);
-            // logInfo << "need_len: " << (sizeof(PsePacket) + pse_pack->stuffingLength + payloadlen);
-            if (incomplete_len < sizeof(PsePacket) + pse_pack->stuffingLength + payloadlen) {
-                _remainBuffer.assign(next_ps_pack, incomplete_len);
-                logInfo << "_remainBuffer size: " << _remainBuffer.size();
-                return -1;
-            }
          
             next_ps_pack = next_ps_pack + 9 + pse_pack->stuffingLength;
             complete_len = complete_len + 9 + pse_pack->stuffingLength;
@@ -498,18 +522,12 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
             FrameBuffer::Ptr audio_stream = createFrame(AudioTrackType);
             PsePacket* pse_pack = (PsePacket*)next_ps_pack;
 
-		    unsigned char pts_dts_flags = (pse_pack->info[0] & 0xF0) >> 6;
-			if (pts_dts_flags > 0 ) {
-				audio_pts = parsePsTimestamp((unsigned char*)next_ps_pack + 9);
-                // srs_info("gb28181: ps stream video ts=%u pkt_ts=%u", audio_pts, timestamp);
-                if (pts_dts_flags == 3) {
-                    auto dts = parsePsTimestamp((unsigned char*)next_ps_pack + 14);
-                    logInfo << "get a audio dts: " << dts << endl;
-                }
-         	}
-
 			int packlength = htons(pse_pack->length);
 			int payload_len = packlength - 2 - 1 - pse_pack->stuffingLength;
+
+            if (payload_len <= 0) {
+                return -1;
+            }
 
             // logInfo << "incomplete_len: " << incomplete_len;
             // logInfo << "payload_len: " << payload_len;
@@ -522,42 +540,59 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
                 logInfo << "_remainBuffer size: " << _remainBuffer.size();
                 return -1;
             }
+
+            if (incomplete_len < 19) {
+                return -1;
+            }
+
+		    unsigned char pts_dts_flags = (pse_pack->info[0] & 0xF0) >> 6;
+			if (pts_dts_flags > 0 ) {
+				audio_pts = parsePsTimestamp((unsigned char*)next_ps_pack + 9);
+                // srs_info("gb28181: ps stream video ts=%u pkt_ts=%u", audio_pts, timestamp);
+                if (pts_dts_flags == 3) {
+                    auto dts = parsePsTimestamp((unsigned char*)next_ps_pack + 14);
+                    logInfo << "get a audio dts: " << dts << endl;
+                }
+         	}
+
             next_ps_pack = next_ps_pack + 9 + pse_pack->stuffingLength;
+            if (payload_len > 4) {
 
-            //if ps map is not aac, but stream  many be aac adts , try update type, 
-            //TODO: dahua audio ps map type always is 0x90(g711)
+                //if ps map is not aac, but stream  many be aac adts , try update type, 
+                //TODO: dahua audio ps map type always is 0x90(g711)
 
-            uint8_t p1 = (uint8_t)(next_ps_pack[0]);
-            uint8_t p2 = (uint8_t)(next_ps_pack[1]);
-            uint8_t p3 = (uint8_t)(next_ps_pack[2]);
-            uint8_t p4 = (uint8_t)(next_ps_pack[3]);
+                uint8_t p1 = (uint8_t)(next_ps_pack[0]);
+                uint8_t p2 = (uint8_t)(next_ps_pack[1]);
+                uint8_t p3 = (uint8_t)(next_ps_pack[2]);
+                uint8_t p4 = (uint8_t)(next_ps_pack[3]);
 
-            if (_audio_es_type != STREAM_TYPE_AUDIO_AAC &&
-                (p1 & 0xFF) == 0xFF &&  (p2 & 0xF0) == 0xF0) {
-                
-                //try update aac type
-                // SrsBuffer avs(next_ps_pack, payload_len);
-                char* frame = NULL;
-                int frame_size = 0;
+                if (_audio_es_type != STREAM_TYPE_AUDIO_AAC &&
+                    (p1 & 0xFF) == 0xFF &&  (p2 & 0xF0) == 0xF0) {
+                    
+                    //try update aac type
+                    // SrsBuffer avs(next_ps_pack, payload_len);
+                    char* frame = NULL;
+                    int frame_size = 0;
 
-                if (!parseAacFrame((unsigned char*)next_ps_pack, payload_len)) {
-                    // srs_info("gb28181: client_id %s, audio data not aac adts (%#x/%u) %02x %02x %02x %02x\n", 
-                    //          channel_id.c_str(), ssrc, timestamp, p1, p2, p3, p4);  
-                    // srs_error_reset(err);
-                    logInfo << "parse aac error, it is not a aac" << endl;
-                }else{
-                    // srs_warn("gb28181: client_id %s, ps map is not aac (%s) type, but stream many be aac adts, try update type",
-                    //      channel_id.c_str(), get_ps_map_type_str(audio_es_type).c_str());
-                    logWarn << "audio id is: " << (int)_audio_es_type << ", but it is a aac" << endl;
-                    _audio_es_type = STREAM_TYPE_AUDIO_AAC;
-                    _audioCodec = "aac";
-                    auto trackInfo = make_shared<AacTrack>();
-                    trackInfo->index_ = AudioTrackType;
-                    trackInfo->codec_ = "aac";
-                    trackInfo->trackType_ = "audio";
-                    trackInfo->samplerate_ = 90000;
-                    trackInfo->payloadType_ = 97;
-                    addTrackInfo(trackInfo);
+                    if (!parseAacFrame((unsigned char*)next_ps_pack, payload_len)) {
+                        // srs_info("gb28181: client_id %s, audio data not aac adts (%#x/%u) %02x %02x %02x %02x\n", 
+                        //          channel_id.c_str(), ssrc, timestamp, p1, p2, p3, p4);  
+                        // srs_error_reset(err);
+                        logInfo << "parse aac error, it is not a aac" << endl;
+                    }else{
+                        // srs_warn("gb28181: client_id %s, ps map is not aac (%s) type, but stream many be aac adts, try update type",
+                        //      channel_id.c_str(), get_ps_map_type_str(audio_es_type).c_str());
+                        logWarn << "audio id is: " << (int)_audio_es_type << ", but it is a aac" << endl;
+                        _audio_es_type = STREAM_TYPE_AUDIO_AAC;
+                        _audioCodec = "aac";
+                        auto trackInfo = make_shared<AacTrack>();
+                        trackInfo->index_ = AudioTrackType;
+                        trackInfo->codec_ = "aac";
+                        trackInfo->trackType_ = "audio";
+                        trackInfo->samplerate_ = 90000;
+                        trackInfo->payloadType_ = 97;
+                        addTrackInfo(trackInfo);
+                    }
                 }
             }
          
@@ -657,6 +692,7 @@ FrameBuffer::Ptr PsDemuxer::createFrame(int index)
         } else if (_videoCodec == "h265") {
             frame = make_shared<H265Frame>();
         } else {
+            logWarn << "Unsupported video codec: " << _videoCodec;
             return frame;
         }
 
@@ -670,8 +706,11 @@ FrameBuffer::Ptr PsDemuxer::createFrame(int index)
     return frame;
 }
 
-void PsDemuxer::onDecode(const FrameBuffer::Ptr& frame, int index, int pts, int dts)
+void PsDemuxer::onDecode(const FrameBuffer::Ptr& frame, int index, uint64_t pts, uint64_t dts)
 {
+    if (!frame) {
+        return ;
+    }
     if (_firstAac && _audioCodec == "aac" && frame->getTrackType() == AudioTrackType)
     {
         if (_mapTrackInfo.find(AudioTrackType) != _mapTrackInfo.end()) {
@@ -686,8 +725,8 @@ void PsDemuxer::onDecode(const FrameBuffer::Ptr& frame, int index, int pts, int 
 
     // FrameBuffer::Ptr frame = createFrame(index);
     // frame->_buffer.assign(data.data(), data.size());
-    frame->_pts = pts / 90; // pts * 1000 / 90000,计算为毫秒
-    frame->_dts = dts / 90;
+    frame->_pts = pts > 0 ? pts / 90 : 0; // pts * 1000 / 90000,计算为毫秒
+    frame->_dts = dts > 0 ? dts / 90 : 0;
     frame->_index = index;
     frame->_trackType = index;
     frame->_codec = index == VideoTrackType ? _videoCodec : _audioCodec;
@@ -777,6 +816,10 @@ void PsDemuxer::setOnDecode(const function<void(const FrameBuffer::Ptr& frame)> 
 
 void PsDemuxer::addTrackInfo(const shared_ptr<TrackInfo>& trackInfo)
 {
+    if (!trackInfo) {
+        return ;
+    }
+
     auto it = _mapTrackInfo.find(trackInfo->index_);
     if (it == _mapTrackInfo.end()) {
         _mapTrackInfo[trackInfo->index_] = trackInfo;

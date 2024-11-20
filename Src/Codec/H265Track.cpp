@@ -151,7 +151,7 @@ private:
  
 bool  ParseSequenceParameterSet(uint8* data, int size, vc_params_t& params)
 {
-	if (size < 20)
+	if (!data || size < 20)
 	{
 		return false;
 	}
@@ -265,6 +265,10 @@ bool  ParseSequenceParameterSet(uint8* data, int size, vc_params_t& params)
 
 bool  ParsePps(uint8* data, int size, PpsInfo& pps)
 {
+	if (!data || size <= 0) {
+		return false;
+	}
+
 	NALBitstream bs(data, size);
 	bs.GetUE(); //pps_pic_parameter_set_id
 	bs.GetUE(); //pps_seq_parameter_set_id
@@ -277,6 +281,9 @@ bool  ParsePps(uint8* data, int size, PpsInfo& pps)
 
 static void de_emulation_prevention(unsigned char* buf,unsigned int* buf_size)
 {  
+	if (!buf) {
+		return ;
+	}
     int i=0,j=0;  
     unsigned char* tmp_ptr=NULL;  
     unsigned int tmp_buf_size=0;  
@@ -466,6 +473,9 @@ string H265Track::getConfig()
 
 bool H265Track::isBFrame(uint8* data, int size)
 {
+	if (!data || !_sps || !_pps) {
+		return false;
+	}
 	// de_emulation_prevention(data, (unsigned int *)&size);
 
 	if (!_dependent_slice_segments_enabled_flag && !_num_extra_slice_header_bits) {

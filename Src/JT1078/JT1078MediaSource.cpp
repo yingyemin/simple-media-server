@@ -46,18 +46,22 @@ void JT1078MediaSource::addTrack(const JT1078DecodeTrack::Ptr& track)
         _mapJT1078DecodeTrack.emplace(track->getTrackIndex(), track);
     }
     
-    track->setOnRtpPacket([weakSelf](const JT1078RtpPacket::Ptr& rtp){
+    track->setOnRtpPacket([weakSelf](const JT1078RtpPacket::Ptr& rtp, bool start){
         auto strongSelf = weakSelf.lock();
         if (!strongSelf) {
             return;
+        }
+        if (start) {
+            strongSelf->_start = start;
         }
         // logInfo << "on rtp seq: " << rtp->getSeq();
         strongSelf->_ring->addBytes(rtp->size());
         if (rtp->getHeader()->mark) {
             strongSelf->_cache->emplace_back(std::move(rtp));
             // logInfo << "write cache size: " << strongSelf->_cache->size();
-            strongSelf->_ring->write(strongSelf->_cache);
+            strongSelf->_ring->write(strongSelf->_cache, strongSelf->_start);
             strongSelf->_cache = std::make_shared<list<JT1078RtpPacket::Ptr>>();
+            strongSelf->_start = false;
             if (strongSelf->_probeFinish) {
                 if (strongSelf->_mapSink.empty()) {
                     strongSelf->_ring->delOnWrite(strongSelf.get());

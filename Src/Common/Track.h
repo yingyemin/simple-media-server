@@ -54,7 +54,7 @@ public:
     int _bitrate = 0;
     int _width = 0;
     int _height = 0;
-    int fps_;
+    int fps_ = 0;
     uint8_t _dependent_slice_segments_enabled_flag = 0;
     uint8_t _num_extra_slice_header_bits = 0;
     uint32_t _PicSizeInCtbsY = 0;

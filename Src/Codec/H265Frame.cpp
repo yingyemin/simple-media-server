@@ -12,16 +12,27 @@ using namespace std;
 
 H265Frame::H265Frame(const H265Frame::Ptr& frame)
 {
-    _codec = frame->_codec;
-    _trackType = frame->_trackType;
-    _pts = frame->_pts;
-    _profile = frame->_profile;
-    _index = frame->_index;
-    _dts = frame->_dts;
+    if (frame) {
+        _codec = frame->_codec;
+        _trackType = frame->_trackType;
+        _pts = frame->_pts;
+        _profile = frame->_profile;
+        _index = frame->_index;
+        _dts = frame->_dts;
+    }
 }
 
 void H265Frame::split(const function<void(const FrameBuffer::Ptr& frame)>& cb)
 {
+    if (!cb) {
+        return ;
+    }
+
+    if (size() < 4) {
+        cb(shared_from_this());
+        return ;
+    }
+
     auto ptr = _buffer.data();
     auto prefix = _startSize;
     
@@ -77,6 +88,10 @@ void H265Frame::split(const function<void(const FrameBuffer::Ptr& frame)>& cb)
 
 bool H265Frame::isNewNalu()
 {
+    if (size() < 4) {
+        return false;
+    }
+
     auto nalu = data() + startSize();
     auto bytes = size() - startSize();
 
@@ -84,7 +99,7 @@ bool H265Frame::isNewNalu()
     uint8_t nuh_layer_id;
     
     if(bytes < 3)
-        return 0;
+        return false;
     
     nal_type = (nalu[0] >> 1) & 0x3f;
     nuh_layer_id = ((nalu[0] & 0x01) << 5) | ((nalu[1] >> 3) &0x1F);

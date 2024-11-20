@@ -52,6 +52,7 @@ private:
     bool _muxer;
     bool _probeFinish = false;
     bool _forceReady = false;
+    bool _start = false;
     int _ringSize = 512;
     int _channel;
 

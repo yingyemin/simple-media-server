@@ -23,6 +23,10 @@ TsMediaSource::~TsMediaSource()
 
 void TsMediaSource::addTrack(const TsDemuxer::Ptr& track)
 {
+    if (!track) {
+        return ;
+    }
+
     std::weak_ptr<TsMediaSource> weakSelf = std::static_pointer_cast<TsMediaSource>(shared_from_this());
     if (!_ring) {
         auto lam = [weakSelf](int size) {
@@ -97,22 +101,25 @@ void TsMediaSource::onReady()
 {
     MediaSource::onReady();
     if (_muxer) {
+        if (!_tsEncodeTrack) {
+            return ;
+        }
         std::weak_ptr<TsMediaSource> weakSelf = std::static_pointer_cast<TsMediaSource>(shared_from_this());
         _tsEncodeTrack->setOnTsPacket([weakSelf](const StreamBuffer::Ptr& rtp, int pts, int dts, bool keyframe){
             // logInfo << "mux a ps packet";
             auto strongSelf = weakSelf.lock();
-            if (!strongSelf) {
+            if (!strongSelf || !strongSelf->_ring) {
                 return;
             }
-            if (true) {
+            // if (true) {
                 // logInfo << "mux a ps packet mark";
                 strongSelf->_cache->emplace_back(std::move(rtp));
                 strongSelf->_ring->write(strongSelf->_cache);
                 strongSelf->_cache = std::make_shared<list<StreamBuffer::Ptr>>();
-            } else {
-                logInfo << "mux a ps packet no mark";
-                strongSelf->_cache->emplace_back(std::move(rtp));
-            }
+            // } else {
+            //     logInfo << "mux a ps packet no mark";
+            //     strongSelf->_cache->emplace_back(std::move(rtp));
+            // }
         });
         // if (_mapSink.size() > 0)
             startEncode();
@@ -128,6 +135,9 @@ void TsMediaSource::onReady()
 void TsMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
 {
     logTrace << "TsMediaSource::addTrack";
+    if (!track) {
+        return ;
+    }
     MediaSource::addTrack(track);
     
     std::weak_ptr<TsMediaSource> weakSelf = std::static_pointer_cast<TsMediaSource>(shared_from_this());
@@ -179,6 +189,9 @@ void TsMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
 void TsMediaSource::addDecodeTrack(const shared_ptr<TrackInfo>& track)
 {
     logInfo << "addDecodeTrack ========= ";
+    if (!track) {
+        return ;
+    }
     MediaSource::addTrack(track);
 
     for (auto& wSink : _mapSink) {
@@ -193,6 +206,10 @@ void TsMediaSource::addDecodeTrack(const shared_ptr<TrackInfo>& track)
 
 void TsMediaSource::addSink(const MediaSource::Ptr &src)
 {
+    if (!src) {
+        return ;
+    }
+
     MediaSource::addSink(src);
     for (auto& trackInfo : _mapTrackInfo) {
         src->addTrack(trackInfo.second);
@@ -201,7 +218,7 @@ void TsMediaSource::addSink(const MediaSource::Ptr &src)
         src->onReady();
     }
     if (_mapSink.size() == 1 && _status == SourceStatus::AVAILABLE) {
-        lock_guard<mutex> lck(_mtxTrack);
+        // lock_guard<mutex> lck(_mtxTrack);
         startDecode();
         // _ring->addOnWrite(this, [this](RingDataType in, bool is_key){
         //     auto rtpList = *(in.get());
@@ -216,7 +233,11 @@ void TsMediaSource::addSink(const MediaSource::Ptr &src)
 void TsMediaSource::delSink(const MediaSource::Ptr &src)
 {
     logInfo << "TsMediaSource::delSink";
-    if (!_loop->isCurrent()) {
+    if (!src) {
+        return ;
+    }
+
+    if (_loop && !_loop->isCurrent()) {
         weak_ptr<TsMediaSource> wSlef = static_pointer_cast<TsMediaSource>(shared_from_this());
         _loop->async([wSlef, src](){
             auto self = wSlef.lock();
@@ -237,6 +258,9 @@ void TsMediaSource::delSink(const MediaSource::Ptr &src)
 
 void TsMediaSource::onFrame(const FrameBuffer::Ptr& frame)
 {
+    if (!frame) {
+        return ;
+    }
     logInfo << "on get a frame: index : " << frame->getTrackIndex();
     // auto it = _mapGB28181EncodeTrack.find(frame->getTrackIndex());
     if (!_tsEncodeTrack) {
@@ -254,10 +278,14 @@ void TsMediaSource::stopDecode()
 
 void TsMediaSource::startDecode()
 {
-    _decodeFlag = true;
-    _mapTsDecodeTrack[0]->clear();
-
     logInfo << "TsMediaSource::startDecode(): " << this;
+    _decodeFlag = true;
+    // _mapTsDecodeTrack[0]->clear();
+    lock_guard<mutex> lck(_mtxTrack);
+    for (auto &it : _mapTsDecodeTrack) {
+        it.second->clear();
+    }
+
     // auto track = make_shared<PsDemuxer>();
     // track->setOnDecode([weakSelf](const FrameBuffer::Ptr& frame){
     //     auto strongSelf = weakSelf.lock();
@@ -282,17 +310,22 @@ void TsMediaSource::startDecode()
 void TsMediaSource::stopEncode()
 {
     _encodeFlag = false;
-    _tsEncodeTrack->stopEncode();
+    if (_tsEncodeTrack)
+        _tsEncodeTrack->stopEncode();
 }
 
 void TsMediaSource::startEncode()
 {
     _encodeFlag = true;
-    _tsEncodeTrack->startEncode();
+    if (_tsEncodeTrack)
+        _tsEncodeTrack->startEncode();
 }
 
 void TsMediaSource::inputTs(const StreamBuffer::Ptr& buffer)
 {
+    if (!_ring || !buffer) {
+        return ;
+    }
     _ring->addBytes(buffer->size());
     
     logInfo << "TsMediaSource::inputTs: " << this << ", " << _decodeFlag;
@@ -304,8 +337,11 @@ void TsMediaSource::inputTs(const StreamBuffer::Ptr& buffer)
     if (_decodeFlag) {
         logInfo << "demuxer->onTsPacket";
         lock_guard<mutex> lck(_mtxTrack);
-        auto demuxer = _mapTsDecodeTrack[0];
-        demuxer->onTsPacket(buffer->data(), buffer->size(), 0);
+        // auto demuxer = _mapTsDecodeTrack[0];
+        // demuxer->onTsPacket(buffer->data(), buffer->size(), 0);
+        for (auto &track : _mapTsDecodeTrack) {
+            track.second->onTsPacket(buffer->data(), buffer->size(), 0);
+        }
     }
 }
 
@@ -320,6 +356,10 @@ int TsMediaSource::playerCount()
 
 void TsMediaSource::getClientList(const function<void(const list<ClientInfo>& info)>& func)
 {
+    if (!_ring) {
+        return ;
+    }
+    
     list<ClientInfo> clientInfo;
     _ring->getInfoList([func](list<ClientInfo> &infoList){
         func(infoList);

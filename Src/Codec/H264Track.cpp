@@ -38,7 +38,7 @@ string H264Track::getSdp()
        << "a=rtpmap:" << payloadType_ << " H264/" << samplerate_ << "\r\n"
        << "a=fmtp:" << payloadType_ << " packetization-mode=1";
 
-    if (_sps && _pps) {
+    if (_sps && _pps && _sps->size() > _sps->startSize() && _pps->size() > _pps->startSize()) {
         char strTemp[100];
         uint32_t profile_level_id = 0;
         int length = _sps->size() - _sps->startSize();
@@ -78,6 +78,10 @@ void H264Track::getWidthAndHeight(int& width, int& height, int& fps)
     }
     auto sps = _sps->data() + _sps->startSize();
     auto size = _sps->size() - _sps->startSize();
+    if (size <= 0) {
+        return ;
+    }
+    
     auto spsBuffer = new char[size];
     memcpy(spsBuffer, sps, size);
     h264_decode_sps((unsigned char*)spsBuffer, size, _width, _height, fps_);
@@ -103,6 +107,10 @@ string H264Track::getConfig()
     int spsLen = _sps->size() - spsSize;
     auto ppsBuffer = _pps->_buffer;
     int ppsLen = _pps->size() - ppsSize;
+
+    if (spsLen <= 0 || ppsLen <= 0 || spsBuffer.size() < spsSize + 3) {
+        return "";
+    }
 
     config.resize(11 + spsLen + ppsLen);
     auto data = (char*)config.data();

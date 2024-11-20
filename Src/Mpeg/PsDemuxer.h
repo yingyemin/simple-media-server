@@ -54,11 +54,11 @@ public:
     }__attribute__((packed));
 
 public:
-    int64_t  parsePsTimestamp(const uint8_t* p);
+    uint64_t  parsePsTimestamp(const uint8_t* p);
     virtual int onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32_t ssrc);
 
     void setOnDecode(const function<void(const FrameBuffer::Ptr& frame)> cb);
-    void onDecode(const FrameBuffer::Ptr& data, int index, int pts, int dts);
+    void onDecode(const FrameBuffer::Ptr& data, int index, uint64_t pts, uint64_t dts);
     void addTrackInfo(const shared_ptr<TrackInfo>& trackInfo);
     void setOnTrackInfo(const function<void(const shared_ptr<TrackInfo>& trackInfo)>& cb);
     void setOnReady(const function<void()>& cb);
@@ -82,7 +82,7 @@ private:
     uint8_t _waitPackets = 0;
     uint8_t _audio_es_type = 0;
     uint8_t _video_es_type = 0;
-    int64_t _lastVideoPts = -1;
+    uint64_t _lastVideoPts = -1;
     string _audioCodec = "unknown";
     string _videoCodec = "unknown";
     TimeClock _timeClock;

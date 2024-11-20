@@ -22,7 +22,7 @@ PsMuxer::~PsMuxer()
 
 void PsMuxer::onFrame(const FrameBuffer::Ptr& frame)
 {
-    if (!_startEncode) {
+    if (!_startEncode || !frame) {
         return ;
     }
 
@@ -64,6 +64,10 @@ void PsMuxer::stopEncode()
 
 void PsMuxer::addTrackInfo(const shared_ptr<TrackInfo>& trackInfo)
 {
+    if (!trackInfo) {
+        return ;
+    }
+
     _mapTrackInfo[trackInfo->index_] = trackInfo;
     if (trackInfo->trackType_ == "video") {
         _mapStampAdjust[trackInfo->index_] = make_shared<VideoStampAdjust>(25);
@@ -122,12 +126,17 @@ int PsMuxer::encode(const FrameBuffer::Ptr& frame)
     auto pBuff = frame->data();
     int nFrameLen = frame->size();
     int nSize = 0;
+
+    int trackIndex = frame->getTrackIndex();
+    if (_mapStreamId.find(trackIndex) == _mapStreamId.end()) {
+        return -1;
+    }
+    auto streamId = _mapStreamId[frame->getTrackIndex()];
     while (nFrameLen > 0)
     {
         //每次帧的长度不要超过short类型，过了就得分片进循环行发送
         nSize = (nFrameLen > PS_PES_PAYLOAD_SIZE) ? PS_PES_PAYLOAD_SIZE : nFrameLen;
         // 添加pes头
-        auto streamId = _mapStreamId[frame->getTrackIndex()];
         nSizePos += makePesHeader(streamId, nSize, frame->pts(), frame->dts(), nSizePos);
 
         _psFrame->_buffer.append(pBuff, nSize);

@@ -88,6 +88,7 @@ public:
     uint16_t getSeq();
     int getLogicNo() {return _header->logicChannelNumber;}
     JT1078RtpHeader* getHeader() {return _header;}
+    bool isStartGop();
 
 public:
     // 音视频类型

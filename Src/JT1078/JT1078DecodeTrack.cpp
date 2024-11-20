@@ -81,7 +81,7 @@ void JT1078DecodeTrack::onRtpPacket(const JT1078RtpPacket::Ptr& rtp)
     }
 
     if (_onRtpPacket) {
-        _onRtpPacket(rtp);
+        _onRtpPacket(rtp, rtp->isStartGop());
     }
 }
 

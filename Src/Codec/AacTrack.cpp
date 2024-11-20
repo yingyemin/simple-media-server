@@ -117,6 +117,10 @@ public:
 
 FrameBuffer::Ptr AacADTSHeader::toFrame()
 {
+	if (aac_frame_length == 0) {
+		return nullptr;
+	}
+
 	auto frame = make_shared<FrameBuffer>();
 	frame->_startSize = 7;
 	frame->_buffer.resize(7);
@@ -156,6 +160,10 @@ FrameBuffer::Ptr AacADTSHeader::toFrame()
 string adtsToConfig(const char* data, int &samplerate, int& channel)
 {
 	// auto data = frame->data();
+	if (!data) {
+		return "";
+	}
+
 	if (!((uint8_t)data[0] == 0xFF && ((uint8_t)data[1] & 0xF0) == 0xF0)) {
         return "";
     }
@@ -184,6 +192,12 @@ string adtsToConfig(const char* data, int &samplerate, int& channel)
 
 AacADTSHeader configToAdts(const string& config, int length/*aac frame length*/)
 {
+	AacADTSHeader adts;
+	if (config.size() < 2) {
+		logError << "invalid aac config:" << config;
+		return adts;
+	}
+
 	uint8_t cfg1 = config[0];
     uint8_t cfg2 = config[1];
 
@@ -195,8 +209,6 @@ AacADTSHeader configToAdts(const string& config, int length/*aac frame length*/)
     sampling_frequency_index = ((cfg1 & 0x07) << 1) | (cfg2 >> 7);
     channel_configuration = (cfg2 & 0x7F) >> 3;
 
-	AacADTSHeader adts;
-
     adts.profile = audioObjectType - 1;
     adts.sampling_frequency_index = sampling_frequency_index;
     adts.channel_configuration = channel_configuration;
@@ -207,6 +219,11 @@ AacADTSHeader configToAdts(const string& config, int length/*aac frame length*/)
 
 void getSampleFromConfig(const string& config, int& samplerate, int& channel)
 {
+	if (config.size() < 2) {
+		logError << "invalid aac config:" << config;
+		return ;
+	}
+
 	uint8_t cfg1 = config[0];
     uint8_t cfg2 = config[1];
 
@@ -286,6 +303,9 @@ void AacTrack::setAacInfo(int profile, int channel, int sampleRate)
 
 void AacTrack::setAacInfoByAdts(const char* data, int len)
 {
+	if (len < 7) {
+		return ;
+	}
 	_aacConfig = adtsToConfig(data, samplerate_, channel_);
 	// getSampleFromConfig(_aacConfig, samplerate_, channel_);
 }
@@ -299,5 +319,9 @@ string AacTrack::getAdtsHeader(int frameSize)
 	
 	auto adts = configToAdts(_aacConfig, frameSize + 7);
 	auto frame = adts.toFrame();
+	if (!frame) {
+		return "";
+	}
+
 	return string(frame->data(), frame->size());
 }

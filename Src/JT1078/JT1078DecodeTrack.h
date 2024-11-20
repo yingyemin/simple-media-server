@@ -21,7 +21,7 @@ public:
     void stopDecode();
     
     void setOnReady(const function<void()>& cb) {_onReady = cb;}
-    void setOnRtpPacket(const function<void(const JT1078RtpPacket::Ptr& rtp)>& cb) {_onRtpPacket = cb;}
+    void setOnRtpPacket(const function<void(const JT1078RtpPacket::Ptr& rtp, bool isStartGop)>& cb) {_onRtpPacket = cb;}
     void setOnFrame(const function<void(const FrameBuffer::Ptr& frame)>& cb) {_onFrame = cb;}
     void onFrame(const FrameBuffer::Ptr& frame);
 
@@ -48,7 +48,7 @@ private:
     shared_ptr<TrackInfo> _trackInfo;
     function<void()> _onReady;
     function<void(const FrameBuffer::Ptr& frame)> _onFrame;
-    function<void(const JT1078RtpPacket::Ptr& rtp)> _onRtpPacket;
+    function<void(const JT1078RtpPacket::Ptr& rtp, bool isStartGop)> _onRtpPacket;
     function<void(const shared_ptr<TrackInfo>& trackInfo)> _onTrackInfo;
 };
 

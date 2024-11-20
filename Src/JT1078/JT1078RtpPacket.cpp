@@ -7,6 +7,8 @@
 #include "JT1078RtpPacket.h"
 #include "Logger.h"
 #include "Util/String.h"
+#include "Codec/H264Frame.h"
+#include "Codec/H265Frame.h"
 
 using namespace std;
 
@@ -172,4 +174,30 @@ uint64_t JT1078RtpPacket::getTimestamp()
     }
 
     return 0;
+}
+
+bool JT1078RtpPacket::isStartGop()
+{
+    string codec = getCodecType();
+    if (codec == "h264" || codec == "h265") {
+        auto payload = getPayload();
+        auto payloadSize = getPayloadSize();
+        if (payloadSize < 5) {
+            return false;
+        }
+
+        if (payload[0] == 0x00 && payload[1] == 0x00 && payload[2] == 0x00 && payload[3] == 0x01) {
+            if (codec == "h264") {
+                if (H264Frame::getNalType(payload[4]) == H264NalType::H264_SPS) {
+                    return true;
+                }
+            } else {
+                if (H265Frame::getNalType(payload[4]) == H265NalType::H265_VPS) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
 }

@@ -47,8 +47,12 @@ static uint32_t crc32table[256] = {
 };
 
 uint32_t mpegCrc32(const uint8_t *buffer, uint32_t size)
-{  
-	unsigned int i;
+{
+	if (buffer == nullptr || size == 0) {
+		return 0xffffffff;
+	}
+	
+	uint32_t i;
     uint32_t crc = 0xffffffff;
 
 	for (i = 0; i < size; i++) {

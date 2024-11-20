@@ -113,7 +113,7 @@ typedef struct
 /* remark:接口函数定义 */
 int bits_initwrite(bits_buffer_s *p_buffer, int i_size, unsigned char *p_data)
 {
-	if (!p_data)
+	if (!p_data || !p_buffer)
 	{
 		return -1;
 	}
@@ -127,7 +127,7 @@ int bits_initwrite(bits_buffer_s *p_buffer, int i_size, unsigned char *p_data)
  
 void bits_align(bits_buffer_s *p_buffer)
 {
-	if (p_buffer->i_mask != 0x80 && p_buffer->i_data < p_buffer->i_size)
+	if (p_buffer && p_buffer->i_mask != 0x80 && p_buffer->i_data < p_buffer->i_size)
 	{
 		p_buffer->i_mask = 0x80;
 		p_buffer->i_data++;
@@ -147,7 +147,7 @@ TsMuxer::~TsMuxer()
 
 void TsMuxer::onFrame(const FrameBuffer::Ptr& frame)
 {
-    if (!_startEncode) {
+    if (!_startEncode || !frame) {
         return ;
     }
     encode(frame);
@@ -168,6 +168,9 @@ void TsMuxer::stopEncode()
 
 void TsMuxer::addTrackInfo(const shared_ptr<TrackInfo>& trackInfo)
 {
+	if (!trackInfo) {
+		return ;
+	}
     _mapTrackInfo[trackInfo->index_] = trackInfo;
     if (trackInfo->trackType_ == "video") {
         _mapStreamId[trackInfo->index_] = _lastVideoId++;
@@ -190,7 +193,7 @@ void TsMuxer::addTrackInfo(const shared_ptr<TrackInfo>& trackInfo)
 
 void TsMuxer::onTsPacket(const StreamBuffer::Ptr& frame, int pts, int dts, bool keyframe)
 {
-	if (_onTsPacket) {
+	if (_onTsPacket && frame) {
 		_onTsPacket(frame, pts, dts, keyframe);
 	}
 }
@@ -206,6 +209,9 @@ void TsMuxer::onTsPacket(const StreamBuffer::Ptr& frame, int pts, int dts, bool 
  
 int TsMuxer::encode(const FrameBuffer::Ptr& frame)
 {
+	if (!frame) {
+		return -1;
+	}
     auto tsPacket = make_shared<StreamBuffer>();
     tsPacket->setCapacity(188 + 1);
 
@@ -224,8 +230,7 @@ int TsMuxer::encode(const FrameBuffer::Ptr& frame)
     if (_first || (frame->getTrackType() == VideoTrackType && (frame->keyFrame() || frame->metaFrame()))) {
 		_first = false;
 		
-        if((nRet = mk_ts_pat_packet(tsPacket->data() +nSendDataOff, 
-						0)) <= 0)	
+        if((nRet = mk_ts_pat_packet(tsPacket->data() +nSendDataOff, 0)) <= 0)	
 		{
             logInfo << "mk_ts_pat_packet failed!";
 			return -1;
@@ -235,8 +240,7 @@ int TsMuxer::encode(const FrameBuffer::Ptr& frame)
 		// nSendDataOff += nRet;
 		tsPacket = make_shared<StreamBuffer>();
     	tsPacket->setCapacity(188 + 1);
-		if((nRet = mk_ts_pmt_packet(tsPacket->data() + nSendDataOff, 
-						0)) <= 0)	
+		if((nRet = mk_ts_pmt_packet(tsPacket->data() + nSendDataOff, 0)) <= 0)	
 		{
             logInfo << "mk_ts_pmt_packet failed!";
 			return -1;
@@ -252,6 +256,9 @@ int TsMuxer::encode(const FrameBuffer::Ptr& frame)
 
 int TsMuxer::make_pes_packet(const FrameBuffer::Ptr& frame)
 {
+	if (!frame) {
+		return -1;
+	}
 	bits_buffer_s bits;
 	auto tsPacket = make_shared<StreamBuffer>();
     tsPacket->setCapacity(TS_LOAD_LEN + 1);
@@ -761,6 +768,10 @@ int TsMuxer::mk_ts_pmt_packet(char *buf, int handle)
  */
 int TsMuxer::mk_pes_packet(char *buf, int bVideo, int length, int bDtsEn, unsigned long long pts, unsigned long long dts)
 {
+	if (!buf) {
+		return 0;
+	}
+	
 	pts *= 90;
     dts *= 90;
 

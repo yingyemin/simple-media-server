@@ -268,7 +268,7 @@ public:
 
 void TsMessage::append(int8_t *p, int32_t size)
 {
-    if (size <= 0)
+    if (!p || size <= 0)
     {
         return;
     }
@@ -334,6 +334,10 @@ shared_ptr<TsMessage> TsDemuxer::message(TSPidTable table)
 
 void TsDemuxer::pushConsumerMessage(shared_ptr<TsMessage> msg)
 {
+    if (!msg) {
+        return ;
+    }
+
     int index = msg->is_video() ? VideoTrackType : AudioTrackType;
     onDecode((char*)msg->packet_data_.data(), msg->packet_data_.size(), index, msg->pts_, msg->dts_);
 
@@ -356,6 +360,9 @@ TsPacket::~TsPacket()
 
 void TsPacket::demux(TsDemuxer *ctx, const StreamBuffer::Ptr& buffer)
 {
+    if (!ctx || !buffer) {
+        return ;
+    }
     // logInfo << "demux ts header";
     header_->demux(buffer);
     if (header_->adaptation_field_control_ == TsAdaptationType::TsAdaptationTypeAdaptationOnly || header_->adaptation_field_control_ == TsAdaptationType::TsAdaptationTypeBoth)
@@ -411,7 +418,7 @@ TsPayload::~TsPayload()
 
 void TsPayload::read_point_field(TsPacket *pkt, const StreamBuffer::Ptr& buffer)
 {
-    if (buffer->size() < 1) {
+    if (buffer->size() < 1 || !pkt) {
         return ;
     }
 
@@ -424,6 +431,10 @@ void TsPayload::read_point_field(TsPacket *pkt, const StreamBuffer::Ptr& buffer)
 
 void TsPayload::demux(TsDemuxer *ctx, TsPacket *pkt, const StreamBuffer::Ptr& buffer)
 {
+    if (!ctx || !pkt || !buffer) {
+        return ;
+    }
+
     // logInfo << "ts pid: " << (int) (pkt->header_->pid_);
     if (pkt->header_->pid_ == TSPidTablePAT)
     {
@@ -452,6 +463,9 @@ void TsPayload::demux(TsDemuxer *ctx, TsPacket *pkt, const StreamBuffer::Ptr& bu
     {
         // logInfo << "demux media data";
         auto msg = ctx->message(info->pid_);
+        if (!msg) {
+            return ;
+        }
 
         if (!pkt->header_->payload_unit_start_indicator_)
         {
@@ -483,6 +497,10 @@ void TsPayload::demux(TsDemuxer *ctx, TsPacket *pkt, const StreamBuffer::Ptr& bu
 
 int TsPayloadPES::demux(TsDemuxer *ctx, TsPacket *pkt, const StreamBuffer::Ptr& buffer)
 {
+    if (!ctx || !pkt || !buffer) {
+        return -1;
+    }
+
     if (buffer->size() < 6) {
         return -1;
     }
@@ -754,6 +772,9 @@ int TsPayloadPES::demux(TsDemuxer *ctx, TsPacket *pkt, const StreamBuffer::Ptr& 
 
 void TsPayloadPAT::demux(TsDemuxer *ctx, const StreamBuffer::Ptr& buffer)
 {
+    if (!ctx || !buffer) {
+        return ;
+    }
     auto payload = buffer->data();
     if (buffer->size() < 8) {
         return ;
@@ -799,6 +820,9 @@ void TsPayloadPAT::demux(TsDemuxer *ctx, const StreamBuffer::Ptr& buffer)
 
 void TsPayloadPMT::demux(TsDemuxer *ctx, TsPacket *pkt, const StreamBuffer::Ptr& buffer)
 {
+    if (!ctx || !buffer || !pkt) {
+        return ;
+    }
     auto payload = buffer->data();
 
     if (buffer->size() < 12) {
@@ -892,6 +916,9 @@ void TsPayloadPMT::demux(TsDemuxer *ctx, TsPacket *pkt, const StreamBuffer::Ptr&
 
 void TsAdaptationField::demux(const StreamBuffer::Ptr& buffer)
 {
+    if (!buffer) {
+        return ;
+    }
     auto payload = buffer->data();
 
     if (buffer->size() < 1) {
@@ -1048,6 +1075,9 @@ void TsDemuxer::onDecode(const char* data, int len, int index, int pts, int dts)
 {
     if (_firstAac && _audioCodec == "aac" && index == AudioTrackType)
     {
+        if (len <= 7) {
+            return;
+        }
         if (_mapTrackInfo.find(AudioTrackType) != _mapTrackInfo.end()) {
             auto aacTrack = dynamic_pointer_cast<AacTrack>(_mapTrackInfo[AudioTrackType]);
             aacTrack->setAacInfoByAdts(data, 7);
@@ -1069,6 +1099,9 @@ void TsDemuxer::onDecode(const char* data, int len, int index, int pts, int dts)
         frame = make_shared<FrameBuffer>();
         frame->_startSize = 7;
     } else if (index == VideoTrackType && (_videoCodec == "h264" || _videoCodec == "h265")) {
+        if (len <= 4) {
+            return ;
+        }
         if (_videoCodec == "h264") {
             frame = make_shared<H264Frame>();
         } else {

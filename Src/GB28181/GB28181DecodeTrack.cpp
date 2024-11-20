@@ -16,7 +16,6 @@
 
 using namespace std;
 
-
 GB28181DecodeTrack::GB28181DecodeTrack(int trackIndex)
     :_index(trackIndex)
 {
@@ -97,9 +96,9 @@ void GB28181DecodeTrack::onRtpPacket(const RtpPacket::Ptr& rtp)
         _onRtpPacket(rtp);
     }
     // logInfo << "encode a rtp packet" << rtp->getSeq();
-    _ssrc = rtp->getSSRC();
-    _seq = rtp->getSeq();
-    _timestap = rtp->getStamp();
+    // _ssrc = rtp->getSSRC();
+    // _seq = rtp->getSeq();
+    // _timestap = rtp->getStamp();
 }
 
 void GB28181DecodeTrack::decodeRtp(const RtpPacket::Ptr& rtp)

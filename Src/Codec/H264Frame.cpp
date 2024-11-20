@@ -14,23 +14,29 @@ using namespace std;
 
 H264Frame::H264Frame(const H264Frame::Ptr& frame)
 {
-    _codec = frame->_codec;
-    _trackType = frame->_trackType;
-    _pts = frame->_pts;
-    _profile = frame->_profile;
-    _index = frame->_index;
-    _dts = frame->_dts;
+    if (frame) {
+        _codec = frame->_codec;
+        _trackType = frame->_trackType;
+        _pts = frame->_pts;
+        _profile = frame->_profile;
+        _index = frame->_index;
+        _dts = frame->_dts;
+    }
 }
 
 bool H264Frame::isBFrame()
 {
-    auto data = _buffer.data() + 5;
-    auto len = _buffer.size() - 5;
+    if (_buffer.size() <= 5) {
+        return false;
+    }
 
     auto nalType = getNalType();
     if (nalType != H264_BP && nalType != H264_IDR && nalType != H264_DataPartitionA) {
         return false;
     }
+    
+    auto data = _buffer.data() + 5;
+    auto len = _buffer.size() - 5;
 
     uint32_t startBit = 0;
     auto first_mb_in_slice = Ue((unsigned char*)data, len, startBit);
@@ -46,13 +52,17 @@ bool H264Frame::isBFrame()
 }
 
 bool H264Frame::isNewNalu()
-{  
+{ 
+    if (size() < 4) {
+        return false;
+    }
+
     auto nalu = data() + startSize();
     auto bytes = size() - startSize();
     uint8_t nal_type;
     
     if(bytes < 2)
-        return 0;
+        return false;
     
     nal_type = nalu[0] & 0x1f;
     
@@ -74,6 +84,15 @@ bool H264Frame::isNewNalu()
 
 void H264Frame::split(const function<void(const FrameBuffer::Ptr& frame)>& cb)
 {
+    if (!cb) {
+        return ;
+    }
+
+    if (size() < 4) {
+        cb(shared_from_this());
+        return ;
+    }
+
     auto ptr = _buffer.data();
     auto prefix = _startSize;
     
