@@ -53,9 +53,11 @@ private:
 	StreamBuffer::Ptr _aacSequenceHeader;
 	uint32_t _avcSequenceSeaderSize = 0;
 	uint32_t _aacSequenceHeaderSize = 0;
+    uint64_t _lastMuteId = 0;
 	bool _hasKeyFrame = false;
 	bool _hasFlvHeader = false;
 	bool _isPlaying = false;
+	bool _addMute = false;
 
 	UrlParser _urlParser;
 	RtmpMediaSource::Wptr _source;

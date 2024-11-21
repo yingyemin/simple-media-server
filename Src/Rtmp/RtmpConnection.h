@@ -62,9 +62,11 @@ private:
     bool _isPlay = false;
     bool _validVideoTrack = true;
     bool _validAudioTrack = true;
+    bool _addMute = false;
     uint32_t _streamId = 0;
     uint64_t _totalSendBytes = 0;
     uint64_t _intervalSendBytes = 0;
+    uint64_t _lastMuteId = 0;
     float _lastBitrate = 0;
     int _avcHeaderSize = 0;
     StreamBuffer::Ptr _avcHeader;

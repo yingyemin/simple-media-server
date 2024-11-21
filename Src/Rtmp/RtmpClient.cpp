@@ -78,6 +78,9 @@ void RtmpClient::init()
 
 void RtmpClient::start(const string& localIp, int localPort, const string& url, int timeout)
 {
+    if (localIp.empty() || url.empty()) {
+        return ;
+    }
     _url = url;
     _peerUrlParser.parse(url);
 
@@ -152,6 +155,9 @@ void RtmpClient::pause()
 void RtmpClient::onConnect()
 {
     _socket = TcpClient::getSocket();
+    if (!_socket) {
+        return ;
+    }
     _loop = _socket->getLoop();
     _chunk.setSocket(_socket);
     sendC0C1();
@@ -160,7 +166,10 @@ void RtmpClient::onConnect()
 
 void RtmpClient::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)
 {
-    logInfo << "get buffer size: " << buffer->size();
+    // logInfo << "get buffer size: " << buffer->size();
+    if (!_handshake) {
+        return ;
+    }
     if (_handshake->isCompleted()) {
         // logInfo << "parser chunk";
         _chunk.parse(buffer);
@@ -469,6 +478,9 @@ bool RtmpClient::handlePlay()
     }
 
     auto rtmpSrc = dynamic_pointer_cast<RtmpMediaSource>(source);
+    if (!rtmpSrc) {
+        return false;
+    }
     // rtmpSrc->setSdp(_parser._content);
     rtmpSrc->setOrigin();
     // weak_ptr<RtmpConnection> wSelf = dynamic_pointer_cast<RtmpConnection>(shared_from_this());
@@ -574,7 +586,13 @@ bool RtmpClient::handleVideo(RtmpMessage& rtmp_msg)
 
 void RtmpClient::onPublish(const MediaSource::Ptr &src)
 {
+    if (!src) {
+        return ;
+    }
     auto rtmpSrc = dynamic_pointer_cast<RtmpMediaSource>(src);
+    if (!rtmpSrc) {
+        return ;
+    }
 
     _source = rtmpSrc;
     logInfo << "Resetting and playing stream";
@@ -723,7 +741,7 @@ bool RtmpClient::handleAudio(RtmpMessage& rtmp_msg)
         close();
         return false;
     }
-	uint8_t type = RTMP_AUDIO;
+	// uint8_t type = RTMP_AUDIO;
 	uint8_t *payload = (uint8_t *)rtmp_msg.payload->data();
 	uint32_t length = rtmp_msg.length;
 	uint8_t sound_format = (payload[0] >> 4) & 0x0f;
@@ -756,7 +774,7 @@ bool RtmpClient::handleAudio(RtmpMessage& rtmp_msg)
         _aacHeader = make_shared<StreamBuffer>(length + 1);
         memcpy(_aacHeader->data(), msg->payload->data(), msg->length);
         // session->SetAacSequenceHeader(aac_sequence_header_, aac_sequence_header_size_);
-        type = RTMP_AAC_SEQUENCE_HEADER;
+        // type = RTMP_AAC_SEQUENCE_HEADER;
         rtmpSrc->setAacHeader(_aacHeader, _aacHeaderSize);
         _rtmpAudioDecodeTrack->setConfigFrame(msg);
         rtmpSrc->onReady();

@@ -22,6 +22,11 @@ RtmpServer::Ptr& RtmpServer::instance()
 
 void RtmpServer::start(const string& ip, int port, int count)
 {
+    if (ip.empty()) {
+        logWarn << "RtmpServer::start ip is empty";
+        return ;
+    }
+
     RtmpServer::Wptr wSelf = shared_from_this();
     EventLoopPool::instance()->for_each_loop([ip, port, wSelf](const EventLoop::Ptr& loop){
         auto self = wSelf.lock();
@@ -43,6 +48,10 @@ void RtmpServer::stopByPort(int port, int count)
 
 void RtmpServer::for_each_server(const function<void(const TcpServer::Ptr &)> &cb)
 {
+    if (!cb) {
+        return ;
+    }
+    
     lock_guard<mutex> lck(_mtx);
     for (auto& iter : _tcpServers) {
         for (auto& server : iter.second) {

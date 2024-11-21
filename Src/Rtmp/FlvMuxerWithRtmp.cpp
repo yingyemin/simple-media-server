@@ -6,6 +6,9 @@
 #include "Common/Define.h"
 #include "Util/String.h"
 #include "Hook/MediaHook.h"
+#include "Codec/AacFrame.h"
+#include "Codec/AacTrack.h"
+#include "Common/Config.h"
 
 FlvMuxerWithRtmp::FlvMuxerWithRtmp(const UrlParser& urlParser, const EventLoop::Ptr& loop)
 	:_loop(loop)
@@ -71,6 +74,18 @@ void FlvMuxerWithRtmp::onPlay()
 		sendFlvTag(RTMP_AUDIO, 0, rtmpSrc->_aacHeader, rtmpSrc->_aacHeaderSize);
 	}
 
+	static bool enbaleAddMute = Config::instance()->getAndListen([](const json &config){
+        enbaleAddMute = Config::instance()->get("Rtmp", "Server", "Server1", "enableAddMute");
+    }, "Rtmp", "Server", "Server1", "enableAddMute");
+    auto tracks = rtmpSrc->getTrackInfo();
+
+    if (enbaleAddMute && tracks.size() == 1 && tracks.begin()->second->trackType_ == "video") {
+        _addMute = true;
+        logInfo << "send a aac header";
+		auto payload = AacTrack::getMuteConfig();
+		sendFlvTag(RTMP_AUDIO, 0, payload, payload->size());
+    }
+
 	if (!_playReader) {
 		logInfo << "set _playReader";
 		_playReader = rtmpSrc->getRing()->attach(EventLoop::getCurrentLoop(), true);
@@ -102,8 +117,8 @@ void FlvMuxerWithRtmp::onPlay()
 			// logInfo << "send rtmp msg";
 			auto pktList = *(pack.get());
 			for (auto& pkt : pktList) {
-				uint8_t frame_type = (pkt->payload->data()[0] >> 4) & 0x0f;
-				uint8_t codec_id = pkt->payload->data()[0] & 0x0f;
+				// uint8_t frame_type = (pkt->payload->data()[0] >> 4) & 0x0f;
+				// uint8_t codec_id = pkt->payload->data()[0] & 0x0f;
 
 				// FILE* fp = fopen("testflv.rtmp", "ab+");
 				// fwrite(pkt->payload.get(), pkt->length, 1, fp);
@@ -112,6 +127,17 @@ void FlvMuxerWithRtmp::onPlay()
 				// logInfo << "frame_type : " << (int)frame_type << ", codec_id: " << (int)codec_id
 				// 		<< "pkt->payload.get()[0]: " << (int)(pkt->payload.get()[0]);
 				self->sendMediaData(pkt->type_id, pkt->abs_timestamp, pkt->payload, pkt->length);
+
+				if (self->_addMute) {
+                    // aac 一帧1024字节，采样率8000。一帧的时长，单位ms
+                    static int scale = (1024 * 1000 / 8000);
+                    int curMuteId = pkt->abs_timestamp / scale;
+                    if (self->_lastMuteId != curMuteId) {
+                        self->_lastMuteId = curMuteId;
+                        auto buffer = AacFrame::getMuteForFlv();
+						self->sendMediaData(RTMP_AUDIO, pkt->abs_timestamp, buffer, buffer->size());
+                    }
+                }
 			}
 		});
 
@@ -168,7 +194,7 @@ void FlvMuxerWithRtmp::start()
 
 bool FlvMuxerWithRtmp::sendMediaData(uint8_t type, uint64_t timestamp, const StreamBuffer::Ptr& payload, uint32_t payload_size)
 {	 
-	if (payload_size == 0) {
+	if (!payload || payload_size == 0) {
 		return false;
 	}
 
@@ -245,7 +271,7 @@ void FlvMuxerWithRtmp::sendFlvHeader()
 
 int FlvMuxerWithRtmp::sendFlvTag(uint8_t type, uint64_t timestamp, const StreamBuffer::Ptr& payload, uint32_t payload_size)
 {
-	if (payload_size == 0) {
+	if (payload_size == 0 || !payload) {
 		return -1;
 	}
 
@@ -276,14 +302,14 @@ void FlvMuxerWithRtmp::onError(const string& msg)
 
 void FlvMuxerWithRtmp::send(const char* data, int len)
 {
-	if (_onWrite) {
+	if (_onWrite && data) {
 		_onWrite(data, len);
 	}
 }
 
 void FlvMuxerWithRtmp::send(const StreamBuffer::Ptr& buffer)
 {
-	if (_onWriteBuffer) {
+	if (_onWriteBuffer && buffer) {
 		_onWriteBuffer(buffer);
 	}
 }

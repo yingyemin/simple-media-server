@@ -258,6 +258,29 @@ string makeAacConfig(int profile, int channel, int sampleRate)
     return string((char *)audioSpecificConfig,2);
 }
 
+static StreamBuffer::Ptr getAacConfig()
+{
+	auto frame = make_shared<StreamBuffer>(4 + 1);
+	int profile = 1;
+    unsigned char sampling_frequency_index = 0xb;
+    unsigned char channel_configuration = 1;
+    char* audioSpecificConfig = frame->data();
+    unsigned char const audioObjectType = profile;
+
+	int audioType = 10;
+	int flvSampleRate = 0;
+	uint8_t flvStereoOrMono = (channel_configuration > 1);
+	uint8_t flvSampleBit = 0;
+
+	int audoFlag = (audioType << 4) | (flvSampleRate << 2) | (flvSampleBit << 1) | flvStereoOrMono;
+
+	audioSpecificConfig[0] = audoFlag;
+	audioSpecificConfig[1] = 0;
+    audioSpecificConfig[2] = (audioObjectType << 3) | (sampling_frequency_index >> 1);
+    audioSpecificConfig[3] = (sampling_frequency_index << 7) | (channel_configuration << 3);
+    return frame;
+}
+
 
 AacTrack::AacTrack()
 {
@@ -288,6 +311,13 @@ string AacTrack::getSdp()
 string AacTrack::getAacInfo()
 {
     return _aacConfig;
+}
+
+StreamBuffer::Ptr AacTrack::getMuteConfig()
+{
+    static StreamBuffer::Ptr muteConfig = getAacConfig();
+
+	return muteConfig;
 }
 
 void AacTrack::setAacInfo(const string& aacConfig)

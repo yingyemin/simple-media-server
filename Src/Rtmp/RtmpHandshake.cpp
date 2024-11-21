@@ -17,6 +17,9 @@ RtmpHandshake::~RtmpHandshake()
 
 int RtmpHandshake::parse(const StreamBuffer::Ptr& buffer)
 {
+	if (!buffer) {
+		return 0;
+	}
 	uint8_t *buf = (uint8_t*)buffer->data();
 	uint32_t buf_size = buffer->size();
 	uint32_t pos = 0;
@@ -110,6 +113,9 @@ int RtmpHandshake::parse(const StreamBuffer::Ptr& buffer)
 
 int RtmpHandshake::buildC0C1(char* buf, uint32_t buf_size)
 {
+	if (!buf || buf_size < 1537) {
+		return 0;
+	}
 	uint32_t size = 1 + 1536; //COC1  
 	memset(buf, 0, 1537);
 	buf[0] = RTMP_VERSION;
@@ -142,7 +148,7 @@ void RtmpHandshake::setOnRtmpChunk(const function<void(const StreamBuffer::Ptr& 
 
 void RtmpHandshake::onRtmpChunk(const StreamBuffer::Ptr& buffer)
 {
-    if (_onRtmpChunk) {
+    if (_onRtmpChunk && buffer) {
         _onRtmpChunk(buffer);
     }
 }

@@ -32,7 +32,7 @@ void RtmpEncodeTrack::startEncode()
 
 void RtmpEncodeTrack::onFrame(const FrameBuffer::Ptr& frame)
 {
-    if (_encoder) {
+    if (_encoder && frame) {
         // logInfo << "encode a frame";
         _encoder->encode(frame);
     }
@@ -40,7 +40,7 @@ void RtmpEncodeTrack::onFrame(const FrameBuffer::Ptr& frame)
 
 void RtmpEncodeTrack::onRtmpPacket(const RtmpMessage::Ptr& pkt, bool start)
 {
-    if (_onRtmpPacket) {
+    if (_onRtmpPacket && pkt) {
         _onRtmpPacket(pkt, start);
     }
     // logInfo << "encode a rtp packet";

@@ -77,6 +77,12 @@ public:
 		this->amfNumber_ = number; 
 	}
 
+	AmfObject(int number)
+	{
+		this->type_ = AMF_NUMBER; 
+		this->amfNumber_ = number; 
+	}
+
 	AmfObject(bool number)
 	{
 		this->type_ = AMF_BOOLEAN; 

@@ -143,7 +143,8 @@
                 "port" : 1935,
                 "sslPort" : 11935,
                 "timeout" : 5000,
-                "threads" : 1
+                "threads" : 1,
+                "enableAddMute" : false
             }
         }
     },

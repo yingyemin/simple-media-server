@@ -65,6 +65,10 @@ void RtmpDecodeTrack::stopDecode()
 
 void RtmpDecodeTrack::setConfigFrame(const RtmpMessage::Ptr& pkt)
 {
+    if (!pkt) {
+        return ;
+    }
+
     if (_decoder) {
         _decoder->decode(pkt);
     } else {
@@ -124,6 +128,10 @@ int RtmpDecodeTrack::createTrackInfo(int trackType, int codeId)
 
 void RtmpDecodeTrack::onRtmpPacket(const RtmpMessage::Ptr& pkt)
 {
+    if (!pkt) {
+        return ;
+    }
+
     if (_onRtmpPacket) {
         _onRtmpPacket(pkt);
     }
@@ -132,7 +140,7 @@ void RtmpDecodeTrack::onRtmpPacket(const RtmpMessage::Ptr& pkt)
 
 void RtmpDecodeTrack::decodeRtmp(const RtmpMessage::Ptr& pkt)
 {
-    if (_decoder) {
+    if (_decoder && pkt) {
         _decoder->decode(pkt);
     }
 }
@@ -140,7 +148,7 @@ void RtmpDecodeTrack::decodeRtmp(const RtmpMessage::Ptr& pkt)
 void RtmpDecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
 {
     // logInfo << "get a raw frame: " << frame->_codec;
-    if (_onFrame) {
+    if (_onFrame && frame) {
         _onFrame(frame);
     }
     // if (frame->_index == VideoTrackType) {

@@ -19,7 +19,7 @@ int RtmpChunk::parse(const StreamBuffer::Ptr& buffer)
 {
 	int ret = 0;
 
-	if (!buffer->size()) {
+	if (!buffer || !buffer->size()) {
 		return 0;
 	}
 
@@ -92,6 +92,10 @@ int RtmpChunk::parseChunkHeader(uint8_t* buf, uint32_t size, uint32_t &bytesUsed
     //     buf_size = _remainBuffer.size();
     //     _remainBuffer.clear();
     // }
+
+	if (size <= bytesUsed) {
+		return 0;
+	}
 
 	uint32_t headerBytesUsed = bytesUsed;
 
@@ -220,6 +224,10 @@ int RtmpChunk::parseChunkBody(uint8_t* buf, uint32_t size, uint32_t &bytesUsed)
     //     _remainBuffer.clear();
     // }
 
+	if (size <= bytesUsed) {
+		return 0;
+	}
+
 	uint32_t bodyBytesUsed = bytesUsed;
 
 	if (_chunkStreamId < 0) {
@@ -333,6 +341,10 @@ int RtmpChunk::createMessageHeader(uint8_t fmt, RtmpMessage& msg, uint64_t dts)
 
 int RtmpChunk::createChunk(uint32_t csid, RtmpMessage& msg)
 {
+	if (!_socket) {
+		return 0;
+	}
+	
 	uint32_t payloadOffset = 0;
 
 	uint32_t length = msg.length;

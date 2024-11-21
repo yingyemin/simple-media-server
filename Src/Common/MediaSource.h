@@ -92,7 +92,7 @@ public:
     virtual void onReady();
     virtual void addConnection(void* key);
     virtual void delConnection(void* key);
-    virtual unordered_map<int, shared_ptr<TrackInfo>> getTrackInfo() {return _mapTrackInfo;}
+    virtual unordered_map<int, shared_ptr<TrackInfo>> getTrackInfo();
     virtual int playerCount() {return 0;}
     virtual uint64_t getBytes() {return 0;}
     virtual void getClientList(const function<void(const list<ClientInfo>& info)>& func) {}
@@ -129,6 +129,9 @@ protected:
     unordered_map<MediaSource*, MediaSource::Ptr> _mapSink;
     unordered_map<MediaSource*, MediaSource::Ptr> _mapSource;
     unordered_map<int, shared_ptr<TrackInfo>> _mapTrackInfo;
+    // 用于给其他线程获取，需要加锁。上面的trackInfo用于本线程用，比较频繁，所以分成两个map，提升性能
+    mutex _trackInfoLck;
+    unordered_map<int, shared_ptr<TrackInfo>> _mapLockTrackInfo;
 
 private:
     static recursive_mutex _mtxTotalSource;

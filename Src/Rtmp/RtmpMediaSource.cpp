@@ -6,14 +6,37 @@
 #include "RtmpMediaSource.h"
 #include "Logger.h"
 #include "Util/String.h"
+#include "Common/Define.h"
 
 using namespace std;
+
+static int getCodecId(const string& codecName)
+{
+    if (codecName == "h264") {
+        return RTMP_CODEC_ID_H264;
+    } else if (codecName == "h265") {
+        return RTMP_CODEC_ID_H265;
+    } else if (codecName == "aac") {
+        return RTMP_CODEC_ID_AAC;
+    } else if (codecName == "g711a") {
+        return RTMP_CODEC_ID_G711A;
+    } else if (codecName == "g711u") {
+        return RTMP_CODEC_ID_G711U;
+    } 
+
+    return 0;
+}
 
 RtmpMediaSource::RtmpMediaSource(const UrlParser& urlParser, const EventLoop::Ptr& loop, bool muxer)
     :MediaSource(urlParser, loop)
     ,_muxer(muxer)
 {
     _cache = std::make_shared<list<RtmpMessage::Ptr>>();
+    if (_muxer) {
+        _metaData["duration"] = AmfObject(0);
+        _metaData["fileSize"] = AmfObject(0);
+        _metaData["server"] = AmfObject(std::string(SERVER_NAME));
+    }
 }
 
 RtmpMediaSource::~RtmpMediaSource()
@@ -23,6 +46,10 @@ RtmpMediaSource::~RtmpMediaSource()
 
 void RtmpMediaSource::addTrack(const RtmpDecodeTrack::Ptr& track)
 {
+    if (!track) {
+        return ;
+    }
+
     std::weak_ptr<RtmpMediaSource> weakSelf = std::static_pointer_cast<RtmpMediaSource>(shared_from_this());
     if (!_ring) {
         auto lam = [weakSelf](int size) {
@@ -49,7 +76,7 @@ void RtmpMediaSource::addTrack(const RtmpDecodeTrack::Ptr& track)
     
     track->setOnRtmpPacket([weakSelf](const RtmpMessage::Ptr& pkt){
         auto strongSelf = weakSelf.lock();
-        if (!strongSelf) {
+        if (!strongSelf || !pkt) {
             return;
         }
         if (pkt->isKeyFrame()) {
@@ -67,8 +94,8 @@ void RtmpMediaSource::addTrack(const RtmpDecodeTrack::Ptr& track)
             strongSelf->_cache->emplace_back(std::move(pkt));
         }
         strongSelf->_lastPts = pkt->abs_timestamp;
-        uint8_t frame_type = (pkt->payload->data()[0] >> 4) & 0x0f;
-        uint8_t codec_id = pkt->payload->data()[0] & 0x0f;
+        // uint8_t frame_type = (pkt->payload->data()[0] >> 4) & 0x0f;
+        // uint8_t codec_id = pkt->payload->data()[0] & 0x0f;
 
         // logInfo << "frame_type : " << (int)frame_type << ", codec_id: " << (int)codec_id;
     });
@@ -107,7 +134,18 @@ void RtmpMediaSource::addTrack(const RtmpDecodeTrack::Ptr& track)
 
 void RtmpMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
 {
+    if (!track) {
+        return ;
+    }
+
     MediaSource::addTrack(track);
+    if (track->trackType_ == "video") {
+        _metaData["videodatarate"] = AmfObject(5000);
+        _metaData["videocodecid"] = AmfObject(getCodecId(track->codec_));
+    } else {
+        _metaData["videodatarate"] = AmfObject(160);
+        _metaData["videocodecid"] = AmfObject(getCodecId(track->codec_));
+    }
     
     logInfo << "index: " << track->index_ << ", codec: " << track->codec_ ;
     std::weak_ptr<RtmpMediaSource> weakSelf = std::static_pointer_cast<RtmpMediaSource>(shared_from_this());
@@ -140,7 +178,7 @@ void RtmpMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
         rtmpTrack->setOnRtmpPacket([weakSelf](const RtmpMessage::Ptr& pkt, bool start){
             // logInfo << "mux a rtmp packet";
             auto strongSelf = weakSelf.lock();
-            if (!strongSelf) {
+            if (!strongSelf || !pkt) {
                 return;
             }
             if (start) {
@@ -190,6 +228,10 @@ void RtmpMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
 
 void RtmpMediaSource::addSink(const MediaSource::Ptr &src)
 {
+    if (!src) {
+        return ;
+    }
+
     logInfo << "RtmpMediaSource::addSink";
     MediaSource::addSink(src);
     for (auto& trackIt : _mapRtmpDecodeTrack) {
@@ -228,6 +270,10 @@ void RtmpMediaSource::addSink(const MediaSource::Ptr &src)
 
 void RtmpMediaSource::delSink(const MediaSource::Ptr &src)
 {
+    if (!src) {
+        return ;
+    }
+
     logInfo << "RtmpMediaSource::delSink";
     if (!_loop->isCurrent()) {
         weak_ptr<RtmpMediaSource> wSlef = static_pointer_cast<RtmpMediaSource>(shared_from_this());
@@ -251,6 +297,9 @@ void RtmpMediaSource::delSink(const MediaSource::Ptr &src)
 
 void RtmpMediaSource::onFrame(const FrameBuffer::Ptr& frame)
 {
+    if (!frame) {
+        return ;
+    }
     // logInfo << "on get a frame: index : " << frame->getTrackIndex()
     //           << ", codec: " << frame->codec() << ", nalu type: " << frame->getNalType();
     auto it = _mapRtmpEncodeTrack.find(frame->getTrackType());
@@ -278,6 +327,10 @@ AmfObjects RtmpMediaSource::getMetadata()
 
 int RtmpMediaSource::playerCount()
 {
+    if (!_ring) {
+        return 0;
+    }
+
     int count = _ring->readerCount();
     lock_guard<mutex> lck(_mtxTrack);
     count -= _mapSink.size();
@@ -287,6 +340,10 @@ int RtmpMediaSource::playerCount()
 
 void RtmpMediaSource::getClientList(const function<void(const list<ClientInfo>& info)>& func)
 {
+    if (!_ring) {
+        return ;
+    }
+
     list<ClientInfo> clientInfo;
     _ring->getInfoList([func](list<ClientInfo> &infoList){
         func(infoList);

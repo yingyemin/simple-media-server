@@ -22,6 +22,8 @@
 #define DEFAULT_TYPE "normal"
 #define DEFAULT_VHOST "vhost"
 
+#define SERVER_NAME "SimpleMediaServer"
+
 #define CRLF "\r\n"
 
 #endif //Define_H

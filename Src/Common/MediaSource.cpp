@@ -634,6 +634,15 @@ void MediaSource::addTrack(const shared_ptr<TrackInfo>& track)
     }
 
     _mapTrackInfo[track->index_] = track;
+
+    lock_guard<mutex> lck(_trackInfoLck);
+    _mapLockTrackInfo[track->index_] = track;
+}
+
+unordered_map<int, shared_ptr<TrackInfo>> MediaSource::getTrackInfo()
+{
+    lock_guard<mutex> lck(_trackInfoLck);
+    return _mapLockTrackInfo;
 }
 
 void MediaSource::addOnDetach(void* key, const onDetachFunc& func)

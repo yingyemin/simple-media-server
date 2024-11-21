@@ -9,6 +9,8 @@
 #include "Rtmp.h"
 #include "Common/Config.h"
 #include "Hook/MediaHook.h"
+#include "Codec/AacFrame.h"
+#include "Codec/AacTrack.h"
 
 #include <sstream>
 
@@ -381,6 +383,9 @@ bool RtmpConnection::handleVideo(RtmpMessage& rtmp_msg)
 	uint8_t type = RTMP_VIDEO;
 	uint8_t *payload = (uint8_t *)rtmp_msg.payload->data();
 	uint32_t length = rtmp_msg.length;
+    if (length < 2) {
+        return false;
+    }
     
     bool isEnhance = (payload[0] >> 4) & 0b1000;
 	uint8_t frame_type;
@@ -388,6 +393,9 @@ bool RtmpConnection::handleVideo(RtmpMessage& rtmp_msg)
     uint8_t packet_type;
 
     if (isEnhance) {
+        if (length < 5) {
+            return false;
+        }
         frame_type = (payload[0] >> 4) & 0b0111;
         packet_type = payload[0] & 0x0f;
         if (readUint32BE((char*)payload + 1) == fourccH265) {
@@ -481,6 +489,9 @@ bool RtmpConnection::handleAudio(RtmpMessage& rtmp_msg)
 	uint8_t type = RTMP_AUDIO;
 	uint8_t *payload = (uint8_t *)rtmp_msg.payload->data();
 	uint32_t length = rtmp_msg.length;
+    if (length < 2) {
+        return false;
+    }
 	uint8_t sound_format = (payload[0] >> 4) & 0x0f;
 	//uint8_t sound_size = (payload[0] >> 1) & 0x01;
 	//uint8_t sound_rate = (payload[0] >> 2) & 0x03;
@@ -634,6 +645,13 @@ bool RtmpConnection::handlePublish()
         }
 
         auto rtmpSrc = dynamic_pointer_cast<RtmpMediaSource>(source);
+        if (!rtmpSrc) {
+            is_error = true;
+            objects["level"] = AmfObject(std::string("error"));
+            objects["code"] = AmfObject(std::string("NetStream.Publish.BadName"));
+            objects["description"] = AmfObject(std::string("Get Source Failed."));
+            break;
+        }
         // rtmpSrc->setSdp(_parser._content);
         rtmpSrc->setOrigin();
         rtmpSrc->setOriginSocket(_socket);
@@ -788,6 +806,23 @@ void RtmpConnection::responsePlay(const MediaSource::Ptr &src)
         sendRtmpChunks(RTMP_CHUNK_AUDIO_ID, rtmp_msg);
     }
 
+    static bool enbaleAddMute = Config::instance()->getAndListen([](const json &config){
+        enbaleAddMute = Config::instance()->get("Rtmp", "Server", "Server1", "enableAddMute");
+    }, "Rtmp", "Server", "Server1", "enableAddMute");
+    auto tracks = rtmpSrc->getTrackInfo();
+    if (enbaleAddMute && tracks.size() == 1 && tracks.begin()->second->trackType_ == "video") {
+        _addMute = true;
+        logInfo << "send a aac header";
+        RtmpMessage rtmp_msg;
+        rtmp_msg.abs_timestamp = 0;
+        rtmp_msg.stream_id = _streamId;
+        rtmp_msg.payload = AacTrack::getMuteConfig();
+        rtmp_msg.length = rtmp_msg.payload->size();
+
+        rtmp_msg.type_id = RTMP_AUDIO;
+        sendRtmpChunks(RTMP_CHUNK_AUDIO_ID, rtmp_msg);
+    }
+
     if (!_playReader) {
         logInfo << "set _playReader";
         static int interval = Config::instance()->getAndListen([](const json &config){
@@ -857,6 +892,25 @@ void RtmpConnection::responsePlay(const MediaSource::Ptr &src)
                 // logInfo << "send rtmp msg,time: " << pkt->abs_timestamp << ", type: " << (int)(pkt->type_id)
                 //             << ", length: " << pkt->length;
                 self->sendRtmpChunks(pkt->csid, *pkt);
+                
+                if (self->_addMute) {
+                    // aac 一帧1024字节，采样率8000。一帧的时长，单位ms
+                    static int scale = (1024 * 1000 / 8000);
+                    int curMuteId = pkt->abs_timestamp / scale;
+                    if (self->_lastMuteId != curMuteId) {
+                        self->_lastMuteId = curMuteId;
+                        auto buffer = AacFrame::getMuteForFlv();
+                        RtmpMessage mute;
+                        mute.payload = buffer;
+                        mute.abs_timestamp = pkt->abs_timestamp;
+                        mute.trackIndex_ = AudioTrackType;
+                        mute.length = buffer->size();
+                        mute.type_id = RTMP_AUDIO;
+                        mute.csid = RTMP_CHUNK_AUDIO_ID;
+
+                        self->_chunk.createChunk(mute.csid, mute);
+                    }
+                }
             }
         });
 
@@ -1031,9 +1085,9 @@ void RtmpConnection::setChunkSize()
 
 bool RtmpConnection::sendInvokeMessage(uint32_t csid, const StreamBuffer::Ptr& payload, uint32_t payload_size)
 {
-    // if(this->IsClosed()) {
-    //     return false;
-    // }
+    if(!payload || payload_size == 0) {
+        return false;
+    }
 
     RtmpMessage rtmp_msg;
     rtmp_msg.type_id = RTMP_INVOKE;
@@ -1047,9 +1101,9 @@ bool RtmpConnection::sendInvokeMessage(uint32_t csid, const StreamBuffer::Ptr& p
 
 bool RtmpConnection::sendNotifyMessage(uint32_t csid, const StreamBuffer::Ptr& payload, uint32_t payload_size)
 {
-    // if(this->IsClosed()) {
-    //     return false;
-    // }
+    if(!payload || payload_size == 0) {
+        return false;
+    }
 
     RtmpMessage rtmp_msg;
     rtmp_msg.type_id = RTMP_NOTIFY;
@@ -1063,6 +1117,10 @@ bool RtmpConnection::sendNotifyMessage(uint32_t csid, const StreamBuffer::Ptr& p
 
 bool RtmpConnection::isKeyFrame(const StreamBuffer::Ptr& payload, uint32_t payload_size)
 {
+    if(!payload || payload_size < 1) {
+        return false;
+    }
+
 	uint8_t frame_type = (payload->data()[0] >> 4) & 0x0f;
 	uint8_t codec_id = payload->data()[0] & 0x0f;
 	return (frame_type == 1 && (codec_id == RTMP_CODEC_ID_H264 || codec_id == RTMP_CODEC_ID_H265));

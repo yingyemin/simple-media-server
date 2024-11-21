@@ -4,8 +4,12 @@
 
 int AmfDecoder::decode(const char *data, int size, int n)
 {
+	if (!data || size <= 0) {
+		return 0;
+	}
+
 	int bytes_used = 0;
-	while (size > bytes_used)
+	while (size - bytes_used > 0)
 	{
 		int ret = 0;
 		char type = data[bytes_used];
@@ -61,12 +65,12 @@ int AmfDecoder::decode(const char *data, int size, int n)
 		}
 	}
 
-	return bytes_used;
+	return bytes_used > size ? size : bytes_used;
 }
 
 int AmfDecoder::decodeNumber(const char *data, int size, double& amf_number)
 {
-	if (size < 8) {
+	if (!data || size < 8) {
 		return 0;
 	}
 
@@ -86,7 +90,7 @@ int AmfDecoder::decodeNumber(const char *data, int size, double& amf_number)
 
 int AmfDecoder::decodeString(const char *data, int size, std::string& amf_string)
 {
-	if (size < 2) {
+	if (!data || size < 2) {
 		return 0;
 	}
 
@@ -100,18 +104,22 @@ int AmfDecoder::decodeString(const char *data, int size, std::string& amf_string
 	if (strSize == 0) {
 		return bytes_used;
 	}
-	logInfo << "bytes_used: " << bytes_used;
-	logInfo << "strSize: " << strSize;
-	logInfo << "size: " << size;
+	// logInfo << "bytes_used: " << bytes_used;
+	// logInfo << "strSize: " << strSize;
+	// logInfo << "size: " << size;
 
 	amf_string.assign(data + bytes_used, strSize);
-	logInfo << "amf_string: " << amf_string;
+	// logInfo << "amf_string: " << amf_string;
 	bytes_used += strSize;
 	return bytes_used;
 }
 
 int AmfDecoder::decodeObject(const char *data, int size, AmfObjects& amf_objs)
 {
+	if (!data || size <= 0) {
+		return 0;
+	}
+
 	amf_objs.clear();
 	int bytes_used = 0;
 	// logInfo << "size: " << size;
@@ -143,12 +151,12 @@ int AmfDecoder::decodeObject(const char *data, int size, AmfObjects& amf_objs)
 		amf_objs.emplace(key, dec.getObject());
 	}
 
-	return bytes_used;
+	return bytes_used > size ? size : bytes_used;
 }
 
 int AmfDecoder::decodeBoolean(const char *data, int size, bool& amf_boolean)
 {
-	if (size < 1) {
+	if (!data || size < 1) {
 		return 0;
 	}
 
@@ -158,18 +166,28 @@ int AmfDecoder::decodeBoolean(const char *data, int size, bool& amf_boolean)
 
 uint16_t AmfDecoder::decodeInt16(const char *data, int size)
 {
+	if (!data || size < 2) {
+		return 0;
+	}
+
 	uint16_t val = readUint16BE((char*)data);
 	return val;
 }
 
 uint32_t AmfDecoder::decodeInt24(const char *data, int size)
 {
+	if (!data || size < 3) {
+		return 0;
+	}
 	uint32_t val = readUint24BE((char*)data);
 	return val;
 }
 
 uint32_t AmfDecoder::decodeInt32(const char *data, int size)
 {
+	if (!data || size < 4) {
+		return 0;
+	}
 	uint32_t val = readUint32BE((char*)data);
 	return val;
 }

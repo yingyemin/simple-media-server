@@ -23,6 +23,7 @@ public:
 public:
     string getSdp() override;
     string getConfig() override {return _aacConfig;}
+    static StreamBuffer::Ptr getMuteConfig();
     bool isReady() override {return !_aacConfig.empty();}
     string getAacInfo();
     void setAacInfo(const string& aacConfig);
