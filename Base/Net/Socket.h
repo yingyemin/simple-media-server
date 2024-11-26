@@ -21,6 +21,8 @@ enum NetType {
     NET_IPV6
 };
 
+class Socket;
+
 class SocketBuffer
 {
 public:
@@ -34,6 +36,8 @@ public:
     vector<iovec> vecBuffer;
     vector<Buffer::Ptr> rawBuffer;
     int length = 0;
+    // 保存一份socket，保证数据没发送完，socket不会被析构
+    shared_ptr<Socket> socket;
     struct sockaddr *addr = nullptr;
     socklen_t addr_len = 0;
 };

@@ -30,6 +30,13 @@ public:
                         const function<void(HttpResponse& rsp)>& rspFunc);
     static void listHlsPlayInfo(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc);
+
+    static void startPsVodPlay(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc);
+    static void stopPsVodPlay(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc);
+    static void listPsVodPlayInfo(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc);
 };
 
 #endif //HttpStreamApi_h

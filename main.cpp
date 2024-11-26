@@ -362,6 +362,18 @@ int main(int argc, char** argv)
     
     while (true) {
         // TODO 可做一些巡检工作
+        EventLoopPool::instance()->for_each_loop([](const EventLoop::Ptr &loop){
+            int lastWaitDuration, lastRunDuration, curWaitDuration, curRunDuration;
+            loop->getLoad(lastWaitDuration, lastRunDuration, curWaitDuration, curRunDuration);
+
+            if (curRunDuration > 1000 || lastRunDuration > 1000) {
+                logWarn << "thread: looper-" << loop->getEpollFd()
+                        << ", lastWaitDuration: " << lastWaitDuration
+                        << ", lastRunDuration: " << lastRunDuration
+                        << ", curWaitDuration: " << curWaitDuration
+                        << ", curRunDuration: " << curRunDuration;
+            }
+        });
         sleep(5);
     }
 #ifdef ENABLE_SRT

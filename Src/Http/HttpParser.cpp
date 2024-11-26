@@ -33,7 +33,7 @@ void HttpParser::parse(const char *data, size_t len)
         len += remainSize;
     }
 
-    logInfo << "data string: " << string(data, len);
+    // logInfo << "data string: " << string(data, len);
     logInfo << "_contentLen: " << _contentLen << ": " << this;
     logInfo << "_stage: " << _stage;
     // logInfo << "buffer : " << string(data, len);
@@ -49,10 +49,11 @@ void HttpParser::parse(const char *data, size_t len)
         } else {
             // 解析content
             // _content = string(data, _contentLen);
-            onHttpBody(data, _contentLen);
-            data += _contentLen;
-            len -= _contentLen;
+            int tmpLen = _contentLen;
             _contentLen = 0;
+            onHttpBody(data, tmpLen);
+            data += tmpLen;
+            len -= tmpLen;
             logInfo << "on http body";
             // onHttpRequest();
             _stage = 1;

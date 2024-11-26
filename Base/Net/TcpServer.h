@@ -30,11 +30,14 @@ public:
     void onManager();
     int getPort() {return _port;}
     int getLastAcceptTime() {return _lastAcceptTime;}
+    int getCurConnNum() {return _curConns;}
+
 private:
     int _maxConns;
     int _threadNum;
     int _port;
     int _lastAcceptTime = 0;
+    int _curConns = 0;
     string _ip;
     EventLoop::Ptr _loop;
     Socket::Ptr _socket;

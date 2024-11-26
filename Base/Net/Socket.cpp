@@ -571,10 +571,14 @@ int Socket::onWrite(void* args)
         _onWrite();
     }
 
-    if (_readyBuffer.size() == 0 && _sendBuffer->length == 0) {
-        logTrace << "no buffer to send";
-        _loop->modifyEvent(_fd, EPOLLIN | EPOLLHUP | EPOLLERR | 0, nullptr);
-        return 0;
+    if (_readyBuffer.size() == 0) {
+        if (!_sendBuffer) {
+            return 0;
+        } else if (_sendBuffer->length == 0) {
+            logTrace << "no buffer to send";
+            _loop->modifyEvent(_fd, EPOLLIN | EPOLLHUP | EPOLLERR | 0, nullptr);
+            return 0;
+        }
     }
 
     send(nullptr);
@@ -591,6 +595,8 @@ int Socket::onError(void* args)
         if (!self) {
             return ;
         }
+        self->_sendBuffer = nullptr;
+        self->_readyBuffer.clear();
         // self->close();
         self->_onError();
     }, true, false);
@@ -628,6 +634,9 @@ ssize_t Socket::send(const char* data, int len, int flag, struct sockaddr *addr,
 
 ssize_t Socket::send(const Buffer::Ptr pkt, int flag, int offset, int length, struct sockaddr *addr, socklen_t addr_len)
 {
+    if (!_sendBuffer) {
+        return 0;
+    }
     
     if (!_loop->isCurrent()) { //切换到当前socket线程发送
         Socket::Wptr wSelf = shared_from_this();
@@ -663,6 +672,7 @@ ssize_t Socket::send(const Buffer::Ptr pkt, int flag, int offset, int length, st
         _sendBuffer->vecBuffer.emplace_back(std::move(io));
         _sendBuffer->rawBuffer.push_back(pkt);
         _sendBuffer->length += size;
+        _sendBuffer->socket = shared_from_this();
         _sendBuffer->addr = addr;
         _sendBuffer->addr_len = addr_len;
 

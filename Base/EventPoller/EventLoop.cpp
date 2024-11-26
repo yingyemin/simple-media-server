@@ -79,17 +79,26 @@ void EventLoop::start()
 
         computeLoad();
 
+        _eventRun = false;
         _waitTime = TimeClock::now();
+        // logTrace << "_waitTime: " << _waitTime;
         _lastRunDuration = _waitTime - _runTime;
+
         int ret = epoll_wait(_epollFd, events, EPOLL_SIZE, minDelay ? minDelay : -1);
+
+        _eventRun = true;
         _runTime = TimeClock::now();
+        // logTrace << "_runTime: " << _runTime;
+        _lastWaitDuration = _runTime - _waitTime;
+
+        _fdCount = _mapHander.size();
+        _timerTaskCount = _timer->getTaskSize();
+
         if (ret <= 0) {
             //超时或被打断
             continue;
         }
-        _lastWaitDuration = _runTime - _waitTime;
-        _fdCount = _mapHander.size();
-        _timerTaskCount = _timer->getTaskSize();
+        
         // logInfo << "ret: " << ret << ", _mapHander.size(): " << _mapHander.size();
         for (int i = 0; i < ret; ++i) {
             struct epoll_event &ev = events[i];
@@ -117,7 +126,7 @@ void EventLoop::computeLoad()
     }
 
     auto now = TimeClock::now();
-    if (_waitTime > _runTime) {
+    if (!_eventRun) {
         _curWaitDuration = now - _waitTime;
         _curRunDuration = 0;
     } else {
@@ -134,6 +143,15 @@ void EventLoop::computeLoad()
 
 void EventLoop::getLoad(int& lastWaitDuration, int& lastRunDuration, int& curWaitDuration, int& curRunDuration)
 {
+    auto now = TimeClock::now();
+    if (!_eventRun) {
+        _curWaitDuration = now - _waitTime;
+        _curRunDuration = 0;
+    } else {
+        _curWaitDuration = 0;
+        _curRunDuration = now - _runTime;
+    }
+
     lastWaitDuration = _lastWaitDuration;
     lastRunDuration = _lastRunDuration;
     curWaitDuration = _curWaitDuration;

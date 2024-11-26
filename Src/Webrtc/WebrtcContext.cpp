@@ -24,6 +24,10 @@ void cloneTrack(const shared_ptr<WebrtcTrackInfo>& dstInfo, const shared_ptr<Tra
 
 WebrtcContext::WebrtcContext()
 {
+    if (!g_dtlsCertificate) {
+        initDtlsCert();
+    }
+
     _dtlsSession.reset(new DtlsSession("server"));
 	if (!_dtlsSession->init(g_dtlsCertificate)) {
 		logError << "dtls session init failed";
@@ -100,9 +104,9 @@ void WebrtcContext::initPlayer(const string& appName, const string& streamName, 
         }
     }
 
-    if (!videoInfo || videoInfo->codec_ != "h264") {
-        throw runtime_error("only surpport h264 now");
-    }
+    // if (!videoInfo || videoInfo->codec_ != "h264") {
+    //     throw runtime_error("only surpport h264 now");
+    // }
 
     _remoteSdp = make_shared<WebrtcSdp>();
     _remoteSdp->parse(sdp);
@@ -111,7 +115,7 @@ void WebrtcContext::initPlayer(const string& appName, const string& streamName, 
 
     negotiatePlayValid(videoInfo, audioInfo);
 
-    if (_enbaleDtls) {
+    if (_enbaleDtls && _dtlsSession) {
         weak_ptr<WebrtcContext> wSelf = shared_from_this();
         _dtlsSession->setOnHandshakeDone([wSelf](){
             auto self = wSelf.lock();
@@ -167,33 +171,39 @@ void WebrtcContext::initPublisher(const string& appName, const string& streamNam
 
     negotiatePlayValid(videoInfo, audioInfo);
 
-    weak_ptr<WebrtcContext> wSelf = shared_from_this();
-    _dtlsSession->setOnHandshakeDone([wSelf](){
-        logInfo << "start to publish";
-        auto self = wSelf.lock();
-        if (!self) {
-            return ;
-        }
-        if (self->_enbaleSrtp && !self->_srtpSession) {
-            self->_srtpSession.reset(new SrtpSession());
-            std::string recv_key, send_key;
-            if (0 != self->_dtlsSession->getSrtpKey(recv_key, send_key)) {
-                logError << "dtls get srtp key failed";
-            throw runtime_error("dtls get srtp key failed");
+    if (_enbaleDtls && _dtlsSession) {
+        weak_ptr<WebrtcContext> wSelf = shared_from_this();
+        _dtlsSession->setOnHandshakeDone([wSelf](){
+            logInfo << "start to publish";
+            auto self = wSelf.lock();
+            if (!self) {
+                return ;
             }
+            if (self->_enbaleSrtp && !self->_srtpSession) {
+                self->_srtpSession.reset(new SrtpSession());
+                std::string recv_key, send_key;
+                if (0 != self->_dtlsSession->getSrtpKey(recv_key, send_key)) {
+                    logError << "dtls get srtp key failed";
+                throw runtime_error("dtls get srtp key failed");
+                }
 
-            if (!self->_srtpSession->init(recv_key, send_key)) {
-                logError << "srtp session init failed";
-            throw runtime_error("srtp session init failed");
+                if (!self->_srtpSession->init(recv_key, send_key)) {
+                    logError << "srtp session init failed";
+                throw runtime_error("srtp session init failed");
+                }
+
+                self->_hasInitSrtp = true;
             }
-
-            self->_hasInitSrtp = true;
-        }
-    });
+        });
+    }
 }
 
 void WebrtcContext::initPlayerLocalSdp(int trackNum)
 {
+    if (!_remoteSdp || !_remoteSdp->_title) {
+        throw runtime_error("remote sdp is empty");
+    }
+
     _localSdp = make_shared<WebrtcSdp>();
     _localSdp->_title = make_shared<WebrtcSdpTitle>();
     // v
@@ -249,6 +259,10 @@ void WebrtcContext::initPlayerLocalSdp(int trackNum)
 
 void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, const shared_ptr<TrackInfo>& audioInfo)
 {
+    if (!videoInfo || !audioInfo || !_remoteSdp) {
+        return ;
+    }
+
     int videoTrackNum = 0;
     WebrtcPtInfo::Ptr remotePtInfo;
 
@@ -368,7 +382,8 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
                     first = false;
                 }
                 if (audioInfo && ((strcasecmp(ptIter.second->codec_.data(), audioInfo->codec_.data()) == 0) || 
-                    (audioInfo->codec_ == "g711a" && ptIter.second->codec_ == "PCMA"))) {
+                    (audioInfo->codec_ == "g711a" && ptIter.second->codec_ == "PCMA") || 
+                    (audioInfo->codec_ == "g711u" && ptIter.second->codec_ == "PCMU"))) {
                     remotePtInfo = ptIter.second;
                     findFlag = true;
                     break;
@@ -549,17 +564,21 @@ void WebrtcContext::onManager()
 
 void WebrtcContext::checkAndSendRtcpNack()
 {
+    if (!_videoSort || !_audioSort || !_socket) {
+        return ;
+    }
+
     vector<uint16_t> videoVecSeq = _videoSort->getLossSeq();
     vector<uint16_t> audioVecSeq = _audioSort->getLossSeq();
 
-    if (!videoVecSeq.empty()) {
+    if (!videoVecSeq.empty() && !_videoPtInfo) {
         RtcpNack videoNack;
         videoNack.setSsrc(_videoPtInfo->ssrc_);
         videoNack.setLossSn(videoVecSeq);
         auto videoNackBuffer = videoNack.encode();
         auto bufferRtcp = videoNackBuffer;
 
-        if (_enbaleSrtp) {
+        if (_enbaleSrtp && _srtpSession) {
             char plaintext[1500];
             int nb_plaintext = videoNackBuffer->size();
             auto data = videoNackBuffer->data();
@@ -586,7 +605,7 @@ void WebrtcContext::checkAndSendRtcpNack()
         }
     }
 
-    if (!audioVecSeq.empty()) {
+    if (!audioVecSeq.empty() || !_audioPtInfo) {
         RtcpNack audioNack;
         audioNack.setSsrc(_audioPtInfo->ssrc_);
         audioNack.setLossSn(audioVecSeq);
@@ -623,12 +642,16 @@ void WebrtcContext::checkAndSendRtcpNack()
 
 void WebrtcContext::sendRtcpPli(int ssrc)
 {
+    if (!_socket) {
+        return ;
+    }
+
     logInfo << "send a rtcp pli";
     RtcpPli pli;
     auto buffer = pli.encode(ssrc);
     auto bufferRtcp = buffer;
 
-    if (_enbaleSrtp) {
+    if (_enbaleSrtp && _srtpSession) {
         char plaintext[1500];
         int nb_plaintext = buffer->size();
         auto data = buffer->data();
@@ -654,7 +677,7 @@ void WebrtcContext::sendRtcpPli(int ssrc)
 
 void WebrtcContext::onRtpPacket(const Socket::Ptr& socket, const RtpPacket::Ptr& rtp, struct sockaddr* addr, int len)
 {
-    if (!_srtpSession || !_hasInitSrtp) {
+    if (!_srtpSession || !_hasInitSrtp || !rtp || !_socket) {
         return ;
     }
     // logInfo << "get a rtp packet: " << rtp->size();
@@ -670,7 +693,7 @@ void WebrtcContext::onRtpPacket(const Socket::Ptr& socket, const RtpPacket::Ptr&
     }, "Webrtc", "Server", "Server1", "lossIntervel");
 
     // 模拟丢包
-    if (lossIntervel && rtp->getSSRC() == _videoPtInfo->ssrc_ && _totalRtpCnt++ % lossIntervel == 0) {
+    if (lossIntervel && _videoPtInfo && rtp->getSSRC() == _videoPtInfo->ssrc_ && _totalRtpCnt++ % lossIntervel == 0) {
         logInfo << "loss a seq: " << rtp->getSeq();
         return ;
     }
@@ -679,7 +702,7 @@ void WebrtcContext::onRtpPacket(const Socket::Ptr& socket, const RtpPacket::Ptr&
     // rtx 包的时间戳与源rtp一致
 
     uint32_t ssrc = rtp->getSSRC();
-    uint32_t sdpSsrc = _videoPtInfo->ssrc_;
+    uint32_t sdpSsrc = _videoPtInfo ? _videoPtInfo->ssrc_ : 0;
     uint rtxSsrc = _videoRtxPtInfo ? _videoRtxPtInfo->ssrc_ : 0;
     // logInfo << "rtp ssrc: " << ssrc << ", sdp ssrc: " << sdpSsrc << ", rtx ssrc: " << rtxSsrc;
     weak_ptr<WebrtcContext> wSelf = dynamic_pointer_cast<WebrtcContext>(shared_from_this());
@@ -713,7 +736,7 @@ void WebrtcContext::onRtpPacket(const Socket::Ptr& socket, const RtpPacket::Ptr&
 
     WebrtcRtpPacket::Ptr rtpPacket;
 
-    if (_enbaleSrtp) {
+    if (_enbaleSrtp && _srtpSession) {
         char plaintext[1500];
         int nb_plaintext = rtp->size();
         auto data = rtp->data();
@@ -742,18 +765,21 @@ void WebrtcContext::onRtpPacket(const Socket::Ptr& socket, const RtpPacket::Ptr&
         logInfo << "get a resend packet: " << rtpPacket->getSeq();
     }
 
-    if (rtp->getHeader()->pt == _videoPtInfo->payloadType_ 
+    if ((_videoPtInfo && rtp->getHeader()->pt == _videoPtInfo->payloadType_) 
             || (_videoRtxPtInfo && rtp->getHeader()->pt == _videoRtxPtInfo->payloadType_)) {
         logTrace << "decode video rtp";
         if (_socket->getSocketType() == SOCKET_TCP) {
-            _videoDecodeTrack->onRtpPacket(rtpPacket);
+            if (_videoDecodeTrack)
+                _videoDecodeTrack->onRtpPacket(rtpPacket);
         } else {
-            _videoSort->inputRtp(rtpPacket);
+            if (_videoSort)
+                _videoSort->inputRtp(rtpPacket);
         }
-    } else if (rtp->getHeader()->pt == _audioPtInfo->payloadType_) {
+    } else if (_audioPtInfo && rtp->getHeader()->pt == _audioPtInfo->payloadType_) {
         if (_socket->getSocketType() == SOCKET_TCP) {
-            _audioDecodeTrack->onRtpPacket(rtpPacket);
-        } else {
+            if (_audioDecodeTrack)
+                _audioDecodeTrack->onRtpPacket(rtpPacket);
+        } else if (_audioSort) {
             _audioSort->inputRtp(rtpPacket);
         }
     } else {
@@ -763,6 +789,10 @@ void WebrtcContext::onRtpPacket(const Socket::Ptr& socket, const RtpPacket::Ptr&
 
 void WebrtcContext::onStunPacket(const Socket::Ptr& socket, const WebrtcStun& stunReq, struct sockaddr* addr, int len)
 {
+    if (!socket) {
+        return ;
+    }
+
     _lastPktClock.update();
 
     if (!stunReq.isBindingRequest()) {
@@ -785,6 +815,10 @@ void WebrtcContext::onStunPacket(const Socket::Ptr& socket, const WebrtcStun& st
                 rtcSrc->setLoop(_loop);
             }
             
+            if (!_localSdp) {
+                return ;
+            }
+
             for (auto sdpMediaIter : _localSdp->_vecSdpMedia) {
                 if (sdpMediaIter->media_ == "video") {
                     _videoDecodeTrack = make_shared<WebrtcDecodeTrack>(VideoTrackType, VideoTrackType, _videoPtInfo/*sdpMediaIter->mapPtInfo_.begin()->second*/);
@@ -877,6 +911,10 @@ void WebrtcContext::onStunPacket(const Socket::Ptr& socket, const WebrtcStun& st
 
 void WebrtcContext::onDtlsPacket(const Socket::Ptr& socket, const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)
 {
+    if (!socket || !buffer || !_dtlsSession) {
+        return ;
+    }
+
     _lastPktClock.update();
 
     // cerr << "WebrtcContext::onDtlsPacket =============== ";
@@ -896,7 +934,7 @@ void WebrtcContext::onDtlsPacket(const Socket::Ptr& socket, const StreamBuffer::
 
 void WebrtcContext::onRtcpPacket(const Socket::Ptr& socket, const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)
 {
-    if (!_srtpSession || !_hasInitSrtp) {
+    if (!_srtpSession || !_hasInitSrtp || !socket || !buffer) {
         logInfo << "_srtpSession is empty";
         return ;
     }
@@ -916,7 +954,7 @@ void WebrtcContext::onRtcpPacket(const Socket::Ptr& socket, const StreamBuffer::
 
 	_lastRecvTime = time(nullptr);
 
-    if (_enbaleSrtp) {
+    if (_enbaleSrtp && _srtpSession) {
         char plaintext[1500];
         int nb_plaintext = buffer->size();
         auto data = buffer->data();
@@ -958,6 +996,10 @@ void WebrtcContext::nackHeartBeat()
 //收到Genetic RTP Feedback 报文,进行丢包重传
 void WebrtcContext::handleRtcp(char* buf, int size)
 {
+    if (!buf || size <= 0) {
+        return ;
+    }
+
     logInfo << "start WebrtcContext::handleRtcp";
     auto buffer = make_shared<StreamBuffer>();
     buffer->move(buf, size, 0);
@@ -999,9 +1041,17 @@ void WebrtcContext::handleRtcp(char* buf, int size)
 
 void WebrtcContext::sendMedia(const RtpPacket::Ptr& rtp)
 {
-    // if (rtp->type_ == "audio") {
-    //     return ;
-    // }
+    if (!rtp) {
+        return ;
+    } else if (rtp->type_ == "video" && !_videoPtInfo) {
+        return ;
+    } else if (rtp->type_ == "audio" && !_audioPtInfo) {
+        return ;
+    }
+
+    if (!_socket) {
+        return ;
+    }
 
     if (_sctp && !_audioPtInfo && !_videoPtInfo) {
         sendDatachannel(0, 53, rtp->data(), rtp->size());
@@ -1010,6 +1060,9 @@ void WebrtcContext::sendMedia(const RtpPacket::Ptr& rtp)
     }
 
     int startSize = rtp->getStartSize();
+    if (startSize < 0 || rtp->size() < startSize) {
+        return ;
+    }
 
     // logInfo << "WebrtcContext::sendMedia: " << startSize << ", rtp size: " << rtp->size();
 	int nb_cipher = rtp->size() - startSize;
@@ -1029,7 +1082,7 @@ void WebrtcContext::sendMedia(const RtpPacket::Ptr& rtp)
 	// fwrite(data, nb_cipher, 1, fp);
 	// fclose(fp);
 
-	if (_enbaleSrtp) {
+	if (_enbaleSrtp && _srtpSession) {
         if (0 != _srtpSession->protectRtp(data, &nb_cipher)) {
             logWarn << "protect srtp failed";
             return ;
@@ -1051,6 +1104,10 @@ void WebrtcContext::sendMedia(const RtpPacket::Ptr& rtp)
 
 void WebrtcContext::onRecvDtlsApplicationData(const char* data, int len)
 {
+    if (!data || len <= 0) {
+        return ;
+    }
+
     if (_sctp) {
         _sctp->ProcessSctpData((uint8_t*)data, len);
     }
@@ -1058,6 +1115,10 @@ void WebrtcContext::onRecvDtlsApplicationData(const char* data, int len)
 
 void WebrtcContext::startPlay()
 {
+    if (!_localSdp) {
+        return ;
+    }
+
     weak_ptr<WebrtcContext> wSelf = dynamic_pointer_cast<WebrtcContext>(shared_from_this());
     if (_localSdp->_dataChannelSdp) {
         _sctp = std::make_shared<SctpAssociationImp>(_loop, _localChannelPort, _peerChannelPort, 128, 128, 262144, true);
@@ -1095,7 +1156,7 @@ void WebrtcContext::startPlay()
     }
 
     logInfo << "start init _srtpSession";
-    if (_enbaleSrtp && !_srtpSession) {
+    if (_enbaleSrtp && _dtlsSession && !_srtpSession) {
 		_srtpSession.reset(new SrtpSession());
 		std::string recv_key, send_key;
 		if (0 != _dtlsSession->getSrtpKey(recv_key, send_key)) {
@@ -1145,7 +1206,7 @@ void WebrtcContext::startPlay()
 // PPID 53: 二进制
 void WebrtcContext::sendDatachannel(uint16_t streamId, uint32_t ppid, const char *msg, size_t len)
 {
-    if (_sctp) {
+    if (_sctp && msg && len > 0) {
         SctpStreamParameters params;
         params.streamId = streamId;
         _sctp->SendSctpMessage(params, ppid, (uint8_t *)msg, len);
@@ -1154,6 +1215,10 @@ void WebrtcContext::sendDatachannel(uint16_t streamId, uint32_t ppid, const char
 
 void WebrtcContext::startPlay(const MediaSource::Ptr &src)
 {
+    if (!src) {
+        return ;
+    }
+
     auto rtcSrc = dynamic_pointer_cast<WebrtcMediaSource>(src);
     if (!rtcSrc) {
         return ;
@@ -1208,6 +1273,10 @@ void WebrtcContext::startPlay(const MediaSource::Ptr &src)
 
 void WebrtcContext::changeLoop(const EventLoop::Ptr& loop)
 {
+    if (!loop) {
+        return ;
+    }
+
     // 切换线程，再开始发送数据
     _playReader = nullptr;
     _loop = loop;
@@ -1241,7 +1310,7 @@ string WebrtcContext::getLocalSdp()
 
 void WebrtcContext::sendRtpPacket(const WebrtcMediaSource::DataType &pack)
 {
-    if (!_srtpSession || !_hasInitSrtp) {
+    if (!_srtpSession || !_hasInitSrtp || !pack) {
         logInfo << "_srtpSession is empty";
         return ;
     }

@@ -307,17 +307,11 @@ void HttpConnection::sendFile() // 将要素按照HttpResponse协议进行组织
     else{
         rsp.setHeader("Connection","close");
     }
-    // if(!rsp._body.empty() && !rsp.hasHeader("Content-Length")){
-    //     rsp.setHeader("Content-Length",std::to_string(rsp._body.size()));
-    // }
-    rsp.setHeader("Content-Length", std::to_string(_httpFile->getFileSize()));
-    // if(!rsp._body.empty() && !rsp.hasHeader("Content-Type")){
-    //     rsp.setHeader("Content-Type","application/octet-stream");
-    // }
-    rsp.setHeader("Content-Type", HttpUtil::getMimeType(_httpFile->getFilePath()));
+    
     if(rsp._redirectFlag) {
         rsp.setHeader("Location",rsp._redirectUrl);
     }
+
     rsp.setHeader("Server", "SimpleMediaServer");
     rsp.setHeader("Access-Control-Allow-Origin", "*");
     rsp.setHeader("Access-Control-Allow-Credentials", "true");
@@ -339,6 +333,15 @@ void HttpConnection::sendFile() // 将要素按照HttpResponse协议进行组织
 
         if (_parser._mapHeaders.find("sec-websocket-version") != _parser._mapHeaders.end()) {
             rsp.setHeader("Sec-WebSocket-Version", _parser._mapHeaders["sec-websocket-version"]);
+        }
+    }
+
+    if (_httpFile) {
+        rsp.setHeader("Content-Length", std::to_string(_httpFile->getSize()));
+        rsp.setHeader("Content-Type", HttpUtil::getMimeType(_httpFile->getFilePath()));
+        if (!_rangeStr.empty()) {
+            rsp._status = 206;
+            rsp.setHeader("Content-Range", "bytes " + _rangeStr + "/" + to_string(_httpFile->getFileSize()));
         }
     }
     
@@ -378,6 +381,60 @@ void HttpConnection::sendFile() // 将要素按照HttpResponse协议进行组织
     _parser.clear();
     if (!_isWebsocket) {
         _onHttpBody = nullptr;
+    }
+}
+
+void HttpConnection::setFileRange(const string& rangeStr)
+{
+    // Range:bytes=0-1024,2000-3000
+    // 目前只支持单个range，示例是两个range
+    if (rangeStr.empty() || rangeStr == "-") {
+        return ;
+    }
+
+    try {
+        auto vec = split(rangeStr, "=");
+        if (vec.size() == 1 || vec.size() == 2) {
+            int index = vec.size() - 1;
+            _rangeStr = vec[index];
+
+            auto startStr = findSubStr(_rangeStr, "", "-");
+            auto endStr = findSubStr(_rangeStr, "-", "");
+            uint64_t fileSize = _httpFile->getFileSize();
+            uint64_t startPos;
+            uint64_t len;
+
+            if (startStr.empty()) {
+                len = stoull(endStr);
+                if (len > fileSize) {
+                    return ;
+                }
+                startPos = fileSize - len;
+            } else {
+                uint64_t endPos;
+                if (endStr.empty()) {
+                    endPos = fileSize;
+                } else {
+                    endPos = stoull(endStr);
+                }
+
+                startPos = stoull(startStr);
+
+                if (endPos < startPos) {
+                    return ;
+                }
+
+                if (endPos >= fileSize) {
+                    endPos = fileSize - 1;
+                }
+
+                len = endPos - startPos + 1;
+            }
+
+            _httpFile->setRange(startPos, len);
+        }
+    } catch (...) {
+
     }
 }
 
@@ -484,6 +541,10 @@ void HttpConnection::handleGet()
             writeHttpResponse(rsp);
         } else {
             if (_httpFile->isFile()) {
+                auto rangeIter = _parser._mapHeaders.find("range");
+                if (rangeIter != _parser._mapHeaders.end()) {
+                    setFileRange(rangeIter->second);
+                }
                 sendFile();
                 logInfo << "send a file: " << _httpFile->getFilePath();
             } else if (_httpFile->isDir()) {

@@ -76,7 +76,8 @@ void JT1078Server::start(const string& ip, int port, int count, bool isTalk)
         }
 
         TcpServer::Ptr server = make_shared<TcpServer>(loop, ip.data(), port, 0, 0);
-        server->setOnCreateSession([wSelf, path, expire, isTalk, count](const EventLoop::Ptr& loop, const Socket::Ptr& socket) -> JT1078Connection::Ptr {
+        weak_ptr<TcpServer> wServer = server;
+        server->setOnCreateSession([wSelf, wServer, path, expire, isTalk, count](const EventLoop::Ptr& loop, const Socket::Ptr& socket) -> JT1078Connection::Ptr {
             auto self = wSelf.lock();
             if (!self) {
                 return nullptr;
@@ -91,9 +92,11 @@ void JT1078Server::start(const string& ip, int port, int count, bool isTalk)
 
             if (expire) {
                 int port = socket->getLocalPort();
-                connection->setOnClose([wSelf, port, count](){
+                connection->setOnClose([wSelf, wServer, port, count](){
                     auto self = wSelf.lock();
-                    if (self) {
+                    auto server = wServer.lock();
+                    logTrace << "server->getCurConnNum(): " << server->getCurConnNum();
+                    if (self && server && server->getCurConnNum() == 0) {
                         self->stopByPort(port, count);
                         self->_portManager.put(port);
                     }

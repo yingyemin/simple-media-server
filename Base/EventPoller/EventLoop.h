@@ -57,6 +57,7 @@ public:
 
 private:
     bool _quit =false;
+    bool _eventRun = false;
     int _epollFd = -1;
     int _wakeupFd = -1;
     

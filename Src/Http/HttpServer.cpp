@@ -65,7 +65,7 @@ void HttpServer::start(const string& ip, int port, int count, bool enableSsl)
 
         lock_guard<mutex> lck(self->_mtx);
         self->_tcpServers[port].emplace_back(server);
-    });
+    }, count);
 }
 
 void HttpServer::stopByPort(int port, int count)

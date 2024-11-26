@@ -115,6 +115,15 @@ void HttpClient::onConnect()
             ss << "Content-Type: " << _request._mapHeaders["Content-Type"] << "\r\n";
         }
     }
+
+    for (auto& iter : _request._mapHeaders) {
+        if (iter.first == "Connection" || iter.first == "Content-Length" 
+                || iter.first == "Content-Type") {
+            continue;
+        }
+        ss << iter.first << ": " << iter.second << "\r\n";
+    }
+
     if (_isWebsocket) {
         _websocketKey = "x3JJHMbDL1EzLkh9GBhXDw==";
         ss << "Upgrade: websocket\r\n"

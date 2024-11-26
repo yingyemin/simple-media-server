@@ -63,6 +63,7 @@ void TcpServer::accept(int event, void* args)
 
     _lastAcceptTime = TimeClock::now();
 
+    weak_ptr<TcpServer> wServer = shared_from_this();
     while(true) {
         if (event & EPOLLIN) {
             do {
@@ -79,8 +80,11 @@ void TcpServer::accept(int event, void* args)
                 // 优雅的断开连接
                 // 用一个空闲的描述符(事先占用一个描述符)假装接受处理，
                 // 然后立即关闭，断开与客户端连接，就不会忙等(busy-loop)
-                _loop->addTimerTask(100, [this, event, args](){
-                    accept(event, args);
+                _loop->addTimerTask(100, [wServer, event, args](){
+                    auto server = wServer.lock();
+                    if (server) {
+                        server->accept(event, args);
+                    }
                     return 0;
                 }, nullptr);
                 logWarn << "accept errno=EMFILE";
@@ -117,9 +121,14 @@ void TcpServer::accept(int event, void* args)
                 socket->handleEvent(event, args);
             });
 
-            session->setCloseCallback([this](TcpConnection::Ptr session){
-                logInfo << "close: " << session->getSocket()->getFd();
-                _mapSession.erase(session->getSocket()->getFd());
+            session->setCloseCallback([wServer](TcpConnection::Ptr session){
+                auto server = wServer.lock();
+                if (!server) {
+                    return ;
+                }
+                logTrace << "close: " << session->getSocket()->getFd();
+                server->_mapSession.erase(session->getSocket()->getFd());
+                server->_curConns = server->_mapSession.size();
             });
 
             TcpConnection::Wptr weakSession = session;
@@ -140,9 +149,10 @@ void TcpServer::accept(int event, void* args)
                 return 0;
             });
             
-            logInfo << "add session";
+            // logInfo << "add session";
             _mapSession.emplace(socket->getFd(), session);
-            logInfo << "add session: " << _mapSession.size();
+            _curConns = _mapSession.size();
+            logTrace << "add session: " << _mapSession.size();
         }
 
         if (event & (EPOLLHUP | EPOLLERR)) {

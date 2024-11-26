@@ -121,6 +121,7 @@ void JT1078Connection::onRtpPacket(const JT1078RtpPacket::Ptr& buffer)
 
         if (!source) {
             logWarn << "another stream is exist with the same uri";
+            close();
             return ;
         }
         logInfo << "create a JT1078MediaSource";

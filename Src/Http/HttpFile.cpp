@@ -176,6 +176,15 @@ StreamBuffer::Ptr HttpFile::read(int size)
         return nullptr;
     }
 
+    if (_size > 0 && _readSize + size > _size) {
+        size = _size - _readSize;
+    }
+
+    if (size == 0) {
+        return nullptr;
+    }
+        
+    _readSize += size;
     return _file.read(size);
 }
 
@@ -191,4 +200,25 @@ int HttpFile::getFileSize()
     }
 
     return _file.getFileSize();
+}
+
+void HttpFile::setRange(uint64_t startPos, uint64_t len)
+{
+    _startPos = startPos;
+    _size = len;
+    
+    if (!_file.open(_filePath, "rb+")) {
+        return ;
+    }
+
+    _file.seek(startPos);
+}
+
+uint64_t HttpFile::getSize()
+{
+    if (_size > 0) {
+        return _size;
+    }
+
+    return getFileSize();
 }

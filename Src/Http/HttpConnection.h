@@ -45,6 +45,7 @@ private:
     void onHttpRequest();
     void writeHttpResponse(HttpResponse& rsp);
     void sendFile();
+    void setFileRange(const string& rangeStr);
 
     void handleGet();
     void handlePost();
@@ -74,6 +75,7 @@ private:
     uint64_t _totalSendBytes = 0;
     uint64_t _intervalSendBytes = 0;
     float _lastBitrate = 0;
+    string _rangeStr;
     string _mimeType;
     string _serverId;
     HttpParser _parser;

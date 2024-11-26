@@ -19,6 +19,10 @@ FrameMediaSource::~FrameMediaSource()
 
 void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
 {
+    if (!frame || _mapTrackInfo.find(frame->getTrackIndex()) == _mapTrackInfo.end()) {
+        return ;
+    }
+
     // logInfo << "before adjust frame pts: " << frame->_pts << ", frame dts: " << frame->_dts << ", type: " << frame->_trackType
     //         << ", size: " << frame->size();
     // for (auto& sink : _mapSink) {
@@ -33,7 +37,8 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
                 keyframe = true;
                 _sendConfig = true;
 
-                _videoStampAdjust->inputStamp(frame->_pts, frame->_dts, 1);
+                if (_videoStampAdjust)
+                    _videoStampAdjust->inputStamp(frame->_pts, frame->_dts, 1);
                 _ring->write(frame, keyframe);
             } else if (frame->isNewNalu() && _frame) {
                 if (_frame->keyFrame()) {
@@ -67,12 +72,13 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
                 }
 
                 _ring->write(_frame, keyframe);
-                
-                _videoStampAdjust->inputStamp(frame->_pts, frame->_dts, 1);
+                if (_videoStampAdjust)
+                    _videoStampAdjust->inputStamp(frame->_pts, frame->_dts, 1);
                 _frame = frame;
             } else {
                 if (!_frame) {
-                    _videoStampAdjust->inputStamp(frame->_pts, frame->_dts, 1);
+                    if (_videoStampAdjust)
+                        _videoStampAdjust->inputStamp(frame->_pts, frame->_dts, 1);
                     _frame = frame;
                 } else {
                     _frame->_buffer.append(frame->_buffer);
@@ -85,7 +91,8 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
             } else if (frame->_codec == "g711a" || frame->_codec == "g711u") {
                 samples = frame->size() - frame->startSize();
             }
-            _audioStampAdjust->inputStamp(frame->_pts, frame->_dts, samples);
+            if (_audioStampAdjust)
+                _audioStampAdjust->inputStamp(frame->_pts, frame->_dts, samples);
             _ring->write(frame, false);
         }
         // logInfo << "frame pts: " << frame->_pts << ", frame dts: " << frame->_dts << ", type: " << frame->_trackType;
