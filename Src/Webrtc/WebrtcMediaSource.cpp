@@ -166,6 +166,10 @@ void WebrtcMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
         // if (_mapSink.size() > 0)
             rtcTrack->startEncode();
     }
+
+    if (track->codec_ == "g711a" || track->codec_ == "g711u") {
+        _channels = track->channel_;
+    }
 }
 
 void WebrtcMediaSource::addSink(const MediaSource::Ptr &src)
@@ -230,6 +234,10 @@ void WebrtcMediaSource::onFrame(const FrameBuffer::Ptr& frame)
 {
     // logInfo << "on get a frame: index : " << frame->getTrackIndex()
     //           << ", codec: " << frame->codec();
+    if (!frame) {
+        return ;
+    }
+
     auto it = _mapWebrtcEncodeTrack.find(frame->getTrackIndex());
     if (it == _mapWebrtcEncodeTrack.end()) {
         return ;
@@ -249,7 +257,62 @@ void WebrtcMediaSource::onFrame(const FrameBuffer::Ptr& frame)
     //     fwrite(frame->_buffer.data(), 1, frame->_buffer.size(), fp);
     //     fclose(fp);
     // }
-    it->second->onFrame(frame);
+    if (frame->_codec == "g711a" || frame->_codec == "g711u") {
+        processG711(frame, it->second);
+    } else {
+        it->second->onFrame(frame);
+    }
+}
+
+void WebrtcMediaSource::processG711(const FrameBuffer::Ptr& frame, const WebrtcEncodeTrack::Ptr& track)
+{
+    if (!_cacheFrame) {
+        _cacheFrame = std::make_shared<FrameBuffer>();
+        _cacheFrame->_index = frame->_index;
+        _cacheFrame->_trackType = frame->_trackType;
+        _cacheFrame->_startSize = frame->_startSize;
+        _cacheFrame->_codec = frame->_codec;
+    }
+
+    auto dur = _cacheFrame->size() / (8 * _channels);
+    auto next_pts = _cacheFrame->pts() + dur;
+    if (next_pts == 0) {
+        _cacheFrame->_pts = frame->pts();
+    } else {
+        if ((next_pts + _frameDur) < frame->pts()) { // 有丢包超过20ms
+            _cacheFrame->_pts = frame->pts() - dur;
+        }
+    }
+    _cacheFrame->_buffer.append(frame->data(), frame->size());
+
+    auto stamp = _cacheFrame->pts();
+    auto ptr = _cacheFrame->data();
+    auto len = _cacheFrame->size();
+    auto remain_size = len;
+    size_t max_size = 160 * _channels * _frameDur / 20; // 20 ms per 160 byte
+    size_t n = 0;
+    
+    while (remain_size >= max_size) {
+        assert(remain_size >= max_size);
+        const size_t frame_size = max_size;
+        n++;
+        stamp += _frameDur;
+
+        auto subFrame = std::make_shared<FrameBuffer>();
+        subFrame->_index = _cacheFrame->_index;
+        subFrame->_trackType = _cacheFrame->_trackType;
+        subFrame->_startSize = _cacheFrame->_startSize;
+        subFrame->_codec = _cacheFrame->_codec;
+        subFrame->_pts = stamp;
+        subFrame->_buffer.assign(ptr, frame_size);
+
+        track->onFrame(subFrame);
+
+        ptr += frame_size;
+        remain_size -= frame_size;
+    }
+    _cacheFrame->_buffer.erase(0, n * max_size);
+    _cacheFrame->_pts += (uint64_t)_frameDur * n;
 }
 
 void WebrtcMediaSource::onReady()

@@ -1065,6 +1065,7 @@ void WebrtcContext::sendMedia(const RtpPacket::Ptr& rtp)
     }
 
     // logInfo << "WebrtcContext::sendMedia: " << startSize << ", rtp size: " << rtp->size();
+    // logInfo << "rtp type: " << rtp->type_ << ", rtp stamp: " << rtp->getStamp();
 	int nb_cipher = rtp->size() - startSize;
     // char data[1500];
     auto buffer = make_shared<StreamBuffer>(1500 + 1);

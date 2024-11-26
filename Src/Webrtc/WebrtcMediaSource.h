@@ -39,12 +39,17 @@ public:
     uint64_t getBytes() override { return _ring ? _ring->getBytes() : 0;}
 
     QueType::Ptr getRing() {return _ring;}
+    void processG711(const FrameBuffer::Ptr& frame, const WebrtcEncodeTrack::Ptr& track);
 
 private:
     bool _muxer;
     bool _probeFinish = false;
     bool _start = false;
     int _ringSize = 512;
+    
+    int _channels = 0;
+    uint32_t _frameDur = 20; // ms
+    FrameBuffer::Ptr _cacheFrame;
 
     QueType::Ptr _ring;
     DataType _cache;
