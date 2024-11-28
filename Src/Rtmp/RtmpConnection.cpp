@@ -560,9 +560,9 @@ bool RtmpConnection::handleConnect()
         _tcUrl = string(PROTOCOL_RTMP) + "://" + DEFAULT_VHOST + "/" + _app;
     }
 
+    setChunkSize();
     sendAcknowledgement();
     setPeerBandwidth();   
-    setChunkSize();
 
     AmfObjects objects;    
     _amfEncoder.reset();

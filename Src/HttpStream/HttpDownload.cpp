@@ -17,7 +17,7 @@ HttpDownload::~HttpDownload()
 
 void HttpDownload::setRange(uint64_t startPos, uint64_t size)
 {
-    uint64_t endPos = startPos + size;
+    uint64_t endPos = startPos + size - 1;
     addHeader("Range", "bytes=" + to_string(startPos) + "-" + to_string(endPos));
 }
 
@@ -79,20 +79,28 @@ void HttpDownload::onConnect()
     sendContent(_request._content.data(), _request._content.size());
 }
 
-void HttpDownload::onRecvContent(const char *data, uint64_t len) {
-    if (_parser._contentLen <= 0) {
-        close();
+void HttpDownload::onRecvContent(const char *data, uint64_t len)
+{
+    if (!data || len == 0) {
         return ;
     }
-
+    
     _recvSize += len;
 
     if (_chunkedParser) {
         _chunkedParser->parse(data, len);
+        
+        if (_parser._contentLen <= 0) {
+            close();
+        }
         return ;
     }
     
     onHttpResponce(data, len);
+
+    if (_parser._contentLen <= 0) {
+        close();
+    }
 }
 
 void HttpDownload::close()

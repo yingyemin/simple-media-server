@@ -94,8 +94,8 @@ void HttpParser::parse(const char *data, size_t len)
                 // 读完了头，且没有content。重新解析新的包
                 // logInfo << "on http request";
                 onHttpRequest();
-                onHttpBody(nullptr, 0);
                 _contentLen = 0;
+                onHttpBody(nullptr, 0);
                 _stage = 1;
                 continue;
             }
@@ -144,19 +144,18 @@ void HttpParser::parse(const char *data, size_t len)
             // logInfo << "_contentLen: " << _contentLen;
             if (_contentLen == -1 || leftSize < _contentLen) {
                 // logInfo << "on http body";
-                onHttpBody(data, leftSize);
                 _contentLen -= leftSize;
+                onHttpBody(data, leftSize);
                 data = end;
                 break;
             } else {
                 // 处理content
                 _stage = 1;
-                onHttpBody(data, _contentLen);
-                data += _contentLen;
-                // _content = string(data, _contentLen);
+                int tmpLen = _contentLen;
                 _contentLen = 0;
+                onHttpBody(data, tmpLen);
+                data += tmpLen;
                 // logInfo << "on http body";
-                // onHttpRequest();
                 continue;
             }
         }

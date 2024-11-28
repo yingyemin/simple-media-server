@@ -84,7 +84,7 @@ void HttpPsVodClient::decode(const char* data, int len)
     if (_demuxer) {
         _demuxer->onPsStream((char*)data, len, 0, 0);
     }
-    // FILE* fp = fopen("test.ps", "ab+");
-    // fwrite(frame->_buffer.data(), 1, frame->_buffer.size(), fp);
+    // FILE* fp = fopen("testvod.ps", "ab+");
+    // fwrite(data, 1, len, fp);
     // fclose(fp);
 }

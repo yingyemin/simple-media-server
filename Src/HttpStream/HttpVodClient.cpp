@@ -63,7 +63,7 @@ void HttpVodClient::download()
     });
 
     _downloader->setRange(_curPos, _readSize);
-    _curPos += _readSize + 1;
+    _curPos += _readSize;
 
     _isDownload = true;
     _downloader->start(_localIp, _localPort, _url, _timeout);

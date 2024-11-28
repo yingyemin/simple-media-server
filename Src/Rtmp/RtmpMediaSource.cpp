@@ -143,8 +143,8 @@ void RtmpMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
         _metaData["videodatarate"] = AmfObject(5000);
         _metaData["videocodecid"] = AmfObject(getCodecId(track->codec_));
     } else {
-        _metaData["videodatarate"] = AmfObject(160);
-        _metaData["videocodecid"] = AmfObject(getCodecId(track->codec_));
+        _metaData["audiodatarate"] = AmfObject(160);
+        _metaData["audiocodecid"] = AmfObject(getCodecId(track->codec_));
     }
     
     logInfo << "index: " << track->index_ << ", codec: " << track->codec_ ;

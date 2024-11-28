@@ -24,8 +24,10 @@ public:
 
 public:
     TranscodeTask::Ptr instance();
-    std::string addTask(const std::string& uri, const std::string& videoCodec, const std::string& audioCodec);
-    void delTask(const std::string& taskId);
+    static std::string addTask(const std::string& uri, const std::string& videoCodec, const std::string& audioCodec);
+
+    std::string init(const std::string& uri, const std::string& videoCodec, const std::string& audioCodec);
+    static void delTask(const std::string& taskId);
 
     void onOriginFrameSource(const MediaSource::Ptr &src);
     void close();
@@ -36,8 +38,9 @@ private:
     MediaSource::FrameRingType::DataQueReaderT::Ptr _playReader;
     std::shared_ptr<TranscodeVideo> _transcodeVideo;
     std::shared_ptr<AudioDecoder> _transcodeAudio;
-    std::mutex _mtx;
-    std::unordered_map<string, TranscodeTask::Ptr> _mapTask;
+
+    static std::mutex _mtx;
+    static std::unordered_map<string, TranscodeTask::Ptr> _mapTask;
 };
 
 #endif

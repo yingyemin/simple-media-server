@@ -259,7 +259,7 @@ void WebrtcContext::initPlayerLocalSdp(int trackNum)
 
 void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, const shared_ptr<TrackInfo>& audioInfo)
 {
-    if (!videoInfo || !audioInfo || !_remoteSdp) {
+    if (!_remoteSdp) {
         return ;
     }
 
@@ -287,6 +287,7 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
     }, "Webrtc", "Server", "Server1", "enableUlpfec");
     
     for (auto sdpMedia : _remoteSdp->_vecSdpMedia) {
+        bool findFlag = false;
         shared_ptr<WebrtcSdpMedia> localSdpMedia = make_shared<WebrtcSdpMedia>();
         shared_ptr<WebrtcTrackInfo> trackInfo = make_shared<WebrtcTrackInfo>();
 
@@ -308,6 +309,7 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
 
             for (auto ptIter : sdpMedia->mapPtInfo_) {
                 if (videoInfo && strcasecmp(ptIter.second->codec_.data(), videoInfo->codec_.data()) == 0) {
+                    findFlag = true;
                     if (isH264) {
                         if (first) {
                             remotePtInfo = ptIter.second;
@@ -322,6 +324,11 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
                         break;
                     }
                 } else {
+                    if (first) {
+                        remotePtInfo = ptIter.second;
+                        first = false;
+                    }
+
                     if (ptIter.second->fmtp_.find("42e01f") != string::npos) {
                         remotePtInfo = ptIter.second;
                         break;
@@ -374,7 +381,6 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
 
             // cloneTrack(trackInfo, audioInfo);
             WebrtcPtInfo::Ptr opusPtInfo;
-            bool findFlag = false;
 
             for (auto ptIter : sdpMedia->mapPtInfo_) {
                 if (first) {
@@ -414,6 +420,10 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
             _audioPtInfo = remotePtInfo;
         } else {
             return ;
+        }
+
+        if (!findFlag) {
+            sdpMedia->sendRecvType_ = Inactive;
         }
 
         if (remotePtInfo) {

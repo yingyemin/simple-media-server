@@ -6,6 +6,7 @@
 #include "Util/String.h"
 #include "WorkPoller/WorkLoopPool.h"
 #include "FfmpegApi.h"
+#include "Ffmpeg/TranscodeTask.h"
 
 using namespace std;
 
@@ -23,15 +24,25 @@ void FfmpegApi::addTask(const HttpParser& parser, const UrlParser& urlParser,
 {
     checkArgs(parser._body, {"path"});
 
-    if (parser._body.find("videoCodec") != parser._body.end()) {
+    string videoCodec;
+    string audioCodec;
 
+    if (parser._body.find("videoCodec") != parser._body.end()) {
+        videoCodec = parser._body["videoCodec"];
     }
+
+    if (parser._body.find("audioCodec") != parser._body.end()) {
+        audioCodec = parser._body["audioCodec"];
+    }
+
+    string taskId = TranscodeTask::addTask(parser._body["path"], videoCodec, audioCodec);
 
     HttpResponse rsp;
     rsp._status = 200;
     json value;
     value["code"] = "200";
     value["msg"] = "success";
+    value["taskId"] = taskId;
     rsp.setContent(value.dump());
     rspFunc(rsp);
 }
@@ -39,13 +50,9 @@ void FfmpegApi::addTask(const HttpParser& parser, const UrlParser& urlParser,
 void FfmpegApi::delTask(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc)
 {
-    auto loop = WorkLoopPool::instance()->getLoopByCircle();
-    WorkTask::Ptr task = make_shared<WorkTask>();
-    task->priority_ = 100;
-    task->func_ = [](){
-        logInfo << "add a work task";
-    };
-    loop->addOrderTask(task);
+    checkArgs(parser._body, {"taskId"});
+
+    TranscodeTask::delTask(parser._body["taskId"]);
 
     HttpResponse rsp;
     rsp._status = 200;

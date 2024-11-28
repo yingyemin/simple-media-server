@@ -82,34 +82,6 @@ void WebrtcApi::rtcPlay(const HttpParser& parser, const UrlParser& urlParser,
         rsp.setContent(value.dump());
         rspFunc(rsp);
     }
-
-
-    // checkArgs(parser._body, {"streamurl", "sdp"});
-    // string url = parser._body["streamurl"];
-    // string sdp = parser._body["sdp"];
-
-    // std::ostringstream oss;
-    // std::string session_id;
-
-    // HttpResponse rsp;
-    // rsp._status = 200;
-    // json value;
-    // value["code"] = 200;
-    // rsp.setHeader("Access-Control-Allow-Origin", "*");
-
-    // if (0 == RtcServer::Instance().OnReceivedSdp(url, sdp, oss, session_id)) {
-    //     //val["code"] = 0;
-    //     value["server"] = "14091";
-    //     value["sdp"] = oss.str();
-    //     value["sessionid"] = session_id;
-    //     logInfo << "sdp exchange successed, session is [" << session_id << "]";
-    // } else {
-    //     value["code"] = 20001;
-    // }
-
-    
-    // rsp.setContent(value.dump());
-    // rspFunc(rsp);
 }
 
 void WebrtcApi::rtcPublish(const HttpParser& parser, const UrlParser& urlParser, 

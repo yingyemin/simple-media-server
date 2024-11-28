@@ -13,6 +13,9 @@
 
 using namespace std;
 
+mutex TranscodeTask::_mtx;
+unordered_map<string, TranscodeTask::Ptr> TranscodeTask::_mapTask;
+
 TranscodeTask::TranscodeTask()
 {}
 
@@ -35,7 +38,21 @@ std::string TranscodeTask::addTask(const std::string& uri, const std::string& vi
             throw runtime_error("a same task is exists");
         }
     }
-    _taskId = key;
+
+    auto task = std::make_shared<TranscodeTask>();
+    string taskId = task->init(uri, videoCodec, audioCodec);
+
+    {
+        lock_guard<mutex> lck(_mtx);
+        _mapTask.emplace(key, task);
+    }
+
+    return taskId;
+}
+
+std::string TranscodeTask::init(const std::string& uri, const std::string& videoCodec, const std::string& audioCodec)
+{
+    _taskId = uri + "_" + videoCodec + "_" + audioCodec;
     auto originSource = MediaSource::get(uri, DEFAULT_VHOST);
     if (!originSource) {
         throw runtime_error("origin source is not exists");
@@ -165,11 +182,6 @@ std::string TranscodeTask::addTask(const std::string& uri, const std::string& vi
         return make_shared<FrameMediaSource>(urlParser, nullptr);
     }, this);
 
-    {
-        lock_guard<mutex> lck(_mtx);
-        _mapTask.emplace(key, shared_from_this());
-    }
-
     return _taskId;
 }
 
@@ -240,8 +252,7 @@ void TranscodeTask::delTask(const std::string& taskId)
 
 void TranscodeTask::close()
 {
-    lock_guard<mutex> lck(_mtx);
-    _mapTask.erase(_taskId);
+    
 }
 
 #endif
