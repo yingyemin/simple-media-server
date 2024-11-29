@@ -14,6 +14,7 @@
 #include "Common/Config.h"
 #include "Util/Thread.h"
 #include "Ssl/TlsContext.h"
+#include "Common/Heartbeat.h"
 
 #include "Hook/MediaHook.h"
 
@@ -28,6 +29,8 @@
 #include "Api/RecordApi.h"
 #include "Api/TestApi.h"
 #include "Api/JT1078Api.h"
+#include "Api/FfmpegApi.h"
+#include "Api/HookApi.h"
 
 #include "Rtmp/RtmpClient.h"
 #include "Rtsp/RtspClient.h"
@@ -55,6 +58,20 @@ void setFileLimits()
             setrlimit(RLIMIT_NOFILE, &limitNew);
         }
         logInfo << "文件最大描述符个数设置为:" << limitNew.rlim_cur;
+    }
+}
+
+void setCoreLimits()
+{
+    struct rlimit limitOld, limitNew;
+
+    if (getrlimit(RLIMIT_CORE, &limitOld)==0) {
+        limitNew.rlim_cur = limitNew.rlim_max = RLIM_INFINITY;
+        if (setrlimit(RLIMIT_CORE, &limitNew)!=0) {
+            limitNew.rlim_cur = limitNew.rlim_max = limitOld.rlim_max;
+            setrlimit(RLIMIT_CORE, &limitNew);
+        }
+        logInfo << "core文件大小设置为:" << limitNew.rlim_cur;
     }
 }
 
@@ -105,6 +122,7 @@ int main(int argc, char** argv)
     Logger::instance()->setLevel((LogLevel)logLevel);
 
     setFileLimits();
+    setCoreLimits();
 
     auto sslKey = Config::instance()->get("Ssl", "key");
     auto sslCrt = Config::instance()->get("Ssl", "cert");
@@ -115,6 +133,7 @@ int main(int argc, char** argv)
     RecordReader::init();
 
     HttpApi::initApi();
+    HookApi::initApi();
     RtmpApi::initApi();
     RtspApi::initApi();
     GB28181Api::initApi();
@@ -123,6 +142,9 @@ int main(int argc, char** argv)
     RecordApi::initApi();
     TestApi::initApi();
     JT1078Api::initApi();
+#ifdef ENABLE_FFMPEG
+    FfmpegApi::initApi();
+#endif
 
     RtspClient::init();
     RtmpClient::init();
@@ -130,6 +152,9 @@ int main(int argc, char** argv)
 #ifdef ENABLE_SRT
     SrtSocket::initSrt();
 #endif
+
+    Heartbeat::Ptr beat = make_shared<Heartbeat>();
+    beat->startAsync();
 
     // 开启RTSP SERVER
     // 参数需要改成从配置读取

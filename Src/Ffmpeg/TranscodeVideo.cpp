@@ -207,23 +207,36 @@ int TranscodeVideo::inputFrame(const FrameBuffer::Ptr& frame)
 
     /* find the MPEG-1 video decoder */
     
-
+    logInfo << "TranscodeVideo::inputFrame: " << data_size << " bytes";
     bool eof = !data_size;
 
-    /* use the parser to split the data into frames */
-    while (data_size > 0 || eof) {
-        ret = av_parser_parse2(_deParser, _deCodecCtx, &_pkt->data, &_pkt->size,
-                                data, data_size, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
-        if (ret < 0) {
-            logError << "Error while parsing";
-            return ret;
-        }
-        data      += ret;
-        data_size -= ret;
-
-        if (_pkt->size)
-            decode(_deCodecCtx, _deFrame, _pkt);
+    auto pkt = av_packet_alloc();
+    pkt->data = (uint8_t *) data;
+    pkt->size = data_size;
+    pkt->dts = frame->dts();
+    pkt->pts = frame->pts();
+    if (frame->keyFrame()) {
+        pkt->flags |= AV_PKT_FLAG_KEY;
     }
+
+    decode(_deCodecCtx, _deFrame, pkt);
+
+    av_packet_free(&pkt);
+
+    /* use the parser to split the data into frames */
+    // while (data_size > 0 || eof) {
+    //     ret = av_parser_parse2(_deParser, _deCodecCtx, &_pkt->data, &_pkt->size,
+    //                             data, data_size, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
+    //     if (ret < 0) {
+    //         logError << "Error while parsing";
+    //         return ret;
+    //     }
+    //     data      += ret;
+    //     data_size -= ret;
+
+    //     if (_pkt->size)
+    //         decode(_deCodecCtx, _deFrame, _pkt);
+    // }
 
     return 0;
 }

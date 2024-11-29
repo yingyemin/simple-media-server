@@ -42,6 +42,9 @@ public:
         sps = nullptr;
         pps = nullptr;
     }
+    virtual void setVps(const FrameBuffer::Ptr& vps) {}
+    virtual void setSps(const FrameBuffer::Ptr& sps) {}
+    virtual void setPps(const FrameBuffer::Ptr& pps) {}
 
     virtual bool isReady() {return true;}
 public:

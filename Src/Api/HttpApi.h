@@ -24,18 +24,6 @@ private:
     static void handleConfig(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc);
 
-    static void onStreamStatus(const HttpParser& parser, const UrlParser& urlParser, 
-                        const function<void(HttpResponse& rsp)>& rspFunc);
-
-    static void onPublish(const HttpParser& parser, const UrlParser& urlParser, 
-                        const function<void(HttpResponse& rsp)>& rspFunc);
-
-    static void onPlay(const HttpParser& parser, const UrlParser& urlParser, 
-                        const function<void(HttpResponse& rsp)>& rspFunc);
-
-    static void onNonePlayer(const HttpParser& parser, const UrlParser& urlParser, 
-                        const function<void(HttpResponse& rsp)>& rspFunc);
-
     static void getSourceList(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc);
 

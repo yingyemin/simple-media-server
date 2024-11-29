@@ -74,6 +74,16 @@ public:
     int port = 0;
 };
 
+class ServerInfo
+{
+public:
+    string ip;
+    int port = 0;
+    uint64_t originCount = 0;
+    uint64_t playerCount = 0;
+    float memUsage = 0;
+};
+
 class MediaHook : public enable_shared_from_this<MediaHook>
 {
 public:
@@ -93,6 +103,8 @@ public:
     void onPlayer(const PlayerInfo& info);
     void onNonePlayer(const string& protocol, const string& uri, 
                         const string& vhost, const string& type);
+
+    void onKeepAlive(const ServerInfo& info);
 
 private:
     bool _enableHook = true;

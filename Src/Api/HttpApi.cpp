@@ -46,10 +46,6 @@ void HttpApi::route(const HttpParser& parser, const UrlParser& urlParser,
 void HttpApi::initApi()
 {
     g_mapApi.emplace("/api/v1/config", HttpApi::handleConfig);
-    g_mapApi.emplace("/api/v1/onStreamStatus", HttpApi::onStreamStatus);
-    g_mapApi.emplace("/api/v1/onPublish", HttpApi::onPublish);
-    g_mapApi.emplace("/api/v1/onPlay", HttpApi::onPlay);
-    g_mapApi.emplace("/api/v1/onNonePlayer", HttpApi::onNonePlayer);
     g_mapApi.emplace("/api/v1/getSourceList", HttpApi::getSourceList);
     g_mapApi.emplace("/api/v1/getSourceInfo", HttpApi::getSourceInfo);
     g_mapApi.emplace("/api/v1/closeSource", HttpApi::closeSource);
@@ -89,66 +85,6 @@ void HttpApi::handleConfig(const HttpParser& parser, const UrlParser& urlParser,
         rsp.setContent(value.dump());
         rspFunc(rsp);
     }
-}
-
-void HttpApi::onStreamStatus(const HttpParser& parser, const UrlParser& urlParser, 
-                        const function<void(HttpResponse& rsp)>& rspFunc)
-{
-    HttpResponse rsp;
-    rsp._status = 200;
-    json value;
-    value["code"] = "200";
-    value["msg"] = "success";
-    rsp.setContent(value.dump());
-    rspFunc(rsp);
-}
-
-void HttpApi::onPublish(const HttpParser& parser, const UrlParser& urlParser, 
-                        const function<void(HttpResponse& rsp)>& rspFunc)
-{
-    HttpResponse rsp;
-    rsp._status = 200;
-    json value;
-    value["code"] = "200";
-    value["msg"] = "success";
-    value["authResult"] = true;
-    rsp.setContent(value.dump());
-    rspFunc(rsp);
-}
-
-void HttpApi::onPlay(const HttpParser& parser, const UrlParser& urlParser, 
-                        const function<void(HttpResponse& rsp)>& rspFunc)
-{
-    HttpResponse rsp;
-    rsp._status = 200;
-    json value;
-    value["code"] = "200";
-    value["msg"] = "success";
-    value["authResult"] = true;
-    rsp.setContent(value.dump());
-    rspFunc(rsp);
-}
-
-void HttpApi::onNonePlayer(const HttpParser& parser, const UrlParser& urlParser, 
-                        const function<void(HttpResponse& rsp)>& rspFunc)
-{
-    static int stopNonePlayerStream = Config::instance()->getAndListen([](const json& config){
-        stopNonePlayerStream = Config::instance()->get("Util", "stopNonePlayerStream");
-    }, "Util", "stopNonePlayerStream");
-
-    static int nonePlayerWaitTime = Config::instance()->getAndListen([](const json& config){
-        nonePlayerWaitTime = Config::instance()->get("Util", "nonePlayerWaitTime");
-    }, "Util", "nonePlayerWaitTime");
-
-    HttpResponse rsp;
-    rsp._status = 200;
-    json value;
-    value["code"] = "200";
-    value["msg"] = "success";
-    value["stop"] = stopNonePlayerStream;
-    value["delay"] = nonePlayerWaitTime;
-    rsp.setContent(value.dump());
-    rspFunc(rsp);
 }
 
 void HttpApi::getSourceList(const HttpParser& parser, const UrlParser& urlParser, 

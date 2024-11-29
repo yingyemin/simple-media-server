@@ -36,15 +36,15 @@ void HttpClientApi::onRecvContent(const char *data, uint64_t len) {
     if (len == 0 && _parser._contentLen == 0) {
         HttpClient::close();
         onHttpResponce();
-    }else if (_parser._contentLen == len) {
+    }else if (_parser._contentLen == 0) {
         _parser._content.append(data, len);
         HttpClient::close();
         onHttpResponce();
-    } else if (_parser._contentLen < len) {
-        logInfo << "recv body len is bigger than conten-length";
-        _parser._content.append(data, _parser._contentLen);
-        HttpClient::close();
-        onHttpResponce();
+    // } else if (_parser._contentLen < len) {
+    //     logInfo << "recv body len(" << len << ") is bigger than conten-length(" << _parser._contentLen << ")";
+    //     _parser._content.append(data, _parser._contentLen);
+    //     HttpClient::close();
+    //     onHttpResponce();
     } else {
         _parser._content.append(data, len);
     }

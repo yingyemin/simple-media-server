@@ -68,7 +68,7 @@ void MediaHook::reportByHttp(const string& url, const string&method, const strin
 
         const_cast<shared_ptr<HttpClientApi> &>(client).reset();
     });
-    logInfo << "connect to utl: " << url;
+    logInfo << "connect to url: " << url;
     if (client->sendHeader(url, timeout) != 0) {
         cb("connect to url: " + url + " failed", nullptr);
     }
@@ -248,6 +248,26 @@ void MediaHook::onNonePlayer(const string& protocol, const string& uri,
             url = Config::instance()->get("Hook", "Http", "onNonePlayer");
             logInfo << "Hook url: " << url;
         }, "Hook", "Http", "onNonePlayer");
+
+        reportByHttp(url, "POST", value.dump());
+    }
+}
+
+void MediaHook::onKeepAlive(const ServerInfo& info)
+{
+    json value;
+    value["serverId"] = info.ip + ":" + to_string(info.port);
+    value["originCount"] = info.originCount;
+    value["playerCount"] = info.playerCount;
+    value["memUsage"] = info.memUsage;
+
+    logInfo << "server info: " << value.dump();
+
+    if (_type == "http") {
+        static string url = Config::instance()->getAndListen([](const json& config){
+            url = Config::instance()->get("Hook", "Http", "onKeepAlive");
+            logInfo << "Hook url: " << url;
+        }, "Hook", "Http", "onKeepAlive");
 
         reportByHttp(url, "POST", value.dump());
     }

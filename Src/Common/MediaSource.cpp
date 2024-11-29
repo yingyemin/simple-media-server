@@ -89,6 +89,12 @@ MediaSource::Ptr MediaSource::get(const string& uri, const string& vhost, const 
     return nullptr;
 }
 
+unordered_map<string/*uri_vhost*/ , MediaSource::Ptr> MediaSource::getAllSource()
+{
+    lock_guard<recursive_mutex> lck(_mtxTotalSource);
+    return _totalSource;
+}
+
 MediaSource::Ptr MediaSource::getOrCreate(const string& uri, const string& vhost, const string &protocol, 
             const string& type, const std::function<MediaSource::Ptr()> &create)
 {
@@ -115,6 +121,26 @@ MediaSource::Ptr MediaSource::getOrCreate(const string& uri, const string& vhost
         return nullptr;
     }
     return src;
+}
+
+MediaSource::Ptr MediaSource::getOrCreate(const string &protocol, const string& type, const std::function<MediaSource::Ptr()> &create)
+{
+    lock_guard<recursive_mutex> lck(_mtxStreamSource);
+    auto& src = _streamSource[protocol][type];
+
+    if (src.lock()) {
+        logInfo << "another same source is exist";
+        return nullptr;
+    }
+
+    if (create) {
+        auto source = create();
+        src = source;
+
+        return source;
+    }
+
+    return src.lock();
 }
 
 MediaSource::Ptr MediaSource::getOrCreateInSrt(const string& uri, const string& vhost, const string &protocol, 
@@ -339,7 +365,8 @@ bool MediaSource::getOrCreateAsync(const string &protocol, const string& type,
     src->setLoop(_loop);
     src->addConnection(connKey);
     wsrc = src;
-    auto& wframeSource = _streamSource[PROTOCOL_FRAME][DEFAULT_TYPE];
+    string frameSrcType = type == "transcode" ? type : DEFAULT_TYPE;
+    auto& wframeSource = _streamSource[PROTOCOL_FRAME][frameSrcType];
     auto frameSource = wframeSource.lock();
     
     if (frameSource) {
@@ -515,6 +542,7 @@ MediaSource::Ptr MediaSource::getFromOrigin(const string& protocol, const string
         lock_guard<recursive_mutex> lck(origin->_mtxStreamSource);
         return origin->_streamSource[protocol][type].lock();
     } else {
+        lock_guard<recursive_mutex> lck(_mtxStreamSource);
         return _streamSource[protocol][type].lock();
     }
 }
@@ -537,6 +565,13 @@ void MediaSource::release(const string &uri, const string& vhost)
     _totalSource.erase(key);
 }
 
+unordered_map<string/*protocol*/ , unordered_map<string/*type*/ , MediaSource::Wptr> > 
+MediaSource::getMuxerSource() 
+{
+    lock_guard<recursive_mutex> lck(_mtxStreamSource);
+    return _streamSource;
+}
+
 void MediaSource::release()
 {
     // if (!getLoop()->isCurrent()) {
@@ -553,7 +588,10 @@ void MediaSource::release()
     logInfo << "delete source, _origin: " << _origin;
     if (_origin) {
         MediaSource::release(_urlParser.path_, _urlParser.vhost_);
-        _streamSource.clear();
+        {
+            lock_guard<recursive_mutex> lck(_mtxStreamSource);
+            _streamSource.clear();
+        }
         {
             // lock_guard<recursive_mutex> lck(_mtxOnDetachFunc);
             // auto tmp = _mapOnDetachFunc;

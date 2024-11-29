@@ -8,6 +8,8 @@
 
 #include "TranscodeVideo.h"
 #include "TranscodeAudio.h"
+#include "WorkPoller/WorkLoopPool.h"
+#include "EventPoller/EventLoop.h"
 
 #include <string>
 #include <memory>
@@ -34,10 +36,13 @@ public:
 
 private:
     std::string _taskId;
-    FrameMediaSource::Wptr _source;
+    FrameMediaSource::Ptr _source;
+    FrameMediaSource::Wptr _originSource;
     MediaSource::FrameRingType::DataQueReaderT::Ptr _playReader;
     std::shared_ptr<TranscodeVideo> _transcodeVideo;
     std::shared_ptr<AudioDecoder> _transcodeAudio;
+    WorkLoop::Ptr _workLoop;
+    EventLoop::Ptr _eventLoop;
 
     static std::mutex _mtx;
     static std::unordered_map<string, TranscodeTask::Ptr> _mapTask;

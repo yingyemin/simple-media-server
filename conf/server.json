@@ -17,7 +17,9 @@
     "Util" : {
         "stopNonePlayerStream" : false,
         "nonePlayerWaitTime" : 5000,
-        "enableLoadFromFile" : true
+        "enableLoadFromFile" : true,
+        # 心跳时间，单位ms
+        "heartbeatTime" : 10000
     },
     "Hook" : {
         "Type" : "http",
@@ -26,6 +28,7 @@
             "timeout" : 10,
             "onStreamStatus" : "http://127.0.0.1/api/v1/onStreamStatus",
             "onNonePlayer" : "http://127.0.0.1/api/v1/onNonePlayer",
+            "onKeepAlive" : "http://127.0.0.1/api/v1/onKeepAlive",
             "onPublish" : "http://127.0.0.1/api/v1/onPublish",
             "onPlay" : "http://127.0.0.1/api/v1/onPlay"
         },

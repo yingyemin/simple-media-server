@@ -23,6 +23,10 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
         return ;
     }
 
+    if (_urlParser.type_ == "transcode") {
+        logInfo << "transcode frame: " << _urlParser.type_;
+    }
+
     // logInfo << "before adjust frame pts: " << frame->_pts << ", frame dts: " << frame->_dts << ", type: " << frame->_trackType
     //         << ", size: " << frame->size();
     // for (auto& sink : _mapSink) {
@@ -97,6 +101,7 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
         }
         // logInfo << "frame pts: " << frame->_pts << ", frame dts: " << frame->_dts << ", type: " << frame->_trackType;
         // logInfo << "keyframe: " << keyframe << ", size: " << frame->size() << ", type: " << (int)frame->getNalType();
+        // logInfo << "frame source type: " << _urlParser.type_;
         // _ring->write(frame, keyframe);
     // }
 }
@@ -128,7 +133,7 @@ void FrameMediaSource::addSink(const MediaSource::Ptr &sink)
         if (!track.second) {
             break;
         }
-        logInfo << "on add track to sink";
+        logInfo << "on add track to sink: " << _urlParser.type_;
         sink->addTrack(track.second);
     }
     sink->onReady();
@@ -149,6 +154,7 @@ void FrameMediaSource::addSink(const MediaSource::Ptr &sink)
             return ;
         }
         // logInfo << "is key: " << is_key;
+        // logInfo << "frame source type: " << strong_self->_urlParser.type_;
         sink->onFrame(in);
         // for (auto& sinkW: strong_self->_mapSink) {
         //     // auto sink = sinkW.second.lock();

@@ -1,7 +1,8 @@
 ﻿#include <fstream>
 
 #include "Config.h"
-#include "Logger.h"
+#include "Log/Logger.h"
+#include "Util/String.h"
 
 using namespace std;
 
@@ -17,9 +18,22 @@ void Config::load(const string& filename)
     if (!configFile.is_open()) {
         throw runtime_error("Config file " + filename + " not found");
     }
+
+    string line;
+    string configStr;
+    while (getline(configFile, line)) {
+        line = trim(line, " ");
+        if (!line.empty()) {
+            if (line[0] == '#') {
+                continue ;
+            } else {
+                configStr += line;
+            }
+        }
+    }
     
-    configFile >> _config;
     configFile.close();
+    _config = json::parse(configStr);
 }
 
 json& Config::getConfig()

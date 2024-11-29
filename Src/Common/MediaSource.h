@@ -64,7 +64,7 @@ public:
     static MediaSource::Ptr get(const string& uri, const string& vhost);
     static MediaSource::Ptr get(const string& uri, const string& vhost, const string& protocol, const string& type);
 
-    static unordered_map<string/*uri_vhost*/ , MediaSource::Ptr> getAllSource() { return _totalSource;}
+    static unordered_map<string/*uri_vhost*/ , MediaSource::Ptr> getAllSource();
 
 public:
     bool getOrCreateAsync(const string &protocol, const string& type, 
@@ -74,8 +74,10 @@ public:
 
     MediaSource::Ptr getFromOrigin(const string& protocol, const string& type);
 
+    MediaSource::Ptr getOrCreate(const string &protocol, const string& type, const std::function<MediaSource::Ptr()> &create);
+
     unordered_map<string/*protocol*/ , unordered_map<string/*type*/ , MediaSource::Wptr> > 
-    getMuxerSource() {return _streamSource;}
+    getMuxerSource();
 
     void release();
 
