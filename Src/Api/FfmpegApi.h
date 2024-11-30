@@ -23,6 +23,9 @@ public:
 
     static void delTask(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc);
+
+    static void reconfig(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc);
 };
 
 #endif

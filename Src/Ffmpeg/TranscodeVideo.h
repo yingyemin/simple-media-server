@@ -38,12 +38,14 @@ public:
 
     void setOnPacket(const function<void(const StreamBuffer::Ptr& packet)>& cb);
     void onPacket(const StreamBuffer::Ptr& packet);
+    void setBitrate(int bitrate);
 
 private:
     VideoEncodeOption _option;
     AVCodecContext *_enCodecCtx= NULL;
     AVPacket *_enPkt;
     int _bInitEncode = 0;
+    uint64_t _index = 0;
 
     const AVCodec *_deCodec;
     AVCodecParserContext *_deParser;

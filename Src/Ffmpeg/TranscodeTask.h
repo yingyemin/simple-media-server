@@ -27,9 +27,11 @@ public:
 public:
     TranscodeTask::Ptr instance();
     static std::string addTask(const std::string& uri, const std::string& videoCodec, const std::string& audioCodec);
+    static void delTask(const std::string& taskId);
+    static TranscodeTask::Ptr getTask(const std::string& taskId);
 
     std::string init(const std::string& uri, const std::string& videoCodec, const std::string& audioCodec);
-    static void delTask(const std::string& taskId);
+    void setBitrate(int bitrate);
 
     void onOriginFrameSource(const MediaSource::Ptr &src);
     void close();

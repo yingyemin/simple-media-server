@@ -17,6 +17,7 @@ void FfmpegApi::initApi()
 {
     g_mapApi.emplace("/api/v1/ffmpeg/task/add", FfmpegApi::addTask);
     g_mapApi.emplace("/api/v1/ffmpeg/task/del", FfmpegApi::delTask);
+    g_mapApi.emplace("/api/v1/ffmpeg/task/reconfig", FfmpegApi::reconfig);
 }
 
 void FfmpegApi::addTask(const HttpParser& parser, const UrlParser& urlParser, 
@@ -53,6 +54,29 @@ void FfmpegApi::delTask(const HttpParser& parser, const UrlParser& urlParser,
     checkArgs(parser._body, {"taskId"});
 
     TranscodeTask::delTask(parser._body["taskId"]);
+
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+    value["code"] = "200";
+    value["msg"] = "success";
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void FfmpegApi::reconfig(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    checkArgs(parser._body, {"taskId"});
+
+    auto task = TranscodeTask::getTask(parser._body["taskId"]);
+    if (!task) {
+        throw ApiException(404, "task not found");
+    }
+
+    if (parser._body.find("bitrate") != parser._body.end()) {
+        task->setBitrate(toInt(parser._body["bitrate"]));
+    }
 
     HttpResponse rsp;
     rsp._status = 200;

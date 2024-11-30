@@ -23,9 +23,9 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
         return ;
     }
 
-    if (_urlParser.type_ == "transcode") {
-        logInfo << "transcode frame: " << _urlParser.type_;
-    }
+    // if (_urlParser.type_ == "transcode") {
+    //     logInfo << "transcode frame: " << _urlParser.type_;
+    // }
 
     // logInfo << "before adjust frame pts: " << frame->_pts << ", frame dts: " << frame->_dts << ", type: " << frame->_trackType
     //         << ", size: " << frame->size();

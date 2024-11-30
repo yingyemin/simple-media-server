@@ -67,6 +67,13 @@ void TranscodeVideo::initEncode(AVCodecContext *dec_ctx)
     _enCodecCtx->time_base = (AVRational){1, 25};
     _enCodecCtx->framerate = (AVRational){25, 1};
 
+    int bitrate = 1000000;
+    _enCodecCtx->bit_rate = bitrate;
+    _enCodecCtx->rc_buffer_size = bitrate;
+    _enCodecCtx->rc_max_rate = bitrate;
+    _enCodecCtx->rc_min_rate = bitrate;
+    _enCodecCtx->rc_initial_buffer_occupancy = bitrate * 3 / 4;
+
     /* emit one intra frame every ten frames
      * check frame pict_type before passing frame
      * to encoder, if frame->pict_type is AV_PICTURE_TYPE_I
@@ -88,13 +95,25 @@ void TranscodeVideo::initEncode(AVCodecContext *dec_ctx)
     }
 }
 
+void TranscodeVideo::setBitrate(int bitrate)
+{
+    _enCodecCtx->bit_rate = bitrate;
+    _enCodecCtx->rc_buffer_size = bitrate;
+    _enCodecCtx->rc_max_rate = bitrate;
+    _enCodecCtx->rc_min_rate = bitrate;
+    _enCodecCtx->rc_initial_buffer_occupancy = bitrate * 3 / 4;
+    // _enCodecCtx->rc_max_available_vbv_use = 100;
+}
+
 void TranscodeVideo::encode(AVCodecContext *enc_ctx, AVFrame *frame, AVPacket *pkt)
 {
     /* send the frame to the encoder */
-    if (frame) {
-        logInfo << "Send frame: " << frame->pts;
-    }
+    // if (frame) {
+    //     logInfo << "Send frame: " << frame->pts;
+    // }
 
+    frame->pts = _index++;
+    // frame->dts = _index++;
     int ret = avcodec_send_frame(enc_ctx, frame);
     if (ret < 0) {
         logError << "Error sending a frame for encoding";
@@ -110,7 +129,7 @@ void TranscodeVideo::encode(AVCodecContext *enc_ctx, AVFrame *frame, AVPacket *p
             return ;
         }
 
-        logInfo << "Write packet pts: " << pkt->pts << ", size: " << pkt->size;
+        // logInfo << "Write packet pts: " << pkt->pts << ", size: " << pkt->size;
         StreamBuffer::Ptr buffer = make_shared<StreamBuffer>(pkt->size);
         buffer->assign((char*)pkt->data, pkt->size);
         onPacket(buffer);
@@ -138,7 +157,7 @@ void TranscodeVideo::decode(AVCodecContext *dec_ctx, AVFrame *frame, AVPacket *p
             return ;
         }
 
-        logInfo << "saving frame: " << dec_ctx->frame_num;
+        // logInfo << "saving frame: " << dec_ctx->frame_num;
         fflush(stdout);
 
         if (!_bInitEncode) {
@@ -207,7 +226,7 @@ int TranscodeVideo::inputFrame(const FrameBuffer::Ptr& frame)
 
     /* find the MPEG-1 video decoder */
     
-    logInfo << "TranscodeVideo::inputFrame: " << data_size << " bytes";
+    // logInfo << "TranscodeVideo::inputFrame: " << data_size << " bytes";
     bool eof = !data_size;
 
     auto pkt = av_packet_alloc();

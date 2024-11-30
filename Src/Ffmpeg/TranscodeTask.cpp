@@ -144,7 +144,7 @@ std::string TranscodeTask::init(const std::string& uri, const std::string& video
                 // fclose(fp);
 
                 self->_eventLoop->async([newTrack, frameSrc, frame]() {
-                    logInfo << "on frame after transcode";
+                    // logInfo << "on frame after transcode";
                     frame->split([newTrack, frameSrc](const FrameBuffer::Ptr& subFrame) {
                         if (!newTrack->isReady()) {
                             if (subFrame->getNalType() == H265_VPS) {
@@ -157,7 +157,7 @@ std::string TranscodeTask::init(const std::string& uri, const std::string& video
                                 newTrack->setPps(subFrame);
                             }
                         }
-                        logInfo << "get a frame type: " << (int)subFrame->getNalType();
+                        // logInfo << "get a frame type: " << (int)subFrame->getNalType();
 
                         if (newTrack->isReady()) {
                             frameSrc->onFrame(subFrame);
@@ -253,6 +253,13 @@ std::string TranscodeTask::init(const std::string& uri, const std::string& video
     return _taskId;
 }
 
+void TranscodeTask::setBitrate(int bitrate)
+{
+    if (_transcodeVideo) {
+        _transcodeVideo->setBitrate(bitrate);
+    }
+}
+
 void TranscodeTask::onOriginFrameSource(const MediaSource::Ptr &src)
 {
     _eventLoop = src->getLoop();
@@ -293,9 +300,9 @@ void TranscodeTask::onOriginFrameSource(const MediaSource::Ptr &src)
         // strong_self->shutdown(SockException(Err_shutdown, "rtsp ring buffer detached"));
         strong_self->close();
     });
-    logInfo << "setReadCB =================";
+    // logInfo << "setReadCB =================";
     _playReader->setReadCB([wSelf](const MediaSource::FrameRingDataType &pack) {
-        logInfo << "get a frame from origin source";
+        // logInfo << "get a frame from origin source";
         auto self = wSelf.lock();
         if (!self/* || pack->empty()*/) {
             return;
@@ -306,7 +313,7 @@ void TranscodeTask::onOriginFrameSource(const MediaSource::Ptr &src)
             return ;
         }
 
-        logInfo << "start decode ===========";
+        // logInfo << "start decode ===========";
         if (pack->_trackType == VideoTrackType) {
             if (self->_transcodeVideo) {
                 WorkTask::Ptr task = make_shared<WorkTask>();
@@ -317,12 +324,12 @@ void TranscodeTask::onOriginFrameSource(const MediaSource::Ptr &src)
                         return;
                     }
                     
-                    logInfo << "_transcodeVideo->inputFrame";
+                    // logInfo << "_transcodeVideo->inputFrame";
 
                     if (self->_transcodeVideo)
                         self->_transcodeVideo->inputFrame(pack);
                 };
-                logInfo << "add work task";
+                // logInfo << "add work task";
                 self->_workLoop->addOrderTask(task);
             } else {
                 frameSrc->onFrame(pack);
@@ -360,6 +367,17 @@ void TranscodeTask::delTask(const std::string& taskId)
 {
     lock_guard<mutex> lck(_mtx);
     _mapTask.erase(taskId);
+}
+
+TranscodeTask::Ptr TranscodeTask::getTask(const std::string& taskId)
+{
+    lock_guard<mutex> lck(_mtx);
+    auto iter = _mapTask.find(taskId);
+    if (iter != _mapTask.end()) {
+        return iter->second;
+    }
+
+    return nullptr;
 }
 
 void TranscodeTask::close()
