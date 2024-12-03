@@ -473,7 +473,7 @@ string H265Track::getConfig()
 
 bool H265Track::isBFrame(uint8* data, int size)
 {
-	if (!data || !_sps || !_pps) {
+	if (!data || !_vps || !_sps || !_pps) {
 		return false;
 	}
 	// de_emulation_prevention(data, (unsigned int *)&size);
@@ -520,4 +520,36 @@ bool H265Track::isBFrame(uint8* data, int size)
 	}
 
 	return false;
+}
+
+H265Track::Ptr H265Track::createTrack(int index, int payloadType, int samplerate)
+{
+    auto trackInfo = make_shared<H265Track>();
+    trackInfo->index_ = index;
+    trackInfo->codec_ = "h265";
+    trackInfo->payloadType_ = payloadType;
+    trackInfo->trackType_ = "video";
+    trackInfo->samplerate_ = samplerate;
+
+    return trackInfo;
+}
+
+void H265Track::onFrame(const FrameBuffer::Ptr& frame)
+{
+	if (_sps && _pps && _vps) {
+		_hasReady = true;
+		return ;
+	}
+
+	if (!frame || frame->size() < 5) {
+		return ;
+	}
+
+	if (frame->getNalType() == H265_VPS) {
+        setVps(frame);
+    } else if (frame->getNalType() == H265_SPS) {
+        setPps(frame);
+    } else if (frame->getNalType() == H265_PPS) {
+        setPps(frame);
+    }
 }

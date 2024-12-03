@@ -1,5 +1,5 @@
-﻿#ifndef H265Track_H
-#define H265Track_H
+﻿#ifndef H266Track_H
+#define H266Track_H
 
 #include <unordered_map>
 #include <string>
@@ -12,16 +12,16 @@
 
 using namespace std;
 
-class H265Track : public TrackInfo
+class H266Track : public TrackInfo
 {
 public:
-    using Ptr = shared_ptr<H265Track>;
+    using Ptr = shared_ptr<H266Track>;
 
-    H265Track();
-    virtual ~H265Track() {}
+    H266Track();
+    virtual ~H266Track() {}
 
 public:
-    static H265Track::Ptr createTrack(int index, int payloadType, int samplerate);
+    static H266Track::Ptr createTrack(int index, int payloadType, int samplerate);
 
 public:
     void setVps(const FrameBuffer::Ptr& vps) {_vps = vps;}

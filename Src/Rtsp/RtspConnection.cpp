@@ -390,7 +390,7 @@ void RtspConnection::handleAnnounce_l() {
         rtspSource->addTrack(track);
         rtspSource->addControl2Index(media->control_, track->getTrackIndex());
     }
-    rtspSource->onReady();
+    // rtspSource->onReady();
 
     _source = rtspSource;
 

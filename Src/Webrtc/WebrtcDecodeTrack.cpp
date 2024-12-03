@@ -194,46 +194,46 @@ void WebrtcDecodeTrack::decodeRtp(const RtpPacket::Ptr& rtp)
 
 void WebrtcDecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
 {
-    int samples = 1;
-    if (_type == AudioTrackType) {
-        if (_trackInfo->codec_ == "aac") {
-            samples = 1024;
-            auto track = dynamic_pointer_cast<AacTrack>(_trackInfo);
-            track->setAacInfo(string(frame->data(), 7));
-        } else if (_trackInfo->codec_ == "g711a") {
-            samples = frame->size() - frame->startSize();
-        }
-        if (_onReady) {
-            _onReady();
-        }
-    } else {
-        if (!_ready) {
-            if (_trackInfo->codec_ == "h264") {
-                auto h264Track = dynamic_pointer_cast<H264Track>(_trackInfo);
-                auto h264Frame = dynamic_pointer_cast<H264Frame>(frame);
-                if (!h264Track->_sps || !h264Track->_pps) {
-                    // set sps pps
-                    if (frame->getNalType() == H264_SPS) {
-                        h264Track->setSps(frame);
-                        if (h264Track->_pps) {
-                            if (_onReady) {
-                                _onReady();
-                            }
-                            _ready = true;
-                        }
-                    } else if (frame->getNalType() == H264_PPS) {
-                        h264Track->setPps(frame);
-                        if (h264Track->_sps) {
-                            if (_onReady) {
-                                _onReady();
-                            }
-                            _ready = true;
-                        }
-                    }
-                }
-            }
-        }
-    }
+    // int samples = 1;
+    // if (_type == AudioTrackType) {
+    //     if (_trackInfo->codec_ == "aac") {
+    //         samples = 1024;
+    //         auto track = dynamic_pointer_cast<AacTrack>(_trackInfo);
+    //         track->setAacInfo(string(frame->data(), 7));
+    //     } else if (_trackInfo->codec_ == "g711a") {
+    //         samples = frame->size() - frame->startSize();
+    //     }
+    //     // if (_onReady) {
+    //     //     _onReady();
+    //     // }
+    // } else {
+    //     if (!_ready) {
+    //         if (_trackInfo->codec_ == "h264") {
+    //             auto h264Track = dynamic_pointer_cast<H264Track>(_trackInfo);
+    //             auto h264Frame = dynamic_pointer_cast<H264Frame>(frame);
+    //             if (!h264Track->_sps || !h264Track->_pps) {
+    //                 // set sps pps
+    //                 if (frame->getNalType() == H264_SPS) {
+    //                     h264Track->setSps(frame);
+    //                     if (h264Track->_pps) {
+    //                         if (_onReady) {
+    //                             _onReady();
+    //                         }
+    //                         _ready = true;
+    //                     }
+    //                 } else if (frame->getNalType() == H264_PPS) {
+    //                     h264Track->setPps(frame);
+    //                     if (h264Track->_sps) {
+    //                         if (_onReady) {
+    //                             _onReady();
+    //                         }
+    //                         _ready = true;
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
     // _stampAdjust->inputStamp(frame->_pts, frame->_dts, samples);
     if (_onFrame) {
         _onFrame(frame);

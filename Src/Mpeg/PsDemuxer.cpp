@@ -319,27 +319,30 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
                     _audio_es_type = type;
                     if (_audio_es_type == STREAM_TYPE_AUDIO_AAC) {
                         _audioCodec = "aac";
-                        auto trackInfo = make_shared<AacTrack>();
-                        trackInfo->index_ = AudioTrackType;
-                        trackInfo->codec_ = "aac";
-                        trackInfo->trackType_ = "audio";
-                        trackInfo->samplerate_ = 90000;
-                        trackInfo->payloadType_ = 97;
+                        // auto trackInfo = make_shared<AacTrack>();
+                        // trackInfo->index_ = AudioTrackType;
+                        // trackInfo->codec_ = "aac";
+                        // trackInfo->trackType_ = "audio";
+                        // trackInfo->samplerate_ = 90000;
+                        // trackInfo->payloadType_ = 97;
+                        auto trackInfo = AacTrack::createTrack(AudioTrackType, 97, 44100);
                         addTrackInfo(trackInfo);
                     } else if (_audio_es_type == STREAM_TYPE_AUDIO_G711) {
                         _audioCodec = "g711a";
-                        auto trackInfo = make_shared<G711aTrack>();
-                        trackInfo->index_ = AudioTrackType;
-                        trackInfo->codec_ = "g711a";
-                        trackInfo->trackType_ = "audio";
+                        // auto trackInfo = make_shared<G711aTrack>();
+                        // trackInfo->index_ = AudioTrackType;
+                        // trackInfo->codec_ = "g711a";
+                        // trackInfo->trackType_ = "audio";
+                        auto trackInfo = G711aTrack::createTrack(AudioTrackType, 8, 8000);
                         addTrackInfo(trackInfo);
                         _firstAac = false;
                     } else if (_audio_es_type == STREAM_TYPE_AUDIO_G711ULAW) {
                         _audioCodec = "g711u";
-                        auto trackInfo = make_shared<G711uTrack>();
-                        trackInfo->index_ = AudioTrackType;
-                        trackInfo->codec_ = "g711u";
-                        trackInfo->trackType_ = "audio";
+                        // auto trackInfo = make_shared<G711uTrack>();
+                        // trackInfo->index_ = AudioTrackType;
+                        // trackInfo->codec_ = "g711u";
+                        // trackInfo->trackType_ = "audio";
+                        auto trackInfo = G711uTrack::createTrack(AudioTrackType, 0, 8000);
                         addTrackInfo(trackInfo);
                         _firstAac = false;
                     }
@@ -360,12 +363,13 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
                         _firstVps = false;
                     } else if (_video_es_type == STREAM_TYPE_VIDEO_HEVC) {
                         _videoCodec = "h265";
-                        auto trackInfo = make_shared<H265Track>();
-                        trackInfo->index_ = VideoTrackType;
-                        trackInfo->codec_ = "h265";
-                        trackInfo->trackType_ = "video";
-                        trackInfo->samplerate_ = 90000;
-                        trackInfo->payloadType_ = 96;
+                        // auto trackInfo = make_shared<H265Track>();
+                        // trackInfo->index_ = VideoTrackType;
+                        // trackInfo->codec_ = "h265";
+                        // trackInfo->trackType_ = "video";
+                        // trackInfo->samplerate_ = 90000;
+                        // trackInfo->payloadType_ = 96;
+                        auto trackInfo = H265Track::createTrack(VideoTrackType, 96, 90000);
                         addTrackInfo(trackInfo);
                     }
                 }
@@ -711,17 +715,17 @@ void PsDemuxer::onDecode(const FrameBuffer::Ptr& frame, int index, uint64_t pts,
     if (!frame) {
         return ;
     }
-    if (_firstAac && _audioCodec == "aac" && frame->getTrackType() == AudioTrackType)
-    {
-        if (_mapTrackInfo.find(AudioTrackType) != _mapTrackInfo.end()) {
-            auto aacTrack = dynamic_pointer_cast<AacTrack>(_mapTrackInfo[AudioTrackType]);
-            aacTrack->setAacInfoByAdts(frame->data(), 7);
-            _firstAac = false;
-            onReady(AudioTrackType);
-        }
-    } else if (!_audioCodec.empty() && frame->getTrackType() == AudioTrackType) {
-        onReady(AudioTrackType);
-    }
+    // if (_firstAac && _audioCodec == "aac" && frame->getTrackType() == AudioTrackType)
+    // {
+    //     if (_mapTrackInfo.find(AudioTrackType) != _mapTrackInfo.end()) {
+    //         auto aacTrack = dynamic_pointer_cast<AacTrack>(_mapTrackInfo[AudioTrackType]);
+    //         aacTrack->setAacInfoByAdts(frame->data(), 7);
+    //         _firstAac = false;
+    //         onReady(AudioTrackType);
+    //     }
+    // } else if (!_audioCodec.empty() && frame->getTrackType() == AudioTrackType) {
+    //     onReady(AudioTrackType);
+    // }
 
     // FrameBuffer::Ptr frame = createFrame(index);
     // frame->_buffer.assign(data.data(), data.size());
@@ -744,30 +748,30 @@ void PsDemuxer::onDecode(const FrameBuffer::Ptr& frame, int index, uint64_t pts,
         if (_videoCodec == "h265") {
             auto h265frame = dynamic_pointer_cast<H265Frame>(frame);
             h265frame->split([this, h265frame](const FrameBuffer::Ptr &subFrame){
-                if (_firstVps || _firstSps || _firstPps) {
-                    auto h265Track = dynamic_pointer_cast<H265Track>(_mapTrackInfo[VideoTrackType]);
-                    auto nalType = subFrame->getNalType();
-                    switch (nalType)
-                    {
-                    case H265_VPS:
-                        h265Track->setVps(subFrame);
-                        _firstVps = false;
-                        break;
-                    case H265_SPS:
-                        h265Track->setSps(subFrame);
-                        _firstSps = false;
-                        break;
-                    case H265_PPS:
-                        h265Track->setPps(subFrame);
-                        _firstPps = false;
-                        break;
-                    default:
-                        break;
-                    }
-                }else {
-                    logInfo << "gb28181 _onReady";
-                    onReady(VideoTrackType);
-                }
+                // if (_firstVps || _firstSps || _firstPps) {
+                //     auto h265Track = dynamic_pointer_cast<H265Track>(_mapTrackInfo[VideoTrackType]);
+                //     auto nalType = subFrame->getNalType();
+                //     switch (nalType)
+                //     {
+                //     case H265_VPS:
+                //         h265Track->setVps(subFrame);
+                //         _firstVps = false;
+                //         break;
+                //     case H265_SPS:
+                //         h265Track->setSps(subFrame);
+                //         _firstSps = false;
+                //         break;
+                //     case H265_PPS:
+                //         h265Track->setPps(subFrame);
+                //         _firstPps = false;
+                //         break;
+                //     default:
+                //         break;
+                //     }
+                // }else {
+                //     logInfo << "gb28181 _onReady";
+                //     onReady(VideoTrackType);
+                // }
                 if (_onFrame) {
                     _onFrame(subFrame);
                 }
@@ -775,27 +779,27 @@ void PsDemuxer::onDecode(const FrameBuffer::Ptr& frame, int index, uint64_t pts,
         } else if (_videoCodec == "h264") {
             auto h264frame = dynamic_pointer_cast<H264Frame>(frame);
             h264frame->split([this, h264frame](const FrameBuffer::Ptr &subFrame){
-                if (_firstSps || _firstPps) {
-                    auto h264Track = dynamic_pointer_cast<H264Track>(_mapTrackInfo[VideoTrackType]);
-                    auto nalType = subFrame->getNalType();
-                    logInfo << "get a h264 nal type: " << (int)nalType;
-                    switch (nalType)
-                    {
-                    case H264_SPS:
-                        h264Track->setSps(subFrame);
-                        _firstSps = false;
-                        break;
-                    case H264_PPS:
-                        h264Track->setPps(subFrame);
-                        _firstPps = false;
-                        break;
-                    default:
-                        break;
-                    }
-                } else {
-                    // logInfo << "gb28181 _onReady";
-                    onReady(VideoTrackType);
-                }
+                // if (_firstSps || _firstPps) {
+                //     auto h264Track = dynamic_pointer_cast<H264Track>(_mapTrackInfo[VideoTrackType]);
+                //     auto nalType = subFrame->getNalType();
+                //     logInfo << "get a h264 nal type: " << (int)nalType;
+                //     switch (nalType)
+                //     {
+                //     case H264_SPS:
+                //         h264Track->setSps(subFrame);
+                //         _firstSps = false;
+                //         break;
+                //     case H264_PPS:
+                //         h264Track->setPps(subFrame);
+                //         _firstPps = false;
+                //         break;
+                //     default:
+                //         break;
+                //     }
+                // } else {
+                //     // logInfo << "gb28181 _onReady";
+                //     onReady(VideoTrackType);
+                // }
                 if (_onFrame) {
                     _onFrame(subFrame);
                 }
@@ -851,22 +855,22 @@ void PsDemuxer::setOnReady(const function<void()>& cb)
 
 void PsDemuxer::onReady(int trackType)
 {
-    if (_hasReady) {
-        return ;
-    }
-    if (trackType == VideoTrackType) {
-        _hasVideoReady = true;
-        if ((_hasAudioReady || !_hasAudio) && _onReady) {
-            _onReady();
-            _hasReady = true;
-        }
-    } else if (trackType == AudioTrackType) {
-        _hasAudioReady = true;
-        if ((_hasVideoReady || !_hasVideo) && _onReady) {
-            _onReady();
-            _hasReady = true;
-        }
-    }
+    // if (_hasReady) {
+    //     return ;
+    // }
+    // if (trackType == VideoTrackType) {
+    //     _hasVideoReady = true;
+    //     if ((_hasAudioReady || !_hasAudio) && _onReady) {
+    //         _onReady();
+    //         _hasReady = true;
+    //     }
+    // } else if (trackType == AudioTrackType) {
+    //     _hasAudioReady = true;
+    //     if ((_hasVideoReady || !_hasVideo) && _onReady) {
+    //         _onReady();
+    //         _hasReady = true;
+    //     }
+    // }
 }
 
 void PsDemuxer::clear()

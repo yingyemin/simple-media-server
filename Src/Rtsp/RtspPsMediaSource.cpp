@@ -107,6 +107,7 @@ void RtspPsMediaSource::addTrack(const RtspPsDecodeTrack::Ptr& track)
             }
             // strongSelf->_mapStampAdjust[frame->_index]->inputStamp(frame->_pts, frame->_dts, samples);
             // logInfo << "on frame";
+            strongSelf->MediaSource::onFrame(frame);
             for (auto& sink : strongSelf->_mapSink) {
                 // logInfo << "on frame to sink";
                 // if (sink.second.lock()) {

@@ -59,6 +59,8 @@ public:
             const string& type, const function<void(const MediaSource::Ptr &src)> &cb, 
             const std::function<MediaSource::Ptr()> &create, void* connKey);
 
+    void pushStreamToOrigin();
+
     static void release(const string &uri, const string& vhost);
 
     static MediaSource::Ptr get(const string& uri, const string& vhost);
@@ -86,7 +88,7 @@ public:
     virtual void addSource(const MediaSource::Ptr &src);
     virtual void delSource(const MediaSource::Ptr &src);
     virtual void addTrack(const shared_ptr<TrackInfo>& track);
-    virtual void onFrame(const FrameBuffer::Ptr& frame) {}
+    virtual void onFrame(const FrameBuffer::Ptr& frame);
     virtual void onReaderChanged(int size);
     virtual void addOnDetach(void* key, const onDetachFunc& func);
     virtual void delOnDetach(void* key);
@@ -134,6 +136,12 @@ protected:
     // 用于给其他线程获取，需要加锁。上面的trackInfo用于本线程用，比较频繁，所以分成两个map，提升性能
     mutex _trackInfoLck;
     unordered_map<int, shared_ptr<TrackInfo>> _mapLockTrackInfo;
+
+    bool _hasAudio = false;
+    bool _hasVideo = false;
+    bool _videoReady = false;
+    bool _audioReady = false;
+    bool _stage500Ms = true;
 
 private:
     static recursive_mutex _mtxTotalSource;

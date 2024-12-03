@@ -84,12 +84,13 @@ int RtmpDecodeTrack::createTrackInfo(int trackType, int codeId)
         if (codeId == RTMP_CODEC_ID_H264) {
             _trackInfo = H264Track::createTrack(VideoTrackType, 96, 90000);
         } else if (codeId == RTMP_CODEC_ID_H265) {
-            _trackInfo = make_shared<H265Track>();
-            _trackInfo->codec_ = "h265";
-            _trackInfo->index_ = VideoTrackType;
-            _trackInfo->trackType_ = "video";
-            _trackInfo->payloadType_ = 96;
-            _trackInfo->samplerate_ = 90000;
+            // _trackInfo = make_shared<H265Track>();
+            // _trackInfo->codec_ = "h265";
+            // _trackInfo->index_ = VideoTrackType;
+            // _trackInfo->trackType_ = "video";
+            // _trackInfo->payloadType_ = 96;
+            // _trackInfo->samplerate_ = 90000;
+            _trackInfo = H265Track::createTrack(VideoTrackType, 96, 90000);
         } else {
             // throw runtime_error("不支持的解码格式:" + to_string(codeId));
             logWarn << "不支持的video解码格式:" << codeId;
@@ -97,25 +98,28 @@ int RtmpDecodeTrack::createTrackInfo(int trackType, int codeId)
         }
     } else if (trackType == AudioTrackType) {
         if (codeId == RTMP_CODEC_ID_AAC) {
-            _trackInfo = make_shared<AacTrack>();
-            _trackInfo->codec_ = "aac";
-            _trackInfo->index_ = AudioTrackType;
-            _trackInfo->trackType_ = "audio";
-            _trackInfo->payloadType_ = 97;
-            // 此处只是默认值，需要解析aac_config获取真实的
-            _trackInfo->samplerate_ = 44100;
-            // 此处只是默认值，需要解析aac_config获取真实的
-            _trackInfo->channel_ = 2;
+            // _trackInfo = make_shared<AacTrack>();
+            // _trackInfo->codec_ = "aac";
+            // _trackInfo->index_ = AudioTrackType;
+            // _trackInfo->trackType_ = "audio";
+            // _trackInfo->payloadType_ = 97;
+            // // 此处只是默认值，需要解析aac_config获取真实的
+            // _trackInfo->samplerate_ = 44100;
+            // // 此处只是默认值，需要解析aac_config获取真实的
+            // _trackInfo->channel_ = 2;
+            _trackInfo = AacTrack::createTrack(AudioTrackType, 97, 44100);
         } else if (codeId == RTMP_CODEC_ID_G711A) {
-            _trackInfo = make_shared<G711aTrack>();
-            _trackInfo->codec_ = "g711a";
-            _trackInfo->index_ = AudioTrackType;
-            _trackInfo->trackType_ = "audio";
+            // _trackInfo = make_shared<G711aTrack>();
+            // _trackInfo->codec_ = "g711a";
+            // _trackInfo->index_ = AudioTrackType;
+            // _trackInfo->trackType_ = "audio";
+            _trackInfo = G711aTrack::createTrack(AudioTrackType, 8, 8000);
         } else if (codeId == RTMP_CODEC_ID_G711U) {
-            _trackInfo = make_shared<G711uTrack>();
-            _trackInfo->codec_ = "g711u";
-            _trackInfo->index_ = AudioTrackType;
-            _trackInfo->trackType_ = "audio";
+            // _trackInfo = make_shared<G711uTrack>();
+            // _trackInfo->codec_ = "g711u";
+            // _trackInfo->index_ = AudioTrackType;
+            // _trackInfo->trackType_ = "audio";
+            _trackInfo = G711uTrack::createTrack(AudioTrackType, 8, 8000);
         } else {
             // throw runtime_error("不支持的解码格式:" + to_string(codeId));
             logWarn << "不支持的audio解码格式:" << codeId;

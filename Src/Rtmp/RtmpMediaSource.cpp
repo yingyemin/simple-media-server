@@ -90,6 +90,16 @@ void RtmpMediaSource::addTrack(const RtmpDecodeTrack::Ptr& track)
             strongSelf->_ring->write(strongSelf->_cache, strongSelf->_start);
             strongSelf->_cache = std::make_shared<list<RtmpMessage::Ptr>>();
             strongSelf->_start= false;
+            if (strongSelf->_probeFinish) {
+                if (strongSelf->_mapSink.empty()) {
+                    strongSelf->_ring->delOnWrite(strongSelf.get());
+        
+                    for (auto& track : strongSelf->_mapRtmpDecodeTrack) {
+                        track.second->stopDecode();
+                    }
+                }
+                strongSelf->_probeFinish = false;
+            }
         } else {
             strongSelf->_cache->emplace_back(std::move(pkt));
         }
@@ -108,6 +118,7 @@ void RtmpMediaSource::addTrack(const RtmpDecodeTrack::Ptr& track)
         // if (frame->_trackType == VideoTrackType) {
         //     logInfo << "on frame: size: " << frame->size() << ", type: " << (int)frame->getNalType();
         // }
+        strongSelf->MediaSource::onFrame(frame);
         for (auto& sink : strongSelf->_mapSink) {
             // logInfo << "on frame to sink";
             // if (sink.second.lock()) {
@@ -127,9 +138,33 @@ void RtmpMediaSource::addTrack(const RtmpDecodeTrack::Ptr& track)
         }
     });
 
-    // if (_mapSink.size() > 0) {
+    if (_status < SourceStatus::AVAILABLE || _mapSink.size() > 0) {
         track->startDecode();
-    // }
+        _ring->addOnWrite(this, [weakSelf](RingDataType in, bool is_key){
+        auto strongSelf = weakSelf.lock();
+        if (!strongSelf) {
+            return;
+        }
+        // logInfo << "is key: " << is_key;
+        auto pktList = *(in.get());
+        for (auto& pkt : pktList) {
+            int index = pkt->trackIndex_;
+            auto track = strongSelf->_mapRtmpDecodeTrack.find(index);
+            if (track != strongSelf->_mapRtmpDecodeTrack.end()) {
+                track->second->decodeRtmp(pkt);
+            }
+        }
+    });
+    }
+}
+
+void RtmpMediaSource::onReady()
+{
+    MediaSource::onReady();
+    if (_mapSink.size() == 0 && _ring) {
+        // _ring->delOnWrite(this);
+        _probeFinish = true;
+    }
 }
 
 void RtmpMediaSource::addTrack(const shared_ptr<TrackInfo>& track)

@@ -449,7 +449,6 @@ bool RtmpConnection::handleVideo(RtmpMessage& rtmp_msg)
             rtmpSrc->setAvcHeader(_avcHeader, _avcHeaderSize);
             // type = RTMP_AVC_SEQUENCE_HEADER;
             _rtmpVideoDecodeTrack->setConfigFrame(msg);
-            rtmpSrc->onReady();
         }
     }
     // } else if (codec_id == RTMP_CODEC_ID_H265) {
@@ -525,9 +524,6 @@ bool RtmpConnection::handleAudio(RtmpMessage& rtmp_msg)
         type = RTMP_AAC_SEQUENCE_HEADER;
         rtmpSrc->setAacHeader(_aacHeader, _aacHeaderSize);
         _rtmpAudioDecodeTrack->setConfigFrame(msg);
-        rtmpSrc->onReady();
-    } else if (sound_format != RTMP_CODEC_ID_AAC) {
-        rtmpSrc->onReady();
     }
 
     msg->trackIndex_ = AudioTrackType;

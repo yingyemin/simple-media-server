@@ -104,60 +104,60 @@ void JT1078DecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
     // fclose(fp);
 
     // logInfo << "JT1078DecodeTrack::onFrame pts: " << frame->pts() << " size: " << frame->size();
-    if (!_ready && _trackInfo->trackType_ == "video") {
-        if (_trackInfo->codec_ == "h264") {
-            auto h264Frame = dynamic_pointer_cast<H264Frame>(frame);
-            auto h264Track = dynamic_pointer_cast<H264Track>(_trackInfo);
-            // logInfo << "h264 frame type: " << (int)h264Frame->getNalType();
-            if (h264Frame->getNalType() == H264_SPS) {
-                h264Track->setSps(h264Frame);
-            } else if (h264Frame->getNalType() == H264_PPS) {
-                h264Track->setPps(h264Frame);
-            }
+    // if (!_ready && _trackInfo->trackType_ == "video") {
+    //     if (_trackInfo->codec_ == "h264") {
+    //         auto h264Frame = dynamic_pointer_cast<H264Frame>(frame);
+    //         auto h264Track = dynamic_pointer_cast<H264Track>(_trackInfo);
+    //         // logInfo << "h264 frame type: " << (int)h264Frame->getNalType();
+    //         if (h264Frame->getNalType() == H264_SPS) {
+    //             h264Track->setSps(h264Frame);
+    //         } else if (h264Frame->getNalType() == H264_PPS) {
+    //             h264Track->setPps(h264Frame);
+    //         }
 
-            if (h264Track->_sps && h264Track->_pps) {
-                logInfo << "video ready ======================";
-                _ready = true;
-                if (_onReady) {
-                    _onReady();
-                }
-            }
-        } else if (_trackInfo->codec_ == "h265") {
-            auto h265Frame = dynamic_pointer_cast<H265Frame>(frame);
-            auto h265Track = dynamic_pointer_cast<H265Track>(_trackInfo);
-            if (h265Frame->getNalType() == H265_SPS) {
-                h265Track->setSps(h265Frame);
-            } else if (h265Frame->getNalType() == H265_PPS) {
-                h265Track->setPps(h265Frame);
-            } else if (h265Frame->getNalType() == H265_VPS) {
-                h265Track->setVps(h265Frame);
-            }
+    //         if (h264Track->_sps && h264Track->_pps) {
+    //             logInfo << "video ready ======================";
+    //             _ready = true;
+    //             if (_onReady) {
+    //                 _onReady();
+    //             }
+    //         }
+    //     } else if (_trackInfo->codec_ == "h265") {
+    //         auto h265Frame = dynamic_pointer_cast<H265Frame>(frame);
+    //         auto h265Track = dynamic_pointer_cast<H265Track>(_trackInfo);
+    //         if (h265Frame->getNalType() == H265_SPS) {
+    //             h265Track->setSps(h265Frame);
+    //         } else if (h265Frame->getNalType() == H265_PPS) {
+    //             h265Track->setPps(h265Frame);
+    //         } else if (h265Frame->getNalType() == H265_VPS) {
+    //             h265Track->setVps(h265Frame);
+    //         }
 
-            if (h265Track->_sps && h265Track->_pps && h265Track->_vps) {
-                _ready = true;
-                if (_onReady) {
-                    _onReady();
-                }
-            }
-        }
-    } else if (!_setAacCfg && _trackInfo->trackType_ == "audio") {
-        if (_trackInfo->codec_ == "aac") {
-            auto aacTrack = dynamic_pointer_cast<AacTrack>(_trackInfo);
-            aacTrack->setAacInfo(string(frame->data(), 7));
-            _setAacCfg = true;
-            _ready = true;
-            if (_onReady) {
-                _onReady();
-            }
-        } else {
-            _setAacCfg = true;
-            _ready = true;
-            logInfo << "audio ready ======================";
-            if (_onReady) {
-                _onReady();
-            }
-        }
-    }
+    //         if (h265Track->_sps && h265Track->_pps && h265Track->_vps) {
+    //             _ready = true;
+    //             if (_onReady) {
+    //                 _onReady();
+    //             }
+    //         }
+    //     }
+    // } else if (!_setAacCfg && _trackInfo->trackType_ == "audio") {
+    //     if (_trackInfo->codec_ == "aac") {
+    //         auto aacTrack = dynamic_pointer_cast<AacTrack>(_trackInfo);
+    //         aacTrack->setAacInfo(string(frame->data(), 7));
+    //         _setAacCfg = true;
+    //         _ready = true;
+    //         if (_onReady) {
+    //             _onReady();
+    //         }
+    //     } else {
+    //         _setAacCfg = true;
+    //         _ready = true;
+    //         logInfo << "audio ready ======================";
+    //         if (_onReady) {
+    //             _onReady();
+    //         }
+    //     }
+    // }
 
     frame->_dts = frame->_pts;
     frame->_index = _trackInfo->index_;

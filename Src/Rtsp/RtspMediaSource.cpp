@@ -73,6 +73,17 @@ void RtspMediaSource::addTrack(const RtspTrack::Ptr& track)
             strongSelf->_ring->write(strongSelf->_cache, strongSelf->_start);
             strongSelf->_cache = std::make_shared<deque<RtpPacket::Ptr>>();
             strongSelf->_start = false;
+            
+            if (strongSelf->_probeFinish) {
+                if (strongSelf->_mapSink.empty()) {
+                    strongSelf->_ring->delOnWrite(strongSelf.get());
+        
+                    for (auto& track : strongSelf->_mapRtspTrack) {
+                        track.second->stopDecode();
+                    }
+                }
+                strongSelf->_probeFinish = false;
+            }
         } else {
             strongSelf->_cache->emplace_back(std::move(rtp));
         }
@@ -85,12 +96,13 @@ void RtspMediaSource::addTrack(const RtspTrack::Ptr& track)
             if (!strongSelf) {
                 return;
             }
-            int samples = 1;
-            if (frame->_trackType == AudioTrackType) {
-                samples = frame->_buffer.size() - frame->startSize();
-            }
+            // int samples = 1;
+            // if (frame->_trackType == AudioTrackType) {
+            //     samples = frame->_buffer.size() - frame->startSize();
+            // }
             // strongSelf->_mapStampAdjust[frame->_index]->inputStamp(frame->_pts, frame->_dts, samples);
             // logInfo << "on frame";
+            strongSelf->MediaSource::onFrame(frame);
             for (auto& sink : strongSelf->_mapSink) {
                 // logInfo << "on frame to sink";
                 // if (sink.second.lock()) {
@@ -99,8 +111,22 @@ void RtspMediaSource::addTrack(const RtspTrack::Ptr& track)
                 sink.second->onFrame(frame);
             }
         });
-        if (_mapSink.size() > 0) {
+        if (_status < SourceStatus::AVAILABLE || _mapSink.size() > 0) {
             track->startDecode();
+            _ring->addOnWrite(this, [weakSelf](DataType in, bool is_key){
+                auto strongSelf = weakSelf.lock();
+                if (!strongSelf) {
+                    return;
+                }
+                auto rtpList = *(in.get());
+                for (auto& rtp : rtpList) {
+                    int index = rtp->trackIndex_;
+                    auto track = strongSelf->_mapRtspTrack.find(index);
+                    if (track != strongSelf->_mapRtspTrack.end()) {
+                        track->second->decodeRtp(rtp);
+                    }
+                }
+            });
         }
         for (auto& sink : _mapSink) {
             // if (sink.second.lock()) {
@@ -108,6 +134,15 @@ void RtspMediaSource::addTrack(const RtspTrack::Ptr& track)
             // }
             sink.second->addTrack(track->getTrackInfo());
         }
+    }
+}
+
+void RtspMediaSource::onReady()
+{
+    MediaSource::onReady();
+    if (_mapSink.size() == 0 && _ring) {
+        // _ring->delOnWrite(this);
+        _probeFinish = true;
     }
 }
 

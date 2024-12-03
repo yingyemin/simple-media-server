@@ -1,21 +1,50 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>webrtc 视频播放</title>
+    <title>WebRTC 视频播放</title>
 </head>
 <body>
-    <video id="video_webrtc" controls></video>
-	<script type="text/javascript" src="./jswebrtc.min.js"></script>
-	<script type="text/javascript">
-		var video = document.getElementById('video_webrtc');
-		var url = 'webrtc://172.24.6.238/live/test';
-		var option={ 
-			video: video, 
-			autoplay: true 
-		}
-		var player = new JSWebrtc.Player(url,option);
-	</script>
+<h2>WebRTC 视频播放</h2>
+<div>
+    <label for="urlInput">播放地址：</label>
+    <input type="text" id="urlInput" placeholder="请输入 WebRTC URL" value="webrtc://192.168.0.18/live/15990021595_1">
+    <button id="playButton">播放</button>
+</div>
+<br>
+<video id="video_webrtc" controls autoplay></video>
+
+<script type="text/javascript" src="./jswebrtc.min.js"></script>
+<script type="text/javascript">
+    // 获取页面元素
+    var video = document.getElementById('video_webrtc');
+    var urlInput = document.getElementById('urlInput');
+    var playButton = document.getElementById('playButton');
+    var player;
+
+    // 播放 WebRTC 视频
+    function playWebrtc(url) {
+        if (player) {
+            player.stop();  // 如果已经有播放实例，停止当前播放
+        }
+        var option = { video: video, autoplay: true };
+        player = new JSWebrtc.Player(url, option);
+    }
+
+    // 设置默认URL并播放
+    var defaultUrl = urlInput.value;
+    playWebrtc(defaultUrl);
+
+    // 当点击“播放”按钮时，播放新的URL
+    playButton.addEventListener('click', function() {
+        var newUrl = urlInput.value;
+        if (newUrl) {
+            playWebrtc(newUrl);  // 调用播放方法
+        } else {
+            alert("请输入有效的 WebRTC URL");
+        }
+    });
+</script>
 </body>
 </html>

@@ -355,3 +355,30 @@ string AacTrack::getAdtsHeader(int frameSize)
 
 	return string(frame->data(), frame->size());
 }
+
+AacTrack::Ptr AacTrack::createTrack(int index, int payloadType, int samplerate)
+{
+    auto trackInfo = make_shared<AacTrack>();
+    trackInfo->index_ = index;
+    trackInfo->codec_ = "aac";
+    trackInfo->payloadType_ = payloadType;
+    trackInfo->trackType_ = "audio";
+    trackInfo->samplerate_ = samplerate;
+    trackInfo->bitPerSample_ = 16;
+
+    return trackInfo;
+}
+
+void AacTrack::onFrame(const FrameBuffer::Ptr& frame)
+{
+	if (!_aacConfig.empty()) {
+		_hasReady = true;
+		return ;
+	}
+
+	if (!frame || frame->size() < 7) {
+		return ;
+	}
+
+	setAacInfoByAdts(frame->data(), frame->size());
+}

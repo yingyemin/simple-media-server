@@ -513,8 +513,15 @@ void MediaSource::pullStreamFromOrigin(const string& uri, const string& vhost, c
     static string endpoint = Config::instance()->getAndListen([](const json &config){
         endpoint = Config::instance()->get("Cdn", "endpoint");
     }, "Cdn", "endpoint");
+    
+    static string params = Config::instance()->getAndListen([](const json &config){
+        params = Config::instance()->get("Cdn", "params");
+    }, "Cdn", "params");
 
     string url = pullProtocol + "://" + endpoint + uri;
+    if (!params.empty()) {
+        url += "?" + params;
+    }
 
     _player = MediaClient::createClient(pullProtocol, uri, MediaClientType_Pull);
     _player->start("0.0.0.0", 0, url, 5);
@@ -671,10 +678,114 @@ void MediaSource::addTrack(const shared_ptr<TrackInfo>& track)
         return ;
     }
 
+    if (track->trackType_ == "video") {
+        _hasVideo = true;
+    } else if (track->trackType_ == "audio") {
+        _hasAudio = true;
+    } else {
+        logWarn << "get a invalid track: " << track->trackType_;
+        return ;
+    }
+
     _mapTrackInfo[track->index_] = track;
 
     lock_guard<mutex> lck(_trackInfoLck);
     _mapLockTrackInfo[track->index_] = track;
+}
+
+void MediaSource::onFrame(const FrameBuffer::Ptr& frame)
+{
+    if (_hasReady && _hasAudio && _hasVideo) {
+        return ;
+    }
+
+    weak_ptr<MediaSource> wSelf = shared_from_this();
+    if (frame->_trackType == VideoTrackType) {
+        if (_videoReady) {
+            return ;
+        }
+
+        _hasVideo = true;
+
+        auto iter = _mapTrackInfo.find(frame->_index);
+        if (iter == _mapTrackInfo.end()) {
+            return ;
+        }
+
+        auto track = iter->second;
+        track->onFrame(frame);
+        if (track->isReady()) {
+            logInfo << "video track ready: " << track->codec_;
+            _videoReady = true;
+        } else {
+            return ;
+        }
+
+        _loop->addTimerTask(500, [wSelf](){
+            auto self = wSelf.lock();
+            if (!self) {
+                return 0;
+            }
+
+            if (self->_hasReady) {
+                return 0;
+            }
+
+            if (self->_hasAudio && self->_stage500Ms) {
+                self->_stage500Ms = false;
+                return 5000;
+            } else {
+                self->onReady();
+            }
+
+            return 0;
+        }, nullptr);
+    } else if (frame->_trackType == AudioTrackType) {
+        if (_audioReady) {
+            return ;
+        }
+
+        auto iter = _mapTrackInfo.find(frame->_index);
+        if (iter == _mapTrackInfo.end()) {
+            _hasAudio = true;
+            return ;
+        }
+
+        auto track = iter->second;
+        track->onFrame(frame);
+        if (track->isReady()) {
+            logInfo << "audio track ready: " << track->codec_;
+            _audioReady = true;
+        } else {
+            return ;
+        }
+
+        _loop->addTimerTask(500, [wSelf](){
+            auto self = wSelf.lock();
+            if (!self) {
+                return 0;
+            }
+
+            if (self->_hasReady) {
+                return 0;
+            }
+
+            if (self->_hasVideo && self->_stage500Ms) {
+                self->_stage500Ms = false;
+                return 5000;
+            } else {
+                self->onReady();
+            }
+
+            return 0;
+        }, nullptr);
+    }
+
+    logInfo << "_audioReady: " << _audioReady;
+    logInfo << "_videoReady: " << _videoReady;
+    if (_audioReady && _videoReady && !_hasReady) {
+        onReady();
+    }
 }
 
 unordered_map<int, shared_ptr<TrackInfo>> MediaSource::getTrackInfo()
@@ -797,6 +908,10 @@ void MediaSource::onReady()
     logInfo << "on ready, path: " << _urlParser.path_ << ", protocol: " << _urlParser.protocol_
                 << ", type: " << _urlParser.type_;
 
+    for (auto track : _mapTrackInfo) {
+        logInfo << "track type: " << track.second->trackType_ << ", codec: " << track.second->codec_;
+    }
+
     StreamStatusInfo statusInfo{_urlParser.protocol_, _urlParser.path_, _urlParser.vhost_, 
                                 _urlParser.type_, "on", "200"};
     MediaHook::instance()->onStreamStatus(statusInfo);
@@ -827,6 +942,11 @@ void MediaSource::onReady()
         sink.second->onReady();
     }
 
+    pushStreamToOrigin();
+}
+
+void MediaSource::pushStreamToOrigin()
+{
     static string mode = Config::instance()->getAndListen([](const json &config){
         mode = Config::instance()->get("Cdn", "mode");
     }, "Cdn", "mode");
@@ -842,9 +962,17 @@ void MediaSource::onReady()
     static string endpoint = Config::instance()->getAndListen([](const json &config){
         endpoint = Config::instance()->get("Cdn", "endpoint");
     }, "Cdn", "endpoint");
+    
+    static string params = Config::instance()->getAndListen([](const json &config){
+        params = Config::instance()->get("Cdn", "params");
+    }, "Cdn", "params");
 
     string uri = _urlParser.path_;
     string url = pushProtocol + "://" + endpoint + uri;
+
+    if (!params.empty()) {
+        url += "?" + params;
+    }
 
     // TODO 可以指定多个endpoint进行推流
     auto pusher = MediaClient::createClient(pushProtocol, uri, MediaClientType_Push);

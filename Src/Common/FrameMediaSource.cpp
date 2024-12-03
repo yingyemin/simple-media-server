@@ -116,12 +116,14 @@ void FrameMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
         _audioStampAdjust = make_shared<AudioStampAdjust>(0);
     }
 
-    for (auto& sink : _mapSink) {
-        logInfo << "on add track to sink";
-    //     if (sink.second.lock()) {
-    //         sink.second.lock()->addTrack(track);
-    //     }
-        sink.second->addTrack(track);
+    if (track->isReady()) {
+        for (auto& sink : _mapSink) {
+            logInfo << "on add track to sink";
+        //     if (sink.second.lock()) {
+        //         sink.second.lock()->addTrack(track);
+        //     }
+            sink.second->addTrack(track);
+        }
     }
 }
 
@@ -130,8 +132,8 @@ void FrameMediaSource::addSink(const MediaSource::Ptr &sink)
     MediaSource::addSink(sink);
 
     for (auto& track: _mapTrackInfo) {
-        if (!track.second) {
-            break;
+        if (!track.second || !track.second->isReady()) {
+            continue;
         }
         logInfo << "on add track to sink: " << _urlParser.type_;
         sink->addTrack(track.second);

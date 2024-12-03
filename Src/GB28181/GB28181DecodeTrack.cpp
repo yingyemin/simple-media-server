@@ -139,33 +139,33 @@ void GB28181DecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
         if (_trackInfo->codec_ == "h265") {
             auto h265frame = dynamic_pointer_cast<H265Frame>(frame);
             h265frame->split([this, h265frame](const FrameBuffer::Ptr &subFrame){
-                if (_firstVps || _firstSps || _firstPps) {
-                    auto h265Track = dynamic_pointer_cast<H265Track>(_trackInfo);
-                    auto nalType = subFrame->getNalType();
-                    switch (nalType)
-                    {
-                    case H265_VPS:
-                        h265Track->setVps(subFrame);
-                        _firstVps = false;
-                        break;
-                    case H265_SPS:
-                        h265Track->setSps(subFrame);
-                        _firstSps = false;
-                        break;
-                    case H265_PPS:
-                        h265Track->setPps(subFrame);
-                        _firstPps = false;
-                        break;
-                    default:
-                        break;
-                    }
-                }else {
-                    logInfo << "gb28181 _onReady";
-                    if (!_hasReady && _onReady) {
-                        _onReady();
-                        _hasReady = true;
-                    }
-                }
+                // if (_firstVps || _firstSps || _firstPps) {
+                //     auto h265Track = dynamic_pointer_cast<H265Track>(_trackInfo);
+                //     auto nalType = subFrame->getNalType();
+                //     switch (nalType)
+                //     {
+                //     case H265_VPS:
+                //         h265Track->setVps(subFrame);
+                //         _firstVps = false;
+                //         break;
+                //     case H265_SPS:
+                //         h265Track->setSps(subFrame);
+                //         _firstSps = false;
+                //         break;
+                //     case H265_PPS:
+                //         h265Track->setPps(subFrame);
+                //         _firstPps = false;
+                //         break;
+                //     default:
+                //         break;
+                //     }
+                // }else {
+                //     logInfo << "gb28181 _onReady";
+                //     if (!_hasReady && _onReady) {
+                //         _onReady();
+                //         _hasReady = true;
+                //     }
+                // }
                 if (_onFrame) {
                     _onFrame(subFrame);
                 }
@@ -173,30 +173,30 @@ void GB28181DecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
         } else if (_trackInfo->codec_ == "h264") {
             auto h264frame = dynamic_pointer_cast<H264Frame>(frame);
             h264frame->split([this, h264frame](const FrameBuffer::Ptr &subFrame){
-                if (_firstSps || _firstPps) {
-                    auto h264Track = dynamic_pointer_cast<H264Track>(_trackInfo);
-                    auto nalType = subFrame->getNalType();
-                    logInfo << "get a h264 nal type: " << (int)nalType;
-                    switch (nalType)
-                    {
-                    case H264_SPS:
-                        h264Track->setSps(subFrame);
-                        _firstSps = false;
-                        break;
-                    case H264_PPS:
-                        h264Track->setPps(subFrame);
-                        _firstPps = false;
-                        break;
-                    default:
-                        break;
-                    }
-                } else {
-                    // logInfo << "gb28181 _onReady";
-                    if (!_hasReady && _onReady) {
-                        _onReady();
-                        _hasReady = true;
-                    }
-                }
+                // if (_firstSps || _firstPps) {
+                //     auto h264Track = dynamic_pointer_cast<H264Track>(_trackInfo);
+                //     auto nalType = subFrame->getNalType();
+                //     logInfo << "get a h264 nal type: " << (int)nalType;
+                //     switch (nalType)
+                //     {
+                //     case H264_SPS:
+                //         h264Track->setSps(subFrame);
+                //         _firstSps = false;
+                //         break;
+                //     case H264_PPS:
+                //         h264Track->setPps(subFrame);
+                //         _firstPps = false;
+                //         break;
+                //     default:
+                //         break;
+                //     }
+                // } else {
+                //     // logInfo << "gb28181 _onReady";
+                //     if (!_hasReady && _onReady) {
+                //         _onReady();
+                //         _hasReady = true;
+                //     }
+                // }
                 if (_onFrame) {
                     _onFrame(subFrame);
                 }

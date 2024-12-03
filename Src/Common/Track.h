@@ -32,6 +32,8 @@ class TrackInfo
 {
 public:
     using Ptr = shared_ptr<TrackInfo>;
+
+public:
     virtual string getSdp() { return "";}
     virtual string getConfig() {return "";}
     virtual void getWidthAndHeight(int& width, int& height, int& fps) {}
@@ -46,8 +48,12 @@ public:
     virtual void setSps(const FrameBuffer::Ptr& sps) {}
     virtual void setPps(const FrameBuffer::Ptr& pps) {}
 
-    virtual bool isReady() {return true;}
+    virtual bool isReady() {return _hasReady;}
+
+    virtual void onFrame(const FrameBuffer::Ptr& frame) {_hasReady = true;}
+
 public:
+    bool _hasReady = false;
     int payloadType_;
     int samplerate_;
     int channel_;
@@ -65,18 +71,18 @@ public:
     string codec_;
 };
 
-class Track : public enable_shared_from_this<Track>
-{
-public:
-    using Ptr = shared_ptr<Track>;
+// class Track : public enable_shared_from_this<Track>
+// {
+// public:
+//     using Ptr = shared_ptr<Track>;
 
-    Track();
-    ~Track() {}
+//     Track();
+//     ~Track() {}
 
-public:
+// public:
 
-private:
-};
+// private:
+// };
 
 
 #endif //Track_H

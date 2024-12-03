@@ -29,6 +29,7 @@ public:
 
 public:
     void addTrack(const RtmpDecodeTrack::Ptr& track);
+    void onReady() override;
     void addTrack(const shared_ptr<TrackInfo>& track) override;
     void addSink(const MediaSource::Ptr &src) override;
     void delSink(const MediaSource::Ptr &src) override;
@@ -61,6 +62,7 @@ public:
 private:
     bool _muxer;
     bool _start = false;
+    bool _probeFinish = false;
     int _ringSize = 512;
     int64_t _lastPts = -1;
 

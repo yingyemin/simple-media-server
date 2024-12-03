@@ -28,6 +28,7 @@ public:
 
 public:
     virtual void addTrack(const RtspTrack::Ptr& track);
+    virtual void onReady() override;
     virtual void addTrack(const shared_ptr<TrackInfo>& track) override;
     virtual void addSink(const MediaSource::Ptr &src) override;
     virtual void delSink(const MediaSource::Ptr &src) override;
@@ -59,6 +60,7 @@ private:
     bool _muxer;
     bool _start = false;
     bool _hasVideo = false;
+    bool _probeFinish = false;
     int _ringSize = 512;
     uint64_t _lastRtpStmp = 0;
 

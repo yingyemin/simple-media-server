@@ -85,7 +85,8 @@ void WebrtcMediaSource::addTrack(const WebrtcDecodeTrack::Ptr& track)
             if (!strongSelf) {
                 return;
             }
-            logInfo << "on frame";
+            // logInfo << "on frame";
+            strongSelf->MediaSource::onFrame(frame);
             for (auto& sink : strongSelf->_mapSink) {
                 logInfo << "on frame to sink";
                 // if (sink.second.lock()) {
@@ -96,12 +97,18 @@ void WebrtcMediaSource::addTrack(const WebrtcDecodeTrack::Ptr& track)
         });
         if (_status < SourceStatus::AVAILABLE || _mapSink.size() > 0) {
             track->startDecode();
-            _ring->addOnWrite(this, [this](DataType in, bool is_key){
+            _ring->addOnWrite(this, [weakSelf](DataType in, bool is_key){
+                auto strongSelf = weakSelf.lock();
+                if (!strongSelf) {
+                    return;
+                }
                 auto rtpList = *(in.get());
                 for (auto& rtp : rtpList) {
                     int index = rtp->trackIndex_;
-                    auto track = _mapWebrtcDecodeTrack[index];
-                    track->decodeRtp(rtp);
+                    auto track = strongSelf->_mapWebrtcDecodeTrack.find(index);
+                    if (track != strongSelf->_mapWebrtcDecodeTrack.end()) {
+                        track->second->decodeRtp(rtp);
+                    }
                 }
             });
         }

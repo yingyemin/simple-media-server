@@ -152,3 +152,21 @@ H264Track::Ptr H264Track::createTrack(int index, int payloadType, int samplerate
 
     return trackInfo;
 }
+
+void H264Track::onFrame(const FrameBuffer::Ptr& frame)
+{
+	if (_sps && _pps) {
+		_hasReady = true;
+		return ;
+	}
+
+	if (!frame || frame->size() < 5) {
+		return ;
+	}
+
+	if (frame->getNalType() == 7) {
+        setSps(frame);
+    } else if (frame->getNalType() == 8) {
+        setPps(frame);
+    }
+}

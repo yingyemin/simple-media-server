@@ -38,6 +38,8 @@ public:
         pps = _pps;
     }
 
+    void onFrame(const FrameBuffer::Ptr& frame); 
+
 public:
     FrameBuffer::Ptr _sps;
     FrameBuffer::Ptr _pps;

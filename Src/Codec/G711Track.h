@@ -17,6 +17,9 @@ class G711aTrack : public TrackInfo
 public:
     using Ptr = shared_ptr<G711aTrack>;
 
+public:
+    static G711aTrack::Ptr createTrack(int index, int payloadType, int samplerate);
+
     G711aTrack();
     virtual ~G711aTrack() {}
 
@@ -30,6 +33,9 @@ class G711uTrack : public TrackInfo
 {
 public:
     using Ptr = shared_ptr<G711uTrack>;
+
+public:
+    static G711uTrack::Ptr createTrack(int index, int payloadType, int samplerate);
 
     G711uTrack();
     virtual ~G711uTrack() {}

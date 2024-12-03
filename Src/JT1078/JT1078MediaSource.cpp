@@ -96,6 +96,7 @@ void JT1078MediaSource::addTrack(const JT1078DecodeTrack::Ptr& track)
                 return;
             }
             // logInfo << "on frame";
+            strongSelf->MediaSource::onFrame(frame);
             for (auto& wSink : strongSelf->_mapSink) {
                 // logInfo << "on frame to sink";
                 // auto sink = wSink.second.lock();
@@ -128,54 +129,13 @@ void JT1078MediaSource::addTrack(const JT1078DecodeTrack::Ptr& track)
 
 void JT1078MediaSource::onReady()
 {
-    if (_mapSink.size() == 0) {
+    MediaSource::onReady();
+    if (_mapSink.size() == 0 && _ring) {
         // _ring->delOnWrite(this);
+        _probeFinish = true;
         
-        bool allReady = true;
         for (auto& track : _mapJT1078DecodeTrack) {
-            if (track.second->isReady()) {
-                track.second->stopDecode();
-            } else {
-                allReady = false;
-            }
-        }
-
-        if (_mapJT1078DecodeTrack.size() == 1 || !allReady) {
-            // 500 ms检查一次，如果存在有track没有ready的情况，再等5秒；否则就ready
-            weak_ptr<JT1078MediaSource> weakSelf = std::static_pointer_cast<JT1078MediaSource>(shared_from_this());
-            _loop->addTimerTask(500, [weakSelf]() {
-                auto self = weakSelf.lock();
-                if (!self) {
-                    return 0;
-                }
-
-                if (self->_forceReady) {
-                    self->MediaSource::onReady();
-                    return 0;
-                }
-
-                bool allReady = true;
-                for (auto& track : self->_mapJT1078DecodeTrack) {
-                    if (!track.second->isReady()) {
-                        allReady = false;
-                    }
-                }
-
-                if (self->_mapJT1078DecodeTrack.size() == 2 && !allReady) {
-                    self->_forceReady = true;
-                    return 5000;
-                }
-
-                if (!self->isReady()) {
-                    self->MediaSource::onReady();
-                    self->_probeFinish = true;
-                }
-
-                return 0;
-            }, nullptr);
-        } else if (_mapJT1078DecodeTrack.size() == 2 && allReady) {
-            MediaSource::onReady();
-            _probeFinish = true;
+            track.second->stopDecode();
         }
     }
 }
