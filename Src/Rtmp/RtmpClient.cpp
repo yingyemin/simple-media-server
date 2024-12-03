@@ -98,6 +98,10 @@ void RtmpClient::start(const string& localIp, int localPort, const string& url, 
         _peerStreamName = _peerUrlParser.path_.substr(1 + pos);
     }
 
+    if (!_peerUrlParser.param_.empty()) {
+        _peerStreamName += "?" + _peerUrlParser.param_;
+    }
+
     logInfo << "_peerAppName: " << _peerAppName;
     logInfo << "_peerStreamName: " << _peerStreamName;
 

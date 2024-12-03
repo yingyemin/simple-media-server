@@ -565,8 +565,8 @@ void WebrtcContext::onManager()
         timeout = 5000;
     }
 
-    logInfo << "_lastPktClock.startToNow(): " << _lastPktClock.startToNow();
-    logInfo << "timeout: " << timeout;
+    // logInfo << "_lastPktClock.startToNow(): " << _lastPktClock.startToNow();
+    // logInfo << "timeout: " << timeout;
     if (_lastPktClock.startToNow() > timeout) {
         close();
     }
@@ -1010,7 +1010,7 @@ void WebrtcContext::handleRtcp(char* buf, int size)
         return ;
     }
 
-    logInfo << "start WebrtcContext::handleRtcp";
+    // logInfo << "start WebrtcContext::handleRtcp";
     auto buffer = make_shared<StreamBuffer>();
     buffer->move(buf, size, 0);
     RtcpPacket rtcp(buffer, 0);
@@ -1093,6 +1093,7 @@ void WebrtcContext::sendMedia(const RtpPacket::Ptr& rtp)
 	// fwrite(data, nb_cipher, 1, fp);
 	// fclose(fp);
 
+    // logInfo << "before protect: " << nb_cipher << ", type: " << rtp->type_;
 	if (_enbaleSrtp && _srtpSession) {
         if (0 != _srtpSession->protectRtp(data, &nb_cipher)) {
             logWarn << "protect srtp failed";
@@ -1100,7 +1101,7 @@ void WebrtcContext::sendMedia(const RtpPacket::Ptr& rtp)
         }
 		// lastest_packet_send_time_ = time(nullptr);
 	}
-    // logInfo << "protect rtp size: " << nb_cipher;
+    // logInfo << "after protect: " << nb_cipher << ", type: " << rtp->type_;
     if (_socket->getSocketType() == SOCKET_TCP) {
         uint8_t payload_ptr[2];
         payload_ptr[0] = nb_cipher >> 8;

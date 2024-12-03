@@ -50,6 +50,10 @@ private:
     int _channels = 0;
     uint32_t _frameDur = 20; // ms
     FrameBuffer::Ptr _cacheFrame;
+    // StringBuffer _cacheFrame;
+    // uint64_t _inSize = 0;
+    // uint64_t _outSize = 0;
+    // uint64_t _inPts = 0;
 
     QueType::Ptr _ring;
     DataType _cache;

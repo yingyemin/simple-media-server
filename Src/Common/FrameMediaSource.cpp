@@ -155,7 +155,8 @@ void FrameMediaSource::addSink(const MediaSource::Ptr &sink)
         if (!strong_self) {
             return ;
         }
-        // logInfo << "is key: " << is_key;
+        // logInfo << "frame pts: " << in->_pts << ", frame dts: " << in->_dts << ", type: " << in->_trackType;
+        // logInfo << "keyframe: " << is_key << ", size: " << in->size() << ", type: " << (int)in->getNalType();
         // logInfo << "frame source type: " << strong_self->_urlParser.type_;
         sink->onFrame(in);
         // for (auto& sinkW: strong_self->_mapSink) {

@@ -198,7 +198,7 @@ void JT1078DecodeTrack::decodeRtp(const JT1078RtpPacket::Ptr& rtp)
     case JT1078_Atomic:
         _frame->_buffer.assign(rtp->getPayload(), rtp->getPayloadSize());
         _frame->_pts = rtp->getTimestamp();
-        _frame->_startSize = 4;
+        // _frame->_startSize = 4;
         // fwrite(_frame->data(), 1, _frame->size(), fp);
         // fclose(fp);
         _frame->split([this](const FrameBuffer::Ptr &subFrame){
@@ -227,7 +227,7 @@ void JT1078DecodeTrack::decodeRtp(const JT1078RtpPacket::Ptr& rtp)
         }
         _frame->_pts = rtp->getTimestamp();
         _frame->_buffer.append(rtp->getPayload(), rtp->getPayloadSize());
-        _frame->_startSize = 4;
+        // _frame->_startSize = 4;
         // fwrite(_frame->data(), 1, _frame->size(), fp);
         // fclose(fp);
         _frame->split([this](const FrameBuffer::Ptr &subFrame){
