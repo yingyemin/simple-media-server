@@ -209,6 +209,7 @@ void RtmpMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
         logInfo << "add track, type: " << trackType;
         _mapRtmpEncodeTrack.emplace(trackType, rtmpTrack);
     }
+    rtmpTrack->setEnhanced(_enhanced);
     if (_muxer) {
         rtmpTrack->setOnRtmpPacket([weakSelf](const RtmpMessage::Ptr& pkt, bool start){
             // logInfo << "mux a rtmp packet";

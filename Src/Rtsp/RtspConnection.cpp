@@ -222,6 +222,14 @@ void RtspConnection::handleDescribe_l()
         }
         if (self->_urlParser.type_ == "ps") {
             return make_shared<RtspPsMediaSource>(self->_urlParser, nullptr, true);
+        } else if (self->_urlParser.type_ == "huge") {
+            auto source = make_shared<RtspMediaSource>(self->_urlParser, nullptr, true);
+            source->setEnableHuge(true);
+            return source;
+        } else if (self->_urlParser.type_ == "hugePs") {
+            auto source = make_shared<RtspPsMediaSource>(self->_urlParser, nullptr, true);
+            source->setEnableHuge(true);
+            return source;
         } else {
             return make_shared<RtspMediaSource>(self->_urlParser, nullptr, true);
         }

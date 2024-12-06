@@ -43,7 +43,14 @@
     "Cdn" : {
         "mode" : "forward1",
         "endpoint" : "122.51.204.244:1935",
-        "protocol" : "rtmp"
+        "protocol" : "rtmp",
+        # 格式：key1=value1&key2=value2
+        "params" : ""
+    },
+    "Rtp" : {
+        "maxRtpSize" : 1400,
+        # rtsp tcp模式下使用巨帧会提升性能
+        "hugeRtpSize" : 60000
     },
     "Rtsp" : {
         "Server" : {

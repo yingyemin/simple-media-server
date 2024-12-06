@@ -128,7 +128,7 @@ Variant Config::getAndListen(const function<void(const json& config)>& func, con
         key += "." + key4;
     }
     addUpdateFunc(key, func);
-    logInfo << "key: " << key;
+    // logInfo << "key: " << key;
 
     return get(key1, key2, key3, key4);
 }

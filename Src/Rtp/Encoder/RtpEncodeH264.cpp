@@ -24,9 +24,6 @@ public:
 #endif
 };
 
-// 配置读取
-static const int maxRtpSize = 1400;
-
 RtpEncodeH264::RtpEncodeH264(const shared_ptr<TrackInfo>& trackInfo)
     :_trackInfo(trackInfo)
 {}
@@ -39,7 +36,7 @@ void RtpEncodeH264::encode(const FrameBuffer::Ptr& frame)
     }
 
     auto size = frame->size() - frame->startSize();
-    if (size > maxRtpSize)  {
+    if (size > _maxRtpSize)  {
         encodeFuA(frame);
     } else {
         encodeSingle(frame);
@@ -63,8 +60,8 @@ void RtpEncodeH264::encodeFuA(const FrameBuffer::Ptr& frame) {
     size -= 1;
     frameData += 1;
 
-    while (size + 2 > maxRtpSize) {
-        RtpPacket::Ptr rtp = RtpPacket::create(_trackInfo, maxRtpSize + 12, pts, _ssrc, _lastSeq++, false);
+    while (size + 2 > _maxRtpSize) {
+        RtpPacket::Ptr rtp = RtpPacket::create(_trackInfo, _maxRtpSize + 12, pts, _ssrc, _lastSeq++, false);
         if (first) { //start
             fu_flags->start_bit = 1;
             first = false;
@@ -75,9 +72,9 @@ void RtpEncodeH264::encodeFuA(const FrameBuffer::Ptr& frame) {
         auto payload = rtp->getPayload();
         payload[0] = fuIndicator;
         payload[1] = fuHeader;
-        memcpy(payload + 2, (uint8_t *) frameData, maxRtpSize - 2);
-        size = size + 2 - maxRtpSize;
-        frameData = frameData + maxRtpSize - 2;
+        memcpy(payload + 2, (uint8_t *) frameData, _maxRtpSize - 2);
+        size = size + 2 - _maxRtpSize;
+        frameData = frameData + _maxRtpSize - 2;
 
         onRtpPacket(rtp, false);
     }

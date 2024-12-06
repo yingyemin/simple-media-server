@@ -22,9 +22,12 @@ public:
     virtual void setOnRtpPacket(const function<void(const RtpPacket::Ptr& packet, bool start)>& cb) = 0;
     virtual void encode(const FrameBuffer::Ptr& frame) = 0;
     virtual void setSsrc(uint32_t ssrc) {_ssrc = ssrc;}
+    virtual void setEnableHuge(bool enabled);
 
 protected:
+    bool _enableHuge = false;
     uint32_t _ssrc = 0;
+    uint64_t _maxRtpSize = 0;
 };
 
 

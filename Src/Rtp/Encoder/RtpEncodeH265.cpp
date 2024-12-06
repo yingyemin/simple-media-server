@@ -22,9 +22,6 @@ public:
 #endif
 };
 
-// 配置读取
-static const int maxRtpSize = 1400;
-
 RtpEncodeH265::RtpEncodeH265(const shared_ptr<TrackInfo>& trackInfo)
     :_trackInfo(trackInfo)
 {}
@@ -32,7 +29,7 @@ RtpEncodeH265::RtpEncodeH265(const shared_ptr<TrackInfo>& trackInfo)
 void RtpEncodeH265::encode(const FrameBuffer::Ptr& frame)
 {
     auto size = frame->size();
-    if (size > maxRtpSize)  {
+    if (size > _maxRtpSize)  {
         encodeFuA(frame);
     } else {
         encodeSingle(frame);
@@ -51,8 +48,8 @@ void RtpEncodeH265::encodeFuA(const FrameBuffer::Ptr& frame) {
     size -= 2;
     frameData += 2;
 
-    while (size + 3 > maxRtpSize) {
-        RtpPacket::Ptr rtp = RtpPacket::create(_trackInfo, maxRtpSize + 12, pts, _ssrc, _lastSeq++, false);
+    while (size + 3 > _maxRtpSize) {
+        RtpPacket::Ptr rtp = RtpPacket::create(_trackInfo, _maxRtpSize + 12, pts, _ssrc, _lastSeq++, false);
         if (first) { //start
             fu_flags->start_bit = 1;
             first = false;
@@ -64,9 +61,9 @@ void RtpEncodeH265::encodeFuA(const FrameBuffer::Ptr& frame) {
         payload[0] = 49 << 1;
         payload[1] = fuIndicator; // 1;
         payload[2] = fuHeader;
-        memcpy(payload + 3, (uint8_t *) frameData, maxRtpSize - 3);
-        size = size + 3 - maxRtpSize;
-        frameData = frameData + maxRtpSize - 3;
+        memcpy(payload + 3, (uint8_t *) frameData, _maxRtpSize - 3);
+        size = size + 3 - _maxRtpSize;
+        frameData = frameData + _maxRtpSize - 3;
 
         onRtpPacket(rtp, false);
     }

@@ -57,10 +57,13 @@ public:
         return _mapControl2Index[control];
     }
 
+    void setEnableHuge(bool enabled) {_enableHugeRtp = enabled;}
+
 private:
     bool _muxer;
     bool _probeFinish = false;
     bool _start = false;
+    bool _enableHugeRtp = false;
     int _ringSize = 512;
 
     mutex _mtxSdp;

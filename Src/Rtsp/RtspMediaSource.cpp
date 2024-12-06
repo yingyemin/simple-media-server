@@ -48,11 +48,12 @@ void RtspMediaSource::addTrack(const RtspTrack::Ptr& track)
         lock_guard<mutex> lck(_mtxTrack);
         _mapRtspTrack.emplace(track->getTrackIndex(), track);
     }
-    if (track->getTrackInfo()->trackType_ == "video") {
-        _mapStampAdjust[track->getTrackIndex()] = make_shared<VideoStampAdjust>();
-    } else if (track->getTrackInfo()->trackType_ == "audio") {
-        _mapStampAdjust[track->getTrackIndex()] = make_shared<AudioStampAdjust>();
-    }
+
+    // if (track->getTrackInfo()->trackType_ == "video") {
+    //     _mapStampAdjust[track->getTrackIndex()] = make_shared<VideoStampAdjust>();
+    // } else if (track->getTrackInfo()->trackType_ == "audio") {
+    //     _mapStampAdjust[track->getTrackIndex()] = make_shared<AudioStampAdjust>();
+    // }
     MediaSource::addTrack(track->getTrackInfo());
     
     track->setOnRtpPacket([weakSelf](const RtpPacket::Ptr& rtp, bool start){
@@ -195,6 +196,7 @@ void RtspMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
         _mapRtspTrack.emplace(track->index_, rtspTrack);
     }
     rtspTrack->setSsrc(track->index_ + 1000);
+    rtspTrack->setEnableHuge(_enableHugeRtp);
     if (_muxer) {
         rtspTrack->setOnRtpPacket([weakSelf](const RtpPacket::Ptr& rtp, bool start){
             // logInfo << "mux a rtp packet";

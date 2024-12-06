@@ -17,15 +17,23 @@ using namespace std;
 RtmpEncode::Ptr RtmpEncode::create(const shared_ptr<TrackInfo>& trackInfo)
 {
     logInfo << "codec: " << trackInfo->codec_;
+    RtmpEncode::Ptr source;
     if (trackInfo->codec_ == "h264") {
-        return make_shared<RtmpEncodeH264>(trackInfo);
+        source = make_shared<RtmpEncodeH264>(trackInfo);
     } else if (trackInfo->codec_ == "h265") {
-        return make_shared<RtmpEncodeH265>(trackInfo);
+        source =  make_shared<RtmpEncodeH265>(trackInfo);
     } else if (trackInfo->codec_ == "aac") {
-        return make_shared<RtmpEncodeAac>(trackInfo);
+        source =  make_shared<RtmpEncodeAac>(trackInfo);
     } else if (trackInfo->codec_ == "g711a" || trackInfo->codec_ == "g711u") {
-        return make_shared<RtmpEncodeCommon>(trackInfo);
+        source =  make_shared<RtmpEncodeCommon>(trackInfo);
     } else {
         return nullptr;
     }
+
+
+    if (source) {
+        source->setEnhanced(false);
+    }
+
+    return source;
 }

@@ -29,8 +29,10 @@ public:
     int getTrackIndex()  {return _index;}
     int getTrackType() {return _type;}
     shared_ptr<TrackInfo> getTrackInfo() { return _trackInfo;}
+    void setEnhanced(bool enhanced) {_enhanced = enhanced;}
 
 private:
+    bool _enhanced = false;
     uint32_t _timestap;
     int _index;
     int _type;

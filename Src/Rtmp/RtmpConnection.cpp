@@ -960,7 +960,12 @@ bool RtmpConnection::handlePlay()
         if (!self) {
             return nullptr;
         }
-        return make_shared<RtmpMediaSource>(self->_urlParser, nullptr, true);
+        auto source = make_shared<RtmpMediaSource>(self->_urlParser, nullptr, true);
+        if (self->_urlParser.type_ == "enhanced") {
+            source->setEnhanced(true);
+        }
+
+        return source;
     }, this);
     
              

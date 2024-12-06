@@ -27,6 +27,7 @@ void RtmpEncodeTrack::startEncode()
                 self->onRtmpPacket(pkt, start);
             }
         });
+        _encoder->setEnhanced(_enhanced);
     }
 }
 

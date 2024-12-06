@@ -22,9 +22,9 @@ string RtmpEncodeH265::getConfig()
         return "";
     }
 
-    static bool enbaleEnhanced = Config::instance()->getAndListen([](const json &config){
-        enbaleEnhanced = Config::instance()->get("Rtmp", "Server", "Server1", "enableEnhanced");
-    }, "Rtmp", "Server", "Server1", "enableEnhanced");
+    // static bool enbaleEnhanced = Config::instance()->getAndListen([](const json &config){
+    //     enbaleEnhanced = Config::instance()->get("Rtmp", "Server", "Server1", "enableEnhanced");
+    // }, "Rtmp", "Server", "Server1", "enableEnhanced");
 
     string config;
 
@@ -42,8 +42,8 @@ string RtmpEncodeH265::getConfig()
     config.resize(43  + vpsLen + spsLen + ppsLen);
     auto data = (char*)config.data();
 
-    if (enbaleEnhanced) {
-        *data++ = 1 << 7 | 1;
+    if (_enhanced) {
+        *data++ = 1 << 7 | 1  << 4;
         *data++ = 'h';
         *data++ = 'v';
         *data++ = 'c';
@@ -145,12 +145,12 @@ string RtmpEncodeH265::getConfig()
 
 void RtmpEncodeH265::encode(const FrameBuffer::Ptr& frame)
 {
-    static bool enbaleEnhanced = Config::instance()->getAndListen([](const json &config){
-        enbaleEnhanced = Config::instance()->get("Rtmp", "Server", "Server1", "enableEnhanced");
-    }, "Rtmp", "Server", "Server1", "enableEnhanced");
+    // static bool enbaleEnhanced = Config::instance()->getAndListen([](const json &config){
+    //     enbaleEnhanced = Config::instance()->get("Rtmp", "Server", "Server1", "enableEnhanced");
+    // }, "Rtmp", "Server", "Server1", "enableEnhanced");
 
     int enhancedExtraSize = 0;
-    if (enbaleEnhanced) {
+    if (_enhanced) {
         enhancedExtraSize = 3;
     }
 
@@ -180,7 +180,7 @@ void RtmpEncodeH265::encode(const FrameBuffer::Ptr& frame)
                 }
 
                 if (first) {
-                    if (enbaleEnhanced) {
+                    if (_enhanced) {
                         uint8_t frameType = keyFrame ? 1 : 2;
                         *data++ = 1 << 7 | frameType << 4 | 1;
                         *data++ = 'h';

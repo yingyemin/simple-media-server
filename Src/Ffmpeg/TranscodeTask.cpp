@@ -91,6 +91,10 @@ std::string TranscodeTask::init(const std::string& uri, const std::string& video
         throw runtime_error("dynamic_pointer_cast frame source error");
     }
 
+    if (frameSrc->getLoop() == nullptr) {
+        frameSrc->setLoop(originSource->getLoop());
+    }
+
     _source = frameSrc;
     weak_ptr<TranscodeTask> wSelf = shared_from_this();
 

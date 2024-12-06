@@ -30,6 +30,8 @@ public:
     void onFrame(const FrameBuffer::Ptr& frame) override;
     void startEncode() override;
 
+    void setEnableHuge(bool enabled) override;
+
     void setOnRtpPacket(const function<void(const RtpPacket::Ptr& rtp, bool start)>& cb) override {_onRtpPacket = cb;}
 
     int getTrackIndex()  override {return _index;}

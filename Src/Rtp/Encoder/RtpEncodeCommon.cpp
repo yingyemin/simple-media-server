@@ -9,9 +9,6 @@
 
 using namespace std;
 
-// 配置读取
-static const int maxRtpSize = 1400;
-
 RtpEncodeCommon::RtpEncodeCommon(const shared_ptr<TrackInfo>& trackInfo)
     :_trackInfo(trackInfo)
 {}
@@ -22,13 +19,13 @@ void RtpEncodeCommon::encode(const FrameBuffer::Ptr& frame)
     auto pts = frame->pts();
     auto size = frame->size() - frame->startSize();
     while (size > 0) {
-        if (size <= maxRtpSize) {
+        if (size <= _maxRtpSize) {
             makeRtp(payload, size, true, pts);
             break;
         }
-        makeRtp(payload, maxRtpSize, false, pts);
-        payload += maxRtpSize;
-        size -= maxRtpSize;
+        makeRtp(payload, _maxRtpSize, false, pts);
+        payload += _maxRtpSize;
+        size -= _maxRtpSize;
     }
     return ;
 }

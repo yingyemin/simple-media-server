@@ -288,6 +288,9 @@ int FlvMuxerWithRtmp::sendFlvTag(uint8_t type, uint64_t timestamp, const StreamB
 	writeUint32BE(previous_tag_size, payload_size + 11);
 
 	send(tag_header, 11);
+	if (payload->size() > payload_size) {
+		payload->substr(0, payload_size);
+	}
 	send(payload);
 	send(previous_tag_size, 4);
 	return 0;

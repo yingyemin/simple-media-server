@@ -9,9 +9,6 @@
 
 using namespace std;
 
-// 配置读取
-static const int maxRtpSize = 1400;
-
 RtpEncodeAac::RtpEncodeAac(const shared_ptr<TrackInfo>& trackInfo)
     :_trackInfo(trackInfo)
 {}
@@ -22,7 +19,7 @@ void RtpEncodeAac::encode(const FrameBuffer::Ptr& frame)
     auto pts = frame->pts();
     auto size = frame->size() - frame->startSize();
     auto remain_size = size;
-    auto aacMaxRtpSize = maxRtpSize - 4;
+    auto aacMaxRtpSize = _maxRtpSize - 4;
 
     bool start = false;
     bool first = true;

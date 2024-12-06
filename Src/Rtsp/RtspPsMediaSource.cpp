@@ -43,6 +43,7 @@ void RtspPsMediaSource::addTrack(const RtspPsDecodeTrack::Ptr& track)
     }
 
     _psDecode = track;
+    track->setEnableHuge(_enableHugeRtp);
 
     // if (track->getTrackInfo()->trackType_ == "video") {
     //     _mapStampAdjust[track->getTrackIndex()] = make_shared<VideoStampAdjust>();
@@ -220,6 +221,7 @@ void RtspPsMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
     }
     if (!_psEncode) {
         _psEncode = make_shared<RtspPsEncodeTrack>(0);
+        _psEncode->setEnableHuge(_enableHugeRtp);
     }
 
     _psEncode->addTrackInfo(track);

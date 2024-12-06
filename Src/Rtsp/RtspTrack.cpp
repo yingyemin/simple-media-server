@@ -252,6 +252,17 @@ void RtspEncodeTrack::startEncode()
             auto self = wSelf.lock();
             self->onRtpPacket(rtp, start);
         });
+
+        _encoder->setEnableHuge(_enableHuge);
+    }
+}
+
+void RtspEncodeTrack::setEnableHuge(bool enabled)
+{
+    RtspTrack::setEnableHuge(enabled);
+
+    if (_encoder) {
+        _encoder->setEnableHuge(enabled);
     }
 }
 

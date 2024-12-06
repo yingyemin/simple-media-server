@@ -52,6 +52,8 @@ public:
     void getClientList(const function<void(const list<ClientInfo>& info)>& func) override;
     uint64_t getBytes() override { return _ring ? _ring->getBytes() : 0;}
 
+    void setEnhanced(bool enhanced) {_enhanced = enhanced;}
+
 public:
     int _aacHeaderSize = 0;
     StreamBuffer::Ptr _aacHeader;
@@ -63,6 +65,7 @@ private:
     bool _muxer;
     bool _start = false;
     bool _probeFinish = false;
+    bool _enhanced = false;
     int _ringSize = 512;
     int64_t _lastPts = -1;
 
