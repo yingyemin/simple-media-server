@@ -11,6 +11,7 @@
 #include "Codec/G711Track.h"
 #include "Codec/H264Track.h"
 #include "Codec/H265Track.h"
+#include "Codec/Mp3Track.h"
 #include "Decode/RtmpDecodeAac.h"
 #include "Decode/RtmpDecodeCommon.h"
 #include "Decode/RtmpDecodeH264.h"
@@ -35,7 +36,8 @@ void RtmpDecodeTrack::createDecoder()
             _decoder = dynamic_pointer_cast<RtmpDecode>(make_shared<RtmpDecodeH265>(_trackInfo));
         } else if (_trackInfo->codec_ == "aac") {
             _decoder = dynamic_pointer_cast<RtmpDecode>(make_shared<RtmpDecodeAac>(_trackInfo));
-        } else if (_trackInfo->codec_ == "g711a" || _trackInfo->codec_ == "g711u") {
+        } else if (_trackInfo->codec_ == "g711a" || _trackInfo->codec_ == "g711u"
+                    || _trackInfo->codec_ == "mp3") {
             _decoder = dynamic_pointer_cast<RtmpDecode>(make_shared<RtmpDecodeCommon>(_trackInfo));
         }
 
@@ -120,6 +122,12 @@ int RtmpDecodeTrack::createTrackInfo(int trackType, int codeId)
             // _trackInfo->index_ = AudioTrackType;
             // _trackInfo->trackType_ = "audio";
             _trackInfo = G711uTrack::createTrack(AudioTrackType, 8, 8000);
+        } else if (codeId == RTMP_CODEC_ID_MP3) {
+            // _trackInfo = make_shared<G711uTrack>();
+            // _trackInfo->codec_ = "g711u";
+            // _trackInfo->index_ = AudioTrackType;
+            // _trackInfo->trackType_ = "audio";
+            _trackInfo = Mp3Track::createTrack(AudioTrackType, 16, 44100);
         } else {
             // throw runtime_error("不支持的解码格式:" + to_string(codeId));
             logWarn << "不支持的audio解码格式:" << codeId;

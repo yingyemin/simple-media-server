@@ -12,6 +12,8 @@ int getFalg(const shared_ptr<TrackInfo>& trackInfo)
         audioType = RTMP_CODEC_ID_G711A;
     } else if (trackInfo->codec_ == "g711u") {
         audioType = RTMP_CODEC_ID_G711U;
+    } else if (trackInfo->codec_ == "mp3") {
+        audioType = RTMP_CODEC_ID_MP3;
     } else {
         return 0;
     }

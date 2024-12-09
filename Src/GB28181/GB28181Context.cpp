@@ -133,6 +133,17 @@ bool GB28181Context::init()
 
 void GB28181Context::onRtpPacket(const RtpPacket::Ptr& rtp, struct sockaddr* addr, int len, bool sort)
 {
+    if (rtp->getHeader()->version != 2) {
+        return ;
+    }
+
+    if (_ssrc < 0) {
+        _ssrc = rtp->getSSRC();
+    } else if (_ssrc != rtp->getSSRC()) {
+        logInfo << "收到其他流的数据, recv ssrc: " << rtp->getSSRC() << ", cur _ssrc: " << _ssrc;
+        return ;
+    }
+
     if (addr) {
         if (!_addr) {
             _addr = make_shared<sockaddr>();

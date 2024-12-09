@@ -32,6 +32,7 @@ public:
 
 private:
     bool _alive = true;
+    int64_t _ssrc = -1;
     string _uri;
     string _vhost;
     string _protocol;

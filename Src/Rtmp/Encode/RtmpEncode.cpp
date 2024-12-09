@@ -24,7 +24,8 @@ RtmpEncode::Ptr RtmpEncode::create(const shared_ptr<TrackInfo>& trackInfo)
         source =  make_shared<RtmpEncodeH265>(trackInfo);
     } else if (trackInfo->codec_ == "aac") {
         source =  make_shared<RtmpEncodeAac>(trackInfo);
-    } else if (trackInfo->codec_ == "g711a" || trackInfo->codec_ == "g711u") {
+    } else if (trackInfo->codec_ == "g711a" || trackInfo->codec_ == "g711u"
+            || trackInfo->codec_ == "mp3") {
         source =  make_shared<RtmpEncodeCommon>(trackInfo);
     } else {
         return nullptr;

@@ -15,6 +15,7 @@ enum PayloadType
 {
     PayloadType_G711U = 0,
     PayloadType_G711A = 8,
+    PayloadType_Mp3 = 14,
     PayloadType_AAC = 97,
     PayloadType_H26X = 96
 };

@@ -78,6 +78,13 @@ void GB28181Connection::onRtpPacket(const RtpPacket::Ptr& rtp)
     if (_isClose) {
         return ;
     }
+
+    if (rtp->getHeader()->version != 2) {
+        // rtp version必须是2.否则，可能是tcp流错位了，或者rtp包有问题
+        onError();
+        return ;
+    }
+
     if (_ssrc < 0) {
         _ssrc = rtp->getSSRC();
     } else if (_ssrc != rtp->getSSRC()) {

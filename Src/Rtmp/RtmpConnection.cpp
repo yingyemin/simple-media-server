@@ -492,9 +492,21 @@ bool RtmpConnection::handleAudio(RtmpMessage& rtmp_msg)
         return false;
     }
 	uint8_t sound_format = (payload[0] >> 4) & 0x0f;
-	//uint8_t sound_size = (payload[0] >> 1) & 0x01;
-	//uint8_t sound_rate = (payload[0] >> 2) & 0x03;
-	uint8_t codec_id = payload[0] & 0x0f;
+    // 0:单声道， 1：双声道
+    uint8_t sound_channel  = payload[0] & 0x01;
+    // 0：8bit， 1：16bit
+	uint8_t sound_size = (payload[0] >> 1) & 0x01;
+    // 0：5.5kHz， 1：11kHz， 2：22kHz， 3：44kHz
+	uint8_t sound_rate = (payload[0] >> 2) & 0x03;
+	// uint8_t codec_id = payload[0] & 0x0f;
+
+    static int channelArray[] = {1, 2};
+    static int bitArray[] = {8, 16};
+    static int sampleArray[] = {5500, 11000, 22000, 44100};
+
+    // logInfo << "sound_channel: " << (int)sound_channel
+    //         << ", sound_size: " << (int)sound_size
+    //         << ", sound_rate: " << (int)sound_rate;
 
     // auto server = rtmp_server_.lock();
     // if (!server) {
@@ -512,6 +524,10 @@ bool RtmpConnection::handleAudio(RtmpMessage& rtmp_msg)
             _validAudioTrack = false;
             return false;
         }
+        auto trackInfo = _rtmpAudioDecodeTrack->getTrackInfo();
+        trackInfo->samplerate_ = sampleArray[sound_rate];
+        trackInfo->bitPerSample_ = bitArray[sound_size];
+        trackInfo->channel_ = channelArray[sound_channel];
         rtmpSrc->addTrack(_rtmpAudioDecodeTrack);
     }
 
