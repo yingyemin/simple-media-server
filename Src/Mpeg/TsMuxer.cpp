@@ -20,10 +20,6 @@
 #define TS_PID_PMT		(0x62)
 #define TS_PID_VIDEO	(0x65)
 #define TS_PID_AUDIO	(0x84)
-#define TS_PMT_STREAMTYPE_11172_AUDIO	(0x03)
-#define TS_PMT_STREAMTYPE_13818_AUDIO	(0x04)
-#define TS_PMT_STREAMTYPE_AAC_AUDIO		(0x0F)
-#define TS_PMT_STREAMTYPE_H264_VIDEO	(0x1B)
 
 #define TS_LOAD_LEN 188
 
@@ -187,6 +183,8 @@ void TsMuxer::addTrackInfo(const shared_ptr<TrackInfo>& trackInfo)
             _audioCodec = STREAM_TYPE_AUDIO_G711;
         } else if (trackInfo->codec_ == "g711u") {
             _audioCodec = STREAM_TYPE_AUDIO_G711ULAW;
+        } else if (trackInfo->codec_ == "mp3") {
+            _audioCodec = STREAM_TYPE_AUDIO_MP3;
         }
     }
 }

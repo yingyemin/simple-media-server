@@ -156,8 +156,8 @@ int Fmp4Muxer::inputFrame_l(int trackIndex, const void* data, size_t bytes, int6
 	pts = pts * track->mdhd.timescale / 1000;
 	dts = dts * track->mdhd.timescale / 1000;
 
-	logInfo << "pts ============= " << pts;
-	logInfo << "dts ============= " << dts;
+	// logInfo << "pts ============= " << pts;
+	// logInfo << "dts ============= " << dts;
 
     auto samplePtr = make_shared<mov_sample_t>();
     track->samples.push_back(samplePtr);
@@ -170,9 +170,9 @@ int Fmp4Muxer::inputFrame_l(int trackIndex, const void* data, size_t bytes, int6
 	sample->dts = dts;
 	sample->offset = _mdatSize;
 
-	cout << "add track sample: " << _mapTrackInfo[trackIndex] << endl;
-	cout << "track->sample_count: " << track->sample_count + 1 << endl;
-	cout << "track->sample size: " << track->samples.size() << endl;
+	// cout << "add track sample: " << _mapTrackInfo[trackIndex] << endl;
+	// cout << "track->sample_count: " << track->sample_count + 1 << endl;
+	// cout << "track->sample size: " << track->samples.size() << endl;
 	sample->data = malloc(bytes);
 	if (NULL == sample->data)
 		return -ENOMEM;
@@ -222,7 +222,7 @@ void Fmp4Muxer::addAudioTrack(const shared_ptr<TrackInfo>& trackInfo)
     track->stsd.entries.push_back(audio);
 
     audio->data_reference_index = 1;
-    audio->object_type_indication = getAudioObject(trackInfo->codec_);
+    audio->object_type_indication = getAudioObject(trackInfo->codec_, trackInfo->samplerate_);
     audio->stream_type = MP4_STREAM_AUDIO;
     audio->u.audio.channelcount = trackInfo->channel_;
     audio->u.audio.samplesize = (uint16_t)trackInfo->bitPerSample_ * (uint16_t)trackInfo->channel_;
@@ -552,7 +552,7 @@ size_t Fmp4Muxer::mov_write_tfdt()
     baseMediaDecodeTime = _track->samples[0]->dts - _track->start_dts;
     version = baseMediaDecodeTime > INT32_MAX ? 1 : 0;
 
-	logInfo << "baseMediaDecodeTime: " << baseMediaDecodeTime;
+	// logInfo << "baseMediaDecodeTime: " << baseMediaDecodeTime;
 
     write32BE(0 == version ? 16 : 20); /* size */
     write("tfdt", 4);
@@ -669,8 +669,8 @@ size_t Fmp4Muxer::mov_write_sidx(uint64_t offset)
         earliest_presentation_time = 0;
     }
 
-	logInfo << "earliest_presentation_time == " << earliest_presentation_time;
-	logInfo << "duration == " << duration;
+	// logInfo << "earliest_presentation_time == " << earliest_presentation_time;
+	// logInfo << "duration == " << duration;
 
     write32BE(52); /* size */
     write("sidx", 4);
@@ -826,7 +826,7 @@ int Fmp4Muxer::fmp4_write_fragment()
 		if (_flags & MOV_FLAG_SEGMENT)
 			writeMdatSize(_moofOffset - 52 * (uint64_t)(_trackCount - i) + 40, (0 << 31) | (refsize & 0x7fffffff));
 
-		cout << "_track->offset = 0" << endl;
+		// logInfo << "_track->offset = 0" << endl;
 		_track->offset = 0; // reset
 	}
 
@@ -852,9 +852,9 @@ int Fmp4Muxer::fmp4_write_fragment()
 			_track = _tracks[i];
 			while (_track->offset < _track->sample_count && n == _track->samples[_track->offset]->offset)
             {
-				cout << "_track i: " << i << endl;
-				cout << "_track->offset: " << _track->offset << endl;
-				cout << "_track->sample_count: " << _track->sample_count << endl;
+				// logInfo << "_track i: " << i << endl;
+				// logInfo << "_track->offset: " << _track->offset << endl;
+				// logInfo << "_track->sample_count: " << _track->sample_count << endl;
                 write((char*)_track->samples[_track->offset]->data, _track->samples[_track->offset]->bytes);
                 free(_track->samples[_track->offset]->data); // free av packet memory
                 n += _track->samples[_track->offset]->bytes;

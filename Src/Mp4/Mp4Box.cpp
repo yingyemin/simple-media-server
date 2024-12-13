@@ -9,8 +9,11 @@ static struct mov_object_tag s_tags[] = {
     { MOV_OBJECT_H264,	MOV_TAG('a', 'v', 'c', '4') }, // AVC2SampleEntry (ISO/IEC 14496-15:2017)
 	{ MOV_OBJECT_HEVC,	MOV_HEVC }, // HEVCSampleEntry (ISO/IEC 14496-15:2013)
 	{ MOV_OBJECT_HEVC,	MOV_TAG('h', 'e', 'v', '1') }, // HEVCSampleEntry (ISO/IEC 14496-15:2013)
+	{ MOV_OBJECT_H266,	MOV_TAG('v', 'v', 'c', '1') }, // VVCSampleEntry (ISO/IEC 14496-15:2021)
 	{ MOV_OBJECT_MP4V,	MOV_MP4V },
 	{ MOV_OBJECT_AAC,	MOV_MP4A },
+	{ MOV_OBJECT_MP3,	MOV_MP4A }, // mp4_read_decoder_config_descriptor
+	{ MOV_OBJECT_MP1A,	MOV_MP4A }, // mp4_read_decoder_config_descriptor
 	{ MOV_OBJECT_G711a,	MOV_TAG('a', 'l', 'a', 'w') },
 	{ MOV_OBJECT_G711u,	MOV_TAG('u', 'l', 'a', 'w') },
 	{ MOV_OBJECT_TEXT,	MOV_TAG('t', 'x', '3', 'g') },
@@ -25,6 +28,8 @@ static struct mov_object_tag s_tags[] = {
     { MOV_OBJECT_DTS,   MOV_DTS },
     { MOV_OBJECT_VC1,   MOV_VC1 },
     { MOV_OBJECT_DIRAC, MOV_DIRAC },
+
+	{ MOV_OBJECT_HEVC,		MOV_TAG('d', 'v', 'h', '1') }, // Dolby Vision HEVC(H.265) dvhe
 };
 
 uint32_t mov_object_to_tag(uint8_t object)

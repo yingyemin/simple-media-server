@@ -1,6 +1,7 @@
 #include "TsDemuxer.h"
 #include "Log/Logger.h"
 #include "Codec/AacTrack.h"
+#include "Codec/Mp3Track.h"
 #include "Codec/G711Track.h"
 #include "Codec/H264Track.h"
 #include "Codec/H265Track.h"
@@ -880,26 +881,40 @@ void TsPayloadPMT::demux(TsDemuxer *ctx, TsPacket *pkt, const StreamBuffer::Ptr&
         pos += 5 + ES_Info_length;
 
         std::string stream_type_str;
+        int pidType = TsPidTypeReserved;
 
         switch (stream_type) {
             case STREAM_TYPE_AUDIO_G711:
                 stream_type_str = "g711a";
+                pidType = TsPidTypeAudio;
+                break;
+            case STREAM_TYPE_AUDIO_MP3:
+                stream_type_str = "mp3";
+                pidType = TsPidTypeAudio;
+                break;
             case STREAM_TYPE_AUDIO_G711ULAW:
                 stream_type_str = "g711u";
+                pidType = TsPidTypeAudio;
+                break;
             case STREAM_TYPE_AUDIO_AAC: {
                 stream_type_str = "aac";
-                ctx->pushPidInfo((TSPidTable)elementary_PID, TsPidType::TsPidTypeAudio);
-                ctx->createTrackInfo(stream_type_str);
+                pidType = TsPidTypeAudio;
                 break;
             }
             case STREAM_TYPE_VIDEO_HEVC:
                 stream_type_str = "h265";
+                pidType = TsPidTypeVideo;
+                break;
             case STREAM_TYPE_VIDEO_H264: {
                 stream_type_str = "h264";
-                ctx->pushPidInfo((TSPidTable)elementary_PID, TsPidType::TsPidTypeVideo);
-                ctx->createTrackInfo(stream_type_str);
+                pidType = TsPidTypeVideo;
                 break;
             }
+        }
+        
+        if (!stream_type_str.empty()) {
+            ctx->pushPidInfo((TSPidTable)elementary_PID, (TsPidType)pidType);
+            ctx->createTrackInfo(stream_type_str);
         }
 
         if (KPrintTsPacketPayloadPMT)
@@ -1073,31 +1088,36 @@ void TsAdaptationField::demux(const StreamBuffer::Ptr& buffer)
 
 void TsDemuxer::onDecode(const char* data, int len, int index, int pts, int dts)
 {
-    if (_firstAac && _audioCodec == "aac" && index == AudioTrackType)
-    {
-        if (len <= 7) {
-            return;
-        }
-        if (_mapTrackInfo.find(AudioTrackType) != _mapTrackInfo.end()) {
-            auto aacTrack = dynamic_pointer_cast<AacTrack>(_mapTrackInfo[AudioTrackType]);
-            aacTrack->setAacInfoByAdts(data, 7);
-            _firstAac = false;
-            if (_onReady) {
-                _onReady();
-            }
-        }
-    } else if (!_audioCodec.empty() && index == AudioTrackType) {
-        if (!_hasReady) {
-            _hasReady = true;
-            _onReady();
-        }
+    if (!data || len == 0) {
+        return ;
     }
+    // if (_firstAac && _audioCodec == "aac" && index == AudioTrackType)
+    // {
+    //     if (len <= 7) {
+    //         return;
+    //     }
+    //     if (_mapTrackInfo.find(AudioTrackType) != _mapTrackInfo.end()) {
+    //         auto aacTrack = dynamic_pointer_cast<AacTrack>(_mapTrackInfo[AudioTrackType]);
+    //         aacTrack->setAacInfoByAdts(data, 7);
+    //         _firstAac = false;
+    //         if (_onReady) {
+    //             _onReady();
+    //         }
+    //     }
+    // } else if (!_audioCodec.empty() && index == AudioTrackType) {
+    //     if (!_hasReady) {
+    //         _hasReady = true;
+    //         _onReady();
+    //     }
+    // }
 
     FrameBuffer::Ptr frame;
 
-    if (index == AudioTrackType && _audioCodec == "aac") {
+    if (index == AudioTrackType) {
         frame = make_shared<FrameBuffer>();
-        frame->_startSize = 7;
+        if (_audioCodec == "aac") {
+            frame->_startSize = 7;
+        }
     } else if (index == VideoTrackType && (_videoCodec == "h264" || _videoCodec == "h265")) {
         if (len <= 4) {
             return ;
@@ -1125,35 +1145,35 @@ void TsDemuxer::onDecode(const char* data, int len, int index, int pts, int dts)
             if (_videoCodec == "h265") {
                 auto h265frame = dynamic_pointer_cast<H265Frame>(frame);
                 h265frame->split([this, h265frame](const FrameBuffer::Ptr &subFrame){
-                    if (_firstVps || _firstSps || _firstPps) {
-                        auto h265Track = dynamic_pointer_cast<H265Track>(_mapTrackInfo[VideoTrackType]);
-                        auto nalType = subFrame->getNalType();
-                        switch (nalType)
-                        {
-                        case H265_VPS:
-                            h265Track->setVps(subFrame);
-                            _firstVps = false;
-                            break;
-                        case H265_SPS:
-                            h265Track->setSps(subFrame);
-                            _firstSps = false;
-                            break;
-                        case H265_PPS:
-                            h265Track->setPps(subFrame);
-                            _firstPps = false;
-                            break;
-                        default:
-                            break;
-                        }
-                    }else {
-                        logInfo << "gb28181 _onReady";
-                        if (!_hasReady && _onReady) {
-                            // if (!_firstAac) {
-                                _onReady();
-                            // }
-                            _hasReady = true;
-                        }
-                    }
+                    // if (_firstVps || _firstSps || _firstPps) {
+                    //     auto h265Track = dynamic_pointer_cast<H265Track>(_mapTrackInfo[VideoTrackType]);
+                    //     auto nalType = subFrame->getNalType();
+                    //     switch (nalType)
+                    //     {
+                    //     case H265_VPS:
+                    //         h265Track->setVps(subFrame);
+                    //         _firstVps = false;
+                    //         break;
+                    //     case H265_SPS:
+                    //         h265Track->setSps(subFrame);
+                    //         _firstSps = false;
+                    //         break;
+                    //     case H265_PPS:
+                    //         h265Track->setPps(subFrame);
+                    //         _firstPps = false;
+                    //         break;
+                    //     default:
+                    //         break;
+                    //     }
+                    // }else {
+                    //     logInfo << "gb28181 _onReady";
+                    //     if (!_hasReady && _onReady) {
+                    //         // if (!_firstAac) {
+                    //             _onReady();
+                    //         // }
+                    //         _hasReady = true;
+                    //     }
+                    // }
                     if (_onFrame) {
                         _onFrame(subFrame);
                     }
@@ -1161,32 +1181,32 @@ void TsDemuxer::onDecode(const char* data, int len, int index, int pts, int dts)
             } else if (_videoCodec == "h264") {
                 auto h264frame = dynamic_pointer_cast<H264Frame>(frame);
                 h264frame->split([this, h264frame](const FrameBuffer::Ptr &subFrame){
-                    if (_firstSps || _firstPps) {
-                        auto h264Track = dynamic_pointer_cast<H264Track>(_mapTrackInfo[VideoTrackType]);
-                        auto nalType = subFrame->getNalType();
-                        logInfo << "get a h264 nal type: " << (int)nalType;
-                        switch (nalType)
-                        {
-                        case H264_SPS:
-                            h264Track->setSps(subFrame);
-                            _firstSps = false;
-                            break;
-                        case H264_PPS:
-                            h264Track->setPps(subFrame);
-                            _firstPps = false;
-                            break;
-                        default:
-                            break;
-                        }
-                    } else {
-                        // logInfo << "gb28181 _onReady";
-                        if (!_hasReady && _onReady) {
-                            // if (!_firstAac) {
-                                _onReady();
-                            // }
-                            _hasReady = true;
-                        }
-                    }
+                    // if (_firstSps || _firstPps) {
+                    //     auto h264Track = dynamic_pointer_cast<H264Track>(_mapTrackInfo[VideoTrackType]);
+                    //     auto nalType = subFrame->getNalType();
+                    //     logInfo << "get a h264 nal type: " << (int)nalType;
+                    //     switch (nalType)
+                    //     {
+                    //     case H264_SPS:
+                    //         h264Track->setSps(subFrame);
+                    //         _firstSps = false;
+                    //         break;
+                    //     case H264_PPS:
+                    //         h264Track->setPps(subFrame);
+                    //         _firstPps = false;
+                    //         break;
+                    //     default:
+                    //         break;
+                    //     }
+                    // } else {
+                    //     // logInfo << "gb28181 _onReady";
+                    //     if (!_hasReady && _onReady) {
+                    //         // if (!_firstAac) {
+                    //             _onReady();
+                    //         // }
+                    //         _hasReady = true;
+                    //     }
+                    // }
                     if (_onFrame) {
                         _onFrame(subFrame);
                     }
@@ -1209,31 +1229,39 @@ void TsDemuxer::setOnDecode(const function<void(const FrameBuffer::Ptr& frame)> 
 void TsDemuxer::createTrackInfo(const string& codec)
 {
     if (codec == "aac") {
-        auto trackInfo = make_shared<AacTrack>();
-        trackInfo->index_ = AudioTrackType;
-        trackInfo->codec_ = "aac";
-        trackInfo->trackType_ = "audio";
-        trackInfo->samplerate_ = 90000;
-        trackInfo->payloadType_ = 97;
+        // auto trackInfo = make_shared<AacTrack>();
+        // trackInfo->index_ = AudioTrackType;
+        // trackInfo->codec_ = "aac";
+        // trackInfo->trackType_ = "audio";
+        // trackInfo->samplerate_ = 90000;
+        // trackInfo->payloadType_ = 97;
+        auto trackInfo = AacTrack::createTrack(AudioTrackType, 97, 90000);
         addTrackInfo(trackInfo);
 
         _audioCodec = "aac";
     } else if (codec == "g711a") {
-        auto trackInfo = make_shared<G711aTrack>();
-        trackInfo->index_ = AudioTrackType;
-        trackInfo->codec_ = "g711a";
-        trackInfo->trackType_ = "audio";
+        // auto trackInfo = make_shared<G711aTrack>();
+        // trackInfo->index_ = AudioTrackType;
+        // trackInfo->codec_ = "g711a";
+        // trackInfo->trackType_ = "audio";
+        auto trackInfo = G711aTrack::createTrack(AudioTrackType, 8, 8000);
         addTrackInfo(trackInfo);
 
         _videoCodec = "g711a";
     } else if (codec == "g711u") {
-        auto trackInfo = make_shared<G711uTrack>();
-        trackInfo->index_ = AudioTrackType;
-        trackInfo->codec_ = "g711u";
-        trackInfo->trackType_ = "audio";
+        // auto trackInfo = make_shared<G711uTrack>();
+        // trackInfo->index_ = AudioTrackType;
+        // trackInfo->codec_ = "g711u";
+        // trackInfo->trackType_ = "audio";
+        auto trackInfo = G711uTrack::createTrack(AudioTrackType, 0, 8000);
         addTrackInfo(trackInfo);
 
         _videoCodec = "g711u";
+    } else if (codec == "mp3") {
+        auto trackInfo = Mp3Track::createTrack(AudioTrackType, 14, 44100);
+        addTrackInfo(trackInfo);
+
+        _videoCodec = "mp3";
     } else if (codec == "h264") {
         auto trackInfo = H264Track::createTrack(VideoTrackType, 96, 90000);
         addTrackInfo(trackInfo);

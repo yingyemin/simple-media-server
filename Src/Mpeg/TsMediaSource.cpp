@@ -261,7 +261,7 @@ void TsMediaSource::onFrame(const FrameBuffer::Ptr& frame)
     if (!frame) {
         return ;
     }
-    logInfo << "on get a frame: index : " << frame->getTrackIndex();
+    // logInfo << "on get a frame: index : " << frame->getTrackIndex();
     // auto it = _mapGB28181EncodeTrack.find(frame->getTrackIndex());
     if (!_tsEncodeTrack) {
         return ;

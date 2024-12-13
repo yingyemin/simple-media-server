@@ -4,7 +4,7 @@
 
 #include <sys/time.h>
 
-int getAudioObject(const string& codec)
+int getAudioObject(const string& codec, int samplerate)
 {
     if (codec == "aac") {
         return MOV_OBJECT_AAC;
@@ -12,6 +12,12 @@ int getAudioObject(const string& codec)
         return MOV_OBJECT_G711a;
     } else if (codec == "g711u") {
         return MOV_OBJECT_G711u;
+    } else if (codec == "mp3") {
+		if (samplerate > 24000) {
+			return MOV_OBJECT_MP1A;
+		}
+        
+		return MOV_OBJECT_MP3;
     }
 
     return 0;
@@ -132,7 +138,7 @@ void MP4Muxer::addAudioTrack(const shared_ptr<TrackInfo>& trackInfo)
     track->stsd.entries.push_back(audio);
 
     audio->data_reference_index = 1;
-    audio->object_type_indication = getAudioObject(trackInfo->codec_);
+    audio->object_type_indication = getAudioObject(trackInfo->codec_, trackInfo->samplerate_);
     audio->stream_type = MP4_STREAM_AUDIO;
     audio->u.audio.channelcount = trackInfo->channel_;
     audio->u.audio.samplesize = (uint16_t)trackInfo->bitPerSample_ * (uint16_t)trackInfo->channel_;
@@ -1279,7 +1285,9 @@ size_t MP4Muxer::mov_write_audio(const struct mov_sample_entry_t* entry)
 	// 2. The samplerate field shall be set to 48000<<16.
 	write32BE(entry->u.audio.samplerate); /* samplerate */
 
-	if(MOV_OBJECT_AAC == entry->object_type_indication)
+	if(MOV_OBJECT_AAC == entry->object_type_indication
+		 || MOV_OBJECT_MP3 == entry->object_type_indication 
+		 || MOV_OBJECT_MP1A == entry->object_type_indication)
 		size += mov_write_esds();
     else if(MOV_OBJECT_OPUS == entry->object_type_indication)
         size += mov_write_dops();

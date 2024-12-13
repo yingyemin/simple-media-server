@@ -121,13 +121,13 @@ int RtmpDecodeTrack::createTrackInfo(int trackType, int codeId)
             // _trackInfo->codec_ = "g711u";
             // _trackInfo->index_ = AudioTrackType;
             // _trackInfo->trackType_ = "audio";
-            _trackInfo = G711uTrack::createTrack(AudioTrackType, 8, 8000);
+            _trackInfo = G711uTrack::createTrack(AudioTrackType, 0, 8000);
         } else if (codeId == RTMP_CODEC_ID_MP3) {
             // _trackInfo = make_shared<G711uTrack>();
             // _trackInfo->codec_ = "g711u";
             // _trackInfo->index_ = AudioTrackType;
             // _trackInfo->trackType_ = "audio";
-            _trackInfo = Mp3Track::createTrack(AudioTrackType, 16, 44100);
+            _trackInfo = Mp3Track::createTrack(AudioTrackType, 14, 44100);
         } else {
             // throw runtime_error("不支持的解码格式:" + to_string(codeId));
             logWarn << "不支持的audio解码格式:" << codeId;

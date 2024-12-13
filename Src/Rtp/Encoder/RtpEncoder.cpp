@@ -10,6 +10,7 @@
 #include "RtpEncodeH265.h"
 #include "RtpEncodeAac.h"
 #include "RtpEncodeCommon.h"
+#include "RtpEncodeMp3.h"
 #include "Common/Config.h"
 
 using namespace std;
@@ -24,6 +25,8 @@ RtpEncoder::Ptr RtpEncoder::create(const shared_ptr<TrackInfo>& trackInfo)
         encoder = make_shared<RtpEncodeH265>(trackInfo);
     } else if (trackInfo->codec_ == "aac") {
         encoder = make_shared<RtpEncodeAac>(trackInfo);
+    } else if (trackInfo->codec_ == "mp3") {
+        encoder = make_shared<RtpEncodeMp3>(trackInfo);
     } else {
         encoder = make_shared<RtpEncodeCommon>(trackInfo);
     }

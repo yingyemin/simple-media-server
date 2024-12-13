@@ -61,7 +61,6 @@ public:
 private:
     bool _muxer;
     bool _start = false;
-    bool _hasVideo = false;
     bool _probeFinish = false;
     bool _enableHugeRtp = false;
     int _ringSize = 512;

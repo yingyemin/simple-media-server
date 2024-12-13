@@ -86,6 +86,8 @@ void PsMuxer::addTrackInfo(const shared_ptr<TrackInfo>& trackInfo)
             _audioCodec = STREAM_TYPE_AUDIO_G711;
         } else if (trackInfo->codec_ == "g711u") {
             _audioCodec = STREAM_TYPE_AUDIO_G711ULAW;
+        } else if (trackInfo->codec_ == "mp3") {
+            _audioCodec = STREAM_TYPE_AUDIO_MP3;
         }
     }
 }

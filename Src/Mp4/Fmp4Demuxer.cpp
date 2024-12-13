@@ -122,7 +122,7 @@ void Fmp4Demuxer::onFrame(const StreamBuffer::Ptr& buffer, int trackIndex, int p
         frame->_index = trackIndex;
         frame->_dts = dts;
         frame->_codec = trackInfo->codec_;
-    } else if (trackInfo->codec_ == "g711a" || trackInfo->codec_ == "g711u") {
+    } else if (trackInfo->codec_ == "g711a" || trackInfo->codec_ == "g711u" || trackInfo->codec_ == "mp3") {
         frame = make_shared<FrameBuffer>();
         frame->_buffer.assign(buffer->data(), buffer->size());
         frame->_trackType = AudioTrackType;

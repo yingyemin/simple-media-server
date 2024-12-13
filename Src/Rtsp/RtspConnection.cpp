@@ -379,6 +379,10 @@ void RtspConnection::handleAnnounce_l() {
                 media->codec_ = "pcmu";
                 media->channel_ = 1;
                 media->samplerate_ = 8000;
+            } else if (media->payloadType_ == 14) {
+                media->codec_ = "mp3";
+                media->channel_ = 2;
+                media->samplerate_ = 44100;
             } 
         }
         RtspTrack::Ptr track;

@@ -1,6 +1,7 @@
 #include "Mp4Demuxer.h"
 #include "Util/String.h"
 #include "Codec/AacTrack.h"
+#include "Codec/Mp3Track.h"
 #include "Codec/G711Track.h"
 #include "Codec/H264Frame.h"
 #include "Codec/H264Track.h"
@@ -564,6 +565,18 @@ int MP4Demuxer::mov_reader_getinfo()
                     trackInfo->channel_ = entry->u.audio.channelcount;
                     trackInfo->codec_ = "g711u";
                     trackInfo->payloadType_ = 0;
+                    trackInfo->trackType_ = "audio";
+                    trackInfo->samplerate_ = entry->u.audio.samplerate;
+                    trackInfo->bitPerSample_ = entry->u.audio.samplesize;
+
+					onTrackInfo(trackInfo);
+                    _mapTrackInfo.emplace(trackInfo->index_, trackInfo);
+				} else if (entry->object_type_indication == MOV_OBJECT_MP3) {
+					auto trackInfo = make_shared<Mp3Track>();
+                    trackInfo->index_ = track->tkhd.track_ID;
+                    trackInfo->channel_ = entry->u.audio.channelcount;
+                    trackInfo->codec_ = "mp3";
+                    trackInfo->payloadType_ = 14;
                     trackInfo->trackType_ = "audio";
                     trackInfo->samplerate_ = entry->u.audio.samplerate;
                     trackInfo->bitPerSample_ = entry->u.audio.samplesize;

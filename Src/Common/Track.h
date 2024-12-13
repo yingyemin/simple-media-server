@@ -57,6 +57,7 @@ public:
     bool _hasReady = false;
     int payloadType_;
     int samplerate_;
+    int timebase_ = 0;
     int channel_;
     int index_;
     int ssrc_;

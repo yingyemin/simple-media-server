@@ -1098,7 +1098,7 @@ void HttpConnection::onPlayFmp4(const Fmp4MediaSource::Ptr &fmp4Src)
 			if (!self/* || pack->empty()*/) {
 				return;
 			}
-			logInfo << "send fmp4 segment";
+			// logInfo << "send fmp4 segment";
 			// auto pktList = *(pack.get());
 			// for (auto& pkt : pktList) {
             //     auto buffer = StreamBuffer::create();

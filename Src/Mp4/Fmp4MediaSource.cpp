@@ -103,18 +103,18 @@ void Fmp4MediaSource::onReady()
 
         std::weak_ptr<Fmp4MediaSource> weakSelf = std::static_pointer_cast<Fmp4MediaSource>(shared_from_this());
         _fmp4EncodeTrack->setOnFmp4Segment([weakSelf](const Buffer::Ptr& rtp, bool keyframe){
-            logInfo << "mux a ps packet";
+            // logInfo << "mux a ps packet";
             auto strongSelf = weakSelf.lock();
             if (!strongSelf) {
                 return;
             }
             if (true) {
-                logInfo << "mux a ps packet mark";
+                // logInfo << "mux a ps packet mark";
                 // strongSelf->_cache->emplace_back(std::move(rtp));
                 strongSelf->_ring->write(rtp, keyframe);
                 // strongSelf->_cache = std::make_shared<Buffer>();
             } else {
-                logInfo << "mux a ps packet no mark";
+                // logInfo << "mux a ps packet no mark";
                 // strongSelf->_cache->emplace_back(std::move(rtp));
             }
         });
@@ -246,7 +246,7 @@ void Fmp4MediaSource::delSink(const MediaSource::Ptr &src)
 
 void Fmp4MediaSource::onFrame(const FrameBuffer::Ptr& frame)
 {
-    logInfo << "on get a frame: index : " << frame->getTrackIndex();
+    // logInfo << "on get a frame: index : " << frame->getTrackIndex();
     // auto it = _mapGB28181EncodeTrack.find(frame->getTrackIndex());
     if (!_fmp4EncodeTrack) {
         return ;

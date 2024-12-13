@@ -3,6 +3,7 @@
 #include "Util/String.h"
 #include "Log/Logger.h"
 #include "Codec/AacTrack.h"
+#include "Codec/Mp3Track.h"
 #include "Codec/G711Track.h"
 #include "Codec/H264Track.h"
 #include "Codec/H265Track.h"
@@ -345,6 +346,11 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
                         auto trackInfo = G711uTrack::createTrack(AudioTrackType, 0, 8000);
                         addTrackInfo(trackInfo);
                         _firstAac = false;
+                    } else if (_audio_es_type == STREAM_TYPE_AUDIO_G711ULAW) {
+                        _audioCodec = "mp3";
+                        auto trackInfo = Mp3Track::createTrack(AudioTrackType, 14, 44100);
+                        addTrackInfo(trackInfo);
+                        _firstAac = false;
                     }
                 }else if (es_id >= PS_VIDEO_ID && es_id <= PS_VIDEO_ID_END){
                     _hasVideo = true;
@@ -424,7 +430,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
                 return -1;
             }
 
-            unsigned char pts_dts_flags = (pse_pack->info[0] & 0xF0) >> 6;
+            unsigned char pts_dts_flags = (pse_pack->info[1] & 0xF0) >> 6;
             //in a frame of data, pts is obtained from the first PSE packet
             if (/*pse_index == 0 && */pts_dts_flags > 0) {
 				video_pts = parsePsTimestamp((unsigned char*)next_ps_pack + 9);
@@ -549,7 +555,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
                 return -1;
             }
 
-		    unsigned char pts_dts_flags = (pse_pack->info[0] & 0xF0) >> 6;
+		    unsigned char pts_dts_flags = (pse_pack->info[1] & 0xF0) >> 6;
 			if (pts_dts_flags > 0 ) {
 				audio_pts = parsePsTimestamp((unsigned char*)next_ps_pack + 9);
                 // srs_info("gb28181: ps stream video ts=%u pkt_ts=%u", audio_pts, timestamp);
@@ -659,6 +665,8 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
             //     next_ps_pack[0]&0xFF, next_ps_pack[1]&0xFF, next_ps_pack[2]&0xFF, next_ps_pack[3]&0xFF);
             // break;
 
+            logInfo << "invalid ps packet, find next ps packet";
+
             next_ps_pack = next_ps_pack + 1;
             complete_len = complete_len + 1;
             incomplete_len = ps_size - complete_len;
@@ -738,8 +746,10 @@ void PsDemuxer::onDecode(const FrameBuffer::Ptr& frame, int index, uint64_t pts,
     if (index == AudioTrackType && _audioCodec == "aac") {
         frame->_startSize = 7;
     } else if (index == VideoTrackType && (_videoCodec == "h264" || _videoCodec == "h265")) {
-        frame->_startSize = 4;
-        if (readUint32BE(frame->data()) != 1) {
+        frame->_startSize = 0;
+        if (readUint32BE(frame->data()) == 1) {
+            frame->_startSize = 4;
+        } else if (readUint24BE(frame->data()) == 1) {
             frame->_startSize = 3;
         }
         // logInfo << "frame->_startSize: " << frame->_startSize;

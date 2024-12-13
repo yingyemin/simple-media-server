@@ -502,7 +502,7 @@ bool RtmpConnection::handleAudio(RtmpMessage& rtmp_msg)
 
     static int channelArray[] = {1, 2};
     static int bitArray[] = {8, 16};
-    static int sampleArray[] = {5500, 11000, 22000, 44100};
+    static int sampleArray[] = {5512, 11025, 22050, 44100};
 
     // logInfo << "sound_channel: " << (int)sound_channel
     //         << ", sound_size: " << (int)sound_size
@@ -524,10 +524,12 @@ bool RtmpConnection::handleAudio(RtmpMessage& rtmp_msg)
             _validAudioTrack = false;
             return false;
         }
-        auto trackInfo = _rtmpAudioDecodeTrack->getTrackInfo();
-        trackInfo->samplerate_ = sampleArray[sound_rate];
-        trackInfo->bitPerSample_ = bitArray[sound_size];
-        trackInfo->channel_ = channelArray[sound_channel];
+        if (sound_format == RTMP_CODEC_ID_AAC || sound_format == RTMP_CODEC_ID_MP3) {
+            auto trackInfo = _rtmpAudioDecodeTrack->getTrackInfo();
+            trackInfo->samplerate_ = sampleArray[sound_rate];
+            trackInfo->bitPerSample_ = bitArray[sound_size];
+            trackInfo->channel_ = channelArray[sound_channel];
+        }
         rtmpSrc->addTrack(_rtmpAudioDecodeTrack);
     }
 

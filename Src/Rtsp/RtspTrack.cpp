@@ -9,6 +9,7 @@
 #include "Util/Base64.h"
 #include "Codec/AacTrack.h"
 #include "Codec/G711Track.h"
+#include "Codec/Mp3Track.h"
 #include "Codec/H264Track.h"
 #include "Codec/H265Track.h"
 #include "Codec/H265Frame.h"
@@ -50,6 +51,10 @@ static shared_ptr<TrackInfo> createTrackBySdp(const shared_ptr<SdpMedia>& media)
         auto g711uTrackInfo = make_shared<G711uTrack>();
         trackInfo = g711uTrackInfo;
         trackInfo->codec_ = "g711u";
+    } else if (strcasecmp(media->codec_.data(), "mp3") == 0) {
+        auto mp3Track = make_shared<Mp3Track>();
+        trackInfo = mp3Track;
+        trackInfo->codec_ = "mp3";
     } else if (strcasecmp(media->codec_.data(), "h264") == 0) {
         logInfo << "createTrackBySdp h264";
         auto h264TrackInfo = H264Track::createTrack(media->index_, media->payloadType_, media->samplerate_);

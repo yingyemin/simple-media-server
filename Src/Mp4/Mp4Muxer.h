@@ -11,7 +11,7 @@
 
 using namespace std;
 
-int getAudioObject(const string& codec);
+int getAudioObject(const string& codec, int samplerate);
 int getVideoObject(const string& codec);
 
 class MP4Muxer : public enable_shared_from_this<MP4Muxer>

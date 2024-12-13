@@ -184,12 +184,12 @@ void WebrtcContext::initPublisher(const string& appName, const string& streamNam
                 std::string recv_key, send_key;
                 if (0 != self->_dtlsSession->getSrtpKey(recv_key, send_key)) {
                     logError << "dtls get srtp key failed";
-                throw runtime_error("dtls get srtp key failed");
+                    throw runtime_error("dtls get srtp key failed");
                 }
 
                 if (!self->_srtpSession->init(recv_key, send_key)) {
                     logError << "srtp session init failed";
-                throw runtime_error("srtp session init failed");
+                    throw runtime_error("srtp session init failed");
                 }
 
                 self->_hasInitSrtp = true;

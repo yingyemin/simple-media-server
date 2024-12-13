@@ -204,6 +204,11 @@ void RtspMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
             if (!strongSelf) {
                 return;
             }
+
+            if (!strongSelf->_hasVideo) {
+                start = true;
+            }
+
             if (start) {
                 strongSelf->_start = start;
             }

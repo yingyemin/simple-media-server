@@ -13,12 +13,14 @@
 #define STREAM_TYPE_VIDEO_MPEG2     0x02
 #define STREAM_TYPE_AUDIO_MPEG1     0x03
 #define STREAM_TYPE_AUDIO_MPEG2     0x04
+#define STREAM_TYPE_AUDIO_MP3       0x04
 #define STREAM_TYPE_PRIVATE_SECTION 0x05
 #define STREAM_TYPE_PRIVATE_DATA    0x06
 #define STREAM_TYPE_AUDIO_AAC       0x0f
 #define STREAM_TYPE_VIDEO_MPEG4     0x10
 #define STREAM_TYPE_VIDEO_H264      0x1b
 #define STREAM_TYPE_VIDEO_HEVC      0x24
+#define STREAM_TYPE_VIDEO_H266      0x33
 #define STREAM_TYPE_VIDEO_CAVS      0x42
 #define STREAM_TYPE_VIDEO_SAVC      0x80
 
@@ -32,6 +34,10 @@
 #define STREAM_TYPE_AUDIO_G729_1    0x99
 #define STREAM_TYPE_AUDIO_SVAC      0x9b
 #define STREAM_TYPE_AUDIO_PCM       0x9c
+#define STREAM_TYPE_AUDIO_OPUS      0x9c
+#define STREAM_TYPE_VIDEO_VP8       0x9d
+#define STREAM_TYPE_VIDEO_VP9       0x9e
+#define STREAM_TYPE_VIDEO_AV1       0x9f
 
 /***
  *@remark:  讲传入的数据按地位一个一个的压入数据
