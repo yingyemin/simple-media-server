@@ -35,6 +35,7 @@ void EventLoopPool::init(int size, int priority, bool affinity)
         EventLoop::Ptr loop(new EventLoop());
         std::thread* loopThd = new std::thread(&EventLoop::start, loop);
         loop->setThread(loopThd);
+        loop->setEpollID(i);
         // loop->async([cpuIndex, loopName, priority, affinity]() {
         //     // 设置线程优先级
         //     ThreadPool::setPriority((ThreadPool::Priority)priority);

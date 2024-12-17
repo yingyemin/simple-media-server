@@ -9,10 +9,14 @@
 #include <memory>
 #include <unordered_map>
 #include <iostream>
+#include <vector>
 
 #include "Timer.h"
+#include "ReadWriteQueue/atomicops.h"
+#include "ReadWriteQueue/readerwriterqueue.h"
 
 using namespace std;
+using namespace moodycamel;
 
 class EventHander {
 public:
@@ -55,11 +59,15 @@ public:
     virtual int getFdCount() {return _fdCount;}
     virtual int getTimerTaskCount() {return _timerTaskCount;}
 
+    virtual void setEpollID(int id) {_epollID = id;}
+    virtual int getEpollID() {return _epollID;}
+
 private:
     bool _quit =false;
     bool _eventRun = false;
     int _epollFd = -1;
     int _wakeupFd = -1;
+    int _epollID = -1;
     
     int _fdCount = 0;
     int _timerTaskCount = 0;
@@ -79,6 +87,8 @@ private:
     Timer::Ptr _timer;
     std::list<asyncEventFunc> _asyncEvents;
     unordered_map<int, EventHander> _mapHander;
+
+    std::vector<shared_ptr<ReaderWriterQueue<asyncEventFunc>>> _asyncQueues;
 };
 
 #endif //EventLoop_h

@@ -97,11 +97,11 @@ void WorkLoop::startForOrder()
     while (true) {
         WorkTask::Ptr task;
         {
-            logInfo << "waiting new task";
+            // logInfo << "waiting new task";
             unique_lock<mutex> lock(_mtxOrder);
             _cvOrder.wait(lock, [this]() { return !_taskOrderList.empty() || _stop; });
 
-            logInfo << "get a task";
+            // logInfo << "get a task";
             if (_stop) {
                 break;
             }
@@ -116,7 +116,7 @@ void WorkLoop::startForOrder()
                 _taskOrderList.pop_front();
             }
         }
-        logInfo << "do a task";
+        // logInfo << "do a task";
         task->func_(); // Execute the task.
     }
 }
@@ -128,7 +128,7 @@ void WorkLoop::setOrderThread(thread* thd)
 
 void WorkLoop::addOrderTask(const WorkTask::Ptr& task)
 {
-    logInfo << "add a task";
+    // logInfo << "add a task";
     {
         lock_guard<mutex> lck(_mtxOrder);
         _taskOrderList.emplace_back(task);

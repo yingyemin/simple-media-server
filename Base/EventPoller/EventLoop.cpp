@@ -35,7 +35,12 @@ EventLoop::EventLoop()
 {
     _epollFd = epoll_create(EPOLL_SIZE);
     _wakeupFd = createEventfd();
-    logInfo << _wakeupFd;
+
+    for (int i = 0; i < 10; i++) {
+        shared_ptr<ReaderWriterQueue<asyncEventFunc>> que = make_shared<ReaderWriterQueue<asyncEventFunc>>(10);
+        _asyncQueues.push_back(que);
+    }
+    logInfo << "_wakeupFd: " << _wakeupFd;
 }
 
 EventLoop::~EventLoop()
@@ -53,7 +58,7 @@ EventLoop::~EventLoop()
 // 获取后需要判空
 EventLoop::Ptr EventLoop::getCurrentLoop()
 {
-    logInfo << "EventLoop::getCurrentLoop(): " << gCurrentLoop.lock();
+    // logInfo << "EventLoop::getCurrentLoop(): " << gCurrentLoop.lock();
     return gCurrentLoop.lock();
 }
 
@@ -194,7 +199,7 @@ void EventLoop::async(asyncEventFunc func, bool sync, bool front)
         func();
         return ;
     }
-
+#if 0
     {
         lock_guard<mutex> lck(_mtxEvents);
         if (front) {
@@ -203,6 +208,14 @@ void EventLoop::async(asyncEventFunc func, bool sync, bool front)
             _asyncEvents.emplace_back(func);
         }
     }
+#else
+    auto loop = EventLoop::getCurrentLoop();
+    int id = 9;
+    if (loop) {
+        id = loop->getEpollID();
+    }
+    _asyncQueues[id]->enqueue(func);
+#endif
     //写数据到管道,唤醒主线程
     uint64_t  one = 1111;
     ssize_t n = write(_wakeupFd, &one, sizeof(one));
@@ -226,7 +239,7 @@ inline void EventLoop::onAsyncEvent()
     // }
 
     read(_wakeupFd, &one, sizeof(one));
-
+#if 0
     decltype(_asyncEvents) _enventSwap;
     {
         lock_guard<mutex> lck(_mtxEvents);
@@ -240,6 +253,24 @@ inline void EventLoop::onAsyncEvent()
             logWarn << "do async event failed: " << ex.what();
         }
     }
+#else
+    bool success;
+    asyncEventFunc func;
+    for (auto& queue: _asyncQueues) {
+        while(queue->size_approx()) {
+            success = queue->try_dequeue(func);
+            if (success) {
+                try {
+                    func();
+                } catch (std::exception &ex) {
+                    logWarn << "do async event failed: " << ex.what();
+                }
+            } else {
+                break;
+            }
+        }
+    }
+#endif
     _asyncEventDuration = TimeClock::now() - startTime;
 }
 

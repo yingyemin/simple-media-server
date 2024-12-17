@@ -382,12 +382,12 @@ std::string StringBuffer::substr(size_t pos, size_t n) const
 
 void StringBuffer::substr(size_t offset, size_t size) 
 {
-    assert(offset + _erase_head + size <= _erase_tail);
+    assert(offset + _erase_head + size <= _str.size() - _erase_tail);
     if (!size) {
-        size = _erase_tail - offset - _erase_head;
+        size = _str.size() - _erase_tail - offset - _erase_head;
     }
     _erase_head += offset;
-    _erase_tail = _erase_head + size;
+    _erase_tail = _str.size() - _erase_head - size;
 }
 
 void StringBuffer::moveData() 
