@@ -259,6 +259,7 @@ void RtspEncodeTrack::startEncode()
         });
 
         _encoder->setEnableHuge(_enableHuge);
+        _encoder->setFastPts(_enableFastPts);
     }
 }
 
@@ -268,6 +269,15 @@ void RtspEncodeTrack::setEnableHuge(bool enabled)
 
     if (_encoder) {
         _encoder->setEnableHuge(enabled);
+    }
+}
+
+void RtspEncodeTrack::setFastPts(bool enabled)
+{
+    RtspTrack::setFastPts(enabled);
+
+    if (_encoder) {
+        _encoder->setFastPts(enabled);
     }
 }
 

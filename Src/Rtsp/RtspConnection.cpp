@@ -230,6 +230,10 @@ void RtspConnection::handleDescribe_l()
             auto source = make_shared<RtspPsMediaSource>(self->_urlParser, nullptr, true);
             source->setEnableHuge(true);
             return source;
+        } else if (self->_urlParser.type_ == "fastPts") {
+            auto source = make_shared<RtspMediaSource>(self->_urlParser, nullptr, true);
+            source->setFastPts(true);
+            return source;
         } else {
             return make_shared<RtspMediaSource>(self->_urlParser, nullptr, true);
         }

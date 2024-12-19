@@ -33,9 +33,15 @@ RtpEncoder::Ptr RtpEncoder::create(const shared_ptr<TrackInfo>& trackInfo)
 
     if (encoder) {
         encoder->setEnableHuge(false);
+        encoder->setFastPts(false);
     }
 
     return encoder;
+}
+
+void RtpEncoder::setFastPts(bool enabled)
+{
+    _enableFastPts = enabled;
 }
 
 void RtpEncoder::setEnableHuge(bool enabled)

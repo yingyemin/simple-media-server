@@ -45,9 +45,11 @@ public:
     virtual uint32_t getTimestamp() {return _timestap;}
     virtual void setSsrc(uint16_t ssrc) {_ssrc = ssrc;}
     virtual void setEnableHuge(bool enabled) {_enableHuge = enabled;}
+    virtual void setFastPts(bool enabled) {_enableFastPts = enabled;}
 
 protected:
     bool _enableHuge = false;
+    bool _enableFastPts = false;
     uint16_t _seq = 0;
     uint32_t _ssrc = 0;
     uint32_t _timestap = 0;
@@ -116,6 +118,7 @@ public:
     void setInterleavedRtp(int interleavedRtp) {_interleavedRtp = interleavedRtp;}
     int getInterleavedRtp() {return _interleavedRtp;}
     void setEnableHuge(bool enabled);
+    void setFastPts(bool enabled);
 
 private:
     bool _setup = false;

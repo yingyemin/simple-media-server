@@ -27,6 +27,7 @@ public:
 private:
     int _stage = 1; //1:handle request line, 2:handle header line, 3:handle content
     StringBuffer _remainData;
+    StreamBuffer::Ptr _rtpBuffer;
     function<void()> _onRtspPacket;
     function<void(const char* data, int len)> _onRtpPacket;
 };

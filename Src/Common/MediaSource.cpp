@@ -695,6 +695,22 @@ void MediaSource::addTrack(const shared_ptr<TrackInfo>& track)
 
 void MediaSource::onFrame(const FrameBuffer::Ptr& frame)
 {
+    static int firstTrackWaitTime = Config::instance()->getAndListen([](const json &config){
+        firstTrackWaitTime = Config::instance()->get("Util", "firstTrackWaitTime");
+    }, "Util", "firstTrackWaitTime");
+
+    if (firstTrackWaitTime == 0) {
+        firstTrackWaitTime = 500;
+    }
+
+    static int sencondTrackWaitTime = Config::instance()->getAndListen([](const json &config){
+        sencondTrackWaitTime = Config::instance()->get("Util", "sencondTrackWaitTime");
+    }, "Util", "sencondTrackWaitTime");
+
+    if (sencondTrackWaitTime == 0) {
+        sencondTrackWaitTime = 5000;
+    }
+
     if (_hasReady && _hasAudio && _hasVideo) {
         return ;
     }
@@ -721,7 +737,7 @@ void MediaSource::onFrame(const FrameBuffer::Ptr& frame)
             return ;
         }
 
-        _loop->addTimerTask(500, [wSelf](){
+        _loop->addTimerTask(firstTrackWaitTime, [wSelf](){
             auto self = wSelf.lock();
             if (!self) {
                 return 0;
@@ -733,7 +749,7 @@ void MediaSource::onFrame(const FrameBuffer::Ptr& frame)
 
             if (self->_hasAudio && self->_stage500Ms) {
                 self->_stage500Ms = false;
-                return 5000;
+                return sencondTrackWaitTime;
             } else {
                 self->onReady();
             }
@@ -760,7 +776,7 @@ void MediaSource::onFrame(const FrameBuffer::Ptr& frame)
             return ;
         }
 
-        _loop->addTimerTask(500, [wSelf](){
+        _loop->addTimerTask(firstTrackWaitTime, [wSelf](){
             auto self = wSelf.lock();
             if (!self) {
                 return 0;
@@ -772,7 +788,7 @@ void MediaSource::onFrame(const FrameBuffer::Ptr& frame)
 
             if (self->_hasVideo && self->_stage500Ms) {
                 self->_stage500Ms = false;
-                return 5000;
+                return sencondTrackWaitTime;
             } else {
                 self->onReady();
             }
@@ -942,7 +958,9 @@ void MediaSource::onReady()
         sink.second->onReady();
     }
 
-    pushStreamToOrigin();
+    if (_origin) {
+        pushStreamToOrigin();
+    }
 }
 
 void MediaSource::pushStreamToOrigin()

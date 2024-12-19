@@ -145,7 +145,7 @@ uint64_t PsDemuxer::parsePsTimestamp(const uint8_t* p)
 }
 
 // TODO 需要支持将剩下的buffer保存下来，下次拼接使用
-int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32_t ssrc)
+int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32_t ssrc, bool live)
 {
     int err = 0;
     int complete_len = 0;
@@ -666,6 +666,11 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
             // break;
 
             logInfo << "invalid ps packet, find next ps packet";
+
+            if (live) {
+                _remainBuffer.clear();
+                return 0;
+            }
 
             next_ps_pack = next_ps_pack + 1;
             complete_len = complete_len + 1;

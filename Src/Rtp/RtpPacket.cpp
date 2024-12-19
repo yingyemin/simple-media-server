@@ -110,6 +110,18 @@ RtpPacket::RtpPacket(const StreamBuffer::Ptr& buffer, int rtpOverTcpHeaderSize)
     _header = (RtpHeader *)(data() + _rtpOverTcpHeaderSize);
 }
 
+RtpPacket::RtpPacket(const StreamBuffer::Ptr& buffer, bool copy, int rtpOverTcpHeaderSize)
+    :_rtpOverTcpHeaderSize(rtpOverTcpHeaderSize)
+{
+    if (copy) {
+        RtpPacket(buffer, rtpOverTcpHeaderSize);
+    } else {
+        _data = buffer;
+        _size = buffer->size();
+        _header = (RtpHeader *)(data() + _rtpOverTcpHeaderSize);
+    }
+}
+
 RtpPacket::RtpPacket(const int length, int rtpOverTcpHeaderSize)
     :_rtpOverTcpHeaderSize(rtpOverTcpHeaderSize)
 {

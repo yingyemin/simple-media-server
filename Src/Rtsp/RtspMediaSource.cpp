@@ -197,6 +197,7 @@ void RtspMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
     }
     rtspTrack->setSsrc(track->index_ + 1000);
     rtspTrack->setEnableHuge(_enableHugeRtp);
+    rtspTrack->setFastPts(_enableFastPts);
     if (_muxer) {
         rtspTrack->setOnRtpPacket([weakSelf](const RtpPacket::Ptr& rtp, bool start){
             // logInfo << "mux a rtp packet";

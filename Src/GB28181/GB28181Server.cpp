@@ -123,7 +123,15 @@ void GB28181Server::start(const string& ip, int port, int count, int sockType)
             socket->addToEpoll();
             static auto gbManager = GB28181Manager::instance();
             gbManager->init(loop);
+            // socket->setOnGetRecvBuffer([](){
+            //     auto buffer = make_shared<StreamBuffer>(1500 + 4);
+            //     buffer->substr(4);
+
+            //     return buffer;
+            // });
             socket->setReadCb([](const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len){
+                // buffer->useAllBuffer();
+                // auto rtp = make_shared<RtpPacket>(buffer, 0, 4);
                 auto rtp = make_shared<RtpPacket>(buffer, 0);
                 // create rtpmanager
                 gbManager->onRtpPacket(rtp, addr, len);

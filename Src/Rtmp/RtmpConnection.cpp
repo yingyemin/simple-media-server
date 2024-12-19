@@ -572,6 +572,10 @@ bool RtmpConnection::handleConnect()
     _tcUrl = amfObj.amfString_;
     if(_tcUrl == "") {
         _tcUrl = string(PROTOCOL_RTMP) + "://" + DEFAULT_VHOST + "/" + _app;
+    } else {
+        UrlParser tcUrlParser;
+        tcUrlParser.parse(_tcUrl);
+        _tcUrl = string(PROTOCOL_RTMP) + "://" + tcUrlParser.host_ + "/" + _app;
     }
 
     setChunkSize();

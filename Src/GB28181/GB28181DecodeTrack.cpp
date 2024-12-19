@@ -125,7 +125,7 @@ void GB28181DecodeTrack::onPsFrame(const FrameBuffer::Ptr frame)
         _onPsFrame(frame);
     }
     if (_demuxer) {
-        _demuxer->onPsStream(frame->data(), frame->size(), frame->pts(), _ssrc);
+        _demuxer->onPsStream(frame->data(), frame->size(), frame->pts(), _ssrc, true);
     }
     // FILE* fp = fopen("test.ps", "ab+");
     // fwrite(frame->_buffer.data(), 1, frame->_buffer.size(), fp);

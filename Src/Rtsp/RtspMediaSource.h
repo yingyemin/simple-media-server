@@ -57,12 +57,14 @@ public:
     }
 
     virtual void setEnableHuge(bool enabled) {_enableHugeRtp = enabled;}
+    virtual void setFastPts(bool enabled) {_enableFastPts = enabled;}
 
 private:
     bool _muxer;
     bool _start = false;
     bool _probeFinish = false;
     bool _enableHugeRtp = false;
+    bool _enableFastPts = false;
     int _ringSize = 512;
     uint64_t _lastRtpStmp = 0;
 

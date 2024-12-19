@@ -28,7 +28,7 @@ RtspClient::~RtspClient()
         rtspSrc->delConnection(this);
     }
 
-    if (_playReader) {
+    if (_playReader && _socket) {
         PlayerInfo info;
         info.ip = _socket->getPeerIp();
         info.port = _socket->getPeerPort();
@@ -56,6 +56,10 @@ void RtspClient::setTransType(int type)
 
 void RtspClient::start(const string& localIp, int localPort, const string& url, int timeout)
 {
+    if (url.empty()) {
+        return ;
+    }
+
     _url = url;
 
     weak_ptr<RtspClient> wSelf = static_pointer_cast<RtspClient>(shared_from_this());
@@ -119,6 +123,10 @@ void RtspClient::setOnClose(const function<void()>& cb)
 
 void RtspClient::addOnReady(void* key, const function<void()>& onReady)
 {
+    if (!key || !onReady) {
+        return ;
+    }
+
     lock_guard<mutex> lck(_mtx);
     auto rtspSrc =_source.lock();
     if (rtspSrc) {
@@ -180,6 +188,10 @@ void RtspClient::onRtspPacket()
 void RtspClient::sendMessage(const string& msg)
 {
     // logInfo << msg << ", len : " << msg.size();
+    if (msg.empty()) {
+        return ;
+    }
+
     send(std::make_shared<StringBuffer>(std::move(msg)));
 }
 
@@ -223,7 +235,7 @@ void RtspClient::sendDescribeOrAnnounce()
                                         _localUrlParser.protocol_, _localUrlParser.type_, 
         [wSelf](const MediaSource::Ptr &src){
             auto self = wSelf.lock();
-            if (!self) {
+            if (!self || !self->_loop) {
                 return ;
             }
 
@@ -239,6 +251,10 @@ void RtspClient::sendDescribeOrAnnounce()
                 }
 
                 auto rtspSource = dynamic_pointer_cast<RtspMediaSource>(src);
+                if (!rtspSource) {
+                    return ;
+                }
+
                 self->_source = rtspSource;
                 string sdp = rtspSource->getSdp();
                 self->_sdpParser.parse(sdp);
@@ -390,6 +406,10 @@ void RtspClient::sendSetup()
             }
 
             auto rtspSource = dynamic_pointer_cast<RtspMediaSource>(source);
+            if (!rtspSource) {
+                onError("source is exists");
+                return ;
+            }
             // _source = dynamic_pointer_cast<RtspMediaSource>(source);
             rtspSource->setSdp(_parser._content);
             rtspSource->setOrigin();
@@ -397,6 +417,9 @@ void RtspClient::sendSetup()
             int trackIndex = 0;
             for (auto& media : _sdpParser._vecSdpMedia) {
                 auto track = make_shared<RtspDecodeTrack>(trackIndex++, media);
+                if (!track->getTrackInfo()) {
+                    continue ;
+                }
                 // logInfo << "type: " << track->getTrackType();
                 logInfo << "index: " << track->getTrackIndex() << ", codec : " << media->codec_
                             << ", control: " << media->control_;
@@ -426,9 +449,18 @@ void RtspClient::sendSetup()
 
 void RtspClient::sendSetup(const RtspMediaSource::Ptr& rtspSrc)
 {
+    if (!rtspSrc) {
+        onError("rtsp source is empty");
+        return ;
+    }
     // auto rtspSrc = _source.lock();
 
+    if (_setupIndex >= _sdpParser._vecSdpMedia.size()) {
+        onError("_setupIndex >= sdp media size");
+        return ;
+    }
     auto media = _sdpParser._vecSdpMedia[_setupIndex];
+    int trackIndex = rtspSrc->getIndexByControl(media->control_);
 
     stringstream ss;
     ss << "SETUP " << _url << "/" << media->control_ << " RTSP/1.0" << CRLF
@@ -436,22 +468,30 @@ void RtspClient::sendSetup(const RtspMediaSource::Ptr& rtspSrc)
        << "User-Agent: " << "SMS v0.1" << CRLF;
     
     if (_rtpType == Transport_TCP) {
-        ss << "Transport: RTP/AVP/TCP;unicast;interleaved=" << (2*_setupIndex) << "-" << (2*_setupIndex + 1) << CRLF;
-        auto track = rtspSrc->getTrack(_setupIndex);
+        ss << "Transport: RTP/AVP/TCP;unicast;interleaved=" << (2*trackIndex) << "-" << (2*trackIndex + 1) << CRLF;
+        auto track = rtspSrc->getTrack(trackIndex);
+        if (!track) {
+            onError("track is empty");
+            return ;
+        }
         auto rtpTrans = make_shared<RtspRtpTransport>(Transport_TCP, TransportData_Media, track, _socket);
         auto rtcpTrans = make_shared<RtspRtcpTransport>(Transport_TCP, TransportData_Data, track, _socket);
         if (_type == MediaClientType_Pull) {
-            _mapRtpTransport.emplace(2*_setupIndex, rtpTrans);
-            _mapRtcpTransport.emplace(2*_setupIndex + 1, rtcpTrans);
-            track->setInterleavedRtp(2*_setupIndex);
+            _mapRtpTransport.emplace(2*trackIndex, rtpTrans);
+            _mapRtcpTransport.emplace(2*trackIndex + 1, rtcpTrans);
+            track->setInterleavedRtp(2*trackIndex);
         } else {
-            track->setInterleavedRtp(2*_setupIndex);
-            _mapRtpTransport.emplace(2*_setupIndex, rtpTrans);
-            _mapRtcpTransport.emplace(2*_setupIndex + 1, rtcpTrans);
+            track->setInterleavedRtp(2*trackIndex);
+            _mapRtpTransport.emplace(2*trackIndex, rtpTrans);
+            _mapRtcpTransport.emplace(2*trackIndex + 1, rtcpTrans);
         }
     } else {
         // create socket
-        auto track = rtspSrc->getTrack(_setupIndex);
+        auto track = rtspSrc->getTrack(trackIndex);
+        if (!track) {
+            onError("track is empty");
+            return ;
+        }
         auto socketRtp = make_shared<Socket>(_loop);
         auto socketRtcp = make_shared<Socket>(_loop);
 
@@ -507,8 +547,8 @@ void RtspClient::sendSetup(const RtspMediaSource::Ptr& rtspSrc)
         socketRtcp->addToEpoll();
         auto rtpTrans = make_shared<RtspRtpTransport>(Transport_UDP, TransportData_Media, track, socketRtp);
         auto rtcpTrans = make_shared<RtspRtcpTransport>(Transport_UDP, TransportData_Data, track, socketRtcp);
-        _mapRtpTransport.emplace(_setupIndex * 2, rtpTrans);
-        _mapRtcpTransport.emplace(_setupIndex * 2 + 1, rtcpTrans);
+        _mapRtpTransport.emplace(trackIndex * 2, rtpTrans);
+        _mapRtcpTransport.emplace(trackIndex * 2 + 1, rtcpTrans);
         rtpTrans->start();
         rtcpTrans->start();
         auto clientPortStr = ";client_port=" + to_string(socketRtp->getLocalPort()) + "-" + to_string(socketRtcp->getLocalPort());
@@ -519,7 +559,7 @@ void RtspClient::sendSetup(const RtspMediaSource::Ptr& rtspSrc)
 
     ++_setupIndex;
 
-    if (_setupIndex == _sdpParser._vecSdpMedia.size()) {
+    if (_setupIndex >= _sdpParser._vecSdpMedia.size()) {
         _state = RTSP_SEND_PLAY_PUBLISH;
     }
 
@@ -577,6 +617,10 @@ void RtspClient::sendPlayOrPublish()
             //     }, getPoller());
             // }
             auto rtspSrc = _source.lock();
+            if (!rtspSrc) {
+                onError("rtsp source is empty");
+                return ;
+            }
 
             _playReader = rtspSrc->getRing()->attach(_loop, true);
             _playReader->setGetInfoCB([weak_self]() {
