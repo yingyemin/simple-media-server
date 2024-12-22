@@ -118,3 +118,24 @@ bool H265Frame::isNewNalu()
     
     return 0;
 }
+
+FrameBuffer::Ptr H265Frame::createFrame(int startSize, int index, bool addStart)
+{
+    auto frame = make_shared<H265Frame>();
+        
+    frame->_startSize = startSize;
+    frame->_codec = "h265";
+    frame->_index = index;
+    frame->_trackType = 0;//VideoTrackType;
+
+    if (addStart) {
+        frame->_buffer.assign("\x00\x00\x00\x01", 4);
+    };
+
+    return frame;
+}
+
+void H265Frame::registerFrame()
+{
+	FrameBuffer::registerFrame("h265", H265Frame::createFrame);
+}

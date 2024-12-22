@@ -1,5 +1,6 @@
 ﻿#include "TcpClient.h"
 #include "Logger.h"
+#include "EventPoller/EventLoopPool.h"
 
 #include <cstring>
 #include <iostream>
@@ -16,6 +17,9 @@ TcpClient::TcpClient(const EventLoop::Ptr& loop)
         _loop = loop;
     } else {
         _loop = EventLoop::getCurrentLoop();
+        if (!_loop) {
+            _loop = EventLoopPool::instance()->getLoopByCircle();
+        }
     }
 }
 
@@ -27,6 +31,9 @@ TcpClient::TcpClient(const EventLoop::Ptr& loop, bool enableTls)
         _loop = loop;
     } else {
         _loop = EventLoop::getCurrentLoop();
+        if (!_loop) {
+            _loop = EventLoopPool::instance()->getLoopByCircle();
+        }
     }
 }
 
@@ -37,6 +44,18 @@ TcpClient::~TcpClient()
 
 int TcpClient::create(const string& localIp, int localPort)
 {
+    if (!_loop->isCurrent()) {
+        weak_ptr<TcpClient> wSelf = shared_from_this();
+        _loop->async([wSelf, localIp, localPort](){
+            auto self = wSelf.lock();
+            if (self) {
+                self->create(localIp, localPort);
+            }
+        }, true);
+
+        return 0;
+    }
+
     string bindIp = localIp;
     if (localIp.empty()) {
         bindIp = "0.0.0.0";
@@ -113,6 +132,18 @@ int TcpClient::create(const string& localIp, int localPort)
 
 int TcpClient::connect(const string& peerIp, int peerPort, int timeout)
 {
+    if (!_loop->isCurrent()) {
+        weak_ptr<TcpClient> wSelf = shared_from_this();
+        _loop->async([wSelf, peerIp, peerPort, timeout](){
+            auto self = wSelf.lock();
+            if (self) {
+                self->connect(peerIp, peerPort, timeout);
+            }
+        }, true);
+
+        return 0;
+    }
+
     _peerIp = peerIp;
     _peerPort = peerPort;
 
@@ -144,7 +175,8 @@ void TcpClient::onWrite()
 
 void TcpClient::onError(const string& err)
 {
-
+    logInfo << err;
+    close();
 }
 
 void TcpClient::close() 

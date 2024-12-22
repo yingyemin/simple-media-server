@@ -78,3 +78,20 @@ StreamBuffer::Ptr AacFrame::getMuteForFlv()
     static StreamBuffer::Ptr flvAac = getFlvAac();
     return flvAac;
 }
+
+FrameBuffer::Ptr AacFrame::createFrame(int startSize, int index, bool addStart)
+{
+    auto frame = make_shared<AacFrame>();
+        
+    frame->_startSize = startSize;
+    frame->_codec = "aac";
+    frame->_index = index;
+    frame->_trackType = 1;//AudioTrackType;
+
+    return frame;
+}
+
+void AacFrame::registerFrame()
+{
+	FrameBuffer::registerFrame("aac", AacFrame::createFrame);
+}

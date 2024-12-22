@@ -124,6 +124,13 @@ void StreamBuffer::substr(size_t offset, size_t size)
     _offset += offset;
 }
 
+void StreamBuffer::useAllBuffer()
+{
+    _size += _offset;
+    _capacity = _size + 1;
+    _offset = 0;
+}
+
 
 ///////////////////////////////////////////////////////////////////
 

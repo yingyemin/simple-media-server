@@ -145,3 +145,24 @@ void H264Frame::split(const function<void(const FrameBuffer::Ptr& frame)>& cb)
 
     cb(subFrame);
 }
+
+FrameBuffer::Ptr H264Frame::createFrame(int startSize, int index, bool addStart)
+{
+    auto frame = make_shared<H264Frame>();
+        
+    frame->_startSize = startSize;
+    frame->_codec = "h264";
+    frame->_index = index;
+    frame->_trackType = 0;//VideoTrackType;
+
+    if (addStart) {
+        frame->_buffer.assign("\x00\x00\x00\x01", 4);
+    };
+
+    return frame;
+}
+
+void H264Frame::registerFrame()
+{
+	FrameBuffer::registerFrame("h264", H264Frame::createFrame);
+}

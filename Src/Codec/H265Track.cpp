@@ -341,6 +341,8 @@ void H265Track::getWidthAndHeight(int& width, int& height, int& fps)
     if (_width && _height) {
         width = _width;
         height = _height;
+
+		return ;
     }
 	
 	if (!_sps || !_vps || !_pps) {
@@ -532,6 +534,20 @@ H265Track::Ptr H265Track::createTrack(int index, int payloadType, int samplerate
     trackInfo->samplerate_ = samplerate;
 
     return trackInfo;
+}
+
+void H265Track::registerTrackInfo()
+{
+	TrackInfo::registerTrackInfo("h265", [](int index, int payloadType, int samplerate){
+		auto trackInfo = make_shared<H265Track>();
+		trackInfo->index_ = VideoTrackType;
+		trackInfo->codec_ = "h265";
+		trackInfo->payloadType_ = 96;
+		trackInfo->trackType_ = "video";
+		trackInfo->samplerate_ = 90000;
+
+		return trackInfo;
+	});
 }
 
 void H265Track::onFrame(const FrameBuffer::Ptr& frame)

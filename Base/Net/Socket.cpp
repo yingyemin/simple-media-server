@@ -490,7 +490,7 @@ void Socket::addToEpoll()
 }
 
 thread_local StreamBuffer::Ptr g_readBuffer;
-thread_local StreamBuffer::Ptr g_writeBuffer;
+// thread_local StreamBuffer::Ptr g_writeBuffer;
 StreamBuffer::Ptr Socket::onGetRecvBuffer()
 {
     if (_onGetRecvBuffer) {

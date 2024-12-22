@@ -33,6 +33,7 @@ class TrackInfo
 {
 public:
     using Ptr = shared_ptr<TrackInfo>;
+    using funcCreateTrackInfo = function<TrackInfo::Ptr(int trackType, int payloadType, int samplerate)>;
 
 public:
     virtual string getSdp() { return "";}
@@ -53,6 +54,9 @@ public:
 
     virtual void onFrame(const FrameBuffer::Ptr& frame) {_hasReady = true;}
 
+    static TrackInfo::Ptr createTrackInfo(const string& codecName);
+    static void registerTrackInfo(const string& codecName, const funcCreateTrackInfo& func);
+
 public:
     bool _hasReady = false;
     int payloadType_;
@@ -71,6 +75,8 @@ public:
     uint32_t _PicSizeInCtbsY = 0;
     string trackType_;
     string codec_;
+
+    static unordered_map<string, funcCreateTrackInfo> _mapCreateTrack;
 };
 
 // class Track : public enable_shared_from_this<Track>

@@ -36,6 +36,20 @@
 #include "Rtsp/RtspClient.h"
 #include "Webrtc/WebrtcClient.h"
 
+#include "Codec/AacTrack.h"
+#include "Codec/AV1Track.h"
+#include "Codec/Mp3Track.h"
+#include "Codec/G711Track.h"
+#include "Codec/H264Track.h"
+#include "Codec/H265Track.h"
+#include "Codec/H266Track.h"
+
+#include "Codec/AacFrame.h"
+#include "Codec/AV1Frame.h"
+#include "Codec/H264Frame.h"
+#include "Codec/H265Frame.h"
+#include "Codec/H266Frame.h"
+
 #include <unistd.h>
 #include <string.h>
 #include <sys/resource.h>
@@ -152,6 +166,21 @@ int main(int argc, char** argv)
 #ifdef ENABLE_SRT
     SrtSocket::initSrt();
 #endif
+
+    AacTrack::registerTrackInfo();
+    AV1Track::registerTrackInfo();
+    Mp3Track::registerTrackInfo();
+    G711aTrack::registerTrackInfo();
+    G711uTrack::registerTrackInfo();
+    H264Track::registerTrackInfo();
+    H265Track::registerTrackInfo();
+    H266Track::registerTrackInfo();
+
+    AacFrame::registerFrame();
+    AV1Frame::registerFrame();
+    H264Frame::registerFrame();
+    H265Frame::registerFrame();
+    H266Frame::registerFrame();
 
     Heartbeat::Ptr beat = make_shared<Heartbeat>();
     beat->startAsync();
@@ -384,6 +413,13 @@ int main(int argc, char** argv)
         // }
     }
 #endif
+
+    // auto loop = EventLoopPool::instance()->getLoopByCircle();
+    // TcpClient::Ptr client = make_shared<TcpClient>(loop);
+    // loop->async([client]() { 
+    //     client->create("");
+    //     client->connect("127.0.0.1", 9000);
+    // }, true);
     
     while (true) {
         // TODO 可做一些巡检工作

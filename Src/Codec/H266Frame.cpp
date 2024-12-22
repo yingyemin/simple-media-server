@@ -122,3 +122,24 @@ bool H266Frame::isNewNalu()
     
     return 0;
 }
+
+FrameBuffer::Ptr H266Frame::createFrame(int startSize, int index, bool addStart)
+{
+    auto frame = make_shared<H266Frame>();
+        
+    frame->_startSize = startSize;
+    frame->_codec = "h266";
+    frame->_index = index;
+    frame->_trackType = 0;//VideoTrackType;
+
+    if (addStart) {
+        frame->_buffer.assign("\x00\x00\x00\x01", 4);
+    };
+
+    return frame;
+}
+
+void H266Frame::registerFrame()
+{
+	FrameBuffer::registerFrame("h266", H266Frame::createFrame);
+}

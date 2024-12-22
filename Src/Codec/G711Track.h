@@ -25,6 +25,8 @@ public:
 
 public:
     string getSdp() override;
+    
+    static void registerTrackInfo();
 
 private:
 };
@@ -42,6 +44,8 @@ public:
 
 public:
     string getSdp() override;
+    
+    static void registerTrackInfo();
 
 private:
 };

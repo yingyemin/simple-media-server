@@ -35,6 +35,8 @@ public:
     void setAacInfoByAdts(const char* data, int len);
     void onFrame(const FrameBuffer::Ptr& frame);
 
+    static void registerTrackInfo();
+
 private:
     string _aacConfig;
 };

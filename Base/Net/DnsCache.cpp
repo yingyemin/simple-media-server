@@ -1,4 +1,5 @@
 ﻿#include "DnsCache.h"
+#include "Log/Logger.h"
 
 #include <cstring>
 #include <iostream>
@@ -100,7 +101,7 @@ std::shared_ptr<struct addrinfo> DnsCache::getSystemDomainIP(const char *host) {
     } while (0/*ret == -1 && get_uv_error(true) == UV_EINTR*/);
 
     if (!answer) {
-        cout << "getaddrinfo failed: " << host;
+        logWarn << "getaddrinfo failed: " << host;
         return nullptr;
     }
     return std::shared_ptr<struct addrinfo>(answer, freeaddrinfo);

@@ -82,6 +82,20 @@ void RtmpDecodeTrack::setConfigFrame(const RtmpMessage::Ptr& pkt)
 
 int RtmpDecodeTrack::createTrackInfo(int trackType, int codeId)
 {
+#if 0
+    string codec = getCodecNameById(trackType, codeId);
+    if (codec.empty()) {
+        logWarn << "不支持的codecid: " << codeId;
+        return -1;
+    }
+    _trackInfo = TrackInfo::createTrackInfo(codec);
+    if (!_trackInfo) {
+        logWarn << "不支持的解码格式，tracktype：" << trackType << ", codecName: " << codec;
+        return -1;
+    }
+
+    return 0;
+#else
     if (trackType == VideoTrackType) {
         if (codeId == RTMP_CODEC_ID_H264) {
             _trackInfo = H264Track::createTrack(VideoTrackType, 96, 90000);
@@ -136,6 +150,7 @@ int RtmpDecodeTrack::createTrackInfo(int trackType, int codeId)
     }
 
     return 0;
+#endif
 }
 
 void RtmpDecodeTrack::onRtmpPacket(const RtmpMessage::Ptr& pkt)

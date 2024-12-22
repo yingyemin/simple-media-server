@@ -211,3 +211,20 @@ Mp3Track::Ptr Mp3Track::createTrack(int index, int payloadType, int samplerate)
 
     return trackInfo;
 }
+
+void Mp3Track::registerTrackInfo()
+{
+	TrackInfo::registerTrackInfo("mp3", [](int index, int payloadType, int samplerate){
+		auto trackInfo = make_shared<Mp3Track>();
+		trackInfo->index_ = AudioTrackType;
+		trackInfo->codec_ = "mp3";
+		trackInfo->payloadType_ = 14;
+		trackInfo->trackType_ = "audio";
+		trackInfo->samplerate_ = 44100;
+        trackInfo->timebase_ = 90000;
+        trackInfo->bitPerSample_ = 16;
+        trackInfo->channel_ = 2;
+
+		return trackInfo;
+	});
+}

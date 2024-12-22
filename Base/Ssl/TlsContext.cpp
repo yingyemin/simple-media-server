@@ -251,7 +251,7 @@ ssize_t TlsContext::send(Buffer::Ptr buffer)
     //     SSL_do_handshake(_ssl.get());
     // }
     
-    logInfo << "buffer list size: " << _bufferSend.size() << this << ", thresd: " << Thread::getThreadName() << endl;
+    // logInfo << "buffer list size: " << _bufferSend.size() << this << ", thresd: " << Thread::getThreadName() << endl;
     // logInfo << "buffer size: " << buffer->size() << this << ", thresd: " << Thread::getThreadName() << endl;
 
     if (!SSL_is_init_finished(_ssl.get()) && !_server) {
@@ -266,7 +266,7 @@ ssize_t TlsContext::send(Buffer::Ptr buffer)
 
     //加密数据并发送
     while (!_bufferSend.empty()) {
-        cout << "get buffer front" << this << ", thresd: " << Thread::getThreadName() << endl;
+        // cout << "get buffer front" << this << ", thread: " << Thread::getThreadName() << endl;
         auto front = _bufferSend.front();
         _bufferSend.pop_front();
         uint32_t offset = 0;
@@ -294,7 +294,7 @@ ssize_t TlsContext::send(Buffer::Ptr buffer)
         // _bufferSend.pop_front();
     }
 
-    cout << "end func, buffer list size: " << _bufferSend.size() << this << ", thread: " << Thread::getThreadName() << endl;
+    // cout << "end func, buffer list size: " << _bufferSend.size() << this << ", thread: " << Thread::getThreadName() << endl;
     return totalSendSize;
 }
 

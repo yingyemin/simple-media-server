@@ -369,6 +369,20 @@ AacTrack::Ptr AacTrack::createTrack(int index, int payloadType, int samplerate)
     return trackInfo;
 }
 
+void AacTrack::registerTrackInfo()
+{
+	TrackInfo::registerTrackInfo("aac", [](int index, int payloadType, int samplerate){
+		auto trackInfo = make_shared<AacTrack>();
+		trackInfo->index_ = AudioTrackType;
+		trackInfo->codec_ = "aac";
+		trackInfo->payloadType_ = 97;
+		trackInfo->trackType_ = "audio";
+		trackInfo->samplerate_ = 44100;
+
+		return trackInfo;
+	});
+}
+
 void AacTrack::onFrame(const FrameBuffer::Ptr& frame)
 {
 	if (!_aacConfig.empty()) {

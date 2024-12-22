@@ -194,6 +194,20 @@ H266Track::Ptr H266Track::createTrack(int index, int payloadType, int samplerate
     return trackInfo;
 }
 
+void H266Track::registerTrackInfo()
+{
+	TrackInfo::registerTrackInfo("h266", [](int index, int payloadType, int samplerate){
+		auto trackInfo = make_shared<H266Track>();
+		trackInfo->index_ = VideoTrackType;
+		trackInfo->codec_ = "h266";
+		trackInfo->payloadType_ = 96;
+		trackInfo->trackType_ = "video";
+		trackInfo->samplerate_ = 90000;
+
+		return trackInfo;
+	});
+}
+
 void H266Track::onFrame(const FrameBuffer::Ptr& frame)
 {
 	if (_sps && _pps && _vps) {

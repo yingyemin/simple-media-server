@@ -82,6 +82,7 @@ public:
 public:
     string getSdp() override;
     void onFrame(const FrameBuffer::Ptr& frame) override;
+    static void registerTrackInfo();
 
 private:
 };

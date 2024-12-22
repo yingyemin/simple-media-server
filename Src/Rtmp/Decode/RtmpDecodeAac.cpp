@@ -1,5 +1,6 @@
 ﻿#include "RtmpDecodeAac.h"
 #include "Logger.h"
+#include "Codec/AacFrame.h"
 
 using namespace std;
 
@@ -22,7 +23,7 @@ void RtmpDecodeAac::decode(const RtmpMessage::Ptr& msg)
         _first = false;
     } else {
         // i b p
-        auto frame = make_shared<FrameBuffer>();
+        auto frame = make_shared<AacFrame>();
         
         frame->_startSize = 7;
         frame->_codec = "aac";

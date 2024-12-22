@@ -85,6 +85,8 @@ public:
 
     void substr(size_t offset = 0, size_t size = 0);
 
+    void useAllBuffer();
+
 private:
     bool _free = true;
     size_t _size = 0;

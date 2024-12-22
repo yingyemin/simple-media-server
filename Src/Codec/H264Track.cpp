@@ -153,6 +153,20 @@ H264Track::Ptr H264Track::createTrack(int index, int payloadType, int samplerate
     return trackInfo;
 }
 
+void H264Track::registerTrackInfo()
+{
+	TrackInfo::registerTrackInfo("h264", [](int index, int payloadType, int samplerate){
+		auto trackInfo = make_shared<H264Track>();
+		trackInfo->index_ = VideoTrackType;
+		trackInfo->codec_ = "h264";
+		trackInfo->payloadType_ = 96;
+		trackInfo->trackType_ = "video";
+		trackInfo->samplerate_ = 90000;
+
+		return trackInfo;
+	});
+}
+
 void H264Track::onFrame(const FrameBuffer::Ptr& frame)
 {
 	if (_sps && _pps) {

@@ -77,9 +77,7 @@ void TcpServer::accept(int event, void* args)
                 continue;
             //建立链接过多，资源不够
             } else if (errno == EMFILE) {
-                // 优雅的断开连接
-                // 用一个空闲的描述符(事先占用一个描述符)假装接受处理，
-                // 然后立即关闭，断开与客户端连接，就不会忙等(busy-loop)
+                // 延时处理
                 _loop->addTimerTask(100, [wServer, event, args](){
                     auto server = wServer.lock();
                     if (server) {
@@ -88,6 +86,7 @@ void TcpServer::accept(int event, void* args)
                     return 0;
                 }, nullptr);
                 logWarn << "accept errno=EMFILE";
+                break ;
             // 对方传输完毕, 为啥此处直接break?
             } else if (errno == EAGAIN) {
                 logWarn << "accept errno=EAGAIN";

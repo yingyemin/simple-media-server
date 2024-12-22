@@ -41,6 +41,7 @@ public:
     }
     
     void onFrame(const FrameBuffer::Ptr& frame); 
+    static void registerTrackInfo();
 
 public:
     FrameBuffer::Ptr _vps;

@@ -9,6 +9,8 @@
 
 using namespace std;
 
+unordered_map<string, FrameBuffer::funcCreateFrame> FrameBuffer::_mapCreateFrame;
+
 FrameBuffer::FrameBuffer()
 {
 
@@ -51,4 +53,26 @@ int FrameBuffer::startSize(const char* data, int len)
     }
 
     return 0;
+}
+
+FrameBuffer::Ptr FrameBuffer::createFrame(const string& codecName, int startSize, int index, bool addStart)
+{
+    auto iter = _mapCreateFrame.find(codecName);
+    if (iter != _mapCreateFrame.end()) {
+        return iter->second(startSize, index, addStart);
+    } else {
+        auto frame = make_shared<FrameBuffer>();
+        
+        frame->_startSize = startSize;
+        frame->_codec = codecName;
+        frame->_index = index;
+        frame->_trackType = 1;//AudioTrackType;
+
+        return frame;
+    }
+}
+
+void FrameBuffer::registerFrame(const string& codecName, const funcCreateFrame& func)
+{
+    _mapCreateFrame[codecName] = func;
 }

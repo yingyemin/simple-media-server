@@ -14,6 +14,7 @@ class FrameBuffer : public enable_shared_from_this<FrameBuffer>
 {
 public:
     using Ptr = std::shared_ptr<FrameBuffer>;
+    using funcCreateFrame = function<FrameBuffer::Ptr(int startSize, int index, bool addStart)>;
 
     FrameBuffer();
 
@@ -39,6 +40,11 @@ public:
 
     virtual bool isNonPicNalu() {return false;}
 
+    
+    static FrameBuffer::Ptr createFrame(const string& codecName, int startSize, int index, bool addStart);
+    
+    static void registerFrame(const string& codecName, const funcCreateFrame& func);
+
 public:
     int _profile = 0;
     int _index;
@@ -48,6 +54,8 @@ public:
     size_t _startSize = 0;
     string _codec;
     StringBuffer _buffer;
+
+    static unordered_map<string, funcCreateFrame> _mapCreateFrame;
 };
 
 

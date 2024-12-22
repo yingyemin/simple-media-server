@@ -42,6 +42,20 @@ G711aTrack::Ptr G711aTrack::createTrack(int index, int payloadType, int samplera
     return trackInfo;
 }
 
+void G711aTrack::registerTrackInfo()
+{
+	TrackInfo::registerTrackInfo("g711a", [](int index, int payloadType, int samplerate){
+		auto trackInfo = make_shared<G711aTrack>();
+		trackInfo->index_ = AudioTrackType;
+		trackInfo->codec_ = "g711a";
+		trackInfo->payloadType_ = 8;
+		trackInfo->trackType_ = "audio";
+		trackInfo->samplerate_ = 8000;
+
+		return trackInfo;
+	});
+}
+
 G711uTrack::G711uTrack()
 {
 	payloadType_ = PayloadType_G711U;
@@ -71,4 +85,18 @@ G711uTrack::Ptr G711uTrack::createTrack(int index, int payloadType, int samplera
     trackInfo->bitPerSample_ = 16;
 
     return trackInfo;
+}
+
+void G711uTrack::registerTrackInfo()
+{
+	TrackInfo::registerTrackInfo("g711u", [](int index, int payloadType, int samplerate){
+		auto trackInfo = make_shared<G711uTrack>();
+		trackInfo->index_ = AudioTrackType;
+		trackInfo->codec_ = "g711u";
+		trackInfo->payloadType_ = 0;
+		trackInfo->trackType_ = "audio";
+		trackInfo->samplerate_ = 8000;
+
+		return trackInfo;
+	});
 }

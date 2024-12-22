@@ -23,6 +23,8 @@ public:
 
     static FrameBuffer::Ptr getMuteForAdts();
     static StreamBuffer::Ptr getMuteForFlv();
+    static FrameBuffer::Ptr createFrame(int startSize, int index, bool addStart);
+    static void registerFrame();
 };
 
 

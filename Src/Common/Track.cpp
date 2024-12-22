@@ -9,7 +9,18 @@
 
 using namespace std;
 
-// Track::Track()
-// {
+unordered_map<string, TrackInfo::funcCreateTrackInfo> TrackInfo::_mapCreateTrack;
 
-// }
+TrackInfo::Ptr TrackInfo::createTrackInfo(const string& codecName)
+{
+    auto iter = _mapCreateTrack.find(codecName);
+    if (iter != _mapCreateTrack.end()) {
+        return iter->second(0, 0, 0);
+    }
+    return nullptr;
+}
+
+void TrackInfo::registerTrackInfo(const string& codecName, const funcCreateTrackInfo& func)
+{
+    _mapCreateTrack[codecName] = func;
+}
