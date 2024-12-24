@@ -61,7 +61,7 @@ string trimBack(string &str, const string& chars)
     // regex pattern("[" + chars + "]$");
     // return regex_replace(str, pattern, "");
 
-    while (str.find(chars) == (str.length() - chars.length())) {
+    while (str.rfind(chars) == (str.length() - chars.length())) {
         str = str.substr(0, str.length() - chars.length());
     }
 
@@ -171,6 +171,9 @@ string randomStr(int sz, bool printable)
         if (printable) {
             uint32_t x = rand() % (sizeof(CCH) - 1);
             ret[i] = CCH[x];
+            // ACSII 码的范围32~126
+            // uint32_t x = rand() % (126 - 32);
+            // ret[i] = x + 32;
         } else {
             ret[i] = rand() % 0xFF;
         }
@@ -195,7 +198,7 @@ string randomString(int length)
 
 string findSubStr(const string& buf, const string& start, const string& end, int bufSize)
 {
-    if(bufSize <=0 ){
+    if(bufSize <=0 || bufSize > buf.size()){
         bufSize = buf.size();
     }
     int msg_start = 0, msg_end = bufSize;
@@ -219,7 +222,7 @@ string findSubStr(const string& buf, const string& start, const string& end, int
     return bufstart.substr(0, msg_end);
 }
 
-uint32_t readUint48BE(const char* buf)
+uint64_t readUint48BE(const char* buf)
 {
     uint8_t* p = (uint8_t*)buf;
 	uint64_t value = ((uint64_t)p[0] << 40) | ((uint64_t)p[1] << 32) | (p[2] << 24) | (p[3] << 16) | (p[4] << 8) | p[5];
@@ -227,7 +230,7 @@ uint32_t readUint48BE(const char* buf)
 
 }
 
-uint32_t readUint48LE(const char* buf)
+uint64_t readUint48LE(const char* buf)
 {
     uint8_t* p = (uint8_t*)buf;
 	uint64_t value = ((uint64_t)p[5] << 40) | ((uint64_t)p[4] << 32) | (p[3] << 24) | (p[2] << 16) | (p[1] << 8) | p[0];

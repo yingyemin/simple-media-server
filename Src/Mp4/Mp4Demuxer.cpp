@@ -17,7 +17,10 @@ MP4Demuxer::MP4Demuxer()
 {}
 
 MP4Demuxer::~MP4Demuxer()
-{}
+{
+	// _track = nullptr;
+	_tracks.clear();
+}
 
 uint64_t MP4Demuxer::read64BE()
 {
@@ -26,6 +29,7 @@ uint64_t MP4Demuxer::read64BE()
 
 uint32_t MP4Demuxer::read32BE()
 {
+	logInfo << "MP4Demuxer: " << this;
     char value[4] = {0};
     read(value, 4);
     return readUint32BE(value);
@@ -67,7 +71,7 @@ bool MP4Demuxer::init()
 
     int i, r;
 	struct mov_box_t box;
-	struct mov_track_t* track;
+	mov_track_t* track;
 
 	box.type = MOV_ROOT;
 	box.size = UINT64_MAX;
@@ -97,75 +101,76 @@ bool MP4Demuxer::init()
 int MP4Demuxer::mov_reader_box(const struct mov_box_t* parent)
 {
     static struct mov_parse_t s_mov_parse_table[] = {
-        { MOV_TAG('a', 'v', '1', 'C'), MOV_NULL, [this](const mov_box_t *box){return mov_read_av1c(box);} }, // av1-isobmff
-        { MOV_TAG('a', 'v', 'c', 'C'), MOV_NULL, [this](const mov_box_t *box){return mov_read_avcc(box);} }, // ISO/IEC 14496-15:2010(E) avcC
-        { MOV_TAG('b', 't', 'r', 't'), MOV_NULL, [this](const mov_box_t *box){return mov_read_btrt(box);} }, // ISO/IEC 14496-15:2010(E) 5.3.4.1.1 Definition
-        { MOV_TAG('c', 'o', '6', '4'), MOV_STBL, [this](const mov_box_t *box){return mov_read_stco(box);} },
-        { MOV_TAG('C', 'o', 'L', 'L'), MOV_STBL, [this](const mov_box_t *box){return mov_read_coll(box);} },
-        { MOV_TAG('c', 't', 't', 's'), MOV_STBL, [this](const mov_box_t *box){return mov_read_ctts(box);} },
-        { MOV_TAG('c', 's', 'l', 'g'), MOV_STBL, [this](const mov_box_t *box){return mov_read_cslg(box);} },
-        { MOV_TAG('d', 'i', 'n', 'f'), MOV_MINF, [this](const mov_box_t *box){return mov_read_default(box);} },
-        { MOV_TAG('d', 'O', 'p', 's'), MOV_NULL, [this](const mov_box_t *box){return mov_read_dops(box);} },
-        { MOV_TAG('d', 'r', 'e', 'f'), MOV_DINF, [this](const mov_box_t *box){return mov_read_dref(box);} },
-        { MOV_TAG('e', 'd', 't', 's'), MOV_TRAK, [this](const mov_box_t *box){return mov_read_default(box);} },
-        { MOV_TAG('e', 'l', 's', 't'), MOV_EDTS, [this](const mov_box_t *box){return mov_read_elst(box);} },
-        { MOV_TAG('e', 's', 'd', 's'), MOV_NULL, [this](const mov_box_t *box){return mov_read_esds(box);} }, // ISO/IEC 14496-14:2003(E) mp4a/mp4v/mp4s
-        { MOV_TAG('f', 'r', 'e', 'e'), MOV_NULL, [this](const mov_box_t *box){return mov_read_free(box);} },
-        { MOV_TAG('f', 't', 'y', 'p'), MOV_ROOT, [this](const mov_box_t *box){return mov_read_ftyp(box);} },
-        { MOV_TAG('g', 'm', 'i', 'n'), MOV_GMHD, [this](const mov_box_t *box){return mov_read_gmin(box);} }, // Apple QuickTime gmin
-        { MOV_TAG('g', 'm', 'h', 'd'), MOV_MINF, [this](const mov_box_t *box){return mov_read_default(box);} }, // Apple QuickTime gmhd
-        { MOV_TAG('h', 'd', 'l', 'r'), MOV_MDIA, [this](const mov_box_t *box){return mov_read_hdlr(box);} }, // Apple QuickTime minf also has hdlr
-        { MOV_TAG('h', 'v', 'c', 'C'), MOV_NULL, [this](const mov_box_t *box){return mov_read_hvcc(box);} }, // ISO/IEC 14496-15:2014 hvcC
-        { MOV_TAG('l', 'e', 'v', 'a'), MOV_MVEX, [this](const mov_box_t *box){return mov_read_leva(box);} },
-        { MOV_TAG('m', 'd', 'a', 't'), MOV_ROOT, [this](const mov_box_t *box){return mov_read_mdat(box);} },
-        { MOV_TAG('m', 'd', 'h', 'd'), MOV_MDIA, [this](const mov_box_t *box){return mov_read_mdhd(box);} },
-        { MOV_TAG('m', 'd', 'i', 'a'), MOV_TRAK, [this](const mov_box_t *box){return mov_read_default(box);} },
-        { MOV_TAG('m', 'e', 'h', 'd'), MOV_MVEX, [this](const mov_box_t *box){return mov_read_mehd(box);} },
-        { MOV_TAG('m', 'f', 'h', 'd'), MOV_MOOF, [this](const mov_box_t *box){return mov_read_mfhd(box);} },
-        { MOV_TAG('m', 'f', 'r', 'a'), MOV_ROOT, [this](const mov_box_t *box){return mov_read_default(box);} },
-        { MOV_TAG('m', 'f', 'r', 'o'), MOV_MFRA, [this](const mov_box_t *box){return mov_read_mfro(box);} },
-        { MOV_TAG('m', 'i', 'n', 'f'), MOV_MDIA, [this](const mov_box_t *box){return mov_read_default(box);} },
-        { MOV_TAG('m', 'o', 'o', 'v'), MOV_ROOT, [this](const mov_box_t *box){return mov_read_default(box);} },
-        { MOV_TAG('m', 'o', 'o', 'f'), MOV_ROOT, [this](const mov_box_t *box){return mov_read_moof(box);} },
-        { MOV_TAG('m', 'v', 'e', 'x'), MOV_MOOV, [this](const mov_box_t *box){return mov_read_default(box);} },
-        { MOV_TAG('m', 'v', 'h', 'd'), MOV_MOOV, [this](const mov_box_t *box){return mov_read_mvhd(box);} },
-    //	{ MOV_TAG('n', 'm', 'h', 'd'), MOV_MINF, [this](const mov_box_t *box){return mov_read_default(box);} }, // ISO/IEC 14496-12:2015(E) 8.4.5.2 Null Media Header Box (p45)
-        { MOV_TAG('p', 'a', 's', 'p'), MOV_NULL, [this](const mov_box_t *box){return mov_read_pasp(box);} },
-        { MOV_TAG('s', 'i', 'd', 'x'), MOV_ROOT, [this](const mov_box_t *box){return mov_read_sidx(box);} },
-        { MOV_TAG('s', 'k', 'i', 'p'), MOV_NULL, [this](const mov_box_t *box){return mov_read_free(box);} },
-        { MOV_TAG('S', 'm', 'D', 'm'), MOV_MINF, [this](const mov_box_t *box){return mov_read_smdm(box);} },
-        { MOV_TAG('s', 'm', 'h', 'd'), MOV_MINF, [this](const mov_box_t *box){return mov_read_smhd(box);} },
-        { MOV_TAG('s', 't', 'b', 'l'), MOV_MINF, [this](const mov_box_t *box){return mov_read_default(box);} },
-        { MOV_TAG('s', 't', 'c', 'o'), MOV_STBL, [this](const mov_box_t *box){return mov_read_stco(box);} },
-    //	{ MOV_TAG('s', 't', 'h', 'd'), MOV_MINF, [this](const mov_box_t *box){return mov_read_default(box);} }, // ISO/IEC 14496-12:2015(E) 12.6.2 Subtitle media header (p185)
-        { MOV_TAG('s', 't', 's', 'c'), MOV_STBL, [this](const mov_box_t *box){return mov_read_stsc(box);} },
-        { MOV_TAG('s', 't', 's', 'd'), MOV_STBL, [this](const mov_box_t *box){return mov_read_stsd(box);} },
-        { MOV_TAG('s', 't', 's', 's'), MOV_STBL, [this](const mov_box_t *box){return mov_read_stss(box);} },
-        { MOV_TAG('s', 't', 's', 'z'), MOV_STBL, [this](const mov_box_t *box){return mov_read_stsz(box);} },
-        { MOV_TAG('s', 't', 't', 's'), MOV_STBL, [this](const mov_box_t *box){return mov_read_stts(box);} },
-        { MOV_TAG('s', 't', 'z', '2'), MOV_STBL, [this](const mov_box_t *box){return mov_read_stz2(box);} },
-        { MOV_TAG('t', 'e', 'x', 't'), MOV_GMHD, [this](const mov_box_t *box){return mov_read_text(box);} },
-        { MOV_TAG('t', 'f', 'd', 't'), MOV_TRAF, [this](const mov_box_t *box){return mov_read_tfdt(box);} },
-        { MOV_TAG('t', 'f', 'h', 'd'), MOV_TRAF, [this](const mov_box_t *box){return mov_read_tfhd(box);} },
-        { MOV_TAG('t', 'f', 'r', 'a'), MOV_MFRA, [this](const mov_box_t *box){return mov_read_tfra(box);} },
-        { MOV_TAG('t', 'k', 'h', 'd'), MOV_TRAK, [this](const mov_box_t *box){return mov_read_tkhd(box);} },
-        { MOV_TAG('t', 'r', 'a', 'k'), MOV_MOOV, [this](const mov_box_t *box){return mov_read_trak(box);} },
-        { MOV_TAG('t', 'r', 'e', 'x'), MOV_MVEX, [this](const mov_box_t *box){return mov_read_trex(box);} },
-        { MOV_TAG('t', 'r', 'a', 'f'), MOV_MOOF, [this](const mov_box_t *box){return mov_read_default(box);} },
-        { MOV_TAG('t', 'r', 'u', 'n'), MOV_TRAF, [this](const mov_box_t *box){return mov_read_trun(box);} },
-        { MOV_TAG('u', 'u', 'i', 'd'), MOV_NULL, [this](const mov_box_t *box){return mov_read_uuid(box);} },
-        { MOV_TAG('v', 'm', 'h', 'd'), MOV_MINF, [this](const mov_box_t *box){return mov_read_vmhd(box);} },
-        { MOV_TAG('v', 'p', 'c', 'C'), MOV_NULL, [this](const mov_box_t *box){return mov_read_vpcc(box);} },
+        { MOV_TAG('a', 'v', '1', 'C'), MOV_NULL, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_av1c(box);} }, // av1-isobmff
+        { MOV_TAG('a', 'v', 'c', 'C'), MOV_NULL, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_avcc(box);} }, // ISO/IEC 14496-15:2010(E) avcC
+        { MOV_TAG('b', 't', 'r', 't'), MOV_NULL, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_btrt(box);} }, // ISO/IEC 14496-15:2010(E) 5.3.4.1.1 Definition
+        { MOV_TAG('c', 'o', '6', '4'), MOV_STBL, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_stco(box);} },
+        { MOV_TAG('C', 'o', 'L', 'L'), MOV_STBL, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_coll(box);} },
+        { MOV_TAG('c', 't', 't', 's'), MOV_STBL, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_ctts(box);} },
+        { MOV_TAG('c', 's', 'l', 'g'), MOV_STBL, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_cslg(box);} },
+        { MOV_TAG('d', 'i', 'n', 'f'), MOV_MINF, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_default(box);} },
+        { MOV_TAG('d', 'O', 'p', 's'), MOV_NULL, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_dops(box);} },
+        { MOV_TAG('d', 'r', 'e', 'f'), MOV_DINF, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_dref(box);} },
+        { MOV_TAG('e', 'd', 't', 's'), MOV_TRAK, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_default(box);} },
+        { MOV_TAG('e', 'l', 's', 't'), MOV_EDTS, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_elst(box);} },
+        { MOV_TAG('e', 's', 'd', 's'), MOV_NULL, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_esds(box);} }, // ISO/IEC 14496-14:2003(E) mp4a/mp4v/mp4s
+        { MOV_TAG('f', 'r', 'e', 'e'), MOV_NULL, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_free(box);} },
+        { MOV_TAG('f', 't', 'y', 'p'), MOV_ROOT, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_ftyp(box);} },
+        { MOV_TAG('g', 'm', 'i', 'n'), MOV_GMHD, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_gmin(box);} }, // Apple QuickTime gmin
+        { MOV_TAG('g', 'm', 'h', 'd'), MOV_MINF, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_default(box);} }, // Apple QuickTime gmhd
+        { MOV_TAG('h', 'd', 'l', 'r'), MOV_MDIA, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_hdlr(box);} }, // Apple QuickTime minf also has hdlr
+        { MOV_TAG('h', 'v', 'c', 'C'), MOV_NULL, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_hvcc(box);} }, // ISO/IEC 14496-15:2014 hvcC
+        { MOV_TAG('l', 'e', 'v', 'a'), MOV_MVEX, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_leva(box);} },
+        { MOV_TAG('m', 'd', 'a', 't'), MOV_ROOT, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_mdat(box);} },
+        { MOV_TAG('m', 'd', 'h', 'd'), MOV_MDIA, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_mdhd(box);} },
+        { MOV_TAG('m', 'd', 'i', 'a'), MOV_TRAK, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_default(box);} },
+        { MOV_TAG('m', 'e', 'h', 'd'), MOV_MVEX, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_mehd(box);} },
+        { MOV_TAG('m', 'f', 'h', 'd'), MOV_MOOF, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_mfhd(box);} },
+        { MOV_TAG('m', 'f', 'r', 'a'), MOV_ROOT, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_default(box);} },
+        { MOV_TAG('m', 'f', 'r', 'o'), MOV_MFRA, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_mfro(box);} },
+        { MOV_TAG('m', 'i', 'n', 'f'), MOV_MDIA, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_default(box);} },
+        { MOV_TAG('m', 'o', 'o', 'v'), MOV_ROOT, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_default(box);} },
+        { MOV_TAG('m', 'o', 'o', 'f'), MOV_ROOT, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_moof(box);} },
+        { MOV_TAG('m', 'v', 'e', 'x'), MOV_MOOV, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_default(box);} },
+        { MOV_TAG('m', 'v', 'h', 'd'), MOV_MOOV, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_mvhd(box);} },
+    //	{ MOV_TAG('n', 'm', 'h', 'd'), MOV_MINF, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_default(box);} }, // ISO/IEC 14496-12:2015(E) 8.4.5.2 Null Media Header Box (p45)
+        { MOV_TAG('p', 'a', 's', 'p'), MOV_NULL, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_pasp(box);} },
+        { MOV_TAG('s', 'i', 'd', 'x'), MOV_ROOT, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_sidx(box);} },
+        { MOV_TAG('s', 'k', 'i', 'p'), MOV_NULL, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_free(box);} },
+        { MOV_TAG('S', 'm', 'D', 'm'), MOV_MINF, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_smdm(box);} },
+        { MOV_TAG('s', 'm', 'h', 'd'), MOV_MINF, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_smhd(box);} },
+        { MOV_TAG('s', 't', 'b', 'l'), MOV_MINF, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_default(box);} },
+        { MOV_TAG('s', 't', 'c', 'o'), MOV_STBL, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_stco(box);} },
+    //	{ MOV_TAG('s', 't', 'h', 'd'), MOV_MINF, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_default(box);} }, // ISO/IEC 14496-12:2015(E) 12.6.2 Subtitle media header (p185)
+        { MOV_TAG('s', 't', 's', 'c'), MOV_STBL, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_stsc(box);} },
+        { MOV_TAG('s', 't', 's', 'd'), MOV_STBL, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_stsd(box);} },
+        { MOV_TAG('s', 't', 's', 's'), MOV_STBL, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_stss(box);} },
+        { MOV_TAG('s', 't', 's', 'z'), MOV_STBL, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_stsz(box);} },
+        { MOV_TAG('s', 't', 't', 's'), MOV_STBL, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_stts(box);} },
+        { MOV_TAG('s', 't', 'z', '2'), MOV_STBL, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_stz2(box);} },
+        { MOV_TAG('t', 'e', 'x', 't'), MOV_GMHD, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_text(box);} },
+        { MOV_TAG('t', 'f', 'd', 't'), MOV_TRAF, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_tfdt(box);} },
+        { MOV_TAG('t', 'f', 'h', 'd'), MOV_TRAF, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_tfhd(box);} },
+        { MOV_TAG('t', 'f', 'r', 'a'), MOV_MFRA, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_tfra(box);} },
+        { MOV_TAG('t', 'k', 'h', 'd'), MOV_TRAK, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_tkhd(box);} },
+        { MOV_TAG('t', 'r', 'a', 'k'), MOV_MOOV, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_trak(box);} },
+        { MOV_TAG('t', 'r', 'e', 'x'), MOV_MVEX, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_trex(box);} },
+        { MOV_TAG('t', 'r', 'a', 'f'), MOV_MOOF, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_default(box);} },
+        { MOV_TAG('t', 'r', 'u', 'n'), MOV_TRAF, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_trun(box);} },
+        { MOV_TAG('u', 'u', 'i', 'd'), MOV_NULL, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_uuid(box);} },
+        { MOV_TAG('v', 'm', 'h', 'd'), MOV_MINF, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_vmhd(box);} },
+        { MOV_TAG('v', 'p', 'c', 'C'), MOV_NULL, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_vpcc(box);} },
 
         { 0, 0, NULL } // last
     };
 	int i;
 	uint64_t bytes = 0;
 	struct mov_box_t box;
-	function< int(const struct mov_box_t* box)> parse;
+	function< int(const struct mov_box_t* box, MP4Demuxer* self)> parse;
 
 	while (bytes + 8 < parent->size)
 	{
+		logInfo << "read box: " << this;
 		uint64_t n = 8;
 		box.size = read32BE();
 		box.type = read32BE();
@@ -215,7 +220,7 @@ int MP4Demuxer::mov_reader_box(const struct mov_box_t* parent)
 			int r;
 			uint64_t pos, pos2;
 			pos = tell();
-			r = parse(&box);
+			r = parse(&box, this);
 			assert(0 == r);
 			if (0 != r) return r;
 			pos2 = tell();
@@ -227,7 +232,7 @@ int MP4Demuxer::mov_reader_box(const struct mov_box_t* parent)
 	return 0;
 }
 
-int MP4Demuxer::mov_index_build(struct mov_track_t* track)
+int MP4Demuxer::mov_index_build(mov_track_t* track)
 {
 	void* p;
 	uint32_t i, j;
@@ -289,11 +294,11 @@ int MP4Demuxer::mov_read_trak(const struct mov_box_t* box)
         _track->tfdt_dts = 0;
         if (_track->sample_count > 0)
         {
-            mov_apply_stco(_track.get());
-            mov_apply_elst(_track.get());
-            mov_apply_stts(_track.get());
-            mov_apply_ctts(_track.get());
-			mov_apply_stss(_track.get());
+            mov_apply_stco(_track);
+            mov_apply_elst(_track);
+            mov_apply_stts(_track);
+            mov_apply_ctts(_track);
+			mov_apply_stss(_track);
 
             _track->tfdt_dts = _track->samples[_track->sample_count - 1]->dts;
         }
@@ -373,12 +378,12 @@ void MP4Demuxer::mov_reader_destroy()
 	_tracks.clear();
 }
 
-struct mov_track_t* MP4Demuxer::mov_reader_next()
+mov_track_t* MP4Demuxer::mov_reader_next()
 {
 	int i;
 	int64_t dts, best_dts = 0;
-	struct mov_track_t* track = NULL;
-	struct mov_track_t* track2;
+	mov_track_t* track = NULL;
+	mov_track_t* track2;
 
 	for (i = 0; i < _track_count; i++)
 	{
@@ -402,7 +407,7 @@ struct mov_track_t* MP4Demuxer::mov_reader_next()
 
 int MP4Demuxer::mov_reader_read(void* buffer, size_t bytes)
 {
-	struct mov_track_t* track;
+	mov_track_t* track;
 	struct mov_sample_t* sample;
 
 	track = mov_reader_next();
@@ -435,7 +440,7 @@ int MP4Demuxer::mov_reader_read(void* buffer, size_t bytes)
 
 int MP4Demuxer::mov_reader_read2()
 {
-    struct mov_track_t* track;
+    mov_track_t* track;
     struct mov_sample_t* sample;
 
     track = mov_reader_next();
@@ -467,7 +472,7 @@ int MP4Demuxer::mov_reader_read2()
 int MP4Demuxer::mov_reader_seek(int64_t* timestamp)
 {
 	int i;
-	struct mov_track_t* track;
+	mov_track_t* track;
 
 	// seek video track(s)
 	for (i = 0; i < _track_count; i++)
@@ -497,7 +502,7 @@ int MP4Demuxer::mov_reader_getinfo()
 {
 	int i;
 	uint32_t j;
-	struct mov_track_t* track;
+	mov_track_t* track;
     struct mov_sample_entry_t* entry;
 
 	for (i = 0; i < _track_count; i++)
@@ -513,7 +518,7 @@ int MP4Demuxer::mov_reader_getinfo()
                     auto trackInfo = H264Track::createTrack(track->tkhd.track_ID, 96, 90000);
                     trackInfo->_width = entry->u.visual.width;
                     trackInfo->_height = entry->u.visual.height;
-                    trackInfo->_avcc = entry->extra_data;
+                    trackInfo->setConfig(entry->extra_data);
 
 					onTrackInfo(trackInfo);
                     _mapTrackInfo.emplace(trackInfo->index_, trackInfo);
@@ -522,7 +527,8 @@ int MP4Demuxer::mov_reader_getinfo()
                     trackInfo->index_ = track->tkhd.track_ID;
                     trackInfo->_width = entry->u.visual.width;
                     trackInfo->_height = entry->u.visual.height;
-                    trackInfo->_hvcc = entry->extra_data;
+                    // trackInfo->_hvcc = entry->extra_data;
+					trackInfo->setConfig(entry->extra_data);
                     trackInfo->codec_ = "h265";
                     trackInfo->payloadType_ = 96;
                     trackInfo->trackType_ = "video";
@@ -612,7 +618,7 @@ uint64_t MP4Demuxer::mov_reader_getduration()
 
 #define DIFF(a, b) ((a) > (b) ? ((a) - (b)) : ((b) - (a)))
 
-int MP4Demuxer::mov_stss_seek(struct mov_track_t* track, int64_t *timestamp)
+int MP4Demuxer::mov_stss_seek(mov_track_t* track, int64_t *timestamp)
 {
 	int64_t clock;
 	size_t start, end, mid;
@@ -658,7 +664,7 @@ int MP4Demuxer::mov_stss_seek(struct mov_track_t* track, int64_t *timestamp)
 	return 0;
 }
 
-int MP4Demuxer::mov_sample_seek(struct mov_track_t* track, int64_t timestamp)
+int MP4Demuxer::mov_sample_seek(mov_track_t* track, int64_t timestamp)
 {
 	size_t prev, next;
 	size_t start, end, mid;
@@ -699,7 +705,7 @@ int MP4Demuxer::mov_sample_seek(struct mov_track_t* track, int64_t timestamp)
 int MP4Demuxer::mov_read_av1c(const struct mov_box_t* box)
 {
 	logTrace << "get in" << __FUNCTION__;
-	struct mov_track_t* track = _track.get();
+	mov_track_t* track = _track;
 	struct mov_sample_entry_t* entry = track->stsd.current.get();
 	if (entry->extra_data_size < box->size)
 	{
@@ -717,7 +723,7 @@ int MP4Demuxer::mov_read_av1c(const struct mov_box_t* box)
 int MP4Demuxer::mov_read_avcc(const struct mov_box_t* box)
 {
 	logTrace << "get in" << __FUNCTION__;
-	struct mov_track_t* track = _track.get();
+	mov_track_t* track = _track;
 	struct mov_sample_entry_t* entry = track->stsd.current.get();
 	if (entry->extra_data_size < box->size)
 	{
@@ -801,7 +807,7 @@ int MP4Demuxer::mov_read_cslg(const struct mov_box_t* box)
 int MP4Demuxer::mov_read_dops(const struct mov_box_t* box)
 {
 	logTrace << "get in" << __FUNCTION__;
-    struct mov_track_t* track = _track.get();
+    mov_track_t* track = _track;
     struct mov_sample_entry_t* entry = track->stsd.current.get();
     if(box->size >= 10)
     {
@@ -837,7 +843,7 @@ int MP4Demuxer::mov_read_elst(const struct mov_box_t* box)
 	logTrace << "get in" << __FUNCTION__;
 	uint32_t i, entry_count;
 	uint32_t version;
-	struct mov_track_t* track = _track.get();
+	mov_track_t* track = _track;
 
 	version = read8BE(); /* version */
 	read24BE(); /* flags */
@@ -964,7 +970,7 @@ abstract class DecoderSpecificInfo extends BaseDescriptor : bit(8)
 int MP4Demuxer::mp4_read_decoder_specific_info(int len)
 {
 	logTrace << "get in" << __FUNCTION__;
-	struct mov_track_t* track = _track.get();
+	mov_track_t* track = _track;
 	struct mov_sample_entry_t* entry = track->stsd.current.get();
 	if (entry->extra_data_size < len)
 	{
@@ -1145,7 +1151,7 @@ int MP4Demuxer::mov_read_esds(const struct mov_box_t* box)
 
 int MP4Demuxer::mov_read_ftyp(const struct mov_box_t* box)
 {
-	logTrace << "get in" << __FUNCTION__;
+	logTrace << "get in " << __FUNCTION__;
 	if(box->size < 8) return -1;
 
 	_ftyp.major_brand = read32BE();
@@ -1164,7 +1170,7 @@ int MP4Demuxer::mov_read_ftyp(const struct mov_box_t* box)
 int MP4Demuxer::mov_read_hdlr(const struct mov_box_t* box)
 {
 	logTrace << "get in" << __FUNCTION__;
-	struct mov_track_t* track = _track.get();
+	mov_track_t* track = _track;
 
 	read8BE(); /* version */
 	read24BE(); /* flags */
@@ -1181,7 +1187,7 @@ int MP4Demuxer::mov_read_hdlr(const struct mov_box_t* box)
 int MP4Demuxer::mov_read_hvcc(const struct mov_box_t* box)
 {
 	logTrace << "get in" << __FUNCTION__;
-	struct mov_track_t* track = _track.get();
+	mov_track_t* track = _track;
 	struct mov_sample_entry_t* entry = track->stsd.current.get();
 	if (entry->extra_data_size < box->size)
 	{
@@ -1648,7 +1654,7 @@ int MP4Demuxer::mov_read_stsd(const struct mov_box_t* box)
 {
 	logTrace << "get in" << __FUNCTION__;
 	uint32_t i, entry_count;
-	struct mov_track_t* track = _track.get();
+	mov_track_t* track = _track;
 
 	read8BE();
 	read24BE();
@@ -1962,7 +1968,7 @@ int MP4Demuxer::mov_read_stsz(const struct mov_box_t* box)
 {
 	logTrace << "get in" << __FUNCTION__;
 	uint32_t i = 0, sample_size, sample_count;
-	struct mov_track_t* track = _track.get();
+	mov_track_t* track = _track;
 
 	read8BE(); /* version */
 	read24BE(); /* flags */
@@ -2037,7 +2043,7 @@ int MP4Demuxer::mov_read_stz2(const struct mov_box_t* box)
 {
 	logTrace << "get in" << __FUNCTION__;
 	uint32_t i, v, field_size, sample_count;
-	struct mov_track_t* track = _track.get();
+	mov_track_t* track = _track;
 
 	read8BE(); /* version */
 	read24BE(); /* flags */
@@ -2109,7 +2115,7 @@ int MP4Demuxer::mov_read_tfdt(const struct mov_box_t* box)
         _track->tfdt_dts = read32BE(); /* baseMediaDecodeTime */
 
     // baseMediaDecodeTime + ELST start offset
-    mov_apply_elst_tfdt(_track.get());
+    mov_apply_elst_tfdt(_track);
 
 	(void)box;
     return 0;
@@ -2125,7 +2131,7 @@ int MP4Demuxer::mov_read_tfhd(const struct mov_box_t* box)
 	flags = read24BE(); /* flags */
 	track_ID = read32BE(); /* track_ID */
 	
-	_track.reset(mov_find_track(track_ID));
+	_track = mov_find_track(track_ID);
 	if (NULL == _track)
 		return -1;
 
@@ -2171,7 +2177,7 @@ int MP4Demuxer::mov_read_tfra(const struct mov_box_t* box)
 	uint32_t length_size_of;
 	uint32_t i, j, number_of_entry;
 	uint32_t traf_number, trun_number, sample_number;
-	struct mov_track_t* track;
+	mov_track_t* track;
 
 	version = read8BE(); /* version */
 	read24BE(); /* flags */
@@ -2221,7 +2227,7 @@ int MP4Demuxer::mov_read_tkhd(const struct mov_box_t* box)
     uint64_t duration;
     uint32_t track_ID;
 	struct mov_tkhd_t* tkhd;
-    struct mov_track_t* track;
+    mov_track_t* track;
 
 	version = read8BE();
 	flags = read24BE();
@@ -2248,7 +2254,7 @@ int MP4Demuxer::mov_read_tkhd(const struct mov_box_t* box)
     track = mov_fetch_track(track_ID);
     if (NULL == track) return -1;
 
-    _track.reset(track);
+    _track = track;
     tkhd = &_track->tkhd;
 	tkhd->version = version;
     tkhd->flags = flags;
@@ -2273,7 +2279,7 @@ int MP4Demuxer::mov_read_trex(const struct mov_box_t* box)
 {
 	logTrace << "get in" << __FUNCTION__;
 	uint32_t track_ID;
-	struct mov_track_t* track;
+	mov_track_t* track;
 
 	(void)box;
 	read32BE(); /* version & flags */
@@ -2299,14 +2305,14 @@ int MP4Demuxer::mov_read_trun(const struct mov_box_t* box)
 	uint32_t first_sample_flags;
 	uint32_t sample_duration, sample_size, sample_flags;
 	int64_t sample_composition_time_offset;
-	struct mov_track_t* track;
+	mov_track_t* track;
 	struct mov_sample_t* sample;
 
 	version = read8BE(); /* version */
 	flags = read24BE(); /* flags */
 	sample_count = read32BE(); /* sample_count */
 
-	track = _track.get();
+	track = _track;
 	if (track->sample_count + sample_count + 1 > track->sample_offset)
 	{
 		// void* p = realloc(track->samples, sizeof(struct mov_sample_t) * (track->sample_count + 2*sample_count + 1));
@@ -2378,7 +2384,7 @@ int MP4Demuxer::mov_read_trun(const struct mov_box_t* box)
 int MP4Demuxer::mov_read_vpcc(const struct mov_box_t* box)
 {
 	logTrace << "get in" << __FUNCTION__;
-    struct mov_track_t* track = _track.get();
+    mov_track_t* track = _track;
     struct mov_sample_entry_t* entry = track->stsd.current.get();
     if(box->size < 4)
         return -1;
@@ -2398,7 +2404,7 @@ int MP4Demuxer::mov_read_vpcc(const struct mov_box_t* box)
     return 0;
 }
 
-void MP4Demuxer::mov_apply_stco(struct mov_track_t* track)
+void MP4Demuxer::mov_apply_stco(mov_track_t* track)
 {
 	logTrace << "get in" << __FUNCTION__;
     uint32_t i, j, k;
@@ -2429,7 +2435,7 @@ void MP4Demuxer::mov_apply_stco(struct mov_track_t* track)
     assert(n == track->sample_count);
 }
 
-void MP4Demuxer::mov_apply_elst(struct mov_track_t *track)
+void MP4Demuxer::mov_apply_elst(mov_track_t *track)
 {
 	logTrace << "get in" << __FUNCTION__;
     size_t i;
@@ -2447,7 +2453,7 @@ void MP4Demuxer::mov_apply_elst(struct mov_track_t *track)
     }
 }
 
-void MP4Demuxer::mov_apply_elst_tfdt(struct mov_track_t *track)
+void MP4Demuxer::mov_apply_elst_tfdt(mov_track_t *track)
 {
 	logTrace << "get in" << __FUNCTION__;
     size_t i;
@@ -2461,7 +2467,7 @@ void MP4Demuxer::mov_apply_elst_tfdt(struct mov_track_t *track)
     }
 }
 
-void MP4Demuxer::mov_apply_stts(struct mov_track_t* track)
+void MP4Demuxer::mov_apply_stts(mov_track_t* track)
 {
 	logTrace << "get in" << __FUNCTION__;
     size_t i, j, n;
@@ -2478,7 +2484,7 @@ void MP4Demuxer::mov_apply_stts(struct mov_track_t* track)
     assert(n - 1 == track->sample_count); // see more mov_read_stsz
 }
 
-void MP4Demuxer::mov_apply_ctts(struct mov_track_t* track)
+void MP4Demuxer::mov_apply_ctts(mov_track_t* track)
 {
 	logTrace << "get in" << __FUNCTION__;
     size_t i, j, n;
@@ -2504,7 +2510,7 @@ void MP4Demuxer::mov_apply_ctts(struct mov_track_t* track)
     assert(0 == stbl->ctts_count || n == track->sample_count);
 }
 
-void MP4Demuxer::mov_apply_stss(struct mov_track_t* track)
+void MP4Demuxer::mov_apply_stss(mov_track_t* track)
 {
 	logTrace << "get in" << __FUNCTION__;
 	size_t i, j;
@@ -2518,7 +2524,7 @@ void MP4Demuxer::mov_apply_stss(struct mov_track_t* track)
 	}
 }
 
-struct mov_track_t* MP4Demuxer::mov_find_track(uint32_t track)
+mov_track_t* MP4Demuxer::mov_find_track(uint32_t track)
 {
 	logTrace << "get in" << __FUNCTION__;
     int i;
@@ -2530,10 +2536,10 @@ struct mov_track_t* MP4Demuxer::mov_find_track(uint32_t track)
     return NULL;
 }
 
-struct mov_track_t* MP4Demuxer::mov_fetch_track(uint32_t track)
+mov_track_t* MP4Demuxer::mov_fetch_track(uint32_t track)
 {
 	logTrace << "get in" << __FUNCTION__;
-    struct mov_track_t* t;
+    mov_track_t* t;
     t = mov_find_track(track);
     if (NULL == t)
     {
@@ -2547,7 +2553,7 @@ struct mov_track_t* MP4Demuxer::mov_fetch_track(uint32_t track)
     return t;
 }
 
-struct mov_track_t* MP4Demuxer::mov_add_track()
+mov_track_t* MP4Demuxer::mov_add_track()
 {
 	logTrace << "get in" << __FUNCTION__;
     auto track = make_shared<mov_track_t>();
@@ -2565,7 +2571,7 @@ struct mov_track_t* MP4Demuxer::mov_add_track()
 int MP4Demuxer::mov_read_tx3g(const struct mov_box_t* box)
 {
 	logTrace << "get in" << __FUNCTION__;
-	struct mov_track_t* track = _track.get();
+	mov_track_t* track = _track;
 	struct mov_sample_entry_t* entry = track->stsd.current.get();
 	if (entry->extra_data_size < box->size)
 	{

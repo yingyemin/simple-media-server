@@ -82,6 +82,8 @@ private:
     uint8_t _waitPackets = 0;
     uint8_t _audio_es_type = 0;
     uint8_t _video_es_type = 0;
+    uint8_t _audio_es_id = 0;
+    uint8_t _video_es_id = 0;
     uint64_t _lastVideoPts = -1;
     string _audioCodec = "unknown";
     string _videoCodec = "unknown";

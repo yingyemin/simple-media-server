@@ -46,6 +46,6 @@ static const int RTMP_StreamID_MEDIA    = 0;
 static const int RTMP_AVC_SEQUENCE_HEADER = 0x18;
 static const int RTMP_AAC_SEQUENCE_HEADER = 0x19;
 
-std::string getCodecNameById(int codeId);
+std::string getCodecNameById(int trackType, int codeId);
 
 #endif

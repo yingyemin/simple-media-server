@@ -50,7 +50,7 @@ protected:
     int moveMoov(uint64_t to, uint64_t from, size_t bytes);
 
 protected:
-    size_t mov_stco_size(const struct mov_track_t* track, uint64_t offset);
+    size_t mov_stco_size(const mov_track_t* track, uint64_t offset);
     size_t mov_write_iods();
     size_t mov_write_tkhd();
     size_t mov_write_edts();
@@ -68,10 +68,10 @@ protected:
     size_t mov_write_stsd();
     size_t mov_write_stts(uint32_t count);
     size_t mov_write_ctts(uint32_t count);
-    uint32_t mov_build_stts(struct mov_track_t* track);
-    uint32_t mov_build_ctts(struct mov_track_t* track);
+    uint32_t mov_build_stts(mov_track_t* track);
+    uint32_t mov_build_ctts(mov_track_t* track);
     size_t mov_write_stss();
-    uint32_t mov_build_stco(struct mov_track_t* track);
+    uint32_t mov_build_stco(mov_track_t* track);
     size_t mov_write_stsc();
     size_t mov_write_stsz();
     size_t mov_write_stco(uint32_t count);

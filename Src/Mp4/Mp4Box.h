@@ -223,11 +223,12 @@ struct mov_box_t
 	//uint32_t flags : 24;
 };
 
+class MP4Demuxer;
 struct mov_parse_t
 {
 	uint32_t type;
 	uint32_t parent;
-	function<int(const struct mov_box_t* box)> parse;
+	function<int(const mov_box_t* box, MP4Demuxer* self)> parse;
 };
 
 // A.4 Temporal structure of the media (p148)
@@ -390,19 +391,19 @@ struct mov_tfhd_t
 struct mov_stbl_t
 {
 	vector<shared_ptr<mov_stsc_t>> stsc;
-	size_t stsc_count;
+	size_t stsc_count = 0;
 
 	vector<uint64_t> stco;
-	uint32_t stco_count;
+	uint32_t stco_count = 0;
 
 	vector<shared_ptr<mov_stts_t>> stts;
-	size_t stts_count;
+	size_t stts_count = 0;
 
 	vector<shared_ptr<mov_stts_t>> ctts;
-	size_t ctts_count;
+	size_t ctts_count = 0;
 
 	vector<uint32_t> stss;
-	size_t stss_count;
+	size_t stss_count = 0;
 };
 
 struct mov_sample_t
@@ -426,8 +427,12 @@ struct mov_fragment_t
 	uint64_t offset; // moof offset
 };
 
-struct mov_track_t
+class mov_track_t
 {
+public:
+	mov_track_t() {}
+	~mov_track_t();
+
 	uint32_t tag; // MOV_H264/MOV_MP4A
 	uint32_t handler_type; // MOV_VIDEO/MOV_AUDIO
 	const char* handler_descr; // VideoHandler/SoundHandler/SubtitleHandler
@@ -445,7 +450,7 @@ struct mov_track_t
 	struct mov_stsd_t stsd;
 
 	vector<shared_ptr<mov_elst_t>> elst;
-	size_t elst_count;
+	size_t elst_count = 0;
 	
 	vector<shared_ptr<mov_sample_t>> samples;
 	uint32_t sample_count = 0;

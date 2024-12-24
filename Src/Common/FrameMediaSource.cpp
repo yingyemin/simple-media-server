@@ -19,7 +19,16 @@ FrameMediaSource::~FrameMediaSource()
 
 void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
 {
+    if (_origin && !isReady()) {
+        MediaSource::onFrame(frame);
+        return ;
+    }
+
     if (!frame || _mapTrackInfo.find(frame->getTrackIndex()) == _mapTrackInfo.end()) {
+        return ;
+    }
+
+    if (!_mapTrackInfo[frame->getTrackIndex()]->isReady()) {
         return ;
     }
 

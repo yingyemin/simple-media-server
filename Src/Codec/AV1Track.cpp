@@ -340,6 +340,7 @@ void AV1Track::registerTrackInfo()
 
 void AV1Track::onFrame(const FrameBuffer::Ptr& frame)
 {
+	// TODO 是否需要判断meta 帧
 	if (_sequence) {
 		_hasReady = true;
 		return ;

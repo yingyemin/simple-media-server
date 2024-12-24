@@ -51,7 +51,7 @@ private:
     size_t fmp4_write_moov();
     size_t fmp4_write_sidx();
     int fmp4_write_mfra();
-    int fmp4_add_fragment_entry(struct mov_track_t* track, uint64_t time, uint64_t offset);
+    int fmp4_add_fragment_entry(mov_track_t* track, uint64_t time, uint64_t offset);
     int fmp4_write_fragment();
     int fmp4_writer_init();
     void fmp4_writer_destroy();

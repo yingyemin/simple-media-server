@@ -173,9 +173,9 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
     int pse_index = 0;
     bool hasAudio = false;
 
-    uint8_t audio_es_id = 0;
+    // uint8_t audio_es_id = 0;
     //static uint8_t audio_es_type = 0;
-    uint8_t video_es_id = 0;
+    // uint8_t video_es_id = 0;
     //static uint8_t video_es_type = 0;
 
 // #ifdef W_PS_FILE           
@@ -316,7 +316,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
                     }
                     
                     // logInfo << "get a ps audio map";
-                    audio_es_id = es_id;
+                    _audio_es_id = es_id;
                     _audio_es_type = type;
                     if (_audio_es_type == STREAM_TYPE_AUDIO_AAC) {
                         _audioCodec = "aac";
@@ -360,7 +360,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
                     }
                     // logInfo << "get a ps video map";
 
-                    video_es_id = es_id;
+                    _video_es_id = es_id;
                     _video_es_type = type;
                     if (_video_es_type == STREAM_TYPE_VIDEO_H264) {
                         _videoCodec = "h264";
@@ -394,8 +394,15 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
 			&& next_ps_pack[0] == (char)0x00
 			&& next_ps_pack[1] == (char)0x00
 			&& next_ps_pack[2] == (char)0x01
-			&& next_ps_pack[3] == (char)0xE0)
+			&& (next_ps_pack[3] == (char)_video_es_id || next_ps_pack[3] == (char)0xE2))
         {
+            if (next_ps_pack[3] == (char)0xE2 && (int)_video_es_id == 0 && _videoCodec == "unknown") {
+                // 兼容ffmpeg生成的ps流
+                _videoCodec = "h264";
+                auto trackInfo = H264Track::createTrack(VideoTrackType, 96, 90000);
+                addTrackInfo(trackInfo);
+                _firstVps = false;
+            }
             _hasVideo = true;
             if (!_videoFrame) {
                 _videoFrame = createFrame(VideoTrackType);
@@ -518,7 +525,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
 			&& next_ps_pack[0] == (char)0x00
 			&& next_ps_pack[1] == (char)0x00
 			&& next_ps_pack[2] == (char)0x01
-			&& next_ps_pack[3] == (char)0xC0)
+			&& next_ps_pack[3] == (char)_audio_es_id)
         {
             _hasAudio = true;
             //audio stream

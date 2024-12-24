@@ -16,6 +16,7 @@
 #include "Decode/RtmpDecodeCommon.h"
 #include "Decode/RtmpDecodeH264.h"
 #include "Decode/RtmpDecodeH265.h"
+#include "Decode/RtmpDecodeAV1.h"
 #include "Rtmp.h"
 
 using namespace std;
@@ -39,6 +40,8 @@ void RtmpDecodeTrack::createDecoder()
         } else if (_trackInfo->codec_ == "g711a" || _trackInfo->codec_ == "g711u"
                     || _trackInfo->codec_ == "mp3") {
             _decoder = dynamic_pointer_cast<RtmpDecode>(make_shared<RtmpDecodeCommon>(_trackInfo));
+        } else if (_trackInfo->codec_ == "av1") {
+            _decoder = dynamic_pointer_cast<RtmpDecode>(make_shared<RtmpDecodeAV1>(_trackInfo));
         }
 
         if (!_decoder) {
@@ -82,7 +85,7 @@ void RtmpDecodeTrack::setConfigFrame(const RtmpMessage::Ptr& pkt)
 
 int RtmpDecodeTrack::createTrackInfo(int trackType, int codeId)
 {
-#if 0
+#if 1
     string codec = getCodecNameById(trackType, codeId);
     if (codec.empty()) {
         logWarn << "不支持的codecid: " << codeId;

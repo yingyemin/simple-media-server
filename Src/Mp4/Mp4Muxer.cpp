@@ -447,7 +447,7 @@ int MP4Muxer::moveMoov(uint64_t to, uint64_t from, size_t bytes)
 	return 0;
 }
 
-size_t MP4Muxer::mov_stco_size(const struct mov_track_t* track, uint64_t offset)
+size_t MP4Muxer::mov_stco_size(const mov_track_t* track, uint64_t offset)
 {
 	size_t i, j;
 	uint64_t co64;
@@ -654,7 +654,7 @@ size_t MP4Muxer::mov_write_elst()
 	int64_t time;
 	int64_t delay;
 	uint8_t version;
-	const struct mov_track_t* track = _track.get();
+	const mov_track_t* track = _track.get();
 
     assert(track->start_dts == track->samples[0]->dts);
 	version = track->tkhd.duration > UINT32_MAX ? 1 : 0;
@@ -729,7 +729,7 @@ size_t MP4Muxer::mov_write_mdhd()
 
 size_t MP4Muxer::mov_write_hdlr()
 {
-	const struct mov_track_t* track = _track.get();
+	const mov_track_t* track = _track.get();
 
 	write32BE(33 + (uint32_t)strlen(track->handler_descr)); /* size */
 	write("hdlr", 4);
@@ -750,7 +750,7 @@ size_t MP4Muxer::mov_write_minf()
 {
     size_t size;
     uint64_t offset;
-    const struct mov_track_t* track = _track.get();
+    const mov_track_t* track = _track.get();
 
     size = 8 /* Box */;
     offset = tell();
@@ -828,8 +828,8 @@ size_t MP4Muxer::mov_write_stbl()
     size_t size;
     uint32_t count;
     uint64_t offset;
-    struct mov_track_t* track;
-    track = (struct mov_track_t*)_track.get();
+    mov_track_t* track;
+    track = (mov_track_t*)_track.get();
 
     size = 8 /* Box */;
     offset = tell();
@@ -875,7 +875,7 @@ size_t MP4Muxer::mov_write_stsd()
 	uint32_t i;
 	size_t size;
 	uint64_t offset;
-	const struct mov_track_t* track = _track.get();
+	const mov_track_t* track = _track.get();
 
 	size = 12 /* full box */ + 4 /* entry count */;
 
@@ -887,7 +887,7 @@ size_t MP4Muxer::mov_write_stsd()
 
 	for (i = 0; i < track->stsd.entry_count; i++)
 	{
-        ((struct mov_track_t*)track)->stsd.current = track->stsd.entries[i];
+        ((mov_track_t*)track)->stsd.current = track->stsd.entries[i];
 
 		if (MOV_VIDEO == track->handler_type)
 		{
@@ -915,7 +915,7 @@ size_t MP4Muxer::mov_write_stts(uint32_t count)
 {
 	uint32_t size, i;
 	const struct mov_sample_t* sample;
-	const struct mov_track_t* track = _track.get();
+	const mov_track_t* track = _track.get();
 
 	size = 12/* full box */ + 4/* entry count */ + count * 8/* entry */;
 
@@ -940,7 +940,7 @@ size_t MP4Muxer::mov_write_ctts(uint32_t count)
 {
 	uint32_t size, i;
 	const struct mov_sample_t* sample;
-	const struct mov_track_t* track = _track.get();
+	const mov_track_t* track = _track.get();
 
 	size = 12/* full box */ + 4/* entry count */ + count * 8/* entry */;
 
@@ -962,7 +962,7 @@ size_t MP4Muxer::mov_write_ctts(uint32_t count)
 	return size;
 }
 
-uint32_t MP4Muxer::mov_build_stts(struct mov_track_t* track)
+uint32_t MP4Muxer::mov_build_stts(mov_track_t* track)
 {
     size_t i;
     uint32_t delta, count = 0;
@@ -991,7 +991,7 @@ uint32_t MP4Muxer::mov_build_stts(struct mov_track_t* track)
     return count;
 }
 
-uint32_t MP4Muxer::mov_build_ctts(struct mov_track_t* track)
+uint32_t MP4Muxer::mov_build_ctts(mov_track_t* track)
 {
     size_t i;
     uint32_t delta;
@@ -1029,7 +1029,7 @@ size_t MP4Muxer::mov_write_stss()
 	uint64_t offset2;
 	uint32_t size, i, j;
 	const struct mov_sample_t* sample;
-	const struct mov_track_t* track = _track.get();
+	const mov_track_t* track = _track.get();
 
 	size = 12/* full box */ + 4/* entry count */;
 
@@ -1059,7 +1059,7 @@ size_t MP4Muxer::mov_write_stss()
 	return size;
 }
 
-uint32_t MP4Muxer::mov_build_stco(struct mov_track_t* track)
+uint32_t MP4Muxer::mov_build_stco(mov_track_t* track)
 {
     size_t i;
     size_t bytes = 0;
@@ -1096,7 +1096,7 @@ size_t MP4Muxer::mov_write_stsc()
 	uint32_t size, i, entry;
 	const struct mov_sample_t* chunk = NULL;
 	const struct mov_sample_t* sample = NULL;
-	const struct mov_track_t* track = _track.get();
+	const mov_track_t* track = _track.get();
 
 	size = 12/* full box */ + 4/* entry count */;
 
@@ -1134,7 +1134,7 @@ size_t MP4Muxer::mov_write_stsc()
 size_t MP4Muxer::mov_write_stsz()
 {
 	uint32_t size, i;
-	const struct mov_track_t* track = _track.get();
+	const mov_track_t* track = _track.get();
 
 	for(i = 1; i < track->sample_count; i++)
 	{
@@ -1168,7 +1168,7 @@ size_t MP4Muxer::mov_write_stco(uint32_t count)
 	int co64;
 	uint32_t size, i;
 	const struct mov_sample_t* sample;
-	const struct mov_track_t* track = _track.get();
+	const mov_track_t* track = _track.get();
 
 	sample = track->sample_count > 0 ? track->samples[track->sample_count - 1].get() : NULL;
 	co64 = (sample && sample->offset + track->offset > UINT32_MAX) ? 1 : 0;
@@ -1298,7 +1298,7 @@ size_t MP4Muxer::mov_write_audio(const struct mov_sample_entry_t* entry)
 
 size_t MP4Muxer::mov_write_avcc()
 {
-	const struct mov_track_t* track = _track.get();
+	const mov_track_t* track = _track.get();
 	const struct mov_sample_entry_t* entry = track->stsd.current.get();
 	write32BE(entry->extra_data_size + 8); /* size */
 	write("avcC", 4);
@@ -1385,7 +1385,7 @@ int MP4Muxer::mp4_write_decoder_specific_info()
 
 size_t MP4Muxer::mov_write_hvcc()
 {
-	const struct mov_track_t* track = _track.get();
+	const mov_track_t* track = _track.get();
 	const struct mov_sample_entry_t* entry = track->stsd.current.get();
 	write32BE(entry->extra_data_size + 8); /* size */
 	write("hvcC", 4);
@@ -1396,7 +1396,7 @@ size_t MP4Muxer::mov_write_hvcc()
 
 size_t MP4Muxer::mov_write_av1c()
 {
-	const struct mov_track_t* track = _track.get();
+	const mov_track_t* track = _track.get();
 	const struct mov_sample_entry_t* entry = track->stsd.current.get();
 	write32BE(entry->extra_data_size + 8); /* size */
 	write("av1C", 4);
@@ -1407,7 +1407,7 @@ size_t MP4Muxer::mov_write_av1c()
 
 size_t MP4Muxer::mov_write_vpcc()
 {
-    const struct mov_track_t* track = _track.get();
+    const mov_track_t* track = _track.get();
     const struct mov_sample_entry_t* entry = track->stsd.current.get();
     write32BE(entry->extra_data_size + 12); /* size */
     write("vpcC", 4);
@@ -1420,7 +1420,7 @@ size_t MP4Muxer::mov_write_vpcc()
 
 size_t MP4Muxer::mov_write_dops()
 {
-    const struct mov_track_t* track = _track.get();
+    const mov_track_t* track = _track.get();
     const struct mov_sample_entry_t* entry = track->stsd.current.get();
     if (entry->extra_data_size < 18)
         return 0;

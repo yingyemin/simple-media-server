@@ -30,6 +30,7 @@ void Mp4FileReader::write(const char* data, int size)
 
 void Mp4FileReader::read(char* data, int size)
 {
+    logInfo << "Mp4FileReader: " << this;
     _file.read(data, size);
 }
 
@@ -73,7 +74,7 @@ void Mp4FileReader::onFrame(const StreamBuffer::Ptr& buffer, int trackIndex, int
             if (frame_len + offset + 4 > bytes) {
                 return ;
             }
-            memcpy(data + offset, "\x0\x0\x0\x1", 4);
+            // memcpy(data + offset, "\x0\x0\x0\x1", 4);
             if (trackInfo->codec_ == "h265" ) {
                 frame = make_shared<H265Frame>();
             } else {

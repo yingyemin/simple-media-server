@@ -102,9 +102,11 @@ bool GB28181Context::init()
             if (rtp->getHeader()->pt == 104 || rtp->getHeader()->pt == 8 || rtp->getHeader()->pt == 0) {
                 rtp->trackIndex_ = AudioTrackType;
                 self->_audioTrack->onRtpPacket(rtp);
-            } else if (rtp->getHeader()->pt == 96) {
+            } else if (rtp->getHeader()->pt == 96 || rtp->getHeader()->pt == 32) {
                 rtp->trackIndex_ = VideoTrackType;
                 self->_videoTrack->onRtpPacket(rtp);
+            } else {
+                logInfo << "unknown rtp payload type:" << (int)rtp->getHeader()->pt;
             }
         }
     });
@@ -134,6 +136,7 @@ bool GB28181Context::init()
 void GB28181Context::onRtpPacket(const RtpPacket::Ptr& rtp, struct sockaddr* addr, int len, bool sort)
 {
     if (rtp->getHeader()->version != 2) {
+        logInfo << "version is invalid: " << (int)rtp->getHeader()->version;
         return ;
     }
 
@@ -150,9 +153,12 @@ void GB28181Context::onRtpPacket(const RtpPacket::Ptr& rtp, struct sockaddr* add
             memcpy(_addr.get(), addr, sizeof(sockaddr));
         } else if (memcmp(_addr.get(), addr, sizeof(struct sockaddr)) != 0) {
             // 记录一下这个流，提供切换流的api
+            logInfo << "收到其他地址的流";
             return ;
         }
     }
+
+    // logInfo << "rtp payload type:" << (int)rtp->getHeader()->pt;
 
     rtp->trackIndex_ = 0;
     
@@ -164,11 +170,13 @@ void GB28181Context::onRtpPacket(const RtpPacket::Ptr& rtp, struct sockaddr* add
             if (_audioTrack) {
                 _audioTrack->onRtpPacket(rtp);
             }
-        } else if (rtp->getHeader()->pt == 96) {
+        } else if (rtp->getHeader()->pt == 96 || rtp->getHeader()->pt == 32) {
             rtp->trackIndex_ = VideoTrackType;
             if (_videoTrack) {
                 _videoTrack->onRtpPacket(rtp);
             }
+        } else {
+            logInfo << "unknown rtp payload type:" << (int)rtp->getHeader()->pt;
         }
     }
 

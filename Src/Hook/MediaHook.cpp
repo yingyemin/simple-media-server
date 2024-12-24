@@ -40,6 +40,10 @@ void MediaHook::reportByHttp(const string& url, const string&method, const strin
     static int timeout = Config::instance()->getAndListen([](const json& config){
         timeout = Config::instance()->get("Hook", "Http", "timeout");
     }, "Hook", "Http", "timeout");
+
+    if (url.empty()) {
+        return ;
+    }
     
     shared_ptr<HttpClientApi> client;
     if (startWith(url, "https://")) {

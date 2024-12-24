@@ -335,6 +335,9 @@ string RtspMediaSource::getSdp()
 
 int RtspMediaSource::playerCount()
 {
+    if (!_ring) {
+        return 0;
+    }
     int count = _ring->readerCount();
     lock_guard<mutex> lck(_mtxTrack);
     count -= _mapSink.size();
@@ -345,6 +348,10 @@ int RtspMediaSource::playerCount()
 void RtspMediaSource::getClientList(const function<void(const list<ClientInfo>& info)>& func)
 {
     list<ClientInfo> clientInfo;
+    if (!_ring) {
+        func(clientInfo);
+        return ;
+    }
     _ring->getInfoList([func](list<ClientInfo> &infoList){
         func(infoList);
     });

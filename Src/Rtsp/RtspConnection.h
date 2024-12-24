@@ -65,6 +65,7 @@ private:
 
 private:
     bool _isPublish = false;
+    bool _closed = false;
     uint64_t _totalSendBytes = 0;
     uint64_t _intervalSendBytes = 0;
     float _lastBitrate = 0;

@@ -144,7 +144,8 @@ bool RecordReader::readMp4(const string& path)
         if (!self) {
             return ;
         }
-        self->_frameList.push_back(frame);
+        // self->_frameList.push_back(frame);
+        self->_onFrame(frame);
     });
     demuxer->setOnReady([wSelf](){
         auto self = wSelf.lock();
@@ -181,52 +182,62 @@ bool RecordReader::readMp4(const string& path)
         if (!self) {
             return 0;
         }
+        logInfo << "start to read mp4";
 
-        while (true) {
-            logInfo << "self->_frameList size: " << self->_frameList.size();
-            if (!self->_frameList.empty()) {
-                if (self->_onFrame) {
-                    auto frame = self->_frameList.front();
-                    self->_frameList.pop_front();
-                    self->_onFrame(frame);
+        // while (true) {
+            // logInfo << "self->_frameList size: " << self->_frameList.size();
+            // if (!self->_frameList.empty()) {
+            //     if (self->_onFrame) {
+            //         auto frame = self->_frameList.front();
+            //         self->_frameList.pop_front();
+            //         self->_onFrame(frame);
 
-                    // FILE* fp = fopen("testvodmp4.h264", "ab+");
-                    // fwrite(frame->data(), 1, frame->size(), fp);
-                    // fclose(fp);
-                }
-                break;
-            }
-            auto task = make_shared<WorkTask>();
-            task->priority_ = 100;
-            task->func_ = [wSelf, demuxer](){
-                auto self = wSelf.lock();
-                if (!self) {
-                    return ;
-                }
-                logInfo << "read mp4";
+            //         // FILE* fp = fopen("testvodmp4.h264", "ab+");
+            //         // fwrite(frame->data(), 1, frame->size(), fp);
+            //         // fclose(fp);
+            //     }
+            //     break;
+            // }
+            // auto task = make_shared<WorkTask>();
+            // task->priority_ = 100;
+            // task->func_ = [wSelf, demuxer](){
+            //     auto self = wSelf.lock();
+            //     if (!self) {
+            //         return ;
+            //     }
+            //     logInfo << "read mp4";
                 if (!demuxer->mov_reader_read2()) {
                     self->stop();
+                    return 0;
                 }
-            };
-            self->_workLoop->addOrderTask(task);
+            // };
+            // self->_workLoop->addOrderTask(task);
 
-            return 10;
-        }
+        //     return 10;
+        // }
 
+        auto now = TimeClock::now();
         if (self->_lastFrameTime == 0) {
-            self->_lastFrameTime = TimeClock::now();
+            self->_lastFrameTime = now;
             return 40;
         }
 
-        auto now = TimeClock::now();
-        auto take = now - self->_lastFrameTime;
-        self->_lastFrameTime = now;
-        logInfo << "take is: " << take;
-        if (take >= 40) {
+        self->_lastFrameTime += 40;
+
+        if (self->_lastFrameTime < now) {
             return 1;
         } else {
-            return 40 - (int)take;
+            return int(self->_lastFrameTime - now);
         }
+
+        // auto take = now - start;
+        // // self->_lastFrameTime = now;
+        // logInfo << "take is: " << take;
+        // if (take >= 40) {
+        //     return 1;
+        // } else {
+        //     return 40 - (int)take;
+        // }
     }, nullptr);
 
     return true;

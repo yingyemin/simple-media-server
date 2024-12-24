@@ -24,8 +24,8 @@ string randomStr(int sz, bool printable = true);
 string randomString(int sz);
 string findSubStr(const string& buf, const string& start, const string& end, int bufSize = 0);
 
-uint32_t readUint48BE(const char* buf);
-uint32_t readUint48LE(const char* buf);
+uint64_t readUint48BE(const char* buf);
+uint64_t readUint48LE(const char* buf);
 uint32_t readUint32BE(const char* buf);
 uint32_t readUint32LE(const char* buf);
 uint32_t readUint24BE(const char* buf);

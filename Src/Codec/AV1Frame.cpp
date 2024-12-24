@@ -10,7 +10,7 @@
 
 using namespace std;
 
-static inline const uint8_t* leb128(const uint8_t* data, int bytes, uint64_t* v)
+uint8_t* leb128(const uint8_t* data, int bytes, uint64_t* v)
 {
 	int i;
 	uint64_t b;
@@ -21,7 +21,7 @@ static inline const uint8_t* leb128(const uint8_t* data, int bytes, uint64_t* v)
 		b = data[i];
 		*v |= (b & 0x7F) << (i * 7);
 	}
-	return data + i;
+	return (uint8_t*)data + i;
 }
 
 int aom_av1_annexb_split(const uint8_t* data, size_t bytes, const function<int (const uint8_t* obu, size_t bytes)>& handler)

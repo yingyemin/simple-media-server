@@ -473,6 +473,46 @@ string H265Track::getConfig()
     return config;
 }
 
+void H265Track::setConfig(const string& config)
+{
+	_hvcc = config;
+	if (config.size() < 23) {
+		return ;
+	}
+
+	int numOfArr = config[22];
+	int index = 23;
+	logInfo << "numOfArr is : " << numOfArr;
+	for (int i = 0; i < numOfArr; ++i) {
+		int len =(config[index + 1] & 0xFF) << 8 | (config[index + 2] & 0xFF);
+		index += 3;
+		for (int j = 0; j < len; ++j) {
+			int naluLen =(config[index] & 0xFF) << 8 | (config[index + 1] & 0xFF);
+			index += 2;
+
+			auto frame = make_shared<H265Frame>();
+			frame->_startSize = 4;
+			frame->_codec = "h265";
+			frame->_index = index_;
+			frame->_trackType = VideoTrackType;
+
+			frame->_buffer.assign("\x00\x00\x00\x01", 4);
+			frame->_pts = frame->_dts = 0;
+			frame->_buffer.append((char*)config.data() + index, naluLen);
+			index += naluLen;
+
+			logInfo << "get a config frame: " << (int)frame->getNalType();
+			if (frame->getNalType() == H265_VPS) {
+				setVps(frame);
+			} else if (frame->getNalType() == H265_SPS) {
+				setSps(frame);
+			} else if (frame->getNalType() == H265_PPS) {
+				setPps(frame);
+			}
+		}
+	}
+}
+
 bool H265Track::isBFrame(uint8* data, int size)
 {
 	if (!data || !_vps || !_sps || !_pps) {

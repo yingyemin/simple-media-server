@@ -431,13 +431,20 @@ void MediaSource::loadFromFile(const string& uri, const string& vhost, const str
     }
     void* key = reader.get();
     weak_ptr<FrameMediaSource> wFrameSrc = frameSource;
+    frameSource->setOrigin();
     reader->setOnFrame([wFrameSrc](const FrameBuffer::Ptr &frame){
         auto frameSrc = wFrameSrc.lock();
         if (!frameSrc) {
             return ;
         }
-        frameSrc->getLoop()->async([frameSrc, frame](){
-            frameSrc->onFrame(frame);
+        frameSrc->getLoop()->async([wFrameSrc, frame](){
+            auto frameSrc = wFrameSrc.lock();
+            if (!frameSrc) {
+                return ;
+            }
+            // if (frameSrc->isReady()) {
+                frameSrc->onFrame(frame);
+            // }
         }, true);
     });
     reader->setOnTrackInfo([wFrameSrc](const TrackInfo::Ptr &trackInfo){
@@ -474,14 +481,16 @@ void MediaSource::loadFromFile(const string& uri, const string& vhost, const str
         }, true);
     });
     if (!reader->start()) {
+        frameSource->release();
+        frameSource->delConnection(key);
         cb(nullptr);
         _totalSource.erase(uri + "_" + vhost);
+        reader->setOnClose(nullptr);
         return ;
     }
-    frameSource->setOrigin();
     frameSource->_recordReader = reader;
 
-    EventLoop::getCurrentLoop()->addTimerTask(5000, [wFrameSrc](){
+    EventLoop::getCurrentLoop()->addTimerTask(5000, [wFrameSrc, cb](){
         auto frameSrc = wFrameSrc.lock();
         if (!frameSrc) {
             return 0;
@@ -489,6 +498,7 @@ void MediaSource::loadFromFile(const string& uri, const string& vhost, const str
 
         if (frameSrc->getStatus() < AVAILABLE) {
             frameSrc->release();
+            cb(nullptr);
         }
 
         return 0;

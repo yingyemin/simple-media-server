@@ -42,7 +42,7 @@ void RtmpDecodeH265::decode(const RtmpMessage::Ptr& msg)
     if (/*_first && */packet_type == 0) {
         logInfo << "get a flv config";
         // rtmp header 5 bytes, hvcc 22 bytes
-        if (length < 27) {
+        if (length < 28) {
             return ;
         }
 

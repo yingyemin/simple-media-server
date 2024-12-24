@@ -37,13 +37,13 @@ TcpConnection::TcpConnection(const EventLoop::Ptr& loop, const Socket::Ptr& sock
 TcpConnection::~TcpConnection()
 {}
 
-void TcpConnection::onRecv(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)
+void TcpConnection::onRecv(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int addrLen)
 {
     if (_tlsCtx) {
         logInfo << "read a packet with ssl";
         _tlsCtx->onRead(buffer);
     } else {
-        onRead(buffer, addr, len);
+        onRead(buffer, addr, addrLen);
     }
 }
 
@@ -65,6 +65,7 @@ void TcpConnection::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* add
 void TcpConnection::onError()
 {
     logError << "get a error";
+    close();
 }
 
 void TcpConnection::onManager()

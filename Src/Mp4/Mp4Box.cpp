@@ -1,6 +1,7 @@
 
 
 #include "Mp4Box.h"
+#include "Log/Logger.h"
 
 static struct mov_object_tag s_tags[] = {
 	{ MOV_OBJECT_H264,	MOV_H264 }, // AVCSampleEntry  (ISO/IEC 14496-15:2010)
@@ -52,4 +53,9 @@ uint8_t mov_tag_to_object(uint32_t tag)
 			return s_tags[i].id;
 	}
 	return 0;
+}
+
+mov_track_t::~mov_track_t()
+{
+	logInfo << "~mov_track_t(), handler_type: " << int64_t(handler_type);
 }

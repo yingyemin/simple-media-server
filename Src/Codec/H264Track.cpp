@@ -9,6 +9,7 @@
 #include "Util/String.h"
 #include "Util/Base64.h"
 #include "H264Nal.h"
+#include "H264Frame.h"
 
 using namespace std;
 
@@ -139,6 +140,60 @@ string H264Track::getConfig()
     memcpy(data, ppsBuffer.data() + ppsSize, ppsLen); //H264 picture parameter set
 
     return config;
+}
+
+void H264Track::setConfig(const string& config)
+{
+    _avcc = config;
+    if (config.size() < 8) {
+        return ;
+    }
+
+    int spsNum = config[5] & 0x1f;
+    int spsCount = 0;
+    int index = 6;
+    while (spsCount < spsNum) {
+        // 这里应该判断一下，剩余长度够不够
+        int spsLen =(config[index] & 0x000000FF) << 8 | (config[index+1] & 0x000000FF);
+        index += 2;
+        auto frame = make_shared<H264Frame>();
+        frame->_startSize = 4;
+        frame->_codec = "h264";
+        frame->_index = index_;
+        frame->_trackType = VideoTrackType;
+
+        frame->_buffer.assign("\x00\x00\x00\x01", 4);
+        frame->_buffer.append((char*)config.data() + index, spsLen);
+        frame->_pts = frame->_dts = 0;
+        setSps(frame);
+
+        index += spsLen;
+        ++spsCount;
+    }
+
+    // pps
+    int ppsNum = config[index] & 0x1f;
+    int ppsCount = 0;
+    index += 1;
+    while (ppsCount < ppsNum) {
+        int ppsLen =(config[index] & 0x000000FF) << 8 | (config[index+1] & 0x000000FF);
+        index += 2;
+        auto frame = make_shared<H264Frame>();
+        frame->_startSize = 4;
+        frame->_codec = "h264";
+        frame->_index = index_;
+        frame->_trackType = VideoTrackType;
+
+        frame->_buffer.assign("\x00\x00\x00\x01", 4);
+        frame->_buffer.append((char*)config.data() + index, ppsLen);
+        frame->_buffer.append((char*)config.data() + index, ppsLen);
+        frame->_pts = frame->_dts = 0;
+
+        setPps(frame);
+
+        index += ppsLen;
+        ++ppsCount;
+    }
 }
 
 H264Track::Ptr H264Track::createTrack(int index, int payloadType, int samplerate)

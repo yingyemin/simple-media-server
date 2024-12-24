@@ -40,7 +40,7 @@ public:
     int mov_reader_read2();
 
 protected:
-    int mov_index_build(struct mov_track_t* track);
+    int mov_index_build(mov_track_t* track);
     int mov_read_mdat(const struct mov_box_t* box);
     int mov_read_free(const struct mov_box_t* box);
     int mov_read_trak(const struct mov_box_t* box);
@@ -51,11 +51,11 @@ protected:
     int mov_read_mfro(const struct mov_box_t* box);
     int mov_read_default(const struct mov_box_t* box);
     void mov_reader_destroy();
-    struct mov_track_t* mov_reader_next();
+    mov_track_t* mov_reader_next();
     int mov_reader_seek(int64_t* timestamp);
     uint64_t mov_reader_getduration();
-    int mov_stss_seek(struct mov_track_t* track, int64_t *timestamp);
-    int mov_sample_seek(struct mov_track_t* track, int64_t timestamp);
+    int mov_stss_seek(mov_track_t* track, int64_t *timestamp);
+    int mov_sample_seek(mov_track_t* track, int64_t timestamp);
     int mov_read_av1c(const struct mov_box_t* box);
     int mov_read_avcc(const struct mov_box_t* box);
     int mov_read_coll(const struct mov_box_t* box);
@@ -107,19 +107,19 @@ protected:
     int mov_read_trex(const struct mov_box_t* box);
     int mov_read_trun(const struct mov_box_t* box);
     int mov_read_vpcc(const struct mov_box_t* box);
-    void mov_apply_stco(struct mov_track_t* track);
-    void mov_apply_elst(struct mov_track_t *track);
+    void mov_apply_stco(mov_track_t* track);
+    void mov_apply_elst(mov_track_t *track);
     int mov_read_tx3g(const struct mov_box_t* box);
 
 
-    void mov_apply_elst_tfdt(struct mov_track_t *track);
-    void mov_apply_stts(struct mov_track_t* track);
-    void mov_apply_ctts(struct mov_track_t* track);
-    void mov_apply_stss(struct mov_track_t* track);
+    void mov_apply_elst_tfdt(mov_track_t *track);
+    void mov_apply_stts(mov_track_t* track);
+    void mov_apply_ctts(mov_track_t* track);
+    void mov_apply_stss(mov_track_t* track);
 
-    struct mov_track_t* mov_find_track(uint32_t track);
-    struct mov_track_t* mov_fetch_track(uint32_t track);
-    struct mov_track_t* mov_add_track();
+    mov_track_t* mov_find_track(uint32_t track);
+    mov_track_t* mov_fetch_track(uint32_t track);
+    mov_track_t* mov_add_track();
 
 
 private:
@@ -130,7 +130,7 @@ private:
     uint64_t _moof_offset = 0;
     uint64_t _implicit_offset = 0;
     
-    shared_ptr<mov_track_t> _track; // current stream
+    mov_track_t* _track; // current stream
 	vector<shared_ptr<mov_track_t>> _tracks;
 	int _track_count = 0;
 

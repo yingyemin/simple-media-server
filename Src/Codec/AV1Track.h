@@ -56,6 +56,7 @@ public:
 
 public:
     FrameBuffer::Ptr _sequence;
+    FrameBuffer::Ptr _metadata;
     string _av1Cfg;
     AV1Info info;
 };

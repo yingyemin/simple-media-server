@@ -32,6 +32,8 @@ enum AV1NalType
     AV1_SWITCHFRAME = 3
 };
 
+uint8_t* leb128(const uint8_t* data, int bytes, uint64_t* v);
+
 class AV1Frame : public FrameBuffer
 {
 public:

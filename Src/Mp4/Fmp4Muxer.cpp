@@ -112,7 +112,7 @@ int Fmp4Muxer::inputFrame_l(int trackIndex, const void* data, size_t bytes, int6
 	}
 	
     int64_t duration;
-	struct mov_track_t* track;
+	mov_track_t* track;
 	struct mov_sample_t* sample;
 
 	if(add_nalu_size){
@@ -201,7 +201,7 @@ int Fmp4Muxer::inputFrame_l(int trackIndex, const void* data, size_t bytes, int6
 void Fmp4Muxer::addAudioTrack(const shared_ptr<TrackInfo>& trackInfo)
 {
     // struct mov_t* mov;
-    // struct mov_track_t* track;
+    // mov_track_t* track;
 
     // // mov = &writer->mov;
     // track = mov_add_track();
@@ -359,7 +359,7 @@ size_t Fmp4Muxer::fmp4_write_traf(uint32_t moof)
 	uint32_t i, start;
 	size_t size;
 	uint64_t offset;
-    struct mov_track_t* track;
+    mov_track_t* track;
 
 	size = 8 /* Box */;
 	offset = tell();
@@ -420,7 +420,7 @@ size_t Fmp4Muxer::mov_write_trun(uint32_t from, uint32_t count, uint32_t moof)
 	uint64_t offset;
 	uint32_t size, i;
 	const struct mov_sample_t* sample;
-	const struct mov_track_t* track = _track.get();
+	const mov_track_t* track = _track.get();
 
     if (count < 1) return 0;
     assert(from + count <= track->sample_count);
@@ -656,7 +656,7 @@ size_t Fmp4Muxer::mov_write_sidx(uint64_t offset)
 {
     uint32_t duration = 0;
     uint64_t earliest_presentation_time = 0;
-    const struct mov_track_t* track = _track.get();
+    const mov_track_t* track = _track.get();
 
     if (track->sample_count > 0)
     {
@@ -723,7 +723,7 @@ int Fmp4Muxer::fmp4_write_mfra()
 size_t Fmp4Muxer::mov_write_tfra()
 {
 	uint32_t i, size;
-	const struct mov_track_t* track = _track.get();
+	const mov_track_t* track = _track.get();
 
 	size = 12/* full box */ + 12/* base */ + track->frag_count * 19/* index */;
 
@@ -749,7 +749,7 @@ size_t Fmp4Muxer::mov_write_tfra()
 	return size;
 }
 
-int Fmp4Muxer::fmp4_add_fragment_entry(struct mov_track_t* track, uint64_t time, uint64_t offset)
+int Fmp4Muxer::fmp4_add_fragment_entry(mov_track_t* track, uint64_t time, uint64_t offset)
 {
 	// if (track->frag_count >= track->frag_capacity)
 	// {

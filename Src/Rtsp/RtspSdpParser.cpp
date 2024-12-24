@@ -38,10 +38,10 @@ void RtspSdpParser::parse(const string& sdp)
         } else if (stage == 2) {
             switch (key) {
                 case 'm' : {
-                    if (media) {
-                        media->index_ = _vecSdpMedia.size();
-                        _vecSdpMedia.emplace_back(media);
-                    }
+                    // if (media) {
+                    //     media->index_ = _vecSdpMedia.size();
+                    //     _vecSdpMedia.emplace_back(media);
+                    // }
                     media = make_shared<SdpMedia>();
                     auto vecM = split(line.substr(2), " ");
                     if (vecM.size() < 4) {
@@ -51,6 +51,8 @@ void RtspSdpParser::parse(const string& sdp)
                     media->trackType_ = vecM[0];
                     media->port_ = stoi(vecM[1]);
                     media->payloadType_ = stoi(vecM[3]);
+                    media->index_ = _vecSdpMedia.size();
+                    _vecSdpMedia.emplace_back(media);
                     break;
                 }
                 case 'a' : {
@@ -104,15 +106,15 @@ void RtspSdpParser::parse(const string& sdp)
             }
         }
     }
-    if (media) {
-        // if (media->codec_.empty()) {
-        //     if (media->payloadType_ == 97) {
-        //         media->codec_ = "mpeg4-generic";
-        //     } else {
-        //         return ;
-        //     }
-        // }
-        media->index_ = _vecSdpMedia.size();
-        _vecSdpMedia.emplace_back(media);
-    }
+    // if (media) {
+    //     // if (media->codec_.empty()) {
+    //     //     if (media->payloadType_ == 97) {
+    //     //         media->codec_ = "mpeg4-generic";
+    //     //     } else {
+    //     //         return ;
+    //     //     }
+    //     // }
+    //     media->index_ = _vecSdpMedia.size();
+    //     _vecSdpMedia.emplace_back(media);
+    // }
 }
