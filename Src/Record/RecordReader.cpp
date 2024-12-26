@@ -37,6 +37,7 @@ bool RecordReader::start()
     weak_ptr<RecordReader> wSelf = shared_from_this();
     _workLoop = WorkLoopPool::instance()->getLoopByCircle();
     _loop = EventLoop::getCurrentLoop();
+    _clock.start();
 
     static string rootPath = Config::instance()->getAndListen([](const json &config){
         rootPath = Config::instance()->get("Record", "rootPath");
@@ -87,6 +88,7 @@ bool RecordReader::start()
                         auto frame = self->_frameList.front();
                         self->_frameList.pop_front();
                         self->_onFrame(frame);
+                        self->_lastFrameTime = frame->dts();
                     }
                     break;
                 }
@@ -107,23 +109,37 @@ bool RecordReader::start()
                 };
                 self->_workLoop->addOrderTask(task);
 
-                return 10;
-            }
-
-            if (self->_lastFrameTime == 0) {
-                self->_lastFrameTime = TimeClock::now();
                 return 40;
             }
 
-            auto now = TimeClock::now();
-            auto take = now - self->_lastFrameTime;
-            self->_lastFrameTime = now;
-            logInfo << "take is: " << take;
-            if (take >= 40) {
+            auto now = self->_clock.startToNow();
+            // if (self->_lastFrameTime == 0) {
+            //     self->_lastFrameTime = now;
+            //     return 40;
+            // }
+
+            // self->_lastFrameTime += 40;
+
+            if (self->_lastFrameTime <= now) {
                 return 1;
             } else {
-                return 40 - (int)take;
+                return int(self->_lastFrameTime - now);
             }
+
+            // if (self->_lastFrameTime == 0) {
+            //     self->_lastFrameTime = TimeClock::now();
+            //     return 40;
+            // }
+
+            // auto now = TimeClock::now();
+            // auto take = now - self->_lastFrameTime;
+            // self->_lastFrameTime = now;
+            // logInfo << "take is: " << take;
+            // if (take >= 40) {
+            //     return 1;
+            // } else {
+            //     return 40 - (int)take;
+            // }
         }, nullptr);
     } else if (!strcasecmp(ext.data(), "mp4")) {
         return readMp4(abpath);
@@ -146,6 +162,7 @@ bool RecordReader::readMp4(const string& path)
         }
         // self->_frameList.push_back(frame);
         self->_onFrame(frame);
+        self->_lastFrameTime = frame->dts();
     });
     demuxer->setOnReady([wSelf](){
         auto self = wSelf.lock();
@@ -207,6 +224,7 @@ bool RecordReader::readMp4(const string& path)
             //     }
             //     logInfo << "read mp4";
                 if (!demuxer->mov_reader_read2()) {
+                    logInfo << "mov_reader_read2 failed, stop";
                     self->stop();
                     return 0;
                 }
@@ -216,15 +234,15 @@ bool RecordReader::readMp4(const string& path)
         //     return 10;
         // }
 
-        auto now = TimeClock::now();
-        if (self->_lastFrameTime == 0) {
-            self->_lastFrameTime = now;
-            return 40;
-        }
+        auto now = self->_clock.startToNow();
+        // if (self->_lastFrameTime == 0) {
+        //     self->_lastFrameTime = now;
+        //     return 40;
+        // }
 
-        self->_lastFrameTime += 40;
+        // self->_lastFrameTime += 40;
 
-        if (self->_lastFrameTime < now) {
+        if (self->_lastFrameTime <= now) {
             return 1;
         } else {
             return int(self->_lastFrameTime - now);

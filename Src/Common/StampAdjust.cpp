@@ -46,6 +46,14 @@ void AudioStampAdjust::inputStamp(uint64_t& pts, uint64_t& dts, int samples)
             step = _avgStep;
         }
     }
+
+    if (_codec == "g711a" || _codec == "g711u" && samples > 8) {
+        // 先写成8000 / 1000， 后续需要用真实的_samplerate / 1000
+        // 不等于0，表明时间戳不是倍数（考虑丢包），时间戳异常，需要调整
+        if (step % (samples / 8) != 0) {
+            step = samples / 8;
+        }
+    }
     
     _totalSysTime = TimeClock::now() - _startTime;
     _totalStamp += step;
@@ -94,12 +102,12 @@ void VideoStampAdjust::inputStamp(uint64_t& pts, uint64_t& dts, int samples)
     // 第一次，简单赋值后返回
     if (_startTime == 0) {
         _startTime = TimeClock::now();
-        _lastPts = pts;
+        _lastDts = dts;
 
-        pts = 0;
-        dts = pts > dts ? (pts - dts) : 0;
+        dts = 0;
+        pts = dts > pts ? (dts - pts) : 0;
 
-        _adjustPts = 0;
+        _adjustDts = 0;
 
         return ;
     }
@@ -123,7 +131,7 @@ void VideoStampAdjust::inputStamp(uint64_t& pts, uint64_t& dts, int samples)
     }
 
     // 当前帧与上一帧的增量
-    int step = pts - _lastPts;
+    int step = dts - _lastDts;
     // logInfo << "video step: " << step;
     // TODO: 从配置里读
     // 增量太大或者太小或者为0，认为不合理，通过计算的帧率重新算一下
@@ -145,15 +153,15 @@ void VideoStampAdjust::inputStamp(uint64_t& pts, uint64_t& dts, int samples)
     // logInfo << "video dts: " << dts;
     // logInfo << "video _adjustPts: " << _adjustPts;
     // 将增量加到_adjustPts（从0开始往上加增量）
-    _adjustPts += step;
+    _adjustDts += step;
     
-    _lastPts = pts;
-    if (pts > dts && pts - dts < 10000) {
-        dts = _adjustPts + pts - dts;
+    _lastDts = dts;
+    if (dts > pts && dts - dts < 10000) {
+        pts = _adjustDts + dts - pts;
     } else {
-        dts = (_adjustPts > (dts - pts)) ? (_adjustPts - (dts - pts)) : 0;
+        pts = (_adjustDts > (pts - dts)) ? (_adjustDts - (pts - dts)) : 0;
     }
-    pts = _adjustPts;
+    dts = _adjustDts;
     // logInfo << "video adjust pts: " << pts;
     // logInfo << "video adjust dts: " << dts;
 

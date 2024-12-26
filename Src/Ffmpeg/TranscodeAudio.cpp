@@ -229,15 +229,17 @@ bool AudioFifo::write(const AVFrame *frame) {
         // 假定传入frame的时间戳是以ms为单位的
         _timebase = 1000.0 / _samplerate;
     }
+    
+    logInfo << "_channels: " << _channels << ", _samplerate: " << _samplerate << ", pts : " << frame->pts;
     if (frame->pts != AV_NOPTS_VALUE) {
         // 计算fifo audio第一个采样的时间戳
-        double tsp = frame->pts - _timebase * av_audio_fifo_size(_fifo);
-        // flv.js和webrtc对音频时间戳增量有要求, rtc要求更加严格！
-        // 得尽量保证时间戳是按照sample_size累加，否则容易出现破音或杂音等问题
-        if (fabs(_tsp) < DBL_EPSILON || fabs(tsp - _tsp) > 200) {
-            logInfo << "reset base_tsp " << _tsp << "->" << tsp;
-            _tsp = tsp;
-        }
+        // double tsp = frame->pts - _timebase * av_audio_fifo_size(_fifo);
+        // // flv.js和webrtc对音频时间戳增量有要求, rtc要求更加严格！
+        // // 得尽量保证时间戳是按照sample_size累加，否则容易出现破音或杂音等问题
+        // if (fabs(_tsp) < DBL_EPSILON || fabs(tsp - _tsp) > 200) {
+        //     logInfo << "reset base_tsp " << _tsp << "->" << tsp;
+        //     _tsp = tsp;
+        // }
     } else {
         _tsp = 0;
     }

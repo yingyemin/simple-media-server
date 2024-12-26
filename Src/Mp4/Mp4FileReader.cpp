@@ -118,16 +118,20 @@ void Mp4FileReader::onFrame(const StreamBuffer::Ptr& buffer, int trackIndex, int
         // frame->_codec = trackInfo->codec_;
     } else if (trackInfo->codec_ == "aac") {
         auto aacTrack = dynamic_pointer_cast<AacTrack>(trackInfo);
+        string adts = aacTrack->getAdtsHeader(buffer->size());
+        if (adts.size() != 7) {
+            logWarn << "get aac adts header failed";
+        }
         frame = make_shared<FrameBuffer>();
-        frame->_buffer.assign(aacTrack->getAacInfo());
+        frame->_buffer.assign(adts);
         frame->_buffer.append(buffer->data(), buffer->size());
         frame->_trackType = AudioTrackType;
-        frame->_startSize = 7;
+        frame->_startSize = adts.size();
         frame->_pts = pts;
         frame->_index = trackIndex;
         frame->_dts = dts;
         frame->_codec = trackInfo->codec_;
-    } else if (trackInfo->codec_ == "g711a" || trackInfo->codec_ == "g711u") {
+    } else if (trackInfo->codec_ == "g711a" || trackInfo->codec_ == "g711u" || trackInfo->codec_ == "mp3") {
         frame = make_shared<FrameBuffer>();
         frame->_buffer.assign(buffer->data(), buffer->size());
         frame->_trackType = AudioTrackType;

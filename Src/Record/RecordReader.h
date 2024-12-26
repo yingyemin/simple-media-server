@@ -14,6 +14,7 @@
 #include "Common/RecordReaderBase.h"
 #include "EventPoller/EventLoop.h"
 #include "WorkPoller/WorkLoop.h"
+#include "Util/TimeClock.h"
 
 using namespace std;
 
@@ -46,6 +47,7 @@ private:
     File _file;
     EventLoop::Ptr _loop;
     WorkLoop::Ptr _workLoop;
+    TimeClock _clock;
     list<FrameBuffer::Ptr> _frameList;
     function<void(const TrackInfo::Ptr& trackInfo)> _onTrackInfo;
     function<void()> _onReady;

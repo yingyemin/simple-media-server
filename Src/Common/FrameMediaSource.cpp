@@ -36,8 +36,9 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
     //     logInfo << "transcode frame: " << _urlParser.type_;
     // }
 
-    // logInfo << "before adjust frame pts: " << frame->_pts << ", frame dts: " << frame->_dts << ", type: " << frame->_trackType
-    //         << ", size: " << frame->size();
+    // if (!_origin)
+    //     logInfo << "before adjust frame pts: " << frame->_pts << ", frame dts: " << frame->_dts << ", type: " << frame->_trackType
+    //             << ", size: " << frame->size() << ", this: " << this;
     // for (auto& sink : _mapSink) {
         // logInfo << "on frame to sink";
         bool keyframe = false;
@@ -108,7 +109,9 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
                 _audioStampAdjust->inputStamp(frame->_pts, frame->_dts, samples);
             _ring->write(frame, false);
         }
-        // logInfo << "frame pts: " << frame->_pts << ", frame dts: " << frame->_dts << ", type: " << frame->_trackType;
+        // if (!_origin)
+        //     logInfo << "frame pts: " << frame->_pts << ", frame dts: " << frame->_dts 
+                    // << ", type: " << frame->_trackType << ", this: " << this;
         // logInfo << "keyframe: " << keyframe << ", size: " << frame->size() << ", type: " << (int)frame->getNalType();
         // logInfo << "frame source type: " << _urlParser.type_;
         // _ring->write(frame, keyframe);
@@ -119,10 +122,11 @@ void FrameMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
 {
     logInfo << "on add track to sink";
     MediaSource::addTrack(track);
-    if (track->trackType_ == "video") {
+    if (track->trackType_ == "video" && !_origin) {
         _videoStampAdjust = make_shared<VideoStampAdjust>(0);
-    } else if (track->trackType_ == "audio") {
-        _audioStampAdjust = make_shared<AudioStampAdjust>(0);
+    } else if (track->trackType_ == "audio" && !_origin) {
+        _audioStampAdjust = make_shared<AudioStampAdjust>(track->samplerate_);
+        _audioStampAdjust->setCodec(track->codec_);
     }
 
     if (track->isReady()) {

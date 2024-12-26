@@ -432,6 +432,16 @@ void MediaSource::loadFromFile(const string& uri, const string& vhost, const str
     void* key = reader.get();
     weak_ptr<FrameMediaSource> wFrameSrc = frameSource;
     frameSource->setOrigin();
+    frameSource->addOnReady(key, [wFrameSrc, uri, vhost, protocol, type, cb, create, connKey](){
+        auto frameSrc = wFrameSrc.lock();
+        if (!frameSrc) {
+            return ;
+        }
+        frameSrc->getLoop()->async([frameSrc, uri, vhost, protocol, type, cb, create, connKey](){
+            frameSrc->onReady();
+            MediaSource::getOrCreateAsync(uri, vhost, protocol, type, cb, create, connKey);
+        }, true);
+    });
     reader->setOnFrame([wFrameSrc](const FrameBuffer::Ptr &frame){
         auto frameSrc = wFrameSrc.lock();
         if (!frameSrc) {
@@ -456,16 +466,16 @@ void MediaSource::loadFromFile(const string& uri, const string& vhost, const str
             frameSrc->addTrack(trackInfo);
         }, true);
     });
-    reader->setOnReady([wFrameSrc, uri, vhost, protocol, type, cb, create, connKey](){
-        auto frameSrc = wFrameSrc.lock();
-        if (!frameSrc) {
-            return ;
-        }
-        frameSrc->getLoop()->async([frameSrc, uri, vhost, protocol, type, cb, create, connKey](){
-            frameSrc->onReady();
-            MediaSource::getOrCreateAsync(uri, vhost, protocol, type, cb, create, connKey);
-        }, true);
-    });
+    // reader->setOnReady([wFrameSrc, uri, vhost, protocol, type, cb, create, connKey](){
+    //     auto frameSrc = wFrameSrc.lock();
+    //     if (!frameSrc) {
+    //         return ;
+    //     }
+    //     frameSrc->getLoop()->async([frameSrc, uri, vhost, protocol, type, cb, create, connKey](){
+    //         frameSrc->onReady();
+    //         MediaSource::getOrCreateAsync(uri, vhost, protocol, type, cb, create, connKey);
+    //     }, true);
+    // });
     reader->setOnClose([wFrameSrc, key, cb](){
         auto frameSrc = wFrameSrc.lock();
         if (!frameSrc) {

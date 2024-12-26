@@ -300,7 +300,7 @@ string AacTrack::getSdp()
 	for(auto &ch : _aacConfig){
 		// snprintf(buf, sizeof(buf), "%02X", (uint8_t)ch);
 		// configStr.append(buf);
-		ss << std::hex << setw(2) << setfill('0') << (int)ch;
+		ss << std::hex << setw(2) << setfill('0') << (int)((uint8_t)ch);
 	}
 
 	ss << "\r\na=control:trackID=" << index_ << "\r\n";

@@ -30,7 +30,7 @@ RtpEncodeH264::RtpEncodeH264(const shared_ptr<TrackInfo>& trackInfo)
 
 void RtpEncodeH264::encode(const FrameBuffer::Ptr& frame)
 {
-    if (_first && _lastPts == frame->pts()) {
+    if (_first && _lastPts == frame->dts()) {
         _lastPts += 1;
         _first = false;
     }
@@ -43,15 +43,15 @@ void RtpEncodeH264::encode(const FrameBuffer::Ptr& frame)
     }
 
     if (_enableFastPts) {
-        _lastPts = frame->pts() * _ptsScale;
+        _lastPts = frame->dts() * _ptsScale;
     } else {
-        _lastPts = frame->pts();
+        _lastPts = frame->dts();
     }
 }
 
 void RtpEncodeH264::encodeFuA(const FrameBuffer::Ptr& frame) {
     auto size = frame->size() - frame->startSize();
-    uint64_t pts = _enableFastPts ? frame->pts() * _ptsScale : frame->pts();
+    uint64_t pts = _enableFastPts ? frame->dts() * _ptsScale : frame->dts();
     bool first = true;
     auto frameData = frame->data() + frame->startSize();
     auto fuIndicator = (frameData[0] & (~0x1F)) | 28;
@@ -103,7 +103,7 @@ void RtpEncodeH264::encodeFuA(const FrameBuffer::Ptr& frame) {
 void RtpEncodeH264::encodeSingle(const FrameBuffer::Ptr& frame) {
     auto size = frame->size() - frame->startSize();
     auto frameData = frame->data() + frame->startSize();
-    auto pts = _enableFastPts ? frame->pts() * _ptsScale : frame->pts();
+    auto pts = _enableFastPts ? frame->dts() * _ptsScale : frame->dts();
 
     if (pts == _lastPts) {
         // logError << "pts == _lastPts, " << _lastPts;
