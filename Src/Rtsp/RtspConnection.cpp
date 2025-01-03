@@ -67,6 +67,7 @@ void RtspConnection::init()
         }
         // self->onRtpPacket();
         auto interleaved = data[1];
+        // logInfo << "interleaved: " << interleaved;
         auto rtpTrans = self->_mapRtpTransport.find(interleaved);
         if (rtpTrans != self->_mapRtpTransport.end()) {
             auto buffer = StreamBuffer::create();
@@ -597,6 +598,7 @@ void RtspConnection::handleSetup()
     if (trans.find("TCP") != string::npos) {
         auto rtpTrans = make_shared<RtspRtpTransport>(Transport_TCP, TransportData_Media, track, _socket);
         auto rtcpTrans = make_shared<RtspRtcpTransport>(Transport_TCP, TransportData_Data, track, _socket);
+        rtpTrans->setRtcp(rtcpTrans);
 
         auto vecTrans = split(_parser._mapHeaders["transport"], ";", "=");
         int interleavedRtp = 0; 
@@ -685,6 +687,10 @@ void RtspConnection::handleSetup()
         auto rtcpTrans = make_shared<RtspRtcpTransport>(Transport_UDP, TransportData_Data, track, socketRtcp);
         _mapRtpTransport.emplace(index * 2, rtpTrans);
         _mapRtcpTransport.emplace(index * 2 + 1, rtcpTrans);
+        rtpTrans->setRtcp(rtcpTrans);
+
+        logInfo << "index ============: " << index;
+
         rtpTrans->start();
         rtcpTrans->start();
         serverPortStr = ";server_port=" + to_string(socketRtp->getLocalPort()) + "-" + to_string(socketRtcp->getLocalPort());
@@ -761,9 +767,9 @@ void RtspConnection::handlePlay()
     std::stringstream ss;
     ss << "RTSP/1.0 200 OK\r\n"
        << "CSeq: " << _parser._mapHeaders["cseq"] << "\r\n"
-       << "Session:" << _sessionId << "\r\n"
+       << "Session: " << _sessionId << "\r\n"
        << "Range: " << (range.empty() ? "npt=0.000000-" : range) << "\r\n"
-       << "RTP-Info" << rtpInfo << "\r\n"
+       << "RTP-Info: " << rtpInfo << "\r\n"
        << "\r\n";
 
     sendMessage(ss.str());
@@ -841,21 +847,28 @@ void RtspConnection::handlePlay()
             if (!strong_self/* || pack->empty()*/) {
                 return;
             }
-            auto rtp = pack->front();
-            int index = rtp->trackIndex_;
-            // logInfo << "rtp index: " << index;
-            auto transport = strong_self->_mapRtpTransport[pack->front()->trackIndex_ * 2];
-            // for (auto rtptrans : strong_self->_mapRtpTransport) {
-                // logInfo << "index: " << rtptrans.first;
-            // }
-            // logInfo << "index: " << index;
-            if (transport) {
-                // logInfo << "sendRtpPacket: " << index;
-                int bytes = transport->sendRtpPacket(pack);
+            for (auto it = pack->begin(); it != pack->end(); ++it) {
+                int index = (*it)->trackIndex_;
+                auto transport = strong_self->_mapRtpTransport[index * 2];
+                int bytes = transport->sendRtpPacket(*it, it == pack->end());
                 strong_self->_intervalSendBytes += bytes;
                 strong_self->_totalSendBytes += bytes;
             }
-            // strong_self->_rtpList.push_back(pack);
+            // auto rtp = pack->front();
+            // int index = rtp->trackIndex_;
+            // logInfo << "rtp index: " << index;
+            // auto transport = strong_self->_mapRtpTransport[pack->front()->trackIndex_ * 2];
+            // // for (auto rtptrans : strong_self->_mapRtpTransport) {
+            //     // logInfo << "index: " << rtptrans.first;
+            // // }
+            // // logInfo << "index: " << index;
+            // if (transport) {
+            //     // logInfo << "sendRtpPacket: " << index;
+            //     int bytes = transport->sendRtpPacket(pack);
+            //     strong_self->_intervalSendBytes += bytes;
+            //     strong_self->_totalSendBytes += bytes;
+            // }
+            // // strong_self->_rtpList.push_back(pack);
         });
 
         PlayerInfo info;

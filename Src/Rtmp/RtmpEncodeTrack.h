@@ -30,9 +30,11 @@ public:
     int getTrackType() {return _type;}
     shared_ptr<TrackInfo> getTrackInfo() { return _trackInfo;}
     void setEnhanced(bool enhanced) {_enhanced = enhanced;}
+    void setFastPts(bool enabled) {_enableFastPts = enabled;}
 
 private:
     bool _enhanced = false;
+    bool _enableFastPts = false;
     uint32_t _timestap;
     int _index;
     int _type;

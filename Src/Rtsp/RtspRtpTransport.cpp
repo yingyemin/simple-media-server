@@ -18,6 +18,7 @@ RtspRtpTransport::RtspRtpTransport(int transType, int dataType, const RtspTrack:
     ,_track(track)
 {
     _index = track->getTrackIndex();
+    logInfo << "_index : =========== " << _index;
 }
 
 void RtspRtpTransport::start() {
@@ -80,7 +81,7 @@ void RtspRtpTransport::onRtpPacket(const StreamBuffer::Ptr& buffer)
     }
 }
 
-int RtspRtpTransport::sendRtpPacket(const shared_ptr<deque<RtpPacket::Ptr>> &pkt)
+int RtspRtpTransport::sendRtpPacket(const RtpPacket::Ptr &packet, bool flag)
 {
     // static int lastStamp = 0;
     int bytes = 0;
@@ -97,12 +98,12 @@ int RtspRtpTransport::sendRtpPacket(const shared_ptr<deque<RtpPacket::Ptr>> &pkt
             // logInfo << "send a frame rtp";
 
             // uint8_t payload_ptr[4];
-            for (auto it = pkt->begin(); it != pkt->end(); ++it) {
+            // for (auto it = pkt->begin(); it != pkt->end(); ++it) {
                 // lastStamp = packet->getStamp();
                 // if (_target_play_track == TrackInvalid || _target_play_track == rtp->type) {
                 //     updateRtcpContext(rtp);
                     // send(rtp);
-                    auto packet = it->get();
+                    // auto packet = it->get();
                     // auto data = packet->data();
 
                     // data[0] = '$';
@@ -122,15 +123,18 @@ int RtspRtpTransport::sendRtpPacket(const shared_ptr<deque<RtpPacket::Ptr>> &pkt
                     // if (++i == len) {
                     //     _socket->send(packet->buffer(), 1);
                     // } else {
-                        _socket->send(packet->buffer(), 0);
+                        _socket->send(packet->buffer(), 1);
                         bytes += packet->size();
+                        if (_rtcp) {
+                            _rtcp->onSendRtp(packet);
+                        }
                     // }
                     // if (++i == len) {
                     //     break;
                     // }
                 // }
-            };
-            _socket->send((Buffer::Ptr)nullptr, 1);
+            // };
+            // _socket->send((Buffer::Ptr)nullptr, 1);
             // uint8_t payload_ptr[4];
             // payload_ptr[0] = '$';
             // payload_ptr[1] = 0;//pktlist.back()->trackIndex_*2;
@@ -150,10 +154,10 @@ int RtspRtpTransport::sendRtpPacket(const shared_ptr<deque<RtpPacket::Ptr>> &pkt
             break;
         case Transport_UDP: {
             // setSendFlushFlag(false);
-            int i = 0;
-            int len = pkt->size() - 1;
-            auto pktlist = *(pkt.get());
-            for (auto& packet: pktlist) {
+            // int i = 0;
+            // int len = pkt->size() - 1;
+            // auto pktlist = *(pkt.get());
+            // for (auto& packet: pktlist) {
                 // if (_target_play_track == TrackInvalid || _target_play_track == rtp->type) {
                 //     updateRtcpContext(rtp);
                     // send(rtp);
@@ -162,11 +166,14 @@ int RtspRtpTransport::sendRtpPacket(const shared_ptr<deque<RtpPacket::Ptr>> &pkt
                     
                     _socket->send(packet->buffer(), 1, 4);
                     bytes += packet->size();
+                    if (_rtcp) {
+                        _rtcp->onSendRtp(packet);
+                    }
                     // if (++i == len) {
                     //     break;
                     // }
                 // }
-            };
+            // };
             // // TODO udp发送需要指定对端地址
             // logInfo << "send rtp seq: " << pktlist.back()->getSeq() << ", rtp size: " << pktlist.back()->size() << ", rtp time: " << pktlist.back()->getStamp();
             // _socket->send(pktlist.back()->buffer(), 1);

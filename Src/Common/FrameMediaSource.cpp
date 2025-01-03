@@ -32,6 +32,8 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
         return ;
     }
 
+    
+
     // if (_urlParser.type_ == "transcode") {
     //     logInfo << "transcode frame: " << _urlParser.type_;
     // }
@@ -47,6 +49,27 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
             if (frame->isNonPicNalu()) {
                 return ;
             }
+
+            // static bool del = false;
+            // if (!del) {
+            //     FILE* fp = fopen("testdele.h264", "ab+");
+            //     if (frame->keyFrame()) {
+            //         FrameBuffer::Ptr vps;
+            //         FrameBuffer::Ptr sps;
+            //         FrameBuffer::Ptr pps;
+            //         _mapTrackInfo[frame->_index]->getVpsSpsPps(vps, sps, pps);
+            //         fwrite(sps->data(), 1, sps->size(), fp);
+            //         fwrite(pps->data(), 1, pps->size(), fp);
+            //     }
+            //     fwrite(frame->data(), 1, frame->size(), fp);
+            //     fclose(fp);
+            // }
+            // if (frame->keyFrame()) {
+            //     del = true;
+            // } else {
+            //     del = false;
+            // }
+
             if (frame->startFrame()) {
                 keyframe = true;
                 _sendConfig = true;

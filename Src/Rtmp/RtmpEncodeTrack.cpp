@@ -28,6 +28,7 @@ void RtmpEncodeTrack::startEncode()
             }
         });
         _encoder->setEnhanced(_enhanced);
+        _encoder->setEnhanced(_enableFastPts);
     }
 }
 

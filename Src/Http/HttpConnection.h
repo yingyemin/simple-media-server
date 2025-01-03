@@ -8,6 +8,7 @@
 #include "HttpResponse.h"
 #include "HttpFile.h"
 #include "Hls/HlsMediaSource.h"
+#include "Hls/LLHlsMediaSource.h"
 #include "Mpeg/TsMediaSource.h"
 #include "Mpeg/PsMediaSource.h"
 #include "Mp4/Fmp4MediaSource.h"
@@ -59,6 +60,9 @@ private:
     void handleHlsM3u8();
     void onPlayHls(const HlsMediaSource::Ptr &hlsSrc);
     void handleHlsTs();
+    void handleLLHlsM3u8();
+    void onPlayLLHls(const LLHlsMediaSource::Ptr &hlsSrc);
+    void handleLLHlsTs();
     void handleTs();
     void onPlayTs(const TsMediaSource::Ptr &TsSrc);
     void handlePs();

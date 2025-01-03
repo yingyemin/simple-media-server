@@ -23,9 +23,12 @@ public:
     virtual void setOnRtmpPacket(const function<void(const RtmpMessage::Ptr& packet, bool start)>& cb) = 0;
     virtual void encode(const FrameBuffer::Ptr& frame) = 0;
     void setEnhanced(bool enhanced) {_enhanced = enhanced;}
+    void setFastPts(bool enabled) {_enableFastPts = enabled;}
 
 protected:
     bool _enhanced = false;
+    bool _enableFastPts = false;
+    float _ptsScale = 0.95;
 };
 
 

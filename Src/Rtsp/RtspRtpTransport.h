@@ -10,6 +10,7 @@
 #include "Net/Socket.h"
 #include "RtspTrack.h"
 #include "Rtp/RtpSort.h"
+#include "RtspRtcpTransport.h"
 
 using namespace std;
 
@@ -37,9 +38,10 @@ public:
 public:
     void start();
     void onRtpPacket(const StreamBuffer::Ptr& buffer);
-    int sendRtpPacket(const shared_ptr<deque<RtpPacket::Ptr>> &pkt);
+    int sendRtpPacket(const RtpPacket::Ptr &pkt, bool flag = false);
     void bindPeerAddr(struct sockaddr* addr);
     Socket::Ptr getSocket() {return _socket;}
+    void setRtcp(const RtspRtcpTransport::Ptr rtcp) {_rtcp = rtcp;}
 
 private:
     int _transType; //tcp or udp
@@ -49,6 +51,7 @@ private:
     RtpSort::Ptr _sort;
     Socket::Ptr _socket;
     RtspTrack::Ptr _track;
+    RtspRtcpTransport::Ptr _rtcp;
 };
 
 

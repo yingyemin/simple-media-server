@@ -6,6 +6,7 @@
 #include "Util/String.h"
 #include "Rtmp/FlvMuxerWithRtmp.h"
 #include "Hls/HlsManager.h"
+#include "Hls/LLHlsManager.h"
 #include "Common/Define.h"
 #include "Util/Base64.h"
 #include "Ssl/SHA1.h"
@@ -515,6 +516,8 @@ void HttpConnection::handleGet()
                 self->handleFlvStream();
             } else if (endWith(self->_urlParser.path_, "sms.m3u8")) {
                 self->handleSmsHlsM3u8();
+            } else if (endWith(self->_urlParser.path_, ".ll.m3u8")) {
+                self->handleLLHlsM3u8();
             } else if (endWith(self->_urlParser.path_, ".m3u8")) {
                 self->handleHlsM3u8();
             } else if (endWith(self->_urlParser.path_, ".ts")) {
@@ -526,7 +529,11 @@ void HttpConnection::handleGet()
             } else if (endWith(self->_urlParser.path_, ".ps")) {
                 self->handlePs();
             } else if (endWith(self->_urlParser.path_, ".mp4")) {
-                self->handleFmp4();
+                if (self->_urlParser.path_.find("_hls") != string::npos) {
+                    self->handleLLHlsTs();
+                } else {
+                    self->handleFmp4();
+                }
             }
         });
     } else {
@@ -790,6 +797,135 @@ void HttpConnection::handleHlsTs()
     auto path = _urlParser.path_.substr(0, pos);
 
     auto hlsMuxer = HlsManager::instance()->getMuxer(path + "_" + DEFAULT_VHOST + "_" + DEFAULT_TYPE);
+    string tsString;
+    if (hlsMuxer) {
+        auto tsBuffer = hlsMuxer->getTsBuffer(_urlParser.path_);
+        if (tsBuffer) {
+            tsString.assign(tsBuffer->data(), tsBuffer->size());
+            logInfo << "find ts: " << _urlParser.path_;
+
+            // auto pos = _urlParser.path_.find_last_of("/");
+            // FILE* fp = fopen(_urlParser.path_.substr(pos + 1).data(), "wb");
+            // fwrite(tsBuffer->data(), tsBuffer->size(), 1, fp);
+            // fclose(fp);
+        } else {
+            logWarn << "ts is empty: " << _urlParser.path_;
+        }
+    }
+
+    HttpResponse rsp;
+    rsp._status = 200;
+    rsp.setHeader("Content-Type", HttpUtil::getMimeType(_urlParser.path_));
+    // rsp.setHeader("Connection", "keep-alive");
+    rsp.setContent(tsString);
+    writeHttpResponse(rsp);
+}
+
+void HttpConnection::handleLLHlsM3u8()
+{
+    weak_ptr<HttpConnection> wSelf = dynamic_pointer_cast<HttpConnection>(shared_from_this());
+
+    if (_urlParser.vecParam_.find("uid") != _urlParser.vecParam_.end()) {
+        string strM3u8;
+        auto uid = stoi(_urlParser.vecParam_["uid"]);
+        auto hlsMuxer = LLHlsManager::instance()->getMuxer(uid);
+        if (!hlsMuxer) {
+            logInfo << "find hls muxer by uid(" << uid << ") failed";
+        } else {
+            strM3u8 = hlsMuxer->getM3u8WithUid(uid);
+        }
+        HttpResponse rsp;
+        rsp._status = 200;
+        rsp.setHeader("Content-Type", HttpUtil::getMimeType(_urlParser.path_));
+        // rsp.setHeader("Connection", "keep-alive");
+        rsp.setContent(strM3u8);
+        writeHttpResponse(rsp);
+
+        logInfo << "response: " << strM3u8;
+
+        return ;
+    }
+
+    _mimeType = HttpUtil::getMimeType(_urlParser.path_);
+	_urlParser.path_ = trimBack(_urlParser.path_, ".ll.m3u8");
+    MediaSource::getOrCreateAsync(_urlParser.path_, _urlParser.vhost_, _urlParser.protocol_, _urlParser.type_, 
+    [wSelf](const MediaSource::Ptr &src){
+        logInfo << "get a src";
+        auto self = wSelf.lock();
+        if (!self) {
+            return ;
+        }
+
+		auto hlsSrc = dynamic_pointer_cast<LLHlsMediaSource>(src);
+		if (!hlsSrc) {
+			self->onError("hls source is not exist");
+            return ;
+		}
+
+        // self->_source = rtmpSrc;
+
+		self->_loop->async([wSelf, hlsSrc](){
+			auto self = wSelf.lock();
+			if (!self) {
+				return ;
+			}
+
+			self->onPlayLLHls(hlsSrc);
+		}, true);
+    }, 
+    [wSelf]() -> MediaSource::Ptr {
+        auto self = wSelf.lock();
+        if (!self) {
+            return nullptr;
+        }
+        return make_shared<LLHlsMediaSource>(self->_urlParser, nullptr, true);
+    }, this);
+}
+
+void HttpConnection::onPlayLLHls(const LLHlsMediaSource::Ptr &hlsSrc)
+{
+    weak_ptr<HttpConnection> wSelf = dynamic_pointer_cast<HttpConnection>(shared_from_this());
+
+    hlsSrc->addOnReady(this, [wSelf, hlsSrc, this](){
+        auto self = wSelf.lock();
+        if (!self) {
+            return ;
+        }
+        auto strM3u8 = hlsSrc->getM3u8(this);
+
+        HttpResponse rsp;
+        rsp._status = 200;
+        rsp.setHeader("Content-Type", _mimeType);
+        // rsp.setHeader("Connection", "keep-alive");
+        rsp.setContent(strM3u8);
+        logInfo << "write response";
+        self->writeHttpResponse(rsp);
+
+        logInfo << "response: " << strM3u8;
+    });
+
+    _onClose = [hlsSrc, this](){
+        hlsSrc->delConnection(this);
+    };
+}
+
+void HttpConnection::handleLLHlsTs()
+{
+    // if (_urlParser.vecParam_.find("uid") == _urlParser.vecParam_.end()) {
+    //     HttpResponse rsp;
+    //     rsp._status = 404;
+    //     rsp.setHeader("Content-Type", HttpUtil::getMimeType(_urlParser.path_));
+    //     // rsp.setHeader("Connection", "keep-alive");
+    //     rsp.setContent("uid not exist");
+    //     writeHttpResponse(rsp);
+
+    //     return ;
+    // }
+
+    auto pos = _urlParser.path_.find_last_of("_");
+    auto path = _urlParser.path_.substr(0, pos);
+
+    auto hlsMuxer = LLHlsManager::instance()->getMuxer(path + "_" + DEFAULT_VHOST + "_" + DEFAULT_TYPE);
     string tsString;
     if (hlsMuxer) {
         auto tsBuffer = hlsMuxer->getTsBuffer(_urlParser.path_);

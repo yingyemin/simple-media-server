@@ -647,18 +647,25 @@ void RtspClient::sendPlayOrPublish()
                 if (!strong_self/* || pack->empty()*/) {
                     return;
                 }
+                for (auto it = pack->begin(); it != pack->end(); ++it) {
+                    int index = (*it)->trackIndex_;
+                    auto transport = strong_self->_mapRtpTransport[index * 2];
+                    int bytes = transport->sendRtpPacket(*it, it == pack->end());
+                    // strong_self->_intervalSendBytes += bytes;
+                    // strong_self->_totalSendBytes += bytes;
+                }
                 // auto rtp = pack->front();
                 // int index = rtp->trackIndex_;
                 // logInfo << "rtp index: " << index;
-                auto transport = strong_self->_mapRtpTransport[pack->front()->trackIndex_ * 2];
+                // auto transport = strong_self->_mapRtpTransport[pack->front()->trackIndex_ * 2];
                 // for (auto rtptrans : strong_self->_mapRtpTransport) {
                     // logInfo << "index: " << rtptrans.first;
                 // }
                 // logInfo << "index: " << index;
-                if (transport) {
-                    // logInfo << "sendRtpPacket: " << index;
-                    transport->sendRtpPacket(pack);
-                }
+                // if (transport) {
+                //     // logInfo << "sendRtpPacket: " << index;
+                //     transport->sendRtpPacket(pack);
+                // }
                 // strong_self->_rtpList.push_back(pack);
             });
 

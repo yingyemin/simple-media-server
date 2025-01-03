@@ -1,9 +1,10 @@
 ﻿
 #include <random>
+#include <iomanip>
 
-#include "HlsMuxer.h"
+#include "LLHlsMuxer.h"
 #include "Common/Config.h"
-#include "HlsManager.h"
+#include "LLHlsManager.h"
 #include "EventPoller/EventLoop.h"
 #include "Log/Logger.h"
 // #include "Codec/AacTrack.h"
@@ -21,41 +22,58 @@ static int getUid()
 	return random_number;
 }
 
-HlsMuxer::HlsMuxer(const UrlParser& parse)
+LLHlsMuxer::LLHlsMuxer(const UrlParser& parse)
 	:_parse(parse)
 {
-	_tsBuffer = make_shared<FrameBuffer>();
+	_fmp4Buffer = make_shared<FrameBuffer>();
 }
 
-HlsMuxer::~HlsMuxer()
+LLHlsMuxer::~LLHlsMuxer()
 {
 	_timeTask->quit = true;
-	HlsManager::instance()->delMuxer(_parse.path_ + "_" + _parse.vhost_ + "_" + _parse.type_);
+	LLHlsManager::instance()->delMuxer(_parse.path_ + "_" + _parse.vhost_ + "_" + _parse.type_);
 }
 
-void HlsMuxer::init()
+void LLHlsMuxer::init()
 {
 	
 }
 
-void HlsMuxer::start()
+void LLHlsMuxer::start()
 {
-	HlsManager::instance()->addMuxer(_parse.path_ + "_" + _parse.vhost_ + "_" + _parse.type_, shared_from_this());
+	LLHlsManager::instance()->addMuxer(_parse.path_ + "_" + _parse.vhost_ + "_" + _parse.type_, shared_from_this());
 
-	weak_ptr<HlsMuxer> wSelf = shared_from_this();
-	_tsMuxer = make_shared<TsMuxer>();
-	_tsMuxer->setOnTsPacket([wSelf](const StreamBuffer::Ptr &pkt, int pts, int dts, bool keyframe){
+	weak_ptr<LLHlsMuxer> wSelf = dynamic_pointer_cast<LLHlsMuxer>(shared_from_this());
+	_fmp4Muxer = make_shared<Fmp4Muxer>(MOV_FLAG_SEGMENT);
+	_fmp4Muxer->init();
+	// _fmp4Muxer->setOnFmp4Header([wSelf](const Buffer::Ptr &buffer){
+	// 	auto self = wSelf.lock();
+	// 	if (self) {
+	// 		self->_fmp4Header = buffer;
+	// 		self->_fmp4Buffer->_buffer.append(buffer->data(), buffer->size());
+	// 	}
+	// });
+	_fmp4Muxer->setOnFmp4Segment([wSelf](const Buffer::Ptr &buffer, bool keyframe){
 		auto self = wSelf.lock();
 		if (self) {
-			self->onTsPacket(pkt, pts, dts, keyframe);
+			self->onFmp4Packet(buffer, keyframe);
 		}
 	});
 
 	for (auto& track : _mapTrackInfo) {
-		_tsMuxer->addTrackInfo(track.second);
+		if (track.second->trackType_ == "audio") {
+			_fmp4Muxer->addAudioTrack(track.second);
+		} else {
+			_fmp4Muxer->addVideoTrack(track.second);
+		}
 	}
 
-	_tsMuxer->startEncode();
+	_fmp4Muxer->fmp4_writer_init_segment();
+	_fmp4Muxer->fmp4_writer_save_segment();
+	_fmp4Header = _fmp4Muxer->getFmp4Header();
+	_fmp4Buffer->_buffer.append(_fmp4Header->data(), _fmp4Header->size());
+
+	_fmp4Muxer->startEncode();
 	_muxer = true;
 
 	static int intervel = Config::instance()->getAndListen([](const json &config){
@@ -83,13 +101,13 @@ void HlsMuxer::start()
 	_playClick.update();
 }
 
-void HlsMuxer::onFrame(const FrameBuffer::Ptr& frame)
+void LLHlsMuxer::onFrame(const FrameBuffer::Ptr& frame)
 {
 	if (!_muxer) {
-		_tsMuxer = nullptr;
+		_fmp4Muxer = nullptr;
 		return ;
 	}
-	if (_tsMuxer) {
+	if (_fmp4Muxer) {
 		if (frame->metaFrame() || frame->getNalType() == 6) {
 			return ;
 		}
@@ -100,28 +118,28 @@ void HlsMuxer::onFrame(const FrameBuffer::Ptr& frame)
                 trackinfo->_sps->_dts = frame->_dts;
                 trackinfo->_sps->_pts = frame->_pts;
                 trackinfo->_sps->_index = frame->_index;
-                _tsMuxer->onFrame(trackinfo->_sps);
+                _fmp4Muxer->inputFrame(trackinfo->index_, trackinfo->_sps->data(), trackinfo->_sps->size(), frame->_dts, frame->_pts, true);
 
                 trackinfo->_pps->_dts = frame->_dts;
                 trackinfo->_pps->_pts = frame->_pts;
                 trackinfo->_pps->_index = frame->_index;
-                _tsMuxer->onFrame(trackinfo->_pps);
+                _fmp4Muxer->inputFrame(trackinfo->index_, trackinfo->_pps->data(), trackinfo->_pps->size(), frame->_dts, frame->_pts, true);
             } else if (_mapTrackInfo[frame->_index]->codec_ == "h265") {
                 auto trackinfo = dynamic_pointer_cast<H265Track>(_mapTrackInfo[frame->_index]);
                 trackinfo->_vps->_dts = frame->_dts;
                 trackinfo->_vps->_pts = frame->_pts;
                 trackinfo->_vps->_index = frame->_index;
-                _tsMuxer->onFrame(trackinfo->_vps);
+                _fmp4Muxer->inputFrame(trackinfo->index_, trackinfo->_vps->data(), trackinfo->_vps->size(), frame->_dts, frame->_pts, true);
 
                 trackinfo->_sps->_dts = frame->_dts;
                 trackinfo->_sps->_pts = frame->_pts;
                 trackinfo->_sps->_index = frame->_index;
-                _tsMuxer->onFrame(trackinfo->_sps);
+                _fmp4Muxer->inputFrame(trackinfo->index_, trackinfo->_sps->data(), trackinfo->_sps->size(), frame->_dts, frame->_pts, true);
 
                 trackinfo->_pps->_dts = frame->_dts;
                 trackinfo->_pps->_pts = frame->_pts;
                 trackinfo->_pps->_index = frame->_index;
-                _tsMuxer->onFrame(trackinfo->_pps);
+                _fmp4Muxer->inputFrame(trackinfo->index_, trackinfo->_pps->data(), trackinfo->_pps->size(), frame->_dts, frame->_pts, true);
             }
             // FILE* fp = fopen("psmuxer.sps", "ab+");
             // fwrite(trackinfo->_sps->data(), trackinfo->_sps->size(), 1, fp);
@@ -129,24 +147,41 @@ void HlsMuxer::onFrame(const FrameBuffer::Ptr& frame)
         }
 
 		if (_hasKeyframe) {
-			_tsMuxer->onFrame(frame);
+			_fmp4Muxer->inputFrame(frame->_index, frame->data(), frame->size(), frame->_dts, frame->_pts, true);
 		}
 	}
 }
 
-void HlsMuxer::onTsPacket(const StreamBuffer::Ptr &pkt, int pts, int dts, bool keyframe)
+void LLHlsMuxer::onFmp4Packet(const Buffer::Ptr &pkt, bool keyframe)
 {
 	if (_first) {
 		_tsClick.update();
+		_segClick.update();
 		_first = false;
-		_lastPts = pts;
+		// _lastPts = pts;
+
+		std::stringstream ss;
+		std::tm now = std::tm();
+		ss << std::put_time(&now, "%Y-%m-%d %H:%M:%S");
+		_lastSysTime = ss.str();
+
+		string key = to_string(time(NULL)) + ".ts";
+		string mkey = _parse.path_ + "_hls-" + key;
+		_mapFmp4[mkey]._sysTime = _lastSysTime;
 	}
 	static int tsDuration = Config::instance()->getAndListen([](const json &config){
-		tsDuration = config["Hls"]["Server"]["duration"];
-	}, "Hls", "Server", "duration");
+		tsDuration = config["LLHls"]["Server"]["duration"];
+	}, "LLHls", "Server", "duration");
 
 	if (tsDuration == 0) {
 		tsDuration = 4000;
+	}
+	static int segDuration = Config::instance()->getAndListen([](const json &config){
+		segDuration = config["LLHls"]["Server"]["segDuration"];
+	}, "LLHls", "Server", "segDuration");
+
+	if (segDuration == 0) {
+		segDuration = 500;
 	}
 
 	// logInfo << "get a ts packet: " << pkt->size();
@@ -157,23 +192,56 @@ void HlsMuxer::onTsPacket(const StreamBuffer::Ptr &pkt, int pts, int dts, bool k
 
 	// logInfo << "keyframe : " << keyframe << ", _lastPts: " << _lastPts << ", pts: " << pts;
 
-	if (keyframe && _lastPts != pts && _tsClick.startToNow() > tsDuration) {
-		_tsBuffer->_dts = _tsClick.startToNow();
+	if (keyframe && /*_lastPts != pts &&*/ _tsClick.startToNow() > tsDuration) {
+		// _fmp4Buffer->_dts = _tsClick.startToNow();
+		updateSeg();
 		updateM3u8();
 		_tsClick.update();
+		_segClick.update();
+
+		std::stringstream ss;
+		std::tm now = std::tm();
+		ss << std::put_time(&now, "%Y-%m-%d %H:%M:%S");
+		_lastSysTime = ss.str();
+
+		string key = to_string(time(NULL)) + ".ts";
+		string mkey = _parse.path_ + "_hls-" + key;
+		_mapFmp4[mkey]._sysTime = _lastSysTime;
 	}
 
-	_tsBuffer->_buffer.append(pkt->data(), pkt->size());
-	_lastPts = pts;
+	if (_segClick.startToNow() > segDuration) {
+		_fmp4Buffer->_dts = _segClick.startToNow();
+		updateSeg();
+		updateM3u8();
+		_segClick.update();
+	}
+
+	_fmp4Buffer->_buffer.append(pkt->data(), pkt->size());
+	// _lastPts = pts;
 }
 
-void HlsMuxer::addTrackInfo(const shared_ptr<TrackInfo>& track)
+void LLHlsMuxer::addTrackInfo(const shared_ptr<TrackInfo>& track)
 {
 	_mapTrackInfo[track->index_] = track;
 }
 
-void HlsMuxer::updateM3u8()
+void LLHlsMuxer::updateSeg()
 {
+	auto iter = _mapFmp4.rbegin();
+	string key = iter->first + "." + to_string(iter->second._index++) + ".mp4";
+	iter->second._mapSeg[key] = _fmp4Buffer;
+
+	_fmp4Buffer = make_shared<FrameBuffer>();
+	_fmp4Buffer->_buffer.append(_fmp4Header->data(), _fmp4Header->size());
+}
+
+void LLHlsMuxer::updateM3u8()
+{
+	std::stringstream ssTime;
+	std::tm now = std::tm();
+	ssTime << std::put_time(&now, "%Y-%m-%d %H:%M:%S");
+	_lastSysTime = ssTime.str();
+
 	static int tsNum = Config::instance()->getAndListen([](const json &config){
 		tsNum = config["Hls"]["Server"]["segNum"];
 	}, "Hls", "Server", "segNum");
@@ -182,44 +250,44 @@ void HlsMuxer::updateM3u8()
 		tsNum = 5;
 	}
 
-	string key = to_string(time(NULL)) + ".ts";
-	string mkey = _parse.path_ + "_hls-" + key;
 	stringstream ss;
 	int maxDuration = 0;
 	{
 		lock_guard<mutex> lck(_tsMtx);
-		_mapTs.emplace(mkey, _tsBuffer);
-		logInfo << "add ts: " << mkey;
-		while (_mapTs.size() > tsNum) {
-			logInfo << "erase ts : " << _mapTs.begin()->first;
+		while (_mapFmp4.size() > tsNum) {
+			logInfo << "erase mp4 : " << _mapFmp4.begin()->first;
 
-			_mapTs.erase(_mapTs.begin());
+			_mapFmp4.erase(_mapFmp4.begin());
 			++_firstTsSeq;
 		}
 
-		for (auto& ts : _mapTs) {
-			if (ts.second->dts() > maxDuration) {
-				maxDuration = ts.second->dts();
+		for (auto& iter : _mapFmp4) {
+			int curDuration = 0;
+			ss << "#EXT-X-PROGRAM-DATE-TIME:" << iter.second._sysTime << "\n";
+			for (auto &mp4It: iter.second._mapSeg) {
+				curDuration += mp4It.second->dts();
+				ss << "#EXT-X-PART:DURATION=" << mp4It.second->dts() << ",URI=\"" << mp4It.first << "\",INDEPENDENT=YES\n";
 			}
-			auto pos = ts.first.find_last_of("/");
-			ss << "#EXTINF:" << ts.second->dts() / 1000.0 << "\n"
-			   << ts.first.substr(pos + 1) + "\n";
+			// if (ts.second->dts() > maxDuration) {
+			// 	maxDuration = ts.second->dts();
+			// }
+			// auto pos = ts.first.find_last_of("/");
+			// ss << "#EXTINF:" << ts.second->dts() / 1000.0 << "\n"
+			//    << ts.first.substr(pos + 1) + "\n";
 		}
 
 	}
 
 	// FILE* fp = fopen(key.data(), "wb");
-	// fwrite(_tsBuffer->data(), _tsBuffer->size(), 1, fp);
+	// fwrite(_fmp4Buffer->data(), _fmp4Buffer->size(), 1, fp);
 	// fclose(fp);
 	
 	stringstream ssHeader;
-
-	_tsBuffer = make_shared<FrameBuffer>();
 	
 	ssHeader << "#EXTM3U\n"
 	   << "#EXT-X-VERSION:3\n"
        << "#EXT-X-ALLOW-CACHE:NO\n"
-	   << "#EXT-X-TARGETDURATION:" << 2 /*maxDuration / 1000.0*/ << "\n"
+	   << "#EXT-X-TARGETDURATION:" << 20 /*maxDuration / 1000.0*/ << "\n"
 	   << "#EXT-X-MEDIA-SEQUENCE:" << _firstTsSeq << "\n";
 
 	lock_guard<mutex> lck(_tsMtx);
@@ -237,12 +305,12 @@ void HlsMuxer::updateM3u8()
 	}
 }
 
-string HlsMuxer::getM3u8(void* key)
+string LLHlsMuxer::getM3u8(void* key)
 {
 	int uid = getUid();
 	_playClick.update();
 
-	HlsManager::instance()->addMuxer(uid, shared_from_this());
+	LLHlsManager::instance()->addMuxer(uid, shared_from_this());
 	{
 		lock_guard<mutex> lck(_uidMtx);
 		_mapUid2Time[uid] = time(NULL);
@@ -255,13 +323,13 @@ string HlsMuxer::getM3u8(void* key)
 	{
 		// lock_guard<mutex> lck(_tsMtx);
 		auto pos = _parse.path_.find_last_of("/");
-		ss << _parse.path_.substr(pos + 1) << ".m3u8?uid=" << uid;
+		ss << _parse.path_.substr(pos + 1) << ".ll.m3u8?uid=" << uid;
 	}
 
 	return ss.str();
 }
 
-string HlsMuxer::getM3u8WithUid(int uid)
+string LLHlsMuxer::getM3u8WithUid(int uid)
 {
 	_playClick.update();
 
@@ -274,16 +342,16 @@ string HlsMuxer::getM3u8WithUid(int uid)
 	return _m3u8;
 }
 
-FrameBuffer::Ptr HlsMuxer::getTsBuffer(const string& key)
+FrameBuffer::Ptr LLHlsMuxer::getTsBuffer(const string& key)
 {
 	_playClick.update();
 
 	lock_guard<mutex> lck(_tsMtx);
-	auto it = _mapTs.find(key);
-	return it == _mapTs.end() ? nullptr : it->second;
+	auto it = _mapFmp4.find(key);
+	return it == _mapFmp4.end() ? nullptr : it->second._mapSeg.begin()->second;
 }
 
-void HlsMuxer::onManager()
+void LLHlsMuxer::onManager()
 {
     static int playTimeout = Config::instance()->getAndListen([](const json &config){
         playTimeout = config["Hls"]["Server"]["PlayTimeout"];
@@ -298,7 +366,7 @@ void HlsMuxer::onManager()
         int now = time(NULL);
         if (now - it->second > playTimeout) {
 			auto uid = it->first;
-			HlsManager::instance()->delMuxer(uid);
+			LLHlsManager::instance()->delMuxer(uid);
             it = _mapUid2Time.erase(it);
 			
 			auto key = _mapUid2key[uid];
@@ -314,14 +382,14 @@ void HlsMuxer::onManager()
 	}
 }
 
-void HlsMuxer::onNoPLayer()
+void LLHlsMuxer::onNoPLayer()
 {
 	if (_onNoPLayer) {
 		_onNoPLayer();
 	}
 }
 
-void HlsMuxer::onDelConnection(void* key)
+void LLHlsMuxer::onDelConnection(void* key)
 {
 	if (_onDelConnection) {
 		_onDelConnection(key);

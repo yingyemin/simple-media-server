@@ -56,7 +56,12 @@ void RtspApi::startRtspPlay(const HttpParser& parser, const UrlParser& urlParser
         client->setUsername(parser._body["username"]);
     }
     if (parser._body.find("password") != parser._body.end()) {
-        client->setPassword(parser._body["password"]);
+        string password = parser._body["password"];
+        char c = '\\';
+        password.erase(std::remove_if(password.begin(), password.end(), [c](unsigned char ch) { 
+            return ch == c; 
+        }), password.end());
+        client->setPassword(password);
     }
     // stringstream key;
     string key = "/" + parser._body["appName"].get<string>() + "/" + parser._body["streamName"].get<string>();

@@ -1,11 +1,12 @@
-﻿#ifndef HlsMuxer_H
-#define HlsMuxer_H
+﻿#ifndef LLHlsMuxer_H
+#define LLHlsMuxer_H
 
 #include "Common/Frame.h"
-#include "Mpeg/TsMuxer.h"
+#include "Mp4/Fmp4Muxer.h"
 #include "Util/TimeClock.h"
 #include "EventPoller/Timer.h"
 #include "Common/UrlParser.h"
+// #include "HlsMuxer.h"
 
 #include <map>
 #include <string>
@@ -14,26 +15,36 @@
 
 using namespace std;
 
-class HlsMuxer : public enable_shared_from_this<HlsMuxer>
+class Mp4SegInfo
 {
 public:
-	using Ptr = shared_ptr<HlsMuxer>;
+	int _duration = 0;
+	int _index = 0;
+	string _sysTime;
+	map<string, FrameBuffer::Ptr> _mapSeg;
+};
 
-	HlsMuxer(const UrlParser& parse);
-	~HlsMuxer();
+class LLHlsMuxer : public enable_shared_from_this<LLHlsMuxer>
+{
+public:
+	using Ptr = shared_ptr<LLHlsMuxer>;
+
+	LLHlsMuxer(const UrlParser& parse);
+	~LLHlsMuxer();
 
 public:
 	void init();
-	virtual void start();
+	void start();
 	void stop() {_muxer = false;}
 	void onFrame(const FrameBuffer::Ptr& frame);
-	void onTsPacket(const StreamBuffer::Ptr &pkt, int pts, int dts, bool keyframe);
+	void onFmp4Packet(const Buffer::Ptr &pkt, bool keyframe);
 	void addTrackInfo(const shared_ptr<TrackInfo>& track);
 	void onManager();
 	void onNoPLayer();
 	void onDelConnection(void* key);
 	
 	void updateM3u8();
+	void updateSeg();
 	void setOnNoPlayer(const function<void()>& cb) { _onNoPLayer = cb; }
 	void setOnReady(const function<void()>& cb) { _onReady = cb; }
 	void setOnDelConnection(const function<void(void* key)>& cb) { _onDelConnection = cb; }
@@ -49,15 +60,18 @@ private:
 	bool _hasKeyframe = false;
 	uint64_t _firstTsSeq = 0;
 	uint64_t _lastPts = 0;
+	string _lastSysTime;
 	UrlParser _parse;
 	string _m3u8;
 	TimeClock _tsClick;
+	TimeClock _segClick;
 	TimeClock _playClick;
 	shared_ptr<TimerTask> _timeTask;
-	TsMuxer::Ptr _tsMuxer;
-	FrameBuffer::Ptr _tsBuffer;
+	Fmp4Muxer::Ptr _fmp4Muxer;
+	FrameBuffer::Ptr _fmp4Buffer;
+	Buffer::Ptr _fmp4Header;
 	mutex _tsMtx;
-	map<string, FrameBuffer::Ptr> _mapTs;
+	map<string, Mp4SegInfo> _mapFmp4;
 	mutex _uidMtx;
 	unordered_map<int, uint64_t> _mapUid2Time;
 	unordered_map<int, void*> _mapUid2key;

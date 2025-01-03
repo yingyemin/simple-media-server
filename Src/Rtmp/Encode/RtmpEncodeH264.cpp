@@ -116,7 +116,7 @@ void RtmpEncodeH264::encode(const FrameBuffer::Ptr& frame)
                 index += 4 + length;
             }
 
-            msg->abs_timestamp = _lastStamp;
+            msg->abs_timestamp = _enableFastPts ? _lastStamp * _ptsScale : _lastStamp;
             msg->trackIndex_ = _trackInfo->index_;
             msg->length = _msgLength;
             msg->type_id = RTMP_VIDEO;

@@ -19,7 +19,8 @@ RtspRtcpTransport::RtspRtcpTransport(int transType, int dataType, const RtspTrac
     ,_socket(socket)
     ,_track(track)
 {
-    
+    if (track)
+        _index = track->getTrackIndex();
 }
 
 void RtspRtcpTransport::start() {
@@ -27,8 +28,8 @@ void RtspRtcpTransport::start() {
     _socket->setReadCb([wSelf](const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len){
         auto self = wSelf.lock();
         if (self) {
-            self->onRtcpPacket(buffer);
             self->bindPeerAddr(addr);
+            self->onRtcpPacket(buffer);
         }
         return 0;
     });
@@ -54,7 +55,11 @@ void RtspRtcpTransport::onRtcpPacket(const StreamBuffer::Ptr& buffer) {
 
 void RtspRtcpTransport::sendRtcpPacket()
 {
-    static const char s_cname[] = "CTVSSRtsp";
+    if (!_track) {
+        return ;
+    }
+
+    static const char s_cname[] = "sms11";
     uint8_t rtcp_buf[4 + 28 + 10 + sizeof(s_cname) + 1] = {0};
     uint8_t *rtcp_sr = rtcp_buf + 4, *rtcp_sdes = rtcp_sr + 28;
     int rtcpLen = sizeof(rtcp_buf);
@@ -73,7 +78,7 @@ void RtspRtcpTransport::sendRtcpPacket()
     rtcp_sr[2] = 0x00;
     rtcp_sr[3] = 0x06;
 
-    uint32_t ssrc = htonl(_index);
+    uint32_t ssrc = htonl(_track->getSsrc());
     memcpy(&rtcp_sr[4], &ssrc, 4);
 
     uint64_t msw;
@@ -89,7 +94,8 @@ void RtspRtcpTransport::sendRtcpPacket()
     lsw = htonl(lsw);
     memcpy(&rtcp_sr[12], &lsw, 4);
     //直接使用网络字节序
-    memcpy(&rtcp_sr[16], &_lastStamp, 4);
+    auto stamp = htonl(_lastStamp);
+    memcpy(&rtcp_sr[16], &stamp, 4);
 
     uint32_t sendCount = htonl(_sendCount);
     memcpy(&rtcp_sr[20], &sendCount, 4);
@@ -102,12 +108,12 @@ void RtspRtcpTransport::sendRtcpPacket()
     rtcp_sdes[0] = 0x81;
     rtcp_sdes[1] = 0xCA;
     rtcp_sdes[2] = 0x00;
-    rtcp_sdes[3] = 0x06;
+    rtcp_sdes[3] = 0x03;
 
     memcpy(&rtcp_sdes[4], &ssrc, 4);
 
     rtcp_sdes[8] = 0x01;
-    rtcp_sdes[9] = 0x0f;
+    rtcp_sdes[9] = 0x05;
     memcpy(&rtcp_sdes[10], s_cname, sizeof(s_cname));
     rtcp_sdes[10 + sizeof(s_cname)] = 0x00;
 

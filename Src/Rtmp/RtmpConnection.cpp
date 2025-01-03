@@ -988,6 +988,9 @@ bool RtmpConnection::handlePlay()
         auto source = make_shared<RtmpMediaSource>(self->_urlParser, nullptr, true);
         if (self->_urlParser.type_ == "enhanced") {
             source->setEnhanced(true);
+        } else if (self->_urlParser.type_ == "fastPts") {
+            source->setFastPts(true);
+            return source;
         }
 
         return source;
