@@ -20,7 +20,8 @@
 using namespace std;
 
 
-class HttpConnection : public TcpConnection {
+class HttpConnection : public TcpConnection
+{
 public:
     using Ptr = shared_ptr<HttpConnection>;
     using Wptr = weak_ptr<HttpConnection>;
@@ -30,7 +31,7 @@ public:
 
 public:
     // 继承自tcpseesion
-    void onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len) override;
+    virtual void onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len) override;
     void onError() override;
     void onManager() override;
     void init() override;
@@ -42,13 +43,13 @@ public:
 public:
     virtual void onWebsocketFrame(const char* data, int len) {}
 
-private:
+protected:
     void onHttpRequest();
     void writeHttpResponse(HttpResponse& rsp);
     void sendFile();
     void setFileRange(const string& rangeStr);
 
-    void handleGet();
+    virtual void handleGet();
     void handlePost();
     void handlePut();
     void handleDelete();
@@ -72,7 +73,7 @@ private:
 
     void onError(const string& msg);
 
-private:
+protected:
     bool _isChunked = false;
     bool _isWebsocket = false;
     int _apiPort = 0;

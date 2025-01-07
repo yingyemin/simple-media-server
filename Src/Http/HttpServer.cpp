@@ -2,6 +2,7 @@
 #include "Logger.h"
 #include "EventLoopPool.h"
 #include "HttpConnection.h"
+#include "WebsocketConnection.h"
 
 using namespace std;
 
@@ -41,20 +42,23 @@ void HttpServer::setServerId(const string& key)
     _serverId = key;
 }
 
-void HttpServer::start(const string& ip, int port, int count, bool enableSsl)
+void HttpServer::start(const string& ip, int port, int count, bool enableSsl, bool isWebsocket)
 {
     HttpServer::Wptr wSelf = shared_from_this();
-    EventLoopPool::instance()->for_each_loop([ip, port, wSelf, enableSsl](const EventLoop::Ptr& loop){
+    EventLoopPool::instance()->for_each_loop([ip, port, wSelf, enableSsl, isWebsocket](const EventLoop::Ptr& loop){
         auto self = wSelf.lock();
         if (!self) {
             return ;
         }
 
         TcpServer::Ptr server = make_shared<TcpServer>(loop, ip.data(), port, 0, 0);
-        server->setOnCreateSession([wSelf, enableSsl](const EventLoop::Ptr& loop, const Socket::Ptr& socket) -> HttpConnection::Ptr {
+        server->setOnCreateSession([wSelf, enableSsl, isWebsocket](const EventLoop::Ptr& loop, const Socket::Ptr& socket) -> HttpConnection::Ptr {
             auto self = wSelf.lock();
             if (!self) {
                 return nullptr;
+            }
+            if (isWebsocket) {
+                return make_shared<WebsocketConnection>(loop, socket, enableSsl);
             }
             auto connection = make_shared<HttpConnection>(loop, socket, enableSsl);
             connection->setServerId(self->_serverId);

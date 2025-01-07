@@ -5,8 +5,10 @@
 #include <arpa/inet.h>
 
 #include "RtpConnection.h"
+#include "RtpManager.h"
 #include "Logger.h"
 #include "Util/String.h"
+#include "Common/Define.h"
 
 using namespace std;
 
@@ -21,16 +23,30 @@ RtpConnection::RtpConnection(const EventLoop::Ptr& loop, const Socket::Ptr& sock
 RtpConnection::~RtpConnection()
 {
     logInfo << "~RtpConnection";
+    if (_ssrc >= 0) {
+        RtpManager::instance()->delContext(_ssrc);
+    }
 }
 
 void RtpConnection::init()
 {
     weak_ptr<RtpConnection> wSelf = static_pointer_cast<RtpConnection>(shared_from_this());
-    
+    _parser.setOnRtpPacket([wSelf](const StreamBuffer::Ptr& buffer){
+        auto self = wSelf.lock();
+        if(!self){
+            return;
+        }
+        // auto buffer = StreamBuffer::create();
+        // buffer->assign(data + 2, len - 2);
+        RtpPacket::Ptr rtp = make_shared<RtpPacket>(buffer, 0);
+        self->onRtpPacket(rtp);
+    });
 }
 
 void RtpConnection::close()
 {
+    logInfo << "RtpConnection::close()";
+    _isClose = true;
     TcpConnection::close();
 }
 
@@ -41,7 +57,8 @@ void RtpConnection::onManager()
 
 void RtpConnection::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)
 {
-    // logInfo << "get a buf: " << buffer->size();
+    //logInfo << "get a buf: " << buffer->size();
+    _parser.parse(buffer->data(), buffer->size());
 }
 
 void RtpConnection::onError()
@@ -54,4 +71,42 @@ ssize_t RtpConnection::send(Buffer::Ptr pkt)
 {
     logInfo << "pkt size: " << pkt->size();
     return TcpConnection::send(pkt);
+}
+
+void RtpConnection::onRtpPacket(const RtpPacket::Ptr& rtp)
+{
+    if (_isClose) {
+        return ;
+    }
+
+    if (rtp->getHeader()->version != 2) {
+        // rtp version必须是2.否则，可能是tcp流错位了，或者rtp包有问题
+        onError();
+        return ;
+    }
+
+    if (_ssrc < 0) {
+        _ssrc = rtp->getSSRC();
+    } else if (_ssrc != rtp->getSSRC()) {
+        logInfo << "收到了其他的包或者tcp丢数据了，ssrc：" << rtp->getSSRC();
+        return ;
+    }
+    
+    if (!_context)
+    {
+        string uri = "/live/" + to_string(_ssrc);
+        _context = make_shared<RtpContext>(_loop, uri, DEFAULT_VHOST, PROTOCOL_RTP, DEFAULT_TYPE);
+        if (!_context->init()) {
+            _context = nullptr;
+            close();
+            return ;
+        }
+
+        RtpManager::instance()->addContext(_ssrc, _context);
+    } else if (!_context->isAlive()) {
+        close();
+        return ;
+    }
+
+    _context->onRtpPacket(rtp);
 }

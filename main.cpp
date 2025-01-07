@@ -7,6 +7,7 @@
 #include "Webrtc/WebrtcServer.h"
 #include "Srt/SrtServer.h"
 #include "JT1078/JT1078Server.h"
+#include "Rtp/RtpServer.h"
 
 #include "Log/Logger.h"
 #include "EventLoopPool.h"
@@ -257,6 +258,30 @@ int main(int argc, char** argv)
         //     RtspServer::instance()->start(ip, sslPort, count);
         // }
     }
+    
+    auto rtpConfigVec = configJson["Rtp"]["Server"];
+    for (auto server : rtpConfigVec.items()) {
+        string serverId = server.key();
+        auto rtpConfig = server.value();
+
+        if (!rtpConfig.is_object()) {
+            continue;
+        }
+
+        const string ip = rtpConfig["ip"];
+        int port = rtpConfig["port"];
+        int count = rtpConfig["threads"];
+        int sockType = rtpConfig["sockType"];
+
+        logInfo << "start rtp server, port: " << port;
+        if (port) {
+            RtpServer::instance()->start(ip, port, count, sockType);
+        }
+        // logInfo << "start rtsps server, sslPort: " << sslPort;
+        // if (sslPort) {
+        //     RtspServer::instance()->start(ip, sslPort, count);
+        // }
+    }
 
     auto ehome2ConfigVec = configJson["Ehome2"]["Server"];
     for (auto server : ehome2ConfigVec.items()) {
@@ -336,6 +361,30 @@ int main(int argc, char** argv)
         // if (sslPort) {
         //     RtspServer::instance()->start(ip, sslPort, count);
         // }
+    }
+
+    auto websocketConfigVec = configJson["Websocket"]["Server"];
+    for (auto server : websocketConfigVec.items()) {
+        string serverId = server.key();
+        auto websocketConfig = server.value();
+
+        if (!websocketConfig.is_object()) {
+            continue;
+        }
+
+        const string ip = websocketConfig["ip"];
+        int port = websocketConfig["port"];
+        int sslPort = websocketConfig["sslPort"];
+        int count = websocketConfig["threads"];
+
+        logInfo << "start http api, port: " << port;
+        if (port) {
+            HttpServer::instance()->start(ip, port, count, false, true);
+        }
+        logInfo << "start https server, sslPort: " << sslPort;
+        if (sslPort) {
+            HttpServer::instance()->start(ip, sslPort, count, true, true);
+        }
     }
 
     // http server放到最后，等其他协议的api加到httpApi中的mapApi里，避免多线程使用mapApi

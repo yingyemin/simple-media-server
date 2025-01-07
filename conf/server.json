@@ -54,7 +54,17 @@
     "Rtp" : {
         "maxRtpSize" : 1400,
         # rtsp tcp模式下使用巨帧会提升性能
-        "hugeRtpSize" : 60000
+        "hugeRtpSize" : 60000,
+        "Server" : {
+            "Server1" : {
+                "ip" : "0.0.0.0",
+                "port" : 11000,
+                "threads" : 1,
+                "sockType" : 3,
+                "udpPortMax" : 15000,
+                "udpPortMin" : 11000
+            }
+        }
     },
     "Rtsp" : {
         "Server" : {
@@ -89,6 +99,17 @@
                 "timeout" : 5000,
                 "threads" : 1,
                 "enableViewDir" : true
+            }
+        }
+    },
+    "Websocket" : {
+        "Server" : {
+            "Server1" : {
+                "ip" : "0.0.0.0",
+                "port" : 1080,
+                "sslPort" : 1443,
+                "timeout" : 5000,
+                "threads" : 1
             }
         }
     },

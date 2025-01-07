@@ -108,6 +108,8 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
                     _sendConfig = false;
                 }
 
+                // logInfo << "ring write: frame pts: " << _frame->_pts << ", frame dts: " << _frame->_dts 
+                //     << ", type: " << _frame->_trackType << ", this: " << this;
                 _ring->write(_frame, keyframe);
                 if (_videoStampAdjust)
                     _videoStampAdjust->inputStamp(frame->_pts, frame->_dts, 1);
@@ -134,7 +136,7 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
         }
         // if (!_origin)
         //     logInfo << "frame pts: " << frame->_pts << ", frame dts: " << frame->_dts 
-                    // << ", type: " << frame->_trackType << ", this: " << this;
+        //             << ", type: " << frame->_trackType << ", this: " << this;
         // logInfo << "keyframe: " << keyframe << ", size: " << frame->size() << ", type: " << (int)frame->getNalType();
         // logInfo << "frame source type: " << _urlParser.type_;
         // _ring->write(frame, keyframe);
@@ -148,7 +150,7 @@ void FrameMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
     if (track->trackType_ == "video" && !_origin) {
         _videoStampAdjust = make_shared<VideoStampAdjust>(0);
     } else if (track->trackType_ == "audio" && !_origin) {
-        _audioStampAdjust = make_shared<AudioStampAdjust>(track->samplerate_);
+        _audioStampAdjust = make_shared<AudioStampAdjust>(0);
         _audioStampAdjust->setCodec(track->codec_);
     }
 

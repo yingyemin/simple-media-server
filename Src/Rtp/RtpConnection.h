@@ -8,6 +8,9 @@
 
 #include "Net/Buffer.h"
 #include "Net/TcpConnection.h"
+#include "Rtp/RtpPacket.h"
+#include "RtpParser.h"
+#include "RtpContext.h"
 
 
 using namespace std;
@@ -30,7 +33,13 @@ public:
     void close() override;
     ssize_t send(Buffer::Ptr pkt) override;
 
+    void onRtpPacket(const RtpPacket::Ptr& rtp);
+
 private:
+    bool _isClose = false;
+    int64_t _ssrc = -1;
+    RtpParser _parser;
+    RtpContext::Ptr _context;
     EventLoop::Ptr _loop;
     Socket::Ptr _socket;
 };

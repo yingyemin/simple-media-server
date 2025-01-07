@@ -1,0 +1,38 @@
+﻿#ifndef RtpClientPush_h
+#define RtpClientPush_h
+
+#include "RtpClient.h"
+#include "RtpConnectionSend.h"
+
+using namespace std;
+
+class RtpClientPush : public RtpClient {
+public:
+    using Ptr = shared_ptr<RtpClientPush>;
+    using Wptr = weak_ptr<RtpClientPush>;
+
+    RtpClientPush(const string& ip, int port, const string& app, 
+                    const string& stream, int ssrc, int sockType);
+    ~RtpClientPush();
+
+private:
+    virtual void onRead(const StreamBuffer::Ptr& buffer);
+    virtual void doPush();
+
+private:
+    // bool _firstWrite = true;
+    bool _sendFlag = true;
+    string _peerIp;
+    int _peerPort;
+    int _sockType;
+    int _ssrc;
+    string _streamName;
+    string _appName;
+
+    Socket::Ptr _socket;
+    sockaddr _addr;
+
+    RtpConnectionSend::Ptr _connection;
+};
+
+#endif //RtpClientPull_h

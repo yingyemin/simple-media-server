@@ -45,15 +45,16 @@ void AudioStampAdjust::inputStamp(uint64_t& pts, uint64_t& dts, int samples)
         } else {
             step = _avgStep;
         }
+        step = 1;
     }
 
-    if (_codec == "g711a" || _codec == "g711u" && samples > 8) {
-        // 先写成8000 / 1000， 后续需要用真实的_samplerate / 1000
-        // 不等于0，表明时间戳不是倍数（考虑丢包），时间戳异常，需要调整
-        if (step % (samples / 8) != 0) {
-            step = samples / 8;
-        }
-    }
+    // if (_codec == "g711a" || _codec == "g711u" && samples > 8) {
+    //     // 先写成8000 / 1000， 后续需要用真实的_samplerate / 1000
+    //     // 不等于0，表明时间戳不是倍数（考虑丢包），时间戳异常，需要调整
+    //     if (step % (samples / 8) != 0) {
+    //         step = samples / 8;
+    //     }
+    // }
     
     _totalSysTime = TimeClock::now() - _startTime;
     _totalStamp += step;
@@ -136,7 +137,8 @@ void VideoStampAdjust::inputStamp(uint64_t& pts, uint64_t& dts, int samples)
     // TODO: 从配置里读
     // 增量太大或者太小或者为0，认为不合理，通过计算的帧率重新算一下
     if ((step < -500 || step > 500 || step == 0) && _guessFps) {
-        step = (samples * 1.0 / _guessFps) * 1000;
+        // step = (samples * 1.0 / _guessFps) * 1000;
+        step = 1;
         // logInfo << "step: " << step;
     }
     

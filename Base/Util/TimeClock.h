@@ -24,8 +24,8 @@ public:
     static string getFmtTime(const char *fmt, time_t time = 0);
 
 private:
-    chrono::_V2::system_clock::time_point _create;
-    chrono::_V2::system_clock::time_point _start;
+    chrono::system_clock::time_point _create;
+    chrono::system_clock::time_point _start;
 };
 
 #endif

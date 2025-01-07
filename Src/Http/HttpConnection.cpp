@@ -289,7 +289,7 @@ void HttpConnection::writeHttpResponse(HttpResponse& rsp) // 将要素按照Http
     auto buffer = StreamBuffer::create();
     buffer->assign(rsp_str.str().c_str(),rsp_str.str().size());
     // logInfo << "send rsp: " << rsp_str.str();
-    send(buffer);
+    TcpConnection::send(buffer);
 
     _parser.clear();
     if (!_isWebsocket) {
@@ -444,7 +444,6 @@ void HttpConnection::handleGet()
     weak_ptr<HttpConnection> wSelf = static_pointer_cast<HttpConnection>(shared_from_this());
     if (_parser._mapHeaders.find("sec-websocket-key") != _parser._mapHeaders.end()) {
         _isWebsocket = true;
-        // 此处不设置_onhttpbody，也不decode websocket的帧数据，get请求只发不收
         _websocket.setOnWebsocketFrame([wSelf](const char* data, int len){
             auto self = wSelf.lock();
             if (!self) {

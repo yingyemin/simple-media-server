@@ -61,14 +61,17 @@ void WebsocketContext::decode(char *data, size_t len)
                 break;
             }
 
-            _frame.finish = data[0] | (1 << 7);
-            _frame.rsv1 = data[0] | (1 << 6);
-            _frame.rsv2 = data[0] | (1 << 5);
-            _frame.rsv3 = data[0] | (1 << 4);
-            _frame.opcode = (OpcodeType)(data[0] | 0xf);
+            _otherHeaderSize = 0;
+            _maskIndex = 0;
 
-            _frame.mask = data[0] | (1 << 7);
-            _frame.payloadLen = data[1] | 0x7f;
+            _frame.finish = (data[0] >> 7) & 1;
+            _frame.rsv1 = (data[0] >> 6) & 1;
+            _frame.rsv2 = (data[0] >> 5) & 1;
+            _frame.rsv3 = (data[0] >> 4) & 1;
+            _frame.opcode = (OpcodeType)(data[0] & 0xf);
+
+            _frame.mask = (data[1] >> 7) & 1;
+            _frame.payloadLen = ((unsigned char*)data)[1] & 0x7f;
 
             if (_frame.mask) {
                 _otherHeaderSize += 4;
@@ -85,6 +88,7 @@ void WebsocketContext::decode(char *data, size_t len)
             _stage = 2;
         }
 
+        logInfo << "payloadSize: " << _frame.payloadLen << ", len: " << len << ", _otherHeaderSize : " << (_otherHeaderSize);
         if (_stage == 2) {
             len = end - data;
             if (len < _otherHeaderSize) {
@@ -110,7 +114,7 @@ void WebsocketContext::decode(char *data, size_t len)
             _stage = 3;
         }
 
-        // logInfo << "payloadSize: " << payloadSize << ", len: " << len << ", used : " << (data - start);
+        logInfo << "payloadSize: " << _frame.payloadLen << ", len: " << len << ", used : " << (data - start);
         if (len >= _frame.payloadLen) {
             if (_frame.mask) {
                 for(int i = 0; i < _frame.payloadLen ; ++i){
