@@ -2,6 +2,7 @@
 #define RtpServer_h
 
 #include "TcpServer.h"
+#include "Common/Config.h"
 
 #include <string>
 #include <unordered_map>
@@ -28,8 +29,10 @@ public:
     // sockType: 1:tcp, 2:udp, 3:both
     void start(const string& ip, int port, int count, int sockType);
     void stopByPort(int port, int count, int sockType);
-    // 被动模式，给独立端口用
+    // 多端口
     void startReceive(const string& ip, int port, int sockType);
+    // 被动模式，给独立端口用
+    void startReceiveNoSsrc(const string& ip, int port, int sockType, const json& info);
     // 主动模式
     void startSend(const string& ip, int port, int sockType,
                     const string& app, const string& stream, int ssrc);

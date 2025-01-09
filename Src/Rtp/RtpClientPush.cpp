@@ -45,6 +45,8 @@ void RtpClientPush::doPush()
                 self->stop();
             }
         });
+        _connection->setPayloadType(_payloadType);
+        _connection->setOnlyTrack(_onlyTrack);
         _connection->onRead(nullptr, getAddr(), sizeof(sockaddr));
         _connection->init();
     }

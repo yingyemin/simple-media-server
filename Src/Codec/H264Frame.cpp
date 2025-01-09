@@ -107,7 +107,7 @@ void H264Frame::split(const function<void(const FrameBuffer::Ptr& frame)>& cb)
     while (true) {
         int type = getNalType(*(start + prefix));
         if (!(alwaysSplit || type == H264_SPS || type == H264_PPS
-                || type == H264_SEI))
+                || type == H264_SEI || type == H264_AUD))
         {
             break;
         }

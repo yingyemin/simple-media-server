@@ -6,6 +6,7 @@
 #include "Util/Base64.h"
 #include "Ssl/SHA1.h"
 #include "Codec/G711Track.h"
+#include "Hook/MediaHook.h"
 
 using namespace std;
 WebsocketConnection::WebsocketConnection(const EventLoop::Ptr& loop, const Socket::Ptr& socket, bool enableSsl)
@@ -35,10 +36,10 @@ void WebsocketConnection::onWebsocketFrame(const char* data, int len)
 {
     logInfo << "get websocket msg: " << string(data, len);
     if (_first) {
-        _urlParser.path_.assign(data, len);
-        _urlParser.protocol_= "websocket";
-        _urlParser.type_ = DEFAULT_TYPE;
-        _urlParser.vhost_ = DEFAULT_VHOST;
+        // _urlParser.path_.assign(data, len);
+        // _urlParser.protocol_= "websocket";
+        // _urlParser.type_ = DEFAULT_TYPE;
+        // _urlParser.vhost_ = DEFAULT_VHOST;
 
         auto source = MediaSource::getOrCreate(_urlParser.path_, _urlParser.vhost_, _urlParser.protocol_, _urlParser.type_, 
         [this](){
@@ -64,13 +65,34 @@ void WebsocketConnection::onWebsocketFrame(const char* data, int len)
         frameSrc->onReady();
 
         _first = false;
-        return ;
+        PublishInfo info;
+        info.protocol = _urlParser.protocol_;
+        info.type = _urlParser.type_;
+        info.uri = _urlParser.path_;
+        info.vhost = _urlParser.vhost_;
+        info.params = _urlParser.param_;
+
+        weak_ptr<WebsocketConnection> wSelf = dynamic_pointer_cast<WebsocketConnection>(shared_from_this());
+        MediaHook::instance()->onPublish(info, [wSelf](const PublishResponse &rsp){
+            auto self = wSelf.lock();
+            if (!self) {
+                return ;
+            }
+
+            if (!rsp.authResult) {
+                self->onError();
+                return ;
+            }
+
+            // self->handlePublish();
+        });
     }
 
     // wavToG711a
     auto frame = FrameBuffer::createFrame("g711a", 0, AudioTrackType, false);
     frame->_buffer.assign((char*)data, len);
-    frame->_pts = frame->_dts = 0;
+    frame->_pts = frame->_dts = _bytes / 8;
+    _bytes += len;
 
     auto frameSrc = _source.lock();
     if (!frameSrc) {

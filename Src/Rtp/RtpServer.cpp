@@ -22,6 +22,52 @@ RtpServer::Ptr& RtpServer::instance()
     return instance;
 }
 
+void RtpServer::startReceiveNoSsrc(const string& ip, int port, int sockType, const json& info)
+{
+    auto loop = EventLoop::getCurrentLoop();
+    if (sockType == 1 || sockType == 3) {
+        string streamName = info["streamName"];
+        string appName = info["appName"];
+        string uri = "/" + appName + "/" + streamName;
+        TcpServer::Ptr server = make_shared<TcpServer>(loop, ip.data(), port, 0, 0);
+        server->setOnCreateSession([uri](const EventLoop::Ptr& loop, const Socket::Ptr& socket) -> RtpConnection::Ptr {
+            auto conn = make_shared<RtpConnection>(loop, socket);
+            conn->setUri(uri);
+
+            return conn;
+        });
+        server->start();
+        lock_guard<mutex> lck(_mtx);
+        _tcpServers[port].emplace_back(server);
+    } 
+    if (sockType == 2 || sockType == 3) {
+        string streamName = info["streamName"];
+        string appName = info["appName"];
+        string uri = "/" + appName + "/" + streamName;
+
+        Socket::Ptr socket = make_shared<Socket>(loop);
+        socket->createSocket(SOCKET_UDP);
+        if (socket->bind(port, ip.data()) == -1) {
+            logInfo << "bind udp failed, port: " << port;
+            return ;
+        }
+        socket->addToEpoll();
+        // static auto gbManager = RtpManager::instance();
+        // gbManager->init(loop);
+        auto rtpContext = make_shared<RtpContext>(loop, uri, "vhost", "rtp", "normal");
+        socket->setReadCb([rtpContext](const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len){
+            auto rtp = make_shared<RtpPacket>(buffer, 0);
+            // create rtpmanager
+            rtpContext->onRtpPacket(rtp, addr, len, true);
+
+            return 0;
+        });
+        socket->setRecvBuf(4 * 1024 * 1024);
+        lock_guard<mutex> lck(_mtx);
+        _udpSockets[port].emplace_back(socket);
+    }
+}
+
 void RtpServer::startReceive(const string& ip, int port, int sockType)
 {
     auto loop = EventLoop::getCurrentLoop();

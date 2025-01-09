@@ -94,6 +94,7 @@ void RtpConnectionSend::init()
         self->_urlParser.type_ = DEFAULT_TYPE;
         auto source = make_shared<RtpMediaSource>(self->_urlParser, nullptr, true);
         source->setSsrc(self->_ssrc);
+        source->setPayloadType(self->_payloadType);
 
         return source;
     }, this);
@@ -255,6 +256,10 @@ void RtpConnectionSend::sendRtpPacket(const RtpMediaSource::RingDataType &pkt)
                     auto packet = it->get();
                     auto data = packet->data();
 
+                    if ((packet->type_ == "video" && _onlyTrack == "audio") || (packet->type_ == "audio" && _onlyTrack == "video")) {
+                        continue;
+                    }
+
                     // data[0] = '$';
                     // data[1] = _track->getInterleavedRtp();
                     // data[0] = (packet->size() - 4) >> 8;
@@ -303,6 +308,9 @@ void RtpConnectionSend::sendRtpPacket(const RtpMediaSource::RingDataType &pkt)
             int len = pkt->size() - 1;
             auto pktlist = *(pkt.get());
             for (auto& packet: pktlist) {
+                if ((packet->type_ == "video" && _onlyTrack == "audio") || (packet->type_ == "audio" && _onlyTrack == "video")) {
+                    continue;
+                }
                 // if (_target_play_track == TrackInvalid || _target_play_track == rtp->type) {
                 //     updateRtcpContext(rtp);
                     // send(rtp);

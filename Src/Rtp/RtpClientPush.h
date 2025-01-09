@@ -15,9 +15,11 @@ public:
                     const string& stream, int ssrc, int sockType);
     ~RtpClientPush();
 
-private:
+public:
     virtual void onRead(const StreamBuffer::Ptr& buffer);
     virtual void doPush();
+    virtual void setPayloadType(const string& payloadType) {_payloadType = payloadType;}
+    virtual void setOnlyTrack(const string& onlyTrack) {_onlyTrack = onlyTrack;}
 
 private:
     // bool _firstWrite = true;
@@ -28,6 +30,8 @@ private:
     int _ssrc;
     string _streamName;
     string _appName;
+    string _payloadType = "ps";
+    string _onlyTrack = "all";
 
     Socket::Ptr _socket;
     sockaddr _addr;

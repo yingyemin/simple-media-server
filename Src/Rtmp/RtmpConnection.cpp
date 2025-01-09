@@ -216,6 +216,7 @@ bool RtmpConnection::handleInvoke(RtmpMessage& rtmp_msg)
             info.type = _urlParser.type_;
             info.uri = _urlParser.path_;
             info.vhost = _urlParser.vhost_;
+            info.params = _urlParser.param_;
 
             weak_ptr<RtmpConnection> wSelf = dynamic_pointer_cast<RtmpConnection>(shared_from_this());
             MediaHook::instance()->onPublish(info, [wSelf](const PublishResponse &rsp){

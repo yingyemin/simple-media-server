@@ -38,12 +38,16 @@ public:
 
     void setMediaInfo(const string& app, const string& stream, int ssrc);
     void sendRtpPacket(const RtpMediaSource::RingDataType &pack);
+    void setPayloadType(const string& payloadType) {_payloadType = payloadType;}
+    void setOnlyTrack(const string& onlyTrack) {_onlyTrack = onlyTrack;}
 
 private:
     int _transType = 1; //1:tcp server;2:udp server;3:tcp client;4:udp client
     int _ssrc = -1;
     string _app;
     string _stream;
+    string _payloadType = "ps";
+    string _onlyTrack = "all";
     UrlParser _urlParser;
     shared_ptr<sockaddr> _addr;
     shared_ptr<TimerTask> _task;

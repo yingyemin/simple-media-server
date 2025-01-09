@@ -664,7 +664,7 @@ int TsPayloadPES::demux(TsDemuxer *ctx, TsPacket *pkt, const StreamBuffer::Ptr& 
                     if (buffer->size() < pos + sizePri) {
                         return -1;
                     }
-                    PES_private_data_.reset(new int8_t[sizePri]);
+                    PES_private_data_.reset(new int8_t[sizePri], std::default_delete<int8_t[]>());
                     memcpy(PES_private_data_.get(), payload + pos, sizePri);
                     pos += sizePri;
                 }
@@ -678,7 +678,7 @@ int TsPayloadPES::demux(TsDemuxer *ctx, TsPacket *pkt, const StreamBuffer::Ptr& 
                     if (buffer->size() < pos + pack_field_length_) {
                         return -1;
                     }
-                    pack_field_.reset(new int8_t[pack_field_length_]);
+                    pack_field_.reset(new int8_t[pack_field_length_], std::default_delete<int8_t[]>());
                     memcpy(pack_field_.get(), payload + pos, pack_field_length_);
                     pos += pack_field_length_;
                 }
@@ -712,7 +712,7 @@ int TsPayloadPES::demux(TsDemuxer *ctx, TsPacket *pkt, const StreamBuffer::Ptr& 
                     if (buffer->size() < pos + PES_extension_field_length_) {
                         return -1;
                     }
-                    PES_extension_field_reserved_.reset(new int8_t[PES_extension_field_length_]);
+                    PES_extension_field_reserved_.reset(new int8_t[PES_extension_field_length_], std::default_delete<int8_t[]>());
                     memcpy(PES_extension_field_reserved_.get(), payload + pos, PES_extension_field_length_);
                     pos += PES_extension_field_length_;
                 }
@@ -721,7 +721,7 @@ int TsPayloadPES::demux(TsDemuxer *ctx, TsPacket *pkt, const StreamBuffer::Ptr& 
             if (buffer->size() < pos + stuffing_byte_length) {
                 return -1;
             }
-            stuffing_byte_.reset(new int8_t[stuffing_byte_length]);
+            stuffing_byte_.reset(new int8_t[stuffing_byte_length], std::default_delete<int8_t[]>());
             memcpy(stuffing_byte_.get(), payload + pos, stuffing_byte_length);
             pos += stuffing_byte_length;
 
@@ -791,7 +791,7 @@ void TsPayloadPAT::demux(TsDemuxer *ctx, const StreamBuffer::Ptr& buffer)
     section_number_ = payload[6];
     last_section_number_ = payload[7];
     program_size_ = (section_length_ - 5 - 4) / 4; // 4 is CRC_32 bytes, 5 is transport_stream_id_~last_section_number_
-    progreams_.reset(new int32_t[program_size_]);
+    progreams_.reset(new int32_t[program_size_], std::default_delete<int32_t[]>());
     int index = 8;
     for (int i = 0; i < program_size_; ++i)
     {
@@ -856,7 +856,7 @@ void TsPayloadPMT::demux(TsDemuxer *ctx, TsPacket *pkt, const StreamBuffer::Ptr&
 
     if (program_info_length_)
     {
-        program_info_descriptor_.reset(new int8_t[program_info_length_]);
+        program_info_descriptor_.reset(new int8_t[program_info_length_], std::default_delete<int8_t[]>());
         memcpy(program_info_descriptor_.get(), payload + 12, program_info_length_);
     }
     int endPos = pos + section_length_ - 4; // 计算N1总共占有多少个字节
@@ -1012,7 +1012,7 @@ void TsAdaptationField::demux(const StreamBuffer::Ptr& buffer)
                 if (buffer->size() < pos + transport_private_data_length_) {
                     return ;
                 }
-                private_data_byte_.reset(new int8_t[transport_private_data_length_]);
+                private_data_byte_.reset(new int8_t[transport_private_data_length_], std::default_delete<int8_t[]>());
                 memcpy(private_data_byte_.get(), payload + pos, transport_private_data_length_);
                 pos += transport_private_data_length_;
             }
@@ -1091,6 +1091,12 @@ void TsDemuxer::onDecode(const char* data, int len, int index, int pts, int dts)
     if (!data || len == 0) {
         return ;
     }
+
+    // if (index == VideoTrackType) {
+    //     FILE* fp = fopen("testts.h264", "ab+");
+    //     fwrite(data, len, 1, fp);
+    //     fclose(fp);
+    // }
     // if (_firstAac && _audioCodec == "aac" && index == AudioTrackType)
     // {
     //     if (len <= 7) {
@@ -1125,11 +1131,7 @@ void TsDemuxer::onDecode(const char* data, int len, int index, int pts, int dts)
         if (_videoCodec == "h264") {
             frame = make_shared<H264Frame>();
         } else {
-            frame = make_shared<H264Frame>();
-        }
-        frame->_startSize = 4;
-        if (readUint32BE(frame->data()) != 1) {
-            frame->_startSize = 3;
+            frame = make_shared<H265Frame>();
         }
     }
 
@@ -1140,6 +1142,11 @@ void TsDemuxer::onDecode(const char* data, int len, int index, int pts, int dts)
         frame->_index = index;
         frame->_trackType = index;
         frame->_codec = index == VideoTrackType ? _videoCodec : _audioCodec;
+        
+        frame->_startSize = 4;
+        if (readUint32BE(frame->data()) != 1) {
+            frame->_startSize = 3;
+        }
 
         if (index == VideoTrackType) {
             if (_videoCodec == "h265") {

@@ -32,6 +32,7 @@
 #include "Api/JT1078Api.h"
 #include "Api/FfmpegApi.h"
 #include "Api/HookApi.h"
+#include "Api/RtpApi.h"
 
 #include "Rtmp/RtmpClient.h"
 #include "Rtsp/RtspClient.h"
@@ -152,6 +153,7 @@ int main(int argc, char** argv)
     RtmpApi::initApi();
     RtspApi::initApi();
     GB28181Api::initApi();
+    RtpApi::initApi();
     WebrtcApi::initApi();
     HttpStreamApi::initApi();
     RecordApi::initApi();

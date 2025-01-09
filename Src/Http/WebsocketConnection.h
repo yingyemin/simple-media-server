@@ -25,6 +25,7 @@ private:
     bool _handshake = false;
     bool _first = true;
     bool _enableSsl;
+    uint64_t _bytes = 0;
     // UrlParser _urlParser;
     // EventLoop::Ptr _loop;
     // Socket::Ptr _socket;

@@ -149,6 +149,21 @@ bool RtpContext::init()
 
 void RtpContext::onRtpPacket(const RtpPacket::Ptr& rtp, struct sockaddr* addr, int len, bool sort)
 {
+    if (!_loop) {
+        _loop = EventLoop::getCurrentLoop();
+        init();
+    }
+
+    if (!_loop->isCurrent()) {
+        weak_ptr<RtpContext> wSelf = shared_from_this();
+        _loop->async([wSelf, rtp, addr, len, sort](){
+            auto self = wSelf.lock();
+            if (self) {
+                self->onRtpPacket(rtp, addr, len, sort);
+            }
+        }, true);
+    }
+
     if (rtp->getHeader()->version != 2) {
         logInfo << "version is invalid: " << (int)rtp->getHeader()->version;
         return ;
