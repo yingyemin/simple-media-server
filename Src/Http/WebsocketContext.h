@@ -71,7 +71,7 @@ public:
 class WebsocketContext
 {
 public:
-    void decode(char *data, size_t len);
+    void decode(unsigned char *data, size_t len);
     void encodeHeader(const WebsocketFrame& frame, StringBuffer::Ptr& header);
     void encodePayload(const WebsocketFrame& frame, Buffer::Ptr& payload);
 

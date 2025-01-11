@@ -24,9 +24,9 @@ public:
     int sendHeader(const string& localIp, int localPort, const string& url, int timeout);
     void setWebsocket() {_isWebsocket = true;}
 
-    void onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len) override;
+    virtual void onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len) override;
     void onError(const string& err) override;
-    void close() override;
+    virtual void close() override;
     void onConnect() override;
 
     void addHeader(const string& key, const string& header);

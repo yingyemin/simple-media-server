@@ -758,6 +758,19 @@ void RtmpConnection::responsePlay(const MediaSource::Ptr &src)
     }
 
     auto rtmpSrc = dynamic_pointer_cast<RtmpMediaSource>(src);
+    if (!rtmpSrc) {
+        logInfo << "No such stream";
+        _amfEncoder.reset(); 
+        _amfEncoder.encodeString("onStatus", 8);
+        _amfEncoder.encodeNumber(0);
+        objects["level"] = AmfObject(std::string("error"));
+        objects["code"] = AmfObject(std::string("NetStream.Play.StreamNotFound"));
+        objects["description"] = AmfObject(std::string("No such stream."));
+        _amfEncoder.encodeObjects(objects);
+        sendInvokeMessage(RTMP_CHUNK_INVOKE_ID, _amfEncoder.data(), _amfEncoder.size());
+        close();
+        return;
+    }
 
     _source = rtmpSrc;
     logInfo << "Resetting and playing stream";

@@ -33,7 +33,7 @@ using namespace std;
  *
  */
 
-void WebsocketContext::decode(char *data, size_t len)
+void WebsocketContext::decode(unsigned char *data, size_t len)
 {
     // 从配置中获取
     static int maxRemainSize = 4 * 1024 * 1024;
@@ -46,8 +46,8 @@ void WebsocketContext::decode(char *data, size_t len)
     }
 
     if (remainSize > 0) {
-        _remainData.append(data, len);
-        data = _remainData.data();
+        _remainData.append((char*)data, len);
+        data = (unsigned char *)_remainData.data();
         len += remainSize;
     }
 
@@ -71,7 +71,7 @@ void WebsocketContext::decode(char *data, size_t len)
             _frame.opcode = (OpcodeType)(data[0] & 0xf);
 
             _frame.mask = (data[1] >> 7) & 1;
-            _frame.payloadLen = ((unsigned char*)data)[1] & 0x7f;
+            _frame.payloadLen = data[1] & 0x7f;
 
             if (_frame.mask) {
                 _otherHeaderSize += 4;
@@ -88,7 +88,7 @@ void WebsocketContext::decode(char *data, size_t len)
             _stage = 2;
         }
 
-        logInfo << "payloadSize: " << _frame.payloadLen << ", len: " << len << ", _otherHeaderSize : " << (_otherHeaderSize);
+        // logInfo << "payloadSize: " << _frame.payloadLen << ", len: " << len << ", _otherHeaderSize : " << (_otherHeaderSize);
         if (_stage == 2) {
             len = end - data;
             if (len < _otherHeaderSize) {
@@ -100,13 +100,13 @@ void WebsocketContext::decode(char *data, size_t len)
                 data += 2;
                 len -= 2;
             } else if (_frame.payloadLen == 127) {
-                _frame.payloadLen = (uint64_t)readUint32BE(data) << 32 | readUint32BE(data + 4);
+                _frame.payloadLen = (uint64_t)readUint32BE((char*)data) << 32 | readUint32BE((char*)data + 4);
                 data += 8;
                 len -= 8;
             }
 
             if (_frame.mask) {
-                _frame.maskKey.assign(data, 4);
+                _frame.maskKey.assign((char*)data, 4);
                 data += 4;
                 len -= 4;
             }
@@ -114,7 +114,7 @@ void WebsocketContext::decode(char *data, size_t len)
             _stage = 3;
         }
 
-        logInfo << "payloadSize: " << _frame.payloadLen << ", len: " << len << ", used : " << (data - start);
+        // logInfo << "payloadSize: " << _frame.payloadLen << ", len: " << len << ", used : " << (data - start);
         if (len >= _frame.payloadLen) {
             if (_frame.mask) {
                 for(int i = 0; i < _frame.payloadLen ; ++i){
@@ -122,7 +122,7 @@ void WebsocketContext::decode(char *data, size_t len)
                 }
                 _maskIndex %= 4;
             }
-            onWebsocketFrame(data, _frame.payloadLen);
+            onWebsocketFrame((char*)data, _frame.payloadLen);
             // static int i = 0;
             // string name = "test" + to_string(i++);
             // FILE* fp = fopen(name.data(), "wb");
@@ -137,7 +137,7 @@ void WebsocketContext::decode(char *data, size_t len)
 
     if (data < end) {
         logInfo << "have remain data: " << (end - data);
-        _remainData.assign(data, end - data);
+        _remainData.assign((char*)data, end - data);
     } else {
         // logInfo << "don't have remain data";
         _remainData.clear();

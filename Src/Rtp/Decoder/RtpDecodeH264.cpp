@@ -148,6 +148,7 @@ void RtpDecodeH264::decode(const RtpPacket::Ptr& rtp)
         }
     }
     _lastSeq = rtp->getSeq();
+    _lastStamp = rtp->getStampMS();
 }
 
 void RtpDecodeH264::decodeSingle(const uint8_t *ptr, ssize_t size, uint64_t stamp)
@@ -195,7 +196,7 @@ void RtpDecodeH264::decodeFuA(const RtpPacket::Ptr& rtp)
     auto stamp = rtp->getStampMS();
     auto seq = rtp->getSeq();
 
-    if (header->start_bit) {
+    if (header->start_bit || _lastStamp != stamp) {
         if (_stage != 0) {
             _frame->_buffer.clear();
         }

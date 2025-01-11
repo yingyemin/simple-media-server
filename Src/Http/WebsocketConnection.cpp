@@ -24,7 +24,7 @@ WebsocketConnection::~WebsocketConnection()
 
 void WebsocketConnection::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)
 {
-    logInfo << "get a buf: " << buffer->size();
+    // logInfo << "get a buf: " << buffer->size();
     if (!_handshake) {
         _parser.parse(buffer->data(), buffer->size());
     } else {
@@ -34,10 +34,10 @@ void WebsocketConnection::onRead(const StreamBuffer::Ptr& buffer, struct sockadd
 
 void WebsocketConnection::onWebsocketFrame(const char* data, int len)
 {
-    logInfo << "get websocket msg: " << string(data, len);
+    // logInfo << "get websocket msg: " << string(data, len);
     if (_first) {
         // _urlParser.path_.assign(data, len);
-        // _urlParser.protocol_= "websocket";
+        _urlParser.protocol_= PROTOCOL_WEBSOCKET;
         // _urlParser.type_ = DEFAULT_TYPE;
         // _urlParser.vhost_ = DEFAULT_VHOST;
 
@@ -62,7 +62,7 @@ void WebsocketConnection::onWebsocketFrame(const char* data, int len)
 
         auto trackInfo = G711aTrack::createTrack(AudioTrackType, 8, 8000);
         frameSrc->addTrack(trackInfo);
-        frameSrc->onReady();
+        // frameSrc->onReady();
 
         _first = false;
         PublishInfo info;
@@ -122,7 +122,7 @@ void WebsocketConnection::handleGet()
                 return ;
             }
 
-            self->_websocket.decode((char*)data, len);
+            self->_websocket.decode((unsigned char*)data, len);
         };
     }
 

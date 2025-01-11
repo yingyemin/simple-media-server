@@ -459,7 +459,7 @@ void HttpConnection::handleGet()
                 return ;
             }
 
-            self->_websocket.decode((char*)data, len);
+            self->_websocket.decode((unsigned char*)data, len);
         };
     }
 
