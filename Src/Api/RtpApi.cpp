@@ -69,16 +69,17 @@ void RtpApi::createRtpReceiver(const HttpParser& parser, const UrlParser& urlPar
                     checkArgs(parser._body, {"videoCodec", "audioCodec"});
                     string videoCodec = parser._body["videoCodec"];
                     string audioCodec = parser._body["audioCodec"];
-                    // auto videoTrack = TrackInfo::createTrackInfo(videoCodec);
-                    // auto audioTrack = TrackInfo::createTrackInfo(audioCodec);
-                    // videoTrack->setVps();
-                    // videoTrack->setSps();
-                    // videoTrack->setPps();
-                    int channel = toInt(parser._body.value("channel", "1"));
-                    int bitPerSample = toInt(parser._body.value("bitPerSample", "8"));
-                    int samplerate = toInt(parser._body.value("samplerate", "8000"));
-                    rtpContext->createVideoTrack(videoCodec);
-                    rtpContext->createAudioTrack(audioCodec, channel, bitPerSample, samplerate);
+                    
+                    if (videoCodec != "none") {
+                        rtpContext->createVideoTrack(videoCodec);
+                    }
+
+                    if (audioCodec != "none") {
+                        int channel = toInt(parser._body.value("channel", "1"));
+                        int bitPerSample = toInt(parser._body.value("bitPerSample", "8"));
+                        int samplerate = toInt(parser._body.value("samplerate", "8000"));
+                        rtpContext->createAudioTrack(audioCodec, channel, bitPerSample, samplerate);
+                    }
                 }
                 rtpContext->setPayloadType(payloadType);
                 RtpManager::instance()->addContext(ssrc, rtpContext);
@@ -102,16 +103,17 @@ void RtpApi::createRtpReceiver(const HttpParser& parser, const UrlParser& urlPar
                 checkArgs(parser._body, {"videoCodec", "audioCodec"});
                 string videoCodec = parser._body["videoCodec"];
                 string audioCodec = parser._body["audioCodec"];
-                // auto videoTrack = TrackInfo::createTrackInfo(videoCodec);
-                // auto audioTrack = TrackInfo::createTrackInfo(audioCodec);
-                // videoTrack->setVps();
-                // videoTrack->setSps();
-                // videoTrack->setPps();
-                int channel = toInt(parser._body.value("channel", "1"));
-                int bitPerSample = toInt(parser._body.value("bitPerSample", "8"));
-                int samplerate = toInt(parser._body.value("samplerate", "8000"));
-                rtpContext->createVideoTrack(videoCodec);
-                rtpContext->createAudioTrack(audioCodec, channel, bitPerSample, samplerate);
+                    
+                if (videoCodec != "none") {
+                    rtpContext->createVideoTrack(videoCodec);
+                }
+
+                if (audioCodec != "none") {
+                    int channel = toInt(parser._body.value("channel", "1"));
+                    int bitPerSample = toInt(parser._body.value("bitPerSample", "8"));
+                    int samplerate = toInt(parser._body.value("samplerate", "8000"));
+                    rtpContext->createAudioTrack(audioCodec, channel, bitPerSample, samplerate);
+                }
             }
             rtpContext->setPayloadType(payloadType);
             RtpManager::instance()->addContext(ssrc, rtpContext);

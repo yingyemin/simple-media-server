@@ -46,12 +46,14 @@
 #include "Codec/H264Track.h"
 #include "Codec/H265Track.h"
 #include "Codec/H266Track.h"
+#include "Codec/VP8Track.h"
 
 #include "Codec/AacFrame.h"
 #include "Codec/AV1Frame.h"
 #include "Codec/H264Frame.h"
 #include "Codec/H265Frame.h"
 #include "Codec/H266Frame.h"
+#include "Codec/VP8Frame.h"
 
 #include <unistd.h>
 #include <string.h>
@@ -180,12 +182,14 @@ int main(int argc, char** argv)
     H264Track::registerTrackInfo();
     H265Track::registerTrackInfo();
     H266Track::registerTrackInfo();
+    VP8Track::registerTrackInfo();
 
     AacFrame::registerFrame();
     AV1Frame::registerFrame();
     H264Frame::registerFrame();
     H265Frame::registerFrame();
     H266Frame::registerFrame();
+    VP8Frame::registerFrame();
 
     Heartbeat::Ptr beat = make_shared<Heartbeat>();
     beat->startAsync();

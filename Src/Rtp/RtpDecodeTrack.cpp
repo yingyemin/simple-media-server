@@ -270,6 +270,9 @@ void RtpDecodeTrack::createAudioTrack(const string& audioCodec, int channel, int
         track->setAacInfo(2, channel, sampleRate);
         _trackInfo = track;
         return ;
+    } else {
+        logInfo << "invalid audio codec : " << audioCodec;
+        return ;
     }
     _trackInfo->codec_ = audioCodec;
     _trackInfo->index_ = 1;

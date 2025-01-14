@@ -46,6 +46,7 @@ public:
     static void registerFrame(const string& codecName, const funcCreateFrame& func);
 
 public:
+    bool _isKeyframe = false;
     int _profile = 0;
     int _index;
     int _trackType = 0;
