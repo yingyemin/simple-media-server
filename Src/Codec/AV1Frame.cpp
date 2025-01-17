@@ -24,6 +24,20 @@ uint8_t* leb128(const uint8_t* data, int bytes, uint64_t* v)
 	return (uint8_t*)data + i;
 }
 
+uint8_t* leb128_write(int64_t size, uint8_t* data, size_t bytes)
+{
+	size_t i;
+	for (i = 0; i * 7 < 64 && i < bytes;)
+	{
+		data[i] = (uint8_t)(size & 0x7F);
+		size >>= 7;
+		data[i++] |= size > 0 ? 0x80 : 0;
+		if (0 == size)
+			break;
+	}
+	return data + i;
+}
+
 int aom_av1_annexb_split(const uint8_t* data, size_t bytes, const function<int (const uint8_t* obu, size_t bytes)>& handler)
 {
 	int r;

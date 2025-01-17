@@ -33,6 +33,7 @@ enum AV1NalType
 };
 
 uint8_t* leb128(const uint8_t* data, int bytes, uint64_t* v);
+uint8_t* leb128_write(int64_t size, uint8_t* data, size_t bytes);
 
 class AV1Frame : public FrameBuffer
 {

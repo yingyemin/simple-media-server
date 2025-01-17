@@ -16,6 +16,8 @@ TrackInfo::Ptr TrackInfo::createTrackInfo(const string& codecName)
     auto iter = _mapCreateTrack.find(codecName);
     if (iter != _mapCreateTrack.end()) {
         return iter->second(0, 0, 0);
+    } else {
+        logInfo << "invalid codec name: " << codecName;
     }
     return nullptr;
 }

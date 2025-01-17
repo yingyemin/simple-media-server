@@ -28,8 +28,8 @@ void WebrtcApi::initApi()
     g_mapApi.emplace("/api/v1/rtc/pull/list", WebrtcApi::listRtcPull);
 
     g_mapApi.emplace("/api/v1/rtc/push/start", WebrtcApi::startRtcPush);
-    g_mapApi.emplace("/api/v1/rtc/push/start", WebrtcApi::stopRtcPush);
-    g_mapApi.emplace("/api/v1/rtc/push/start", WebrtcApi::listRtcPush);
+    g_mapApi.emplace("/api/v1/rtc/push/stop", WebrtcApi::stopRtcPush);
+    g_mapApi.emplace("/api/v1/rtc/push/list", WebrtcApi::listRtcPush);
 }
 
 void WebrtcApi::rtcPlay(const HttpParser& parser, const UrlParser& urlParser, 

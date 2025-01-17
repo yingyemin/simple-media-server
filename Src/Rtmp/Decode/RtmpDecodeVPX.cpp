@@ -1,30 +1,35 @@
-﻿#include "RtmpDecodeAV1.h"
+﻿#include "RtmpDecodeVPX.h"
 #include "Logger.h"
 #include "Common/Frame.h"
 
 using namespace std;
 
-RtmpDecodeAV1::RtmpDecodeAV1(const shared_ptr<TrackInfo>& trackInfo)
+RtmpDecodeVPX::RtmpDecodeVPX(const shared_ptr<TrackInfo>& trackInfo)
 {
-    _trackInfo = dynamic_pointer_cast<AV1Track>(trackInfo);
+    _trackInfo = trackInfo;
 }
 
-RtmpDecodeAV1::~RtmpDecodeAV1()
+RtmpDecodeVPX::~RtmpDecodeVPX()
 {
 }
 
-AV1Frame::Ptr RtmpDecodeAV1::createFrame()
+FrameBuffer::Ptr RtmpDecodeVPX::createFrame()
 {
-    auto frame = make_shared<AV1Frame>();
+    FrameBuffer::Ptr frame;
+    if (_trackInfo->codec_ == "vp8") {
+        frame = make_shared<VP8Frame>();
+    } else {
+        frame = make_shared<VP9Frame>();
+    }
     frame->_startSize = 0;
-    frame->_codec = "av1";
+    frame->_codec = _trackInfo->codec_;
     frame->_index = _trackInfo->index_;
     frame->_trackType = VideoTrackType;
 
     return frame;
 }
 
-void RtmpDecodeAV1::decode(const RtmpMessage::Ptr& msg)
+void RtmpDecodeVPX::decode(const RtmpMessage::Ptr& msg)
 {
     uint8_t *payload = (uint8_t *)msg->payload->data();
     auto end = payload + msg->length;
@@ -40,14 +45,14 @@ void RtmpDecodeAV1::decode(const RtmpMessage::Ptr& msg)
     int length = msg->length;
     if (/*_first && */packet_type == 0) {
         logInfo << "get a flv config";
-        // rtmp header 5 bytes, av1 header 4 bytes
+        // rtmp header 5 bytes, VPX header 8 bytes
         if (length < 9) {
             return ;
         }
 
-        auto frame = FrameBuffer::createFrame("av1", 0, _trackInfo->index_, false);
+        auto frame = FrameBuffer::createFrame(_trackInfo->codec_, 0, _trackInfo->index_, false);
         frame->_pts = frame->_dts = msg->abs_timestamp;
-        frame->_buffer.append((char*)payload + 9, length - 9);
+        frame->_buffer.append((char*)payload + 13, length - 13);
         _trackInfo->setVps(frame);
         onFrame(frame);
     } else {
@@ -68,7 +73,7 @@ void RtmpDecodeAV1::decode(const RtmpMessage::Ptr& msg)
 
         payload += num;
         if(payload < end) {
-            auto frame = FrameBuffer::createFrame("av1", 0, _trackInfo->index_, false);
+            auto frame = FrameBuffer::createFrame(_trackInfo->codec_, 0, _trackInfo->index_, false);
             frame->_pts = frame->_dts = msg->abs_timestamp;
             frame->_pts += cts;
             frame->_buffer.append((char*)payload, end - payload);
@@ -78,14 +83,14 @@ void RtmpDecodeAV1::decode(const RtmpMessage::Ptr& msg)
     }
 }
 
-void RtmpDecodeAV1::setOnFrame(const function<void(const FrameBuffer::Ptr& frame)> cb)
+void RtmpDecodeVPX::setOnFrame(const function<void(const FrameBuffer::Ptr& frame)> cb)
 {
     _onFrame = cb;
 }
 
-void RtmpDecodeAV1::onFrame(const FrameBuffer::Ptr& frame)
+void RtmpDecodeVPX::onFrame(const FrameBuffer::Ptr& frame)
 {
-    logInfo << "get a av1 nal: " << (int)(frame->getNalType());
+    logInfo << "get a VPX nal: " << (int)(frame->getNalType());
     if (_onFrame) {
         _onFrame(frame);
     }

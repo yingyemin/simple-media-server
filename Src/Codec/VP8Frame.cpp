@@ -64,7 +64,7 @@ bool VP8Frame::keyFrame() const
     const static uint8_t startcode[] = { 0x9d, 0x01, 0x2a };
 
     if (size() < 10)
-        return -1;
+        return false;
 
     p = (const uint8_t*)data();
 

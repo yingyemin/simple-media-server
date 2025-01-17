@@ -282,17 +282,29 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
             // buf.read_1bytes();
             // buf.read_1bytes();
             buf += 2;
+            if (buf >= next_ps_pack) {
+                break;
+            }
 
             ps_info_length = buf[0] << 8 | buf[1];
             buf += 2;
+            if (buf >= next_ps_pack) {
+                break;
+            }
 
             /* skip program_stream_info */
             // buf.skip(ps_info_length);
             buf += ps_info_length;
+            if (buf >= next_ps_pack) {
+                break;
+            }
 
 
             // /*es_map_length = */buf.read_2bytes();
             buf += 2;
+            if (buf >= next_ps_pack) {
+                break;
+            }
             /* Ignore es_map_length, trust psm_length */
             es_map_length = psm_length - ps_info_length - 10;
         
@@ -301,8 +313,14 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
                 uint8_t type      = buf[0];
                 uint8_t es_id     = buf[1];
                 buf += 2;
+                if (buf >= next_ps_pack) {
+                    break;
+                }
                 uint16_t es_info_length = buf[0] << 8 | buf[1];
                 buf += 2;
+                if (buf >= next_ps_pack) {
+                    break;
+                }
                 // std::string s_type = get_ps_map_type_str(type);
 
                 // logInfo << "es_id: " << (int)es_id;
@@ -383,6 +401,9 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
                 /* skip program_stream_info */
                 // buf.skip(es_info_length);
                 buf += es_info_length;
+                if (buf >= next_ps_pack) {
+                    break;
+                }
                 es_map_length -= 4 + es_info_length;
                 if (_audio_es_type == 0) {
                     _firstAac = false;

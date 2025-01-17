@@ -80,7 +80,7 @@ void RtpEncodeH264::encodeFuA(const FrameBuffer::Ptr& frame) {
         size = size + 2 - _maxRtpSize;
         frameData = frameData + _maxRtpSize - 2;
 
-        onRtpPacket(rtp, false);
+        onRtpPacket(rtp, frame->startFrame());
     }
 
     if (size > 0) { //end
@@ -96,7 +96,7 @@ void RtpEncodeH264::encodeFuA(const FrameBuffer::Ptr& frame) {
         payload[1] = fuHeader;
         memcpy(payload + 2, (uint8_t *) frameData, size);
 
-        onRtpPacket(rtp, false);
+        onRtpPacket(rtp, frame->startFrame());
     }
 }
 

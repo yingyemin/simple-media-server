@@ -11,6 +11,9 @@
 #include "RtpDecodeAac.h"
 #include "RtpDecodeCommon.h"
 #include "RtpDecodeMp3.h"
+#include "RtpDecodeVp8.h"
+#include "RtpDecodeVp9.h"
+#include "RtpDecodeAV1.h"
 
 using namespace std;
 
@@ -25,6 +28,12 @@ RtpDecoder::Ptr RtpDecoder::creatDecoder(const shared_ptr<TrackInfo>& trackInfo)
         return make_shared<RtpDecodeH265>(trackInfo);
     } else if (trackInfo->codec_ == "mp3") {
         return make_shared<RtpDecodeMp3>(trackInfo);
+    } else if (trackInfo->codec_ == "vp8") {
+        return make_shared<RtpDecodeVp8>(trackInfo);
+    } else if (trackInfo->codec_ == "vp9") {
+        return make_shared<RtpDecodeVP9>(trackInfo);
+    } else if (trackInfo->codec_ == "av1") {
+        return make_shared<RtpDecodeAV1>(trackInfo);
     } else {
         return make_shared<RtpDecodeCommon>(trackInfo);
     }

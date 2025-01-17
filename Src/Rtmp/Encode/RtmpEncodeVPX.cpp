@@ -1,37 +1,33 @@
-﻿#include "RtmpEncodeAV1.h"
-#include "Codec/AV1Frame.h"
+﻿#include "RtmpEncodeVPX.h"
+#include "Codec/VP8Frame.h"
+#include "Codec/VP9Frame.h"
 #include "Log/Logger.h"
-#include "Codec/AV1Track.h"
+#include "Codec/VP8Track.h"
+#include "Codec/VP9Track.h"
 #include "Rtmp/Rtmp.h"
 #include "Common/Config.h"
 
 using namespace std;
 
-RtmpEncodeAV1::RtmpEncodeAV1(const shared_ptr<TrackInfo>& trackInfo)
+RtmpEncodeVPX::RtmpEncodeVPX(const shared_ptr<TrackInfo>& trackInfo)
     :_trackInfo(trackInfo)
 {}
 
-RtmpEncodeAV1::~RtmpEncodeAV1()
+RtmpEncodeVPX::~RtmpEncodeVPX()
 {
 }
 
-string RtmpEncodeAV1::getConfig()
+string RtmpEncodeVPX::getConfig()
 {
-    auto trackInfo = dynamic_pointer_cast<AV1Track>(_trackInfo);
-    if (!trackInfo->_sequence) {
-        return "";
-    }
-
     // static bool enbaleEnhanced = Config::instance()->getAndListen([](const json &config){
     //     enbaleEnhanced = Config::instance()->get("Rtmp", "Server", "Server1", "enableEnhanced");
     // }, "Rtmp", "Server", "Server1", "enableEnhanced");
 
     string config;
 
-    auto vpsBuffer = trackInfo->_sequence->_buffer;
-    int vpsLen = trackInfo->_sequence->size();
+    string vpxConfig = _trackInfo->getConfig();
 
-    config.resize(9  + vpsLen);
+    config.resize(5  + vpxConfig.size());
     auto data = (char*)config.data();
 
     if (_enhanced) {
@@ -48,19 +44,14 @@ string RtmpEncodeAV1::getConfig()
         *data++ = 0x00; //composit time
     }
 
-    *data++ = 1 << 7 | 1;
-    *data++ = 0xff;
-    *data++ = 0xff;
-    *data++ = 0xff;
-
-    memcpy(data, vpsBuffer.data(), vpsLen); 
+    memcpy(data, vpxConfig.data(), vpxConfig.size()); 
 
     // TODO meta data frame
 
     return config;
 }
 
-void RtmpEncodeAV1::encode(const FrameBuffer::Ptr& frame)
+void RtmpEncodeVPX::encode(const FrameBuffer::Ptr& frame)
 {
     // static bool enbaleEnhanced = Config::instance()->getAndListen([](const json &config){
     //     enbaleEnhanced = Config::instance()->get("Rtmp", "Server", "Server1", "enableEnhanced");
@@ -119,12 +110,12 @@ void RtmpEncodeAV1::encode(const FrameBuffer::Ptr& frame)
     _lastStamp = frame->pts();
 }
 
-void RtmpEncodeAV1::setOnRtmpPacket(const function<void(const RtmpMessage::Ptr& msg, bool start)>& cb)
+void RtmpEncodeVPX::setOnRtmpPacket(const function<void(const RtmpMessage::Ptr& msg, bool start)>& cb)
 {
     _onRtmpMessage = cb;
 }
 
-void RtmpEncodeAV1::onRtmpMessage(const RtmpMessage::Ptr& msg, bool start)
+void RtmpEncodeVPX::onRtmpMessage(const RtmpMessage::Ptr& msg, bool start)
 {
     if (_onRtmpMessage) {
         _onRtmpMessage(msg, start);

@@ -23,7 +23,7 @@ public:
 
     VP8Frame()
     {
-        _codec = "VP8";
+        _codec = "vp8";
     }
     
     VP8Frame(const VP8Frame::Ptr& frame);

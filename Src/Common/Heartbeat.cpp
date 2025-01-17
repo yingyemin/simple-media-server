@@ -141,6 +141,7 @@ void Heartbeat::getSourceInfo(ServerInfo& info)
         }
 
         auto muxerSource = source->getMuxerSource();
+        info.playerCount += source->playerCount();
         for (auto& mIt : muxerSource) {
             auto tSource = mIt.second;
             for (auto& tIt: tSource) {

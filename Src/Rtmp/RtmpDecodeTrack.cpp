@@ -17,6 +17,7 @@
 #include "Decode/RtmpDecodeH264.h"
 #include "Decode/RtmpDecodeH265.h"
 #include "Decode/RtmpDecodeAV1.h"
+#include "Decode/RtmpDecodeVPX.h"
 #include "Rtmp.h"
 
 using namespace std;
@@ -42,6 +43,8 @@ void RtmpDecodeTrack::createDecoder()
             _decoder = dynamic_pointer_cast<RtmpDecode>(make_shared<RtmpDecodeCommon>(_trackInfo));
         } else if (_trackInfo->codec_ == "av1") {
             _decoder = dynamic_pointer_cast<RtmpDecode>(make_shared<RtmpDecodeAV1>(_trackInfo));
+        } else if (_trackInfo->codec_ == "vp8" || _trackInfo->codec_ == "vp9") {
+            _decoder = dynamic_pointer_cast<RtmpDecode>(make_shared<RtmpDecodeVPX>(_trackInfo));
         }
 
         if (!_decoder) {

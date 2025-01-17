@@ -161,9 +161,9 @@ void RtpDecodeTrack::onPsFrame(const FrameBuffer::Ptr frame)
     if (_psDemuxer) {
         _psDemuxer->onPsStream(frame->data(), frame->size(), frame->pts(), _ssrc, true);
     }
-    // FILE* fp = fopen("test.ps", "ab+");
-    // fwrite(frame->_buffer.data(), 1, frame->_buffer.size(), fp);
-    // fclose(fp);
+    FILE* fp = fopen("test3.ps", "ab+");
+    fwrite(frame->_buffer.data(), 1, frame->_buffer.size(), fp);
+    fclose(fp);
 }
 
 void RtpDecodeTrack::onTsFrame(const FrameBuffer::Ptr frame)
@@ -210,11 +210,11 @@ void RtpDecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
             _onFrame(frame);
         }
     }
-    // if (frame->_index == VideoTrackType) {
-        // FILE* fp = fopen("test3.aac", "ab+");
-        // fwrite(frame->_buffer.data(), 1, frame->_buffer.size(), fp);
-        // fclose(fp);
-    // }
+    if (frame->_index == VideoTrackType) {
+        FILE* fp = fopen("test3.h264", "ab+");
+        fwrite(frame->_buffer.data(), 1, frame->_buffer.size(), fp);
+        fclose(fp);
+    }
     // logInfo << "decode a frame: " << frame->_index << ", decoder codec: " << _trackInfo->codec_;
 }
 
@@ -231,18 +231,20 @@ void RtpDecodeTrack::setOnReady(const function<void()>& cb)
 void RtpDecodeTrack::createVideoTrack(const string& videoCodec)
 {
     // TrackInfo::Ptr track;
-    if (videoCodec == "h264") {
-        _trackInfo = H264Track::createTrack(0, 96, 90000);
-    } else if (videoCodec == "h265") {
-        _trackInfo = make_shared<H265Track>();
-    } else {
-        logInfo << "invalid video codec : " << videoCodec;
-        return ;
-    }
-    _trackInfo->codec_ = videoCodec;
-    _trackInfo->index_ = 0;
-    _trackInfo->samplerate_ = 90000;
-    _trackInfo->payloadType_ = 96;
+    // if (videoCodec == "h264") {
+    //     _trackInfo = H264Track::createTrack(0, 96, 90000);
+    // } else if (videoCodec == "h265") {
+    //     _trackInfo = make_shared<H265Track>();
+    // } else {
+    //     logInfo << "invalid video codec : " << videoCodec;
+    //     return ;
+    // }
+    // _trackInfo->codec_ = videoCodec;
+    // _trackInfo->index_ = 0;
+    // _trackInfo->samplerate_ = 90000;
+    // _trackInfo->payloadType_ = 96;
+
+    _trackInfo = TrackInfo::createTrackInfo(videoCodec);
 
     // if (_onTrackInfo) {
     //     _onTrackInfo(track);
@@ -252,33 +254,39 @@ void RtpDecodeTrack::createVideoTrack(const string& videoCodec)
 void RtpDecodeTrack::createAudioTrack(const string& audioCodec, int channel, int sampleBit, int sampleRate)
 {
     // TrackInfo::Ptr track;
-    if (audioCodec == "g711a") {
-        _trackInfo = make_shared<G711aTrack>();
-        _trackInfo->payloadType_ = 8;
-    } else if (audioCodec == "g711u") {
-        _trackInfo = make_shared<G711uTrack>();
-        _trackInfo->payloadType_ = 0;
-    } else if (audioCodec == "aac") {
-        AacTrack::Ptr track = make_shared<AacTrack>();
-        track->codec_ = audioCodec;
-        track->index_ = 1;
-        track->samplerate_ = sampleRate;
-        track->channel_ = channel;
-        track->bitPerSample_ = sampleBit;
-        track->payloadType_ = 97;
+    // if (audioCodec == "g711a") {
+    //     _trackInfo = make_shared<G711aTrack>();
+    //     _trackInfo->payloadType_ = 8;
+    // } else if (audioCodec == "g711u") {
+    //     _trackInfo = make_shared<G711uTrack>();
+    //     _trackInfo->payloadType_ = 0;
+    // } else if (audioCodec == "aac") {
+    //     AacTrack::Ptr track = make_shared<AacTrack>();
+    //     track->codec_ = audioCodec;
+    //     track->index_ = 1;
+    //     track->samplerate_ = sampleRate;
+    //     track->channel_ = channel;
+    //     track->bitPerSample_ = sampleBit;
+    //     track->payloadType_ = 97;
 
-        track->setAacInfo(2, channel, sampleRate);
-        _trackInfo = track;
-        return ;
-    } else {
-        logInfo << "invalid audio codec : " << audioCodec;
-        return ;
-    }
+    //     track->setAacInfo(2, channel, sampleRate);
+    //     _trackInfo = track;
+    //     return ;
+    // } else {
+    //     logInfo << "invalid audio codec : " << audioCodec;
+    //     return ;
+    // }
+    _trackInfo = TrackInfo::createTrackInfo(audioCodec);
     _trackInfo->codec_ = audioCodec;
     _trackInfo->index_ = 1;
     _trackInfo->samplerate_ = sampleRate;
     _trackInfo->channel_ = channel;
     _trackInfo->bitPerSample_ = sampleBit;
+
+    if (audioCodec == "aac") {
+        AacTrack::Ptr track = dynamic_pointer_cast<AacTrack>(_trackInfo);
+        track->setAacInfo(2, channel, sampleRate);
+    }
 
     // if (_onTrackInfo) {
     //     _onTrackInfo(track);

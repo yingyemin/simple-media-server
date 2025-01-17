@@ -89,7 +89,7 @@ VP8Track::Ptr VP8Track::createTrack(int index, int payloadType, int samplerate)
 {
     auto trackInfo = make_shared<VP8Track>();
     trackInfo->index_ = index;
-    trackInfo->codec_ = "VP8";
+    trackInfo->codec_ = "vp8";
     trackInfo->payloadType_ = payloadType;
     trackInfo->trackType_ = "video";
     trackInfo->samplerate_ = samplerate;
@@ -99,10 +99,10 @@ VP8Track::Ptr VP8Track::createTrack(int index, int payloadType, int samplerate)
 
 void VP8Track::registerTrackInfo()
 {
-	TrackInfo::registerTrackInfo("VP8", [](int index, int payloadType, int samplerate){
+	TrackInfo::registerTrackInfo("vp8", [](int index, int payloadType, int samplerate){
 		auto trackInfo = make_shared<VP8Track>();
 		trackInfo->index_ = VideoTrackType;
-		trackInfo->codec_ = "VP8";
+		trackInfo->codec_ = "vp8";
 		trackInfo->payloadType_ = 96;
 		trackInfo->trackType_ = "video";
 		trackInfo->samplerate_ = 90000;
@@ -116,17 +116,15 @@ void VP8Track::onFrame(const FrameBuffer::Ptr& frame)
 	if (_hasReady) {
         return ;
     }
-
-    auto vp8Frame = dynamic_pointer_cast<VP8Frame>(frame);
     
     uint32_t tag;
     const uint8_t* p;
     const static uint8_t startcode[] = { 0x9d, 0x01, 0x2a };
 
-    if (vp8Frame->size() < 10)
+    if (frame->size() < 10)
         return ;
 
-    p = (const uint8_t*)vp8Frame->data();
+    p = (const uint8_t*)frame->data();
 
     // 9.1.  Uncompressed Data Chunk
     tag = (uint32_t)p[0] | ((uint32_t)p[1] << 8) | ((uint32_t)p[2] << 16);

@@ -11,6 +11,9 @@
 #include "RtpEncodeAac.h"
 #include "RtpEncodeCommon.h"
 #include "RtpEncodeMp3.h"
+#include "RtpEncodeVP8.h"
+#include "RtpEncodeVP9.h"
+#include "RtpEncodeAV1.h"
 #include "Common/Config.h"
 
 using namespace std;
@@ -27,6 +30,12 @@ RtpEncoder::Ptr RtpEncoder::create(const shared_ptr<TrackInfo>& trackInfo)
         encoder = make_shared<RtpEncodeAac>(trackInfo);
     } else if (trackInfo->codec_ == "mp3") {
         encoder = make_shared<RtpEncodeMp3>(trackInfo);
+    } else if (trackInfo->codec_ == "vp8") {
+        encoder = make_shared<RtpEncodeVP8>(trackInfo);
+    } else if (trackInfo->codec_ == "vp9") {
+        encoder = make_shared<RtpEncodeVP9>(trackInfo);
+    } else if (trackInfo->codec_ == "av1") {
+        encoder = make_shared<RtpEncodeAV1>(trackInfo);
     } else {
         encoder = make_shared<RtpEncodeCommon>(trackInfo);
     }
