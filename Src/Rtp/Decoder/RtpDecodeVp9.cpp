@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cctype>
 
-#include "RtpDecodeVP9.h"
+#include "RtpDecodeVp9.h"
 #include "Logger.h"
 #include "Util/String.h"
 #include "Codec/VP9Frame.h"
