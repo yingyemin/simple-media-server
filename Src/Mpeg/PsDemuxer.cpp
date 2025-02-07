@@ -465,7 +465,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
                 // srs_info("gb28181: ps stream video ts=%u pkt_ts=%u", video_pts, timestamp);
                 if (pts_dts_flags == 3) {
                     auto dts = parsePsTimestamp((unsigned char*)next_ps_pack + 14);
-                    logInfo << "get a video dts: " << dts << endl;
+                    // logInfo << "get a video dts: " << dts << endl;
                 }
 			}
             // pse_index +=1;

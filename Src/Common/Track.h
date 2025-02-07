@@ -14,10 +14,22 @@ using namespace std;
 enum PayloadType
 {
     PayloadType_G711U = 0,
+    PayloadType_G723 = 4,
     PayloadType_G711A = 8,
+    PayloadType_G722 = 9,
     PayloadType_Mp3 = 14,
+    PayloadType_G729 = 18,
+    PayloadType_SVACA = 20,
+    PayloadType_JPEG = 26,
+    PayloadType_MP2T = 33,
+    PayloadType_AV1X = 35,
     PayloadType_AAC = 97,
-    PayloadType_H26X = 96
+    PayloadType_H26X = 96,
+    PayloadType_OPUS = 103,
+    PayloadType_VP8 = 105,
+    PayloadType_VP9 = 106,
+    PayloadType_AV1 = 107,
+    PayloadType_H266 = 108,
 };
 
 enum TrackType

@@ -94,6 +94,9 @@ private:
 
     float _lossPercent;
 
+    Socket::Ptr	_debugSocket;
+	struct sockaddr* _debugAddr = nullptr;
+
     Socket::Ptr	_socket;
 	struct sockaddr* _addr = nullptr;
 	int _addrLen = 0;

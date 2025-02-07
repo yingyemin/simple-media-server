@@ -110,7 +110,7 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
 
                 // logInfo << "ring write: frame pts: " << _frame->_pts << ", frame dts: " << _frame->_dts 
                 //     << ", type: " << _frame->_trackType << ", this: " << this;
-                _ring->write(_frame, keyframe);
+                _ring->write(_frame, false);
                 if (_videoStampAdjust)
                     _videoStampAdjust->inputStamp(frame->_pts, frame->_dts, 1);
                 _frame = frame;

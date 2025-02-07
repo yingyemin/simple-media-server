@@ -186,7 +186,7 @@ void RtpDecodeTrack::onTsFrame(const FrameBuffer::Ptr frame)
 
 void RtpDecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
 {
-    logInfo << "get a raw frame: " << frame->_codec << ", type: " << (int)frame->getNalType();
+    // logInfo << "get a raw frame: " << frame->_codec << ", type: " << (int)frame->getNalType();
     if (_payloadType == "ts" || _payloadType == "ps") {
         if (_onFrame) {
             _onFrame(frame);

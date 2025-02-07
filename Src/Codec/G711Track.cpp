@@ -24,7 +24,7 @@ string G711aTrack::getSdp()
 	stringstream ss;
 	ss << "m=audio 0 RTP/AVP " << payloadType_ << "\r\n"
 	   << "a=rtpmap:" << payloadType_ << " PCMA/" << samplerate_ << "/" << channel_ << "\r\n"
-	   << "\r\na=control:trackID=" << index_ << "\r\n";
+	   << "a=control:trackID=" << index_ << "\r\n";
 
 	return ss.str();
 }
@@ -69,7 +69,7 @@ string G711uTrack::getSdp()
 	stringstream ss;
 	ss << "m=audio 0 RTP/AVP " << payloadType_ << "\r\n"
 	   << "a=rtpmap:" << payloadType_ << " PCMU/" << samplerate_ << "/" << channel_ << "\r\n"
-	   << "\r\na=control:trackID=" << index_ << "\r\n";
+	   << "a=control:trackID=" << index_ << "\r\n";
 
 	return ss.str();
 }

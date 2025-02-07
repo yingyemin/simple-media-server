@@ -62,6 +62,10 @@ void WebrtcMediaSource::addTrack(const WebrtcDecodeTrack::Ptr& track)
             if (strongSelf->_probeFinish) {
                 if (strongSelf->_mapSink.empty()) {
                     strongSelf->_ring->delOnWrite(strongSelf.get());
+        
+                    for (auto& track : strongSelf->_mapWebrtcDecodeTrack) {
+                        track.second->stopDecode();
+                    }
                 }
                 strongSelf->_probeFinish = false;
             }
@@ -160,7 +164,8 @@ void WebrtcMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
             if (start) {
                 strongSelf->_start = start;
             }
-            // logInfo << "on rtp seq: " << rtp->getSeq() << ", size: " << rtp->size() << ", type: " << rtp->type_;
+            // logInfo << "on rtp seq: " << rtp->getSeq() << ", size: " << rtp->size() << ", type: " << rtp->type_
+            //         << ", start" << start;
             if (rtp->getHeader()->mark) {
                 strongSelf->_cache->emplace_back(std::move(rtp));
                 strongSelf->_ring->write(strongSelf->_cache, strongSelf->_start);
@@ -363,39 +368,39 @@ void WebrtcMediaSource::onReady()
 {
     MediaSource::onReady();
     if (_muxer) {
-        std::weak_ptr<WebrtcMediaSource> weakSelf = std::static_pointer_cast<WebrtcMediaSource>(shared_from_this());
-        for (auto encodeTrackIter : _mapWebrtcEncodeTrack) {
-            encodeTrackIter.second->setOnRtpPacket([weakSelf](const RtpPacket::Ptr& rtp, bool start){
-                // logInfo << "mux a rtp packet";
-                auto strongSelf = weakSelf.lock();
-                if (!strongSelf) {
-                    return;
-                }
-                if (start) {
-                    strongSelf->_start = start;
-                }
-                if (rtp->getHeader()->mark) {
-                    // logInfo << "mux a rtp packet mark";
-                    strongSelf->_cache->emplace_back(std::move(rtp));
-                    strongSelf->_ring->write(strongSelf->_cache, strongSelf->_start);
-                    strongSelf->_cache = std::make_shared<deque<RtpPacket::Ptr>>();
-                    strongSelf->_start = false;
-                } else {
-                    // logInfo << "mux a rtp packet no mark";
-                    strongSelf->_cache->emplace_back(std::move(rtp));
-                }
-            });
-            // if (_mapSink.size() > 0)
-                encodeTrackIter.second->startEncode();
-        }
+        // std::weak_ptr<WebrtcMediaSource> weakSelf = std::static_pointer_cast<WebrtcMediaSource>(shared_from_this());
+        // for (auto encodeTrackIter : _mapWebrtcEncodeTrack) {
+        //     encodeTrackIter.second->setOnRtpPacket([weakSelf](const RtpPacket::Ptr& rtp, bool start){
+        //         // logInfo << "mux a rtp packet";
+        //         auto strongSelf = weakSelf.lock();
+        //         if (!strongSelf) {
+        //             return;
+        //         }
+        //         if (start) {
+        //             strongSelf->_start = start;
+        //         }
+        //         if (rtp->getHeader()->mark) {
+        //             // logInfo << "mux a rtp packet mark";
+        //             strongSelf->_cache->emplace_back(std::move(rtp));
+        //             strongSelf->_ring->write(strongSelf->_cache, strongSelf->_start);
+        //             strongSelf->_cache = std::make_shared<deque<RtpPacket::Ptr>>();
+        //             strongSelf->_start = false;
+        //         } else {
+        //             // logInfo << "mux a rtp packet no mark";
+        //             strongSelf->_cache->emplace_back(std::move(rtp));
+        //         }
+        //     });
+        //     // if (_mapSink.size() > 0)
+        //         encodeTrackIter.second->startEncode();
+        // }
     } else {
         if (_mapSink.size() == 0 && _ring) {
             // _ring->delOnWrite(this);
             _probeFinish = true;
             
-            for (auto& track : _mapWebrtcDecodeTrack) {
-                track.second->stopDecode();
-            }
+            // for (auto& track : _mapWebrtcDecodeTrack) {
+            //     track.second->stopDecode();
+            // }
         }
     }
 }

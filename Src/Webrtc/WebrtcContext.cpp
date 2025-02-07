@@ -315,7 +315,8 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
                             remotePtInfo = ptIter.second;
                             first = false;
                         }
-                        if (ptIter.second->fmtp_.find("42e01f") != string::npos) {
+                        if (ptIter.second->fmtp_.find("42001f") != string::npos && 
+                            ptIter.second->fmtp_.find("packetization-mode=1") != string::npos) {
                             remotePtInfo = ptIter.second;
                             break;
                         }
@@ -1092,6 +1093,32 @@ void WebrtcContext::sendMedia(const RtpPacket::Ptr& rtp)
     // FILE* fp = fopen("test.rtp", "ab+");
 	// fwrite(data, nb_cipher, 1, fp);
 	// fclose(fp);
+
+    static bool debugRtp = Config::instance()->getAndListen([](const json &config){
+        debugRtp = Config::instance()->get("Webrtc", "Server", "Server1", "debugRtp");
+    }, "Webrtc", "Server", "Server1", "debugRtp");
+
+    static string debugIp = Config::instance()->getAndListen([](const json &config){
+        debugIp = Config::instance()->get("Webrtc", "Server", "Server1", "debugIp");
+    }, "Webrtc", "Server", "Server1", "debugIp");
+
+    static int debugPort = Config::instance()->getAndListen([](const json &config){
+        debugPort = Config::instance()->get("Webrtc", "Server", "Server1", "debugPort");
+    }, "Webrtc", "Server", "Server1", "debugPort");
+
+    if (debugRtp) {
+        if (!_debugSocket) {
+            _debugSocket = make_shared<Socket>(EventLoop::getCurrentLoop());
+            auto addr = _debugSocket->createSocket(debugIp, debugPort, SOCKET_UDP);
+            if (_debugSocket->bind(0, "0.0.0.0") == -1) {
+                // onError("create rtp/udp socket failed");
+                // return ;
+            }
+            _debugAddr = (struct sockaddr*)malloc(sizeof(sockaddr));
+            memcpy(_debugAddr, ((sockaddr*)&addr), sizeof(sockaddr));
+        }
+        _debugSocket->send(buffer, 1, 0, nb_cipher, _debugAddr, _addrLen);
+    }
 
     // logInfo << "before protect: " << nb_cipher << ", type: " << rtp->type_;
 	if (_enbaleSrtp && _srtpSession) {

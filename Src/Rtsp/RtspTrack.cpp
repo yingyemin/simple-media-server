@@ -12,6 +12,7 @@
 #include "Codec/Mp3Track.h"
 #include "Codec/H264Track.h"
 #include "Codec/H265Track.h"
+#include "Codec/OpusTrack.h"
 #include "Codec/H265Frame.h"
 #include "Codec/H264Frame.h"
 #include "Rtp/Decoder/RtpDecodeH264.h"
@@ -50,6 +51,10 @@ static shared_ptr<TrackInfo> createTrackBySdp(const shared_ptr<SdpMedia>& media)
     } else if (strcasecmp(media->codec_.data(), "pcmu") == 0) {
         auto g711uTrackInfo = make_shared<G711uTrack>();
         trackInfo = g711uTrackInfo;
+        trackInfo->codec_ = "g711u";
+    } else if (strcasecmp(media->codec_.data(), "opus") == 0) {
+        auto opusTrackInfo = make_shared<OpusTrack>();
+        trackInfo = opusTrackInfo;
         trackInfo->codec_ = "g711u";
     } else if (strcasecmp(media->codec_.data(), "mp3") == 0) {
         auto mp3Track = make_shared<Mp3Track>();
@@ -118,9 +123,13 @@ static shared_ptr<TrackInfo> createTrackBySdp(const shared_ptr<SdpMedia>& media)
 
     if (trackInfo) {
         trackInfo->payloadType_ = media->payloadType_;
-        trackInfo->samplerate_ = media->samplerate_;
+        if (media->samplerate_ > 0) {
+            trackInfo->samplerate_ = media->samplerate_;
+        }
         trackInfo->index_ = media->index_;
-        trackInfo->channel_ = media->channel_;
+        if (media->channel_ > 0) {
+            trackInfo->channel_ = media->channel_;
+        }
         trackInfo->trackType_ = media->trackType_;
         // trackInfo->codec_ = media->codec_;
     }

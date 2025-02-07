@@ -878,6 +878,9 @@ void TsPayloadPMT::demux(TsDemuxer *ctx, TsPacket *pkt, const StreamBuffer::Ptr&
             return ;
         }
 
+        program_info_descriptor_.reset(new int8_t[ES_Info_length_], std::default_delete<int8_t[]>());
+        memcpy(ES_Info_descriptor_.get(), payload + pos + 5, ES_Info_length_);
+
         pos += 5 + ES_Info_length;
 
         std::string stream_type_str;

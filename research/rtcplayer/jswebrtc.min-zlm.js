@@ -278,7 +278,7 @@ JSWebrtc.Player = (function() {
       .then(function(offer) {
         return new Promise(function(resolve, reject) {
           var port = _self.urlParams.port || 80;
-          var api = _self.urlParams.user_query.play || "/streamingserver/v1/webrtc/sdp";
+          var api = _self.urlParams.user_query.play || "/index/api/webrtc";
           // if (api.lastIndexOf("/") != api.length - 1) {
           //   api += "/";
           // }
@@ -300,7 +300,7 @@ JSWebrtc.Player = (function() {
             clientip: null,
             sdp: offer.sdp
           };
-          JSWebrtc.HttpPost(url, JSON.stringify(data)).then(
+          JSWebrtc.HttpPost(url, offer.sdp/*JSON.stringify(data)*/).then(
             function(res) {
               resolve(res.sdp);
             },
