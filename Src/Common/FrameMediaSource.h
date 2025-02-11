@@ -36,6 +36,8 @@ public:
     void addSink(const MediaSource::Ptr &src) override;
     void delSink(const MediaSource::Ptr& sink) override;
     void onFrame(const FrameBuffer::Ptr& frame) override;
+
+    void inputFrame(const FrameBuffer::Ptr& frame);
     FrameRingType::Ptr getRing() {return _ring;}
 
 private:

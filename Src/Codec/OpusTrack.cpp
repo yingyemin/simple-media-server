@@ -23,7 +23,7 @@ string OpusTrack::getSdp()
 {
 	stringstream ss;
 	ss << "m=audio 0 RTP/AVP " << payloadType_ << "\r\n"
-	   << "a=rtpmap:" << payloadType_ << " PCMA/" << samplerate_ << "/" << channel_ << "\r\n"
+	   << "a=rtpmap:" << payloadType_ << " OPUS/" << samplerate_ << "/" << channel_ << "\r\n"
 	   << "a=control:trackID=" << index_ << "\r\n";
 
 	return ss.str();

@@ -91,6 +91,8 @@ private:
     uint64_t _rtpLoss_10s;
     uint64_t _resendRtpPack_10s;
     uint64_t _totalRtpCnt = 0;
+    uint64_t _totalRtpBytes = 0;
+    uint32_t _lastRtpTs = 0;
 
     float _lossPercent;
 

@@ -9,8 +9,28 @@
 #include "WebrtcRtcpPacket.h"
 #include "Logger.h"
 #include "Util/String.h"
+#include "Util/TimeClock.h"
 
 using namespace std;
+
+// 表示0h UTC on 1 January 1900 到 0h UTC on 1 January 1970的秒数
+const uint32_t UnixNtpOffset = { 0x83AA7E80 };
+// 表示fraction second 单位
+const uint64_t NtpFractionalUnit = { 1LL << 32 };
+static Ntp ConvertUnixTimeIntoNtpTime()
+{
+    auto curMs = TimeClock::now();
+    Ntp ntp;
+    ntp.seconds = curMs / 1000;
+    ntp.fractions = (uint32_t)((double)((curMs % 1000) * 1000) * (double)NtpFractionalUnit * 1.0e-6);
+
+    return ntp;
+}
+
+static uint64_t ConvertNtpTimeIntoUnixTime(const Ntp& ntp)
+{
+    return (ntp.seconds - UnixNtpOffset) * 1000 + (uint32_t)( (double)ntp.fractions * 1.0e6 / (double)(NtpFractionalUnit) ) / 1000;
+}
 
 RtcpPacket::RtcpPacket(const StreamBuffer::Ptr& buffer, int pos)
     :_buffer(buffer)
@@ -139,6 +159,32 @@ info   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
     
     _payloadLen = _length - sizeof(RtcpHeader) - 20;
     _payload = data + sizeof(RtcpHeader) + 20;
+}
+
+StreamBuffer::Ptr RtcpSR::encode(uint32_t rtpTs, uint32_t rtpPkts, uint32_t snedBytes, uint32_t ssrc)
+{
+    auto buffer = StreamBuffer::create();
+    buffer->setCapacity(29);
+
+    RtcpHeader header;
+    header.version = 2;
+    header.padding = 0;
+    header.rc = 0;
+    header.type = RtcpType_SR;
+    header.length = htons(6);
+    header.ssrc = htonl(ssrc);
+
+    memcpy(buffer->data(), &header, 8);
+    // writeUint32BE(buffer->data() + 8, ssrc);
+
+    Ntp ntp = ConvertUnixTimeIntoNtpTime();
+    writeUint32BE(buffer->data() + 8, ntp.seconds);
+    writeUint32BE(buffer->data() + 12, ntp.fractions);
+    writeUint32BE(buffer->data() + 16, rtpTs);
+    writeUint32BE(buffer->data() + 20, rtpPkts);
+    writeUint32BE(buffer->data() + 24, snedBytes);
+
+    return buffer;
 }
 
 RtcpRR::RtcpRR(const StreamBuffer::Ptr& buffer, int pos)

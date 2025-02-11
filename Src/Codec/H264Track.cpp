@@ -24,7 +24,11 @@ void H264Track::setPps(const FrameBuffer::Ptr& pps)
     //     return ;
     // }
 
-    _pps = pps;
+    pps->split([this](const FrameBuffer::Ptr& subFrame) {
+        if (subFrame->getNalType() == 8) {
+            _pps = subFrame;
+        }
+    });
 
     // while (_pps->size() - _pps->startSize() < 5) {
     //     _pps->_buffer.append("\x00", 1);

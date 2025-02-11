@@ -46,6 +46,13 @@ enum RtcpPSFBFmt
     RtcpPSFBFmt_REMB= 15
 };
 
+class Ntp
+{
+public:
+    uint32_t seconds;
+    uint32_t fractions;
+};
+
 class RtcpHeader
 {
 public:
@@ -93,9 +100,12 @@ class RtcpSR : public RtcpPacket
 {
 public:
     RtcpSR(const StreamBuffer::Ptr& buffer, int pos);
+    RtcpSR() {}
 
 public:
     void parse();
+
+    StreamBuffer::Ptr encode(uint32_t rtpTs, uint32_t rtpPkts, uint32_t snedBytes, uint32_t ssrc);
 
 private:
     // ntp 时间

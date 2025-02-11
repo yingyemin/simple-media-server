@@ -58,36 +58,6 @@ void RtpEncodeH264::encodeFuA(const FrameBuffer::Ptr& frame) {
     auto fuHeader = (uint8_t)(frameData[0]) & 0x1F;
     FuHeader *fu_flags = (FuHeader *) (&fuHeader);
 
-    // _useStapA = true;
-    // if (_useStapA && frame->getNalType() == 5) {
-    //     FrameBuffer::Ptr sps;
-    //     FrameBuffer::Ptr pps;
-    //     FrameBuffer::Ptr vps;
-    //     _trackInfo->getVpsSpsPps(vps, sps, pps);
-
-    //     int spsSize = sps->size() - sps->startSize();
-    //     auto spsData = sps->data() + sps->startSize();
-    //     auto rtpSps = RtpPacket::create(_trackInfo, spsSize + 12 + 3, pts, _ssrc, _lastSeq++, false);
-        
-    //     auto payloadSps = rtpSps->getPayload();
-    //     payloadSps[0] = (spsData[0] & (~0x1F)) | 24;
-    //     payloadSps[1] = (spsSize >> 8) & 0xFF;
-    //     payloadSps[2] = spsSize & 0xff;
-    //     memcpy(payloadSps + 3, (uint8_t *) spsData, spsSize);
-    //     onRtpPacket(rtpSps, false);
-
-    //     int ppsSize = pps->size() - pps->startSize();
-    //     auto ppsData = pps->data() + pps->startSize();
-    //     auto rtpPps = RtpPacket::create(_trackInfo, ppsSize + 12 + 3, pts, _ssrc, _lastSeq++, false);
-        
-    //     auto payloadPps = rtpPps->getPayload();
-    //     payloadPps[0] = (ppsData[0] & (~0x1F)) | 24;
-    //     payloadPps[1] = (ppsSize >> 8) & 0xFF;
-    //     payloadPps[2] = ppsSize & 0xff;
-    //     memcpy(payloadPps + 3, (uint8_t *) ppsData, ppsSize);
-    //     onRtpPacket(rtpPps, false);
-    // }
-
     // logInfo << "nal type : " << (int)(frameData[0]);
     // logInfo << "fuIndicator : " << fuIndicator;
 
@@ -130,7 +100,7 @@ void RtpEncodeH264::encodeFuA(const FrameBuffer::Ptr& frame) {
     }
 }
 
-#if 0
+#if 1
 void RtpEncodeH264::encodeSingle(const FrameBuffer::Ptr& frame) {
     auto size = frame->size() - frame->startSize();
     auto frameData = frame->data() + frame->startSize();
@@ -140,39 +110,9 @@ void RtpEncodeH264::encodeSingle(const FrameBuffer::Ptr& frame) {
         // logError << "pts == _lastPts, " << _lastPts;
     }
 
-    _useStapA = true;
-    if (_useStapA && frame->getNalType() == 5) {
-        FrameBuffer::Ptr sps;
-        FrameBuffer::Ptr pps;
-        FrameBuffer::Ptr vps;
-        _trackInfo->getVpsSpsPps(vps, sps, pps);
-
-        int spsSize = sps->size() - sps->startSize();
-        auto spsData = sps->data() + sps->startSize();
-        auto rtpSps = RtpPacket::create(_trackInfo, spsSize + 12 + 3, pts, _ssrc, _lastSeq++, false);
-        
-        auto payloadSps = rtpSps->getPayload();
-        payloadSps[0] = (spsData[0] & (~0x1F)) | 24;
-        payloadSps[1] = (spsSize >> 8) & 0xFF;
-        payloadSps[2] = spsSize & 0xff;
-        memcpy(payloadSps + 3, (uint8_t *) spsData, spsSize);
-        onRtpPacket(rtpSps, false);
-
-        int ppsSize = pps->size() - pps->startSize();
-        auto ppsData = pps->data() + pps->startSize();
-        auto rtpPps = RtpPacket::create(_trackInfo, ppsSize + 12 + 3, pts, _ssrc, _lastSeq++, false);
-        
-        auto payloadPps = rtpPps->getPayload();
-        payloadPps[0] = (ppsData[0] & (~0x1F)) | 24;
-        payloadPps[1] = (ppsSize >> 8) & 0xFF;
-        payloadPps[2] = ppsSize & 0xff;
-        memcpy(payloadPps + 3, (uint8_t *) ppsData, ppsSize);
-        onRtpPacket(rtpPps, false);
-    }
-
     RtpPacket::Ptr rtp;
     if (frame->getNalType() == 7 || frame->getNalType() == 8) {
-        rtp = RtpPacket::create(_trackInfo, size + 12, pts, _ssrc, _lastSeq++, true/*pts != _lastPts*/);
+        rtp = RtpPacket::create(_trackInfo, size + 12, pts, _ssrc, _lastSeq++, false/*pts != _lastPts*/);
     } else {
         rtp = RtpPacket::create(_trackInfo, size + 12, pts, _ssrc, _lastSeq++, pts != _lastPts);
     }
@@ -196,7 +136,7 @@ void RtpEncodeH264::encodeSingle(const FrameBuffer::Ptr& frame) {
     RtpPacket::Ptr rtp;
     RtpPacket::Ptr rtpDump;
     if (frame->getNalType() == 7 || frame->getNalType() == 8) {
-        // _useStapA = true;
+        _useStapA = false;
         if (_useStapA) {
             rtpDump = RtpPacket::create(_trackInfo, size + 12 + 3, pts, _ssrc, _lastSeq++, false);
             auto payloadDump = rtpDump->getPayload();

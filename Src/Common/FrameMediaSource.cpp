@@ -17,6 +17,17 @@ FrameMediaSource::~FrameMediaSource()
     logInfo << "~FrameMediaSource";
 }
 
+// void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
+// {
+    // if (frame->getTrackType() == VideoTrackType) {
+    //     frame->split([&](const FrameBuffer::Ptr& subFrame) {
+    //         if (subFrame->size() - subFrame->startSize() > 0) {
+    //             inputFrame(subFrame);
+    //         }
+    //     });
+    // }
+// }
+
 void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
 {
     if (_origin && !isReady()) {

@@ -19,7 +19,7 @@ FrameBuffer::FrameBuffer()
 const char* FrameBuffer::findNextNalu(const char* p, size_t bytes, size_t& leading)
 {
     size_t i, zeros;
-    for (zeros = i = 0; i + 1 < bytes; i++)
+    for (zeros = i = 0; i < bytes; i++)
     {
         if (0x01 == p[i] && zeros >= 2)
         {

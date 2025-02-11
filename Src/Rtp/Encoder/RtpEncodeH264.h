@@ -30,7 +30,7 @@ public:
 private:
     bool _first = true;
     uint64_t _lastPts = 0;
-    uint16_t _lastSeq = 0;
+    uint16_t _lastSeq = 100;
     shared_ptr<TrackInfo> _trackInfo;
     function<void(const RtpPacket::Ptr& packet, bool start)> _onRtpPacket;
 };

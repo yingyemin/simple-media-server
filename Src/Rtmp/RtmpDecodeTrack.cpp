@@ -154,7 +154,7 @@ int RtmpDecodeTrack::createTrackInfo(int trackType, int codeId)
             // _trackInfo->codec_ = "g711u";
             // _trackInfo->index_ = AudioTrackType;
             // _trackInfo->trackType_ = "audio";
-            _trackInfo = OpusTrack::createTrack(AudioTrackType, 14, 44100);
+            _trackInfo = OpusTrack::createTrack(AudioTrackType, PayloadType_OPUS, 44100);
         } else {
             // throw runtime_error("不支持的解码格式:" + to_string(codeId));
             logWarn << "不支持的audio解码格式:" << codeId;

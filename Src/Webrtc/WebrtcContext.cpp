@@ -693,6 +693,7 @@ void WebrtcContext::onRtpPacket(const Socket::Ptr& socket, const RtpPacket::Ptr&
     }
     // logInfo << "get a rtp packet: " << rtp->size();
     _lastPktClock.update();
+    _totalRtpCnt++;
 
     // 如果是rtx，并且有padding，认为是探测包，不处理；判断方式是否正确??
     if (_videoRtxPtInfo && rtp->getSSRC() == _videoRtxPtInfo->ssrc_ && rtp->getHeader()->padding) {
@@ -704,7 +705,7 @@ void WebrtcContext::onRtpPacket(const Socket::Ptr& socket, const RtpPacket::Ptr&
     }, "Webrtc", "Server", "Server1", "lossIntervel");
 
     // 模拟丢包
-    if (lossIntervel && _videoPtInfo && rtp->getSSRC() == _videoPtInfo->ssrc_ && _totalRtpCnt++ % lossIntervel == 0) {
+    if (lossIntervel && _videoPtInfo && rtp->getSSRC() == _videoPtInfo->ssrc_ && _totalRtpCnt % lossIntervel == 0) {
         logInfo << "loss a seq: " << rtp->getSeq();
         return ;
     }
@@ -774,6 +775,9 @@ void WebrtcContext::onRtpPacket(const Socket::Ptr& socket, const RtpPacket::Ptr&
         rtpPacket->setRtxFlag(false);
         rtpPacket->resetHeader();
         logInfo << "get a resend packet: " << rtpPacket->getSeq();
+    } else {
+        _lastRtpTs = rtp->getStamp();
+        _totalRtpBytes += rtp->size();
     }
 
     if ((_videoPtInfo && rtp->getHeader()->pt == _videoPtInfo->payloadType_) 
@@ -1044,6 +1048,10 @@ void WebrtcContext::handleRtcp(char* buf, int size)
             // TODO lastSeq == curSeq + 1，判断是否丢包
             auto pktChunks = nackRtcp->getPktChunks();
             // TODO 判断是否拥塞阻塞了，进一步可以调整码率，帧率之类的操作
+        } else if (subRtcp->getHeader()->type == RtcpType_RR) {
+            auto rtcpSr = make_shared<RtcpSR>();
+            auto srBuffer = rtcpSr->encode(_lastRtpTs, _totalRtpCnt, _totalRtpBytes, subRtcp->getHeader()->ssrc);
+            _socket->send(srBuffer, 1, 0, 0, _addr, _addrLen);
         }
     });
 
@@ -1074,6 +1082,10 @@ void WebrtcContext::sendMedia(const RtpPacket::Ptr& rtp)
     if (startSize < 0 || rtp->size() < startSize) {
         return ;
     }
+
+    _lastRtpTs = rtp->getStamp();
+    ++_totalRtpCnt;
+    _totalRtpBytes += rtp->size();
 
     // logInfo << "WebrtcContext::sendMedia: " << startSize << ", rtp size: " << rtp->size();
     // logInfo << "rtp type: " << rtp->type_ << ", rtp stamp: " << rtp->getStamp();

@@ -55,7 +55,7 @@ static shared_ptr<TrackInfo> createTrackBySdp(const shared_ptr<SdpMedia>& media)
     } else if (strcasecmp(media->codec_.data(), "opus") == 0) {
         auto opusTrackInfo = make_shared<OpusTrack>();
         trackInfo = opusTrackInfo;
-        trackInfo->codec_ = "g711u";
+        trackInfo->codec_ = "opus";
     } else if (strcasecmp(media->codec_.data(), "mp3") == 0) {
         auto mp3Track = make_shared<Mp3Track>();
         trackInfo = mp3Track;

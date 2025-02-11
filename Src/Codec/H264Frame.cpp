@@ -104,7 +104,7 @@ void H264Frame::split(const function<void(const FrameBuffer::Ptr& frame)>& cb)
         alwaysSplit = Config::instance()->get("alwaysSplit");
     }, "alwaysSplit");
 
-    while (true) {
+    while (start + prefix < end) {
         int type = getNalType(*(start + prefix));
         if (!(alwaysSplit || type == H264_SPS || type == H264_PPS
                 || type == H264_SEI || type == H264_AUD))
@@ -138,6 +138,10 @@ void H264Frame::split(const function<void(const FrameBuffer::Ptr& frame)>& cb)
         return ;
     }
     
+    if (start + prefix == end) {
+        // 最后只有startcode，没有实际数据，丢弃
+        return ;
+    }
     //未找到下一帧,这是最后一帧
     H264Frame::Ptr subFrame = make_shared<H264Frame>(dynamic_pointer_cast<H264Frame>(shared_from_this()));
     subFrame->_startSize = prefix;
