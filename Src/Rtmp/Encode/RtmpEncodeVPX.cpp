@@ -11,7 +11,9 @@ using namespace std;
 
 RtmpEncodeVPX::RtmpEncodeVPX(const shared_ptr<TrackInfo>& trackInfo)
     :_trackInfo(trackInfo)
-{}
+{
+    _enhanced = true;
+}
 
 RtmpEncodeVPX::~RtmpEncodeVPX()
 {
@@ -32,10 +34,10 @@ string RtmpEncodeVPX::getConfig()
 
     if (_enhanced) {
         *data++ = 1 << 7 | 1  << 4;
-        *data++ = 'h';
         *data++ = 'v';
-        *data++ = 'c';
-        *data++ = '1';
+        *data++ = 'p';
+        *data++ = '0';
+        *data++ = '9';
     } else {
         *data++ = 0x1c; //key frame, AVC
         *data++ = 0x00; //avc sequence header
@@ -73,14 +75,14 @@ void RtmpEncodeVPX::encode(const FrameBuffer::Ptr& frame)
     if (_enhanced) {
         uint8_t frameType = keyFrame ? 1 : 2;
         *data++ = 1 << 7 | frameType << 4 | 1;
-        *data++ = 'h';
         *data++ = 'v';
-        *data++ = 'c';
-        *data++ = '1';
-        *data++ = (uint8_t)(cts >> 16); 
-        *data++ = (uint8_t)(cts >> 8); 
-        *data++ = (uint8_t)(cts); 
-        index += 8;
+        *data++ = 'p';
+        *data++ = '0';
+        *data++ = '9';
+        // *data++ = (uint8_t)(cts >> 16); 
+        // *data++ = (uint8_t)(cts >> 8); 
+        // *data++ = (uint8_t)(cts); 
+        index += 5;
     } else {
         if (keyFrame) {
             *data++ = 0x1c;

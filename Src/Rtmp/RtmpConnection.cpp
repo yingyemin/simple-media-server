@@ -373,6 +373,7 @@ bool RtmpConnection::handleVideo(RtmpMessage& rtmp_msg)
 {
     static uint32_t fourccH265 = (unsigned)('h') << 24 | 'v' << 16 | 'c' << 8 | '1';
     static uint32_t fourccAV1 = (unsigned)('a') << 24 | 'v' << 16 | '0' << 8 | '1';
+    static uint32_t fourccVP9 = (unsigned)('v') << 24 | 'p' << 16 | '0' << 8 | '9';
 
     if (!_validVideoTrack) {
         return false;
@@ -404,6 +405,8 @@ bool RtmpConnection::handleVideo(RtmpMessage& rtmp_msg)
             codec_id = RTMP_CODEC_ID_H265;
         } else if (readUint32BE((char*)payload + 1) == fourccAV1) {
             codec_id = RTMP_CODEC_ID_AV1;
+        } else if (readUint32BE((char*)payload + 1) == fourccVP9) {
+            codec_id = RTMP_CODEC_ID_VP9;
         } else {
             close();
             return false;

@@ -23,6 +23,10 @@ string getCodecNameById(int trackType, int codeId)
             return "av1";
             break;
         
+        case RTMP_CODEC_ID_VP9:
+            return "vp9";
+            break;
+        
         default:
             return "";
             break;

@@ -87,6 +87,10 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
 
                 if (_videoStampAdjust)
                     _videoStampAdjust->inputStamp(frame->_pts, frame->_dts, 1);
+                if (_frame) {
+                    _ring->write(_frame, false);
+                    _frame = nullptr;
+                }
                 _ring->write(frame, keyframe);
             } else if (frame->isNewNalu() && _frame) {
                 if (_frame->keyFrame()) {

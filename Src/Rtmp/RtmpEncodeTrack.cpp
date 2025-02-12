@@ -21,6 +21,10 @@ void RtmpEncodeTrack::startEncode()
     weak_ptr<RtmpEncodeTrack> wSelf = dynamic_pointer_cast<RtmpEncodeTrack>(shared_from_this());
     if (!_encoder) {
         _encoder = RtmpEncode::create(_trackInfo);
+        if (!_encoder) {
+            logWarn << "create encoder failed, codec: " << _trackInfo->codec_;
+            return ;
+        }
         _encoder->setOnRtmpPacket([wSelf](const RtmpMessage::Ptr& pkt, bool start){
             auto self = wSelf.lock();
             if (self) {
@@ -29,6 +33,9 @@ void RtmpEncodeTrack::startEncode()
         });
         _encoder->setEnhanced(_enhanced);
         _encoder->setEnhanced(_enableFastPts);
+        if (_trackInfo->codec_ == "vp8" || _trackInfo->codec_ == "vp9" || _trackInfo->codec_ == "h264" || _trackInfo->codec_ == "av1") {
+            _encoder->setEnhanced(true);
+        }
     }
 }
 

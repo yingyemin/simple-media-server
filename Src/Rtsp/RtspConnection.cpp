@@ -853,6 +853,7 @@ void RtspConnection::handlePlay()
                 int bytes = transport->sendRtpPacket(*it, it == pack->end());
                 strong_self->_intervalSendBytes += bytes;
                 strong_self->_totalSendBytes += bytes;
+                logInfo << "type: " << (*it)->type_ << ", stamp: " << (*it)->getStamp();
             }
             // auto rtp = pack->front();
             // int index = rtp->trackIndex_;

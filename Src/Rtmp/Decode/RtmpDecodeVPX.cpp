@@ -50,26 +50,28 @@ void RtmpDecodeVPX::decode(const RtmpMessage::Ptr& msg)
             return ;
         }
 
-        auto frame = FrameBuffer::createFrame(_trackInfo->codec_, 0, _trackInfo->index_, false);
-        frame->_pts = frame->_dts = msg->abs_timestamp;
-        frame->_buffer.append((char*)payload + 13, length - 13);
-        _trackInfo->setVps(frame);
-        onFrame(frame);
+        // auto frame = FrameBuffer::createFrame(_trackInfo->codec_, 0, _trackInfo->index_, false);
+        // frame->_pts = frame->_dts = msg->abs_timestamp;
+        // frame->_buffer.append((char*)payload + 5, length - 5);
+        // _trackInfo->setVps(frame);
+        auto vp9Track = dynamic_pointer_cast<VP9Track>(_trackInfo);
+        vp9Track->setConfig(string((char*)payload + 5 + 4, length - 5 - 4));
+        // onFrame(frame);
     } else {
         // i b p
-        int num =0;
+        int num = 5;
         int32_t cts = 0;
 
-        if (isEnhance) {
-            if (packet_type == 1 || packet_type == 3) {
-                if (packet_type == 1) {
-                    cts = (((payload[num] << 16) | (payload[num + 1] << 8) | (payload[num + 2])) + 0xff800000) ^ 0xff800000;
-                    num += 3;
-                }
-            } else {
-                return ;
-            }
-        }
+        // if (isEnhance) {
+        //     if (packet_type == 1 || packet_type == 3) {
+        //         if (packet_type == 1) {
+        //             cts = (((payload[num] << 16) | (payload[num + 1] << 8) | (payload[num + 2])) + 0xff800000) ^ 0xff800000;
+        //             num += 3;
+        //         }
+        //     } else {
+        //         return ;
+        //     }
+        // }
 
         payload += num;
         if(payload < end) {
@@ -90,7 +92,7 @@ void RtmpDecodeVPX::setOnFrame(const function<void(const FrameBuffer::Ptr& frame
 
 void RtmpDecodeVPX::onFrame(const FrameBuffer::Ptr& frame)
 {
-    logInfo << "get a VPX nal: " << (int)(frame->getNalType());
+    // logInfo << "get a VPX nal: " << (int)(frame->getNalType());
     if (_onFrame) {
         _onFrame(frame);
     }

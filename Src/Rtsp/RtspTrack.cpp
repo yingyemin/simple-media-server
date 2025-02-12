@@ -13,6 +13,7 @@
 #include "Codec/H264Track.h"
 #include "Codec/H265Track.h"
 #include "Codec/OpusTrack.h"
+#include "Codec/VP9Track.h"
 #include "Codec/H265Frame.h"
 #include "Codec/H264Frame.h"
 #include "Rtp/Decoder/RtpDecodeH264.h"
@@ -119,7 +120,11 @@ static shared_ptr<TrackInfo> createTrackBySdp(const shared_ptr<SdpMedia>& media)
         h265TrackInfo->setPps(ppsFrame);
         trackInfo = h265TrackInfo;
         trackInfo->codec_ = "h265";
-    }
+    } else if (strcasecmp(media->codec_.data(), "vp9") == 0) {
+        auto vp9Track = make_shared<VP9Track>();
+        trackInfo = vp9Track;
+        trackInfo->codec_ = "vp9";
+    } 
 
     if (trackInfo) {
         trackInfo->payloadType_ = media->payloadType_;

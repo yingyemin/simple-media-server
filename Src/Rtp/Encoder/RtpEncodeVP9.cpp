@@ -48,6 +48,8 @@ void RtpEncodeVP9::makeRtp(const char *data, size_t len, bool start, bool mark, 
     }
     memcpy(payload + 1, data, len);
 
+    // logInfo << "pts: " << pts << ", rtp stamp: " << rtp->getStamp();
+
     onRtpPacket(rtp, gopStart);
 }
 
