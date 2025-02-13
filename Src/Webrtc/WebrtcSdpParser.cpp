@@ -362,6 +362,7 @@ void WebrtcSdpMedia::parseExtmap(const string& value)
 
 void WebrtcSdpMedia::parseRtpmap(const string& value)
 {
+    logInfo << "parseRtpmap: " << value;
     auto vecValue = split(value, " ");
     if (vecValue.size() < 2) {
         return ;

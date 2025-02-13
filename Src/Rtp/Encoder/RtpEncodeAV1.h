@@ -25,7 +25,8 @@ public:
 
     void setOnRtpPacket(const function<void(const RtpPacket::Ptr& packet, bool start)>& cb);
     void onRtpPacket(const RtpPacket::Ptr& packet, bool start);
-    void encodeObu(const uint8_t* payload, size_t len, uint8_t aggregation, bool gopStart, uint64_t pts);
+    void encodeObu(const uint8_t* payload, size_t len, uint8_t& aggregation, 
+                                bool gopStart, uint64_t pts, bool lastobu);
 
 private:
     uint64_t _lastPts = 0;

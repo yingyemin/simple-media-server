@@ -38,6 +38,11 @@ string RtmpEncodeVPX::getConfig()
         *data++ = 'p';
         *data++ = '0';
         *data++ = '9';
+        // ffmpeg推的流，后面还有四个字节，不加也可以播
+        // *data++ = 0x01;
+        // *data++ = 0x00;
+        // *data++ = 0x00;
+        // *data++ = 0x00;
     } else {
         *data++ = 0x1c; //key frame, AVC
         *data++ = 0x00; //avc sequence header
@@ -79,6 +84,7 @@ void RtmpEncodeVPX::encode(const FrameBuffer::Ptr& frame)
         *data++ = 'p';
         *data++ = '0';
         *data++ = '9';
+        // ffmpeg 没有cts字段，这里先注释
         // *data++ = (uint8_t)(cts >> 16); 
         // *data++ = (uint8_t)(cts >> 8); 
         // *data++ = (uint8_t)(cts); 

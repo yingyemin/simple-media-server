@@ -59,15 +59,17 @@ void VP9Frame::registerFrame()
 
 bool VP9Frame::keyFrame() const
 {
-    return getNalType((uint8_t*)data(), size());
+    return getNalType((uint8_t*)data(), size()) == VP9_KEYFRAME;
 }
 
 uint8_t VP9Frame::getNalType(uint8_t* nalByte, int len)
 {
+    // 好像只有关键帧的startcode才是这个
+    // 非关键帧的startcode是 86 00 40 92
     const static uint8_t startcode[] = { 0x49, 0x83, 0x42 };
 
     if (len < 4 || nalByte[1] != startcode[0] || nalByte[2] != startcode[1] || nalByte[3] != startcode[2]) {
-        return false;
+        return VP9_FRAME;
     }
 
     VP9Bitstream bitsream(nalByte, len);
@@ -84,5 +86,5 @@ uint8_t VP9Frame::getNalType(uint8_t* nalByte, int len)
 
     int frame_type = bitsream.GetBit();
 
-    return frame_type == VP9_KEYFRAME;
+    return frame_type;
 }

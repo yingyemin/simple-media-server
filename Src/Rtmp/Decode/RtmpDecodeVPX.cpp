@@ -55,6 +55,8 @@ void RtmpDecodeVPX::decode(const RtmpMessage::Ptr& msg)
         // frame->_buffer.append((char*)payload + 5, length - 5);
         // _trackInfo->setVps(frame);
         auto vp9Track = dynamic_pointer_cast<VP9Track>(_trackInfo);
+        // ffmpeg推过来的，rtmp header后还多了4个字节01 00 00 00
+        // 但是我encode的时候，没有加也正常播放
         vp9Track->setConfig(string((char*)payload + 5 + 4, length - 5 - 4));
         // onFrame(frame);
     } else {
@@ -62,6 +64,7 @@ void RtmpDecodeVPX::decode(const RtmpMessage::Ptr& msg)
         int num = 5;
         int32_t cts = 0;
 
+        // ffmpeg推过来的流没有cts字段
         // if (isEnhance) {
         //     if (packet_type == 1 || packet_type == 3) {
         //         if (packet_type == 1) {

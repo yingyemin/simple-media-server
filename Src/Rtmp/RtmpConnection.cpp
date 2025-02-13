@@ -371,9 +371,9 @@ bool RtmpConnection::handleUserEvent(RtmpMessage& rtmp_msg)
 
 bool RtmpConnection::handleVideo(RtmpMessage& rtmp_msg)
 {
-    static uint32_t fourccH265 = (unsigned)('h') << 24 | 'v' << 16 | 'c' << 8 | '1';
-    static uint32_t fourccAV1 = (unsigned)('a') << 24 | 'v' << 16 | '0' << 8 | '1';
-    static uint32_t fourccVP9 = (unsigned)('v') << 24 | 'p' << 16 | '0' << 8 | '9';
+    // static uint32_t fourccH265 = (unsigned)('h') << 24 | 'v' << 16 | 'c' << 8 | '1';
+    // static uint32_t fourccAV1 = (unsigned)('a') << 24 | 'v' << 16 | '0' << 8 | '1';
+    // static uint32_t fourccVP9 = (unsigned)('v') << 24 | 'p' << 16 | '0' << 8 | '9';
 
     if (!_validVideoTrack) {
         return false;

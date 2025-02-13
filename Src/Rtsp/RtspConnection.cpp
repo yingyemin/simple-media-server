@@ -389,6 +389,10 @@ void RtspConnection::handleAnnounce_l() {
                 media->channel_ = 2;
                 media->samplerate_ = 44100;
             } 
+        } else if (media->trackType_ == "video" && media->codec_ == "") {
+            if (media->payloadType_ == 96) {
+                media->codec_ = "av1";
+            }
         }
         RtspTrack::Ptr track;
         if (_payloadType == "ps") {
@@ -853,7 +857,7 @@ void RtspConnection::handlePlay()
                 int bytes = transport->sendRtpPacket(*it, it == pack->end());
                 strong_self->_intervalSendBytes += bytes;
                 strong_self->_totalSendBytes += bytes;
-                logInfo << "type: " << (*it)->type_ << ", stamp: " << (*it)->getStamp();
+                // logInfo << "type: " << (*it)->type_ << ", stamp: " << (*it)->getStamp();
             }
             // auto rtp = pack->front();
             // int index = rtp->trackIndex_;

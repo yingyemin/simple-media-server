@@ -93,7 +93,7 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
                 }
                 _ring->write(frame, keyframe);
             } else if (frame->isNewNalu() && _frame) {
-                if (_frame->keyFrame()) {
+                if (_frame->keyFrame() && (_frame->codec() == "h264" || _frame->codec() == "h265")) {
                     if (!_sendConfig) {
                         FrameBuffer::Ptr vps;
                         FrameBuffer::Ptr sps;

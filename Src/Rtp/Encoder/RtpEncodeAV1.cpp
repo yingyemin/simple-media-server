@@ -29,6 +29,7 @@ void RtpEncodeAV1::encode(const FrameBuffer::Ptr& frame)
     uint64_t len;
     const uint8_t* ptr = nullptr;
     uint8_t aggregation = 0;
+    bool lastobu = false;
 
     while (index < size) {
         obu_type = (payload[index] >> 3) & 0x0F;
@@ -56,24 +57,39 @@ void RtpEncodeAV1::encode(const FrameBuffer::Ptr& frame)
 			len = size - index;
 		}
 
+        if (index + len > size) {
+            logWarn << "invalid obu: index + len > size";
+            return ;
+        }
+
 		// 5. Packetization rules
 		// The temporal delimiter OBU, if present, SHOULD be removed 
 		// when transmitting, and MUST be ignored by receivers.
-		if (OBU_TEMPORAL_DELIMITER == obu_type)
+		if (OBU_TEMPORAL_DELIMITER == obu_type) {
+            index += len;
 			continue;
+        }
 
 		aggregation |= OBU_SEQUENCE_HEADER == obu_type ? AV1_AGGREGATION_HEADER_N : 0;
 
-        encodeObu(payload + index, (size_t)len, aggregation, frame->startFrame(), pts);
+        if (index + len >= size) {
+            lastobu = true;
+        }
+        encodeObu(payload + index, (size_t)len, aggregation, frame->startFrame(), pts, lastobu);
+        index += len;
+
+        logInfo << "ptr index: " << index << ", size: " << size;
     }
 }
 
-void RtpEncodeAV1::encodeObu(const uint8_t* payload, size_t size, uint8_t aggregation, bool gopStart, uint64_t pts)
+void RtpEncodeAV1::encodeObu(const uint8_t* payload, size_t size, uint8_t& aggregation, 
+                                bool gopStart, uint64_t pts, bool lastobu)
 {
     bool start = true;
     while (size > 0) {
         if (size <= _maxRtpSize) {
-            makeRtp((char*)payload, size, start, true, gopStart, pts, aggregation);
+            makeRtp((char*)payload, size, start, lastobu, gopStart, pts, aggregation);
+            aggregation = 0;
             break;
         }
         makeRtp((char*)payload, _maxRtpSize, start, false, gopStart, pts, aggregation | AV1_AGGREGATION_HEADER_Y);

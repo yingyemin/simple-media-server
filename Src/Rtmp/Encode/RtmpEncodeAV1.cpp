@@ -36,9 +36,9 @@ string RtmpEncodeAV1::getConfig()
 
     if (_enhanced) {
         *data++ = 1 << 7 | 1  << 4;
-        *data++ = 'h';
+        *data++ = 'a';
         *data++ = 'v';
-        *data++ = 'c';
+        *data++ = '0';
         *data++ = '1';
     } else {
         *data++ = 0x1c; //key frame, AVC
@@ -82,14 +82,14 @@ void RtmpEncodeAV1::encode(const FrameBuffer::Ptr& frame)
     if (_enhanced) {
         uint8_t frameType = keyFrame ? 1 : 2;
         *data++ = 1 << 7 | frameType << 4 | 1;
-        *data++ = 'h';
+        *data++ = 'a';
         *data++ = 'v';
-        *data++ = 'c';
+        *data++ = '0';
         *data++ = '1';
-        *data++ = (uint8_t)(cts >> 16); 
-        *data++ = (uint8_t)(cts >> 8); 
-        *data++ = (uint8_t)(cts); 
-        index += 8;
+        // *data++ = (uint8_t)(cts >> 16); 
+        // *data++ = (uint8_t)(cts >> 8); 
+        // *data++ = (uint8_t)(cts); 
+        index += 5;
     } else {
         if (keyFrame) {
             *data++ = 0x1c;

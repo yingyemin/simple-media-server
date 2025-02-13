@@ -33,7 +33,7 @@ void RtmpEncodeTrack::startEncode()
         });
         _encoder->setEnhanced(_enhanced);
         _encoder->setEnhanced(_enableFastPts);
-        if (_trackInfo->codec_ == "vp8" || _trackInfo->codec_ == "vp9" || _trackInfo->codec_ == "h264" || _trackInfo->codec_ == "av1") {
+        if (_trackInfo->codec_ == "vp8" || _trackInfo->codec_ == "vp9" || _trackInfo->codec_ == "av1") {
             _encoder->setEnhanced(true);
         }
     }

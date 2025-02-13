@@ -242,7 +242,7 @@ void RtmpMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
             memcpy(_aacHeader->data(), config.data(), _aacHeaderSize);
         } else if (!_avcHeader && track->trackType_ == "video") {
             auto config = rtmpTrack->getConfig();
-            if (track->codec_ == "h264" || track->codec_ == "h265") {
+            if (track->codec_ == "h264" || track->codec_ == "h265" || track->codec_ == "av1") {
                 _avcHeaderSize = config.size();
                 _avcHeader = make_shared<StreamBuffer>(_avcHeaderSize + 1);
                 memcpy(_avcHeader->data(), config.data(), _avcHeaderSize);

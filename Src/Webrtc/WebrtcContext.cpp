@@ -308,6 +308,8 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
             // cloneTrack(trackInfo, videoInfo);
 
             for (auto ptIter : sdpMedia->mapPtInfo_) {
+                logInfo << "video/audio codec:" << ptIter.second->codec_;
+                logInfo << "video/audio pt:" << ptIter.first;
                 if (videoInfo && strcasecmp(ptIter.second->codec_.data(), videoInfo->codec_.data()) == 0) {
                     findFlag = true;
                     if (isH264) {
@@ -320,6 +322,12 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
                             remotePtInfo = ptIter.second;
                             break;
                         }
+                    } else if (videoInfo->codec_ == "av1") {
+                        if (ptIter.second->fmtp_.find("profile=0") != string::npos) {
+                            remotePtInfo = ptIter.second;
+                        } else if (!remotePtInfo) {
+                            remotePtInfo = ptIter.second;
+                        }
                     } else {
                         remotePtInfo = ptIter.second;
                         break;
@@ -330,9 +338,9 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
                         first = false;
                     }
 
-                    if (ptIter.second->fmtp_.find("42e01f") != string::npos) {
+                    if (ptIter.second->fmtp_.find("42e01f") != string::npos && !remotePtInfo) {
                         remotePtInfo = ptIter.second;
-                        break;
+                        // break;
                     }
                 }
             }

@@ -52,19 +52,19 @@ void RtmpDecodeAV1::decode(const RtmpMessage::Ptr& msg)
         onFrame(frame);
     } else {
         // i b p
-        int num =0;
+        int num = 5;
         int32_t cts = 0;
 
-        if (isEnhance) {
-            if (packet_type == 1 || packet_type == 3) {
-                if (packet_type == 1) {
-                    cts = (((payload[num] << 16) | (payload[num + 1] << 8) | (payload[num + 2])) + 0xff800000) ^ 0xff800000;
-                    num += 3;
-                }
-            } else {
-                return ;
-            }
-        }
+        // if (isEnhance) {
+        //     if (packet_type == 1 || packet_type == 3) {
+        //         if (packet_type == 1) {
+        //             cts = (((payload[num] << 16) | (payload[num + 1] << 8) | (payload[num + 2])) + 0xff800000) ^ 0xff800000;
+        //             num += 3;
+        //         }
+        //     } else {
+        //         return ;
+        //     }
+        // }
 
         payload += num;
         if(payload < end) {

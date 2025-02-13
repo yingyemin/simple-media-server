@@ -52,10 +52,10 @@ public:
 
     bool startFrame() const override {return getObuType() == OBU_SEQUENCE_HEADER;}
 
-    uint8_t getNalType() override {return AV1_KEYFRAME;}
+    uint8_t getNalType() override {return getObuType();}
     uint8_t getObuType() const;
 
-    bool isNonPicNalu() override {return getObuType() != OBU_FRAME;}
+    bool isNonPicNalu() override;
 
     void split(const function<void(const FrameBuffer::Ptr& frame)>& cb) override;
 

@@ -210,13 +210,30 @@ bool FlvMuxerWithRtmp::sendMediaData(uint8_t type, uint64_t timestamp, const Str
 
 	if (type == RTMP_VIDEO) {
 		if (!_hasKeyFrame) {
-			uint8_t frame_type = (payload->data()[0] >> 4) & 0x0f;
-			uint8_t codec_id = payload->data()[0] & 0x0f;
+			bool isEnhance = (payload->data()[0] >> 4) & 0b1000;
+			uint8_t frame_type;// = (payload->data()[0] >> 4) & 0x0f;
+			uint8_t codec_id;// = payload->data()[0] & 0x0f;
+			if (isEnhance) {
+				if (payload_size < 5) {
+					return false;
+				}
+				frame_type = (payload->data()[0] >> 4) & 0b0111;
+				if (readUint32BE((char*)payload->data() + 1) == fourccH265) {
+					codec_id = RTMP_CODEC_ID_H265;
+				} else if (readUint32BE((char*)payload->data() + 1) == fourccAV1) {
+					codec_id = RTMP_CODEC_ID_AV1;
+				} else if (readUint32BE((char*)payload->data() + 1) == fourccVP9) {
+					codec_id = RTMP_CODEC_ID_VP9;
+				}
+			} else {
+				frame_type = (payload->data()[0] >> 4) & 0x0f;
+				codec_id = payload->data()[0] & 0x0f;
+			}
 
 			logInfo << "frame_type : " << (int)frame_type << ", codec_id: " << (int)codec_id
 					<< ", timestamp: " << timestamp;
 
-			if (frame_type == 1 && (codec_id == RTMP_CODEC_ID_H264 || codec_id == RTMP_CODEC_ID_H265)) {
+			if (frame_type == 1/* && (codec_id == RTMP_CODEC_ID_H264 || codec_id == RTMP_CODEC_ID_H265)*/) {
 				_hasKeyFrame = true;
 			}
 			else {

@@ -168,6 +168,15 @@ uint8_t AV1Frame::getObuType() const
     return (payload[0] >> 3) & 0x0F;
 }
 
+bool AV1Frame::isNonPicNalu()
+{
+	// uint8_t obuType = getObuType();
+	// logInfo << "obu type: " << (int)obuType;
+    // return obuType != OBU_FRAME && obuType != OBU_FRAME_HEADER && obuType != OBU_SEQUENCE_HEADER;
+
+	return false;
+}
+
 FrameBuffer::Ptr AV1Frame::createFrame(int startSize, int index, bool addStart)
 {
     auto frame = make_shared<AV1Frame>();

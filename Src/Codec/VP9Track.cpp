@@ -137,6 +137,8 @@ void VP9Track::onFrame(const FrameBuffer::Ptr& frame)
 
     nalByte = (uint8_t*)frame->data();
 
+    // 好像只有关键帧的startcode才是这个
+    // 非关键帧的startcode是 86 00 40 92
     const static uint8_t startcode[] = { 0x49, 0x83, 0x42 };
 
     if (len < 4 || nalByte[1] != startcode[0] || nalByte[2] != startcode[1] || nalByte[3] != startcode[2]) {
