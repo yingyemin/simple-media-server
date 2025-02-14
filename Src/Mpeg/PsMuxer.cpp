@@ -263,7 +263,7 @@ int PsMuxer::makePsmHeader(int index)
         dataLen -= 4;
     }
     // auto pData = _psFrame->data() + index;
-    unsigned char pData[dataLen] = {0};
+    unsigned char pData[PSM_HDR_LEN] = {0};
 
     bits_buffer_s   bitsBuffer;
     bitsBuffer.i_size = dataLen; 

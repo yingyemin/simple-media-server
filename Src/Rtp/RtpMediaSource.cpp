@@ -306,6 +306,10 @@ void RtpMediaSource::onFrame(const FrameBuffer::Ptr& frame)
 
 int RtpMediaSource::playerCount()
 {
+    if (!_ring) {
+        return 0;
+    }
+    
     int count = _ring->readerCount();
     lock_guard<mutex> lck(_mtxTrack);
     count -= _mapSink.size();

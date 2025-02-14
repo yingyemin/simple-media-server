@@ -31,17 +31,17 @@ void RtpApi::createRtpReceiver(const HttpParser& parser, const UrlParser& urlPar
     rsp._status = 200;
     json value;
 
-    checkArgs(parser._body, {"active", "ssrc", "socketType", "streamName", "appName"});
+    checkArgs(parser._body, {"active", "ssrc", "streamName", "appName"});
 
     int active = toInt(parser._body["active"]);
     int ssrc = toInt(parser._body["ssrc"]);
-    int socketType = toInt(parser._body["socketType"]); //1:tcp,2:udp,3:both
     string streamName = parser._body["streamName"];
     string appName = parser._body["appName"];
 
     if (active) {
-        checkArgs(parser._body, {"port", "ip"});
+        checkArgs(parser._body, {"socketType", "port", "ip"});
         int port = toInt(parser._body["port"]);
+        int socketType = toInt(parser._body["socketType"]); //1:tcp,2:udp,3:both
         string ip = parser._body["ip"];
 
         auto pull = make_shared<RtpClientPull>(ip, port, appName, streamName, ssrc, socketType);
@@ -56,8 +56,9 @@ void RtpApi::createRtpReceiver(const HttpParser& parser, const UrlParser& urlPar
 
         int newServer = toInt(parser._body.value("newServer", "0"));
         if (newServer) {
-            checkArgs(parser._body, {"port"});
+            checkArgs(parser._body, {"socketType", "port"});
             int port = toInt(parser._body["port"]);
+            int socketType = toInt(parser._body["socketType"]); //1:tcp,2:udp,3:both
 
             if (ssrc) {
                 RtpServer::instance()->startReceive("0.0.0.0", port, socketType);

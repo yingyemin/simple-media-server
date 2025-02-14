@@ -56,39 +56,65 @@ bool RtpContext::init()
                     });
 
     if (!source) {
-        logWarn << "another stream is exist with the same uri";
-        return false;
+        if (_payloadType == "raw") {
+            source = MediaSource::get(_uri, _vhost, _protocol, _type);
+            if (!source) {
+                logInfo << "source is not exists";
+                return false;
+            }
+        } else {
+            logWarn << "another stream is exist with the same uri";
+            return false;
+        }
     }
     logInfo << "create a RtpMediaSource";
     auto gbSrc = dynamic_pointer_cast<RtpMediaSource>(source);
     if (!gbSrc) {
-        logWarn << "source is not gb source";
+        logWarn << "source is not rtp source";
         return false;
     }
     gbSrc->setOrigin();
+    _loop = gbSrc->getLoop();
 
+    weak_ptr<RtpContext> wSelf = shared_from_this();
     if (_payloadType == "ps" || _payloadType == "ts") {
         _videoTrack = make_shared<RtpDecodeTrack>(0, _payloadType);
-        gbSrc->addTrack(_videoTrack);
     } else {
         if (_videoTrack) {
-            gbSrc->addTrack(_videoTrack);
-            gbSrc->addDecodeTrack(_videoTrack->getTrackInfo());
+            _loop->async([wSelf, gbSrc](){
+                auto self = wSelf.lock();
+                if (self){
+                    gbSrc->addTrack(self->_videoTrack);
+                    gbSrc->addDecodeTrack(self->_videoTrack->getTrackInfo());
+                }
+            }, true);
         }
         if (_audioTrack) {
-            gbSrc->addTrack(_audioTrack);
-            gbSrc->addDecodeTrack(_audioTrack->getTrackInfo());
+            _loop->async([wSelf, gbSrc](){
+                auto self = wSelf.lock();
+                if (self){
+                    gbSrc->addTrack(self->_audioTrack);
+                    gbSrc->addDecodeTrack(self->_audioTrack->getTrackInfo());
+                }
+            }, true);
         }
     }
 
-    weak_ptr<RtpContext> wSelf = shared_from_this();
-    gbSrc->addOnDetach(this, [wSelf](){
+
+    _loop->async([wSelf, gbSrc](){
         auto self = wSelf.lock();
         if (!self) {
             return ;
         }
-        self->_alive = false;
-    });
+        gbSrc->addOnDetach(self.get(), [wSelf](){
+            auto self = wSelf.lock();
+            if (!self) {
+                return ;
+            }
+            self->_alive = false;
+        });
+    }, true);
+    
     _source = gbSrc;
 
     _loop->addTimerTask(5000, [wSelf](){
@@ -150,9 +176,12 @@ bool RtpContext::init()
 void RtpContext::onRtpPacket(const RtpPacket::Ptr& rtp, struct sockaddr* addr, int len, bool sort)
 {
     if (!_loop) {
+        // logInfo << "init loop";
         _loop = EventLoop::getCurrentLoop();
         init();
     }
+
+    // logInfo << "loop thread: " << _loop->getEpollFd();
 
     if (!_loop->isCurrent()) {
         weak_ptr<RtpContext> wSelf = shared_from_this();
@@ -162,6 +191,8 @@ void RtpContext::onRtpPacket(const RtpPacket::Ptr& rtp, struct sockaddr* addr, i
                 self->onRtpPacket(rtp, addr, len, sort);
             }
         }, true);
+
+        return ;
     }
 
     if (rtp->getHeader()->version != 2) {
@@ -180,8 +211,8 @@ void RtpContext::onRtpPacket(const RtpPacket::Ptr& rtp, struct sockaddr* addr, i
         if (!_addr) {
             _addr = make_shared<sockaddr>();
             memcpy(_addr.get(), addr, sizeof(sockaddr));
-        } else if (memcmp(_addr.get(), addr, sizeof(struct sockaddr)) != 0) {
-            // 记录一下这个流，提供切换流的api
+        } else if (_payloadType != "raw" && memcmp(_addr.get(), addr, sizeof(struct sockaddr)) != 0) {
+            // TODO 记录一下这个流，提供切换流的api
             logInfo << "收到其他地址的流";
             return ;
         }

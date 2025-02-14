@@ -945,7 +945,9 @@ void MediaSource::onReady()
                 << ", type: " << _urlParser.type_;
 
     for (auto track : _mapTrackInfo) {
-        logInfo << "track type: " << track.second->trackType_ << ", codec: " << track.second->codec_;
+        bool ready = track.second->isReady();
+        string msg = ready ? "ready" : "expire";
+        logInfo << "track type: " << track.second->trackType_ << ", codec: " << track.second->codec_ << "(" << msg << ")";
     }
 
     StreamStatusInfo statusInfo{_urlParser.protocol_, _urlParser.path_, _urlParser.vhost_, 

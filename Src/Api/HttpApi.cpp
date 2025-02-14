@@ -114,6 +114,7 @@ void HttpApi::getSourceList(const HttpParser& parser, const UrlParser& urlParser
         item["onlineDuration"] = TimeClock::now() - source->getCreateTime();
         auto tracks = source->getTrackInfo();
         for (auto iter : tracks) {
+            string status = iter.second->isReady() ? "ready" : "expire";
             if (iter.second->trackType_ == "video") {
                 item["video"]["codec"] = iter.second->codec_;
                 int height = 0;
@@ -123,8 +124,10 @@ void HttpApi::getSourceList(const HttpParser& parser, const UrlParser& urlParser
                 item["video"]["width"] = width;
                 item["video"]["height"] = height;
                 item["video"]["fps"] = fps;
+                item["video"]["status"] = status;
             } else if (iter.second->trackType_ == "audio") {
                 item["audio"]["codec"] = iter.second->codec_;
+                item["audio"]["status"] = status;
             }
         }
         auto sock = source->getOriginSocket();
@@ -221,6 +224,7 @@ void HttpApi::getSourceInfo(const HttpParser& parser, const UrlParser& urlParser
         value["onlineDuration"] = TimeClock::now() - source->getCreateTime();
         auto tracks = source->getTrackInfo();
         for (auto iter : tracks) {
+            string status = iter.second->isReady() ? "ready" : "expire";
             if (iter.second->trackType_ == "video") {
                 value["video"]["codec"] = iter.second->codec_;
                 int height = 0;
@@ -230,8 +234,10 @@ void HttpApi::getSourceInfo(const HttpParser& parser, const UrlParser& urlParser
                 value["video"]["width"] = width;
                 value["video"]["height"] = height;
                 value["video"]["fps"] = fps;
+                value["video"]["status"] = status;
             } else if (iter.second->trackType_ == "audio") {
                 value["audio"]["codec"] = iter.second->codec_;
+                value["audio"]["status"] = status;
             }
         }
         auto sock = source->getOriginSocket();
