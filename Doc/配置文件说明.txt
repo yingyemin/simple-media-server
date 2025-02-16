@@ -1,0 +1,283 @@
+{
+    # 本地ip地址
+    "LocalIp" : "172.24.6.38",
+    # 证书，用于https，rtsps，wss等
+    "Ssl" : {
+        "key" : "./sms.com.key",
+        "cert" : "./sms.com.crt"
+    },
+    # 日志配置
+    "Log" : { 
+        # 日志级别，数字越高，级别越大trace，info，warn，error
+        # 0表示trace
+        "logLevel" : 0,
+        # 是否输出到控制台
+        "console" : 1,
+        # 最长存多少天
+        "maxDay" : 7,
+        # 日志文件的最大地址，单位KB
+        "maxSize" : 1024,
+        # 最多存多少个日志文件
+        "maxCount" : 100
+    },
+    "EventLoopPool" : {
+        # event loop的线程数，0表示创建cpu核数个线程
+        "size" : 0
+    },
+    "Util" : {
+        # 是否开启无人观看停流
+        "stopNonePlayerStream" : false,
+        # 无人观看多少时间就停流
+        "nonePlayerWaitTime" : 5000,
+        # 播放时，找不到流，是否从本地文件找
+        "enableLoadFromFile" : true,
+        # 心跳时间，单位ms
+        "heartbeatTime" : 10000,
+        # 第一个track ready后，等待多久进行第一次检查，单位ms
+        "firstTrackWaitTime" : 500,
+        # 第一次检查后，发现有其他的track，但是该track还没有ready，等待多久进行第二次检查，单位ms
+        "sencondTrackWaitTime" : 5000
+    },
+    # 回调接口
+    "Hook" : {
+        # http方式还是kafka
+        "Type" : "http",
+        # 是否开启回调
+        "EnableHook" : false,
+        "Http" : {
+            # http超时时间
+            "timeout" : 10,
+            # 流状态回调，流上线，下线调用
+            "onStreamStatus" : "http://127.0.0.1/api/v1/onStreamStatus",
+            # 无人观看时回调
+            "onNonePlayer" : "http://127.0.0.1/api/v1/onNonePlayer",
+            # 服务的心跳回调，便于管理服务做调度
+            "onKeepAlive" : "http://127.0.0.1/api/v1/onKeepAlive",
+            # 推流鉴权
+            "onPublish" : "http://127.0.0.1/api/v1/onPublish",
+            # 观看鉴权
+            "onPlay" : "http://127.0.0.1/api/v1/onPlay"
+        },
+        "Kafka" : {
+            "endpoint" : "127.0.0.1:9092",
+            "broker" : "streamStatus"
+        }
+    },
+    "Record" : {
+        # 录制的目录，以执行文件目录为根目录
+        "rootPath" : "./"
+    },
+    # cdn回源或者转推
+    "Cdn" : {
+        # edge模式表示回源
+        # forward模式表示转推
+        "mode" : "forward1",
+        # 回源或者转推的地址
+        "endpoint" : "122.51.204.244:1935",
+        # 回源或者转推的协议，目前支持rtsp和rtmp
+        "protocol" : "rtmp",
+        # 参数，格式：key1=value1&key2=value2
+        "params" : ""
+    },
+    "Rtp" : {
+        # rtp打包的大小
+        "maxRtpSize" : 1400,
+        # rtsp tcp模式下使用巨帧会提升性能
+        # type=huge时使用这个长度
+        "hugeRtpSize" : 60000,
+        "Server" : {
+            "Server1" : {
+                # 监听的ip和断口
+                "ip" : "0.0.0.0",
+                "port" : 11000,
+                # 启动的线程数
+                "threads" : 1,
+                # 监听的协议
+                # 1：tcp；2：udp；3：tcp和udp
+                "sockType" : 3,
+                # 端口范围，用于指定端口模式
+                "udpPortMax" : 15000,
+                "udpPortMin" : 11000
+            }
+        }
+    },
+    "Rtsp" : {
+        "Server" : {
+            "Server1" : {
+                "ip" : "::",
+                "port" : 554,
+                # rtsps监听的端口
+                "sslPort" : 1554,
+                "timeout" : 5000,
+                "threads" : 1,
+                "udpPortMin" : 10000,
+                "udpPortMax" : 20000,
+                # 是否开启rtsp自带的auth鉴权
+                "rtspAuth" : false
+            }
+        }
+    },
+    "Http" : {
+        "Api" : {
+            "Api1" : {
+                "ip" : "0.0.0.0",
+                "port" : 80,
+                "sslPort" : 443,
+                "timeout" : 5000,
+                "threads" : 1
+            }
+        },
+        "Server" : {
+            "Server1" : {
+                # http下载文件时的根目录
+                "rootPath" : "./",
+                "ip" : "0.0.0.0",
+                "port" : 80,
+                "sslPort" : 443,
+                "timeout" : 5000,
+                "threads" : 1,
+                # 是否允许查看目录
+                "enableViewDir" : true
+            }
+        }
+    },
+    "Websocket" : {
+        "Server" : {
+            "Server1" : {
+                "ip" : "0.0.0.0",
+                "port" : 1080,
+                "sslPort" : 1443,
+                "timeout" : 5000,
+                "threads" : 1
+            }
+        }
+    },
+    "GB28181" : {
+        "Server" : {
+            "timeout" : 5000,
+            "Server1" : {
+                "ip" : "0.0.0.0",
+                "port" : 6000,
+                "threads" : 1,
+                "sockType" : 3,
+                "udpPortMax" : 10000,
+                "udpPortMin" : 6000
+            }
+        }
+    },
+    "Ehome2" : {
+        "Server" : {
+            "timeout" : 5000,
+            "Server1" : {
+                "ip" : "0.0.0.0",
+                "port" : 16000,
+                "threads" : 1,
+                "sockType" : 3,
+                "udpPortMax" : 20000,
+                "udpPortMin" : 16000
+            }
+        }
+    },
+    "Ehome5" : {
+        "Server" : {
+            "timeout" : 5000,
+            "Server1" : {
+                "ip" : "0.0.0.0",
+                "port" : 26000,
+                "threads" : 1,
+                "sockType" : 3,
+                "udpPortMax" : 30000,
+                "udpPortMin" : 26000
+            }
+        }
+    },
+    "JT1078" : {
+        "Server" : {
+            "timeout" : 5000,
+            "portMax" : 20000,
+            "portMin" : 16000,
+            # 1078流的接入配置
+            "Server1" : {
+                "ip" : "0.0.0.0",
+                "port" : 17000,
+                "threads" : 1,
+                "sockType" : 3
+            },
+            #1078的对讲配置
+            "Talk" : {
+                "ip" : "0.0.0.0",
+                "port" : 17100,
+                "threads" : 1,
+                # 是否是对讲
+                "isTalk" : 1
+            }
+        }
+    },
+    "Rtmp" : {
+        "Server" : {
+            "Server1" : {
+                "ip" : "0.0.0.0",
+                "port" : 1935,
+                "sslPort" : 11935,
+                "timeout" : 5000,
+                "threads" : 1,
+                # 没有音频时，是否要加静音轨，提高首开速度
+                "enableAddMute" : false
+            }
+        }
+    },
+    "Webrtc" : {
+        "Server" : {
+            "timeout" : 5000,
+            "Server1" : {
+                "timeout" : 5000,
+                "ip" : "0.0.0.0",
+                # 用于接收和传输rtp的地址，需要是可以和播放器建链的地址
+                "candidateIp" : "192.168.0.104",
+                "port" : 7000,
+                "threads" : 1,
+                "sockType" : 3,
+                # 是否用tcp传输rtp
+                "enableTcp" : false,
+                # 是否开启nack
+                "enableNack" : true,
+                # 是否开启twcc
+                "enableTwcc" : false,
+                # 是否开启rtx
+                "enableRtx" : true,
+                # 是否开启red
+                "enableRed" : false,
+                # 是否开启ulpfec
+                "enableUlpfec" : false,
+                "udpPortMax" : 10000,
+                "udpPortMin" : 6000,
+                # 模拟丢包
+                "lossIntervel" : 10,
+                # 将未加密前的rtp包发到该地址，便于调试
+                "debugIp" : "127.0.0.1",
+                "debugPort" : 7100,
+                "debugRtp" : 1
+            }
+        }
+    },
+    "Srt" : {
+        "Server" : {
+            "timeout" : 5000,
+            "Server1" : {
+                "ip" : "0.0.0.0",
+                "port" : 6666,
+                "threads" : 2,
+                "udpPortMax" : 10000,
+                "udpPortMin" : 6000
+            }
+        }
+    },
+    "Hls" : {
+        "Server" : {
+            # ts的切片时长
+            "duration" : 5000,
+            # ts的数量
+            "segNum" : 5
+        }
+    }
+}

@@ -1,0 +1,151 @@
+主要功能
+    - 作为服务端支持推拉流
+    - 作为客户端支持推拉流
+    - 支持传输超大rtp包，指定type=huge
+    - 支持rtp封装ps，支持超大rtp包，指定type=hugePs
+    - 支持rtp over udp、tcp
+    - 支持加速pts，降低延时（type=fastPts）
+    - 支持aac/g711a/g711u/opus/mp3, h264/h265/vp8/vp9, 支持av1的代码已写，ffmpeg不支持，所以没法测试
+
+ffmpeg推流接入示例
+    ffmpeg -rtsp_transport tcp -i rtsp://admin:abldyjh2020@192.168.1.120:554 -vcodec copy -acodec copy -f rtsp -rtsp_transport tcp rtsp://190.15.240.11:554/Media/Camera_00001
+
+输出url地址：
+    "url": {
+        "rtsp": "rtsp://10.0.0.239:554/Media/Camera_00001",
+        "rtsp": "rtsp://10.0.0.239:554/Media/Camera_00001?type=ps",
+        "rtsp": "rtsp://10.0.0.239:554/Media/Camera_00001?type=huge",
+        "rtsp": "rtsp://10.0.0.239:554/Media/Camera_00001?type=hugePs",
+        "rtsp": "rtsp://10.0.0.239:554/Media/Camera_00001?type=fastPts",
+        "rtmp": "rtmp://10.0.0.239:1935/Media/Camera_00001",
+        "rtmp": "rtmp://10.0.0.239:1935/Media/Camera_00001?type=enhanced",
+        "rtmp": "rtmp://10.0.0.239:1935/Media/Camera_00001?type=fastPts",
+        "http-flv": "http://10.0.0.239:80/Media/Camera_00001.flv",
+        "ws-flv": "ws://10.0.0.239:80/Media/Camera_00001.flv",
+        "http-mp4": "http://10.0.0.239:80/Media/Camera_00001.mp4",
+        "http-hls": "http://10.0.0.239:80/Media/Camera_00001.m3u8"
+    }	
+
+查看流上线信息：
+curl http://127.0.0.1/api/v1/getSourceList | python -m json.tool
+{
+    "code": "200",
+    "msg": "success",
+    "count" : 1,
+    "sources": [
+        {
+            # 音频编码信息
+            "audio": {
+                # 编码格式
+                "codec": "aac",
+                # 状态，以就绪还是被舍弃
+                # ready or expire
+                "status": "ready"
+            },
+            # 收到多少字节的数据
+            "bytes": 56580,
+            # 流是什么时间上线的
+            "createTime": 1739702722594,
+            # 流在哪个event线程
+            "epollFd": 5,
+            # 流在线时长
+            "onlineDuration": 3288,
+            # 流名称
+            "path": "/live/test",
+            # 源协议对应的观看数
+            "playerCount": 0,
+            # 源协议
+            "protocol": "rtmp",
+            # 推流的socket信息
+            "socketInfo": {
+                # 本地的ip地址和port
+                "localIp": "127.0.0.1",
+                "localPort": 1935,
+                # 推流客户端的ip地址和port
+                "peerIp": "127.0.0.1",
+                "peerPort": 35766
+            },
+            # 总的观看数
+            "totalPlayerCount": 0,
+            "type": "normal",
+            "vhost": "vhost",
+            # 视频编码信息
+            "video": {
+                "codec": "h264",
+                "fps": 50,
+                "height": 320,
+                "status": "ready",
+                "width": 768
+            }
+        }
+    ]
+}
+
+rtsp往外推流接口：
+接口示例：
+    curl http://127.0.0.1/api/v1/rtsp/push/start -d "url=rtsp://10.0.0.239:554/Media/Camera_00001&appName=live&streamName=demo"  | python -m json.tool
+    {
+        "code": "200",
+        "msg": "success"
+    }
+
+    api：/api/v1/rtsp/push/start
+    参数：
+        url：推流地址
+        appName：app名称
+        streamName：流名称
+        rtpType ：rtp类型，默认为tcp，可选值：udp、tcp
+
+停止rtsp推流接口：
+    接口示例：
+    curl http://127.0.0.1/api/v1/rtsp/push/stop -d "appName=live&streamName=demo"  | python -m json.tool
+    {
+        "code": "200",
+        "msg": "success"
+    }
+
+    api：/api/v1/rtsp/push/stop
+    参数：
+        appName：app名称
+        streamName：流名称
+
+查看rtsp往外推流的列表：
+    暂未实现
+
+
+rtsp从外拉流接口：
+    接口示例：
+    curl http://127.0.0.1/api/v1/rtsp/play/start -d "url=rtsp://11.11.11.11/live/test&appName=live&streamName=demo"  | python -m json.tool
+    {
+        "code": "200",
+        "msg": "success"
+    }
+
+    api：/api/v1/rtsp/play/start
+    参数：
+        url：拉流地址
+        appName：app名称
+        streamName：流名称
+        rtpType ：rtp类型，默认为tcp，可选值：udp、tcp
+
+停止rtsp拉流接口：
+    接口示例：
+    curl http://127.0.0.1/api/v1/rtsp/play/stop -d "appName=live&streamName=demo"  | python -m json.tool
+    {
+        "code": "200",
+        "msg": "success"
+    }
+
+    api：/api/v1/rtsp/play/stop
+    参数：
+        appName：app名称
+        streamName：流名称
+
+查看从外拉rtsp流的列表：
+    暂未实现
+
+创建新端口rtspserver
+# 暂未实现
+
+根据端口关闭rtspsrever
+# 暂未实现

@@ -1,0 +1,23 @@
+安装教程
+    - mkdir build
+    - cd build
+    - cmake ..
+    - make -j4
+    - 如果需要ssl功能，将conf下的sms.com.crt和sms.com.key，拷贝到build目录
+    - 如果需要前端页面实例，拷贝research到build目录，http的根目录默认是build
+    - gcc版本最好大于8
+    - 如果不想编译源码，进群找我要二进制执行文件
+
+使用说明
+    - 检查配置，如 server.conf,将其拷贝到build目录
+    - 运行程序：./SimpleMediaServer
+    - 用ffmpeg推流：ffmpeg -re -i inputfile -c copy -f flv rtmp://ip:port/live/test
+    - 用vlc播放
+    - rtsp地址：rtsp://ip:port/live/test
+    - rtsp地址：rtsp://ip:port/live/test?type=ps（rtp封装ps）
+    - rtmp地址：rtmp://ip:port/live/test
+    - http-flv地址：http://ip:port/live/test.flv
+    - hls地址：http://ip:port/live/test.m3u8
+    - 实时hls地址: http://ip:port/live/test.sms.m3u8
+    - webrtc获取sdp：http://ip:port/api/v1/rtc/play
+    - srt: srt://ip:port?steamid=|path:/live/test|request:pull|
