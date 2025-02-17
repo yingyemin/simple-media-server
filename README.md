@@ -88,6 +88,9 @@
 4.  make -j4
 5.  如果需要ssl功能，将conf下的sms.com.crt和sms.com.key，拷贝到build目录
 6.  如果需要前端页面实例，拷贝research到build目录，http的根目录默认是build
+7.  gcc版本最好大于8
+8.  如果不想编译源码，进群找我要二进制执行文件
+9.  由于ffmpeg库太大，github上有限制上传不了。如果需要将ffmpeg编译进去，可以去gitee上下载（https://gitee.com/inyeme/simple-media-server）
 
 #### 使用说明
 
