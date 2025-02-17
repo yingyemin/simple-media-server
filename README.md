@@ -106,3 +106,6 @@
 - 实时hls地址: http://ip:port/live/test.sms.m3u8
 - webrtc获取sdp：http://ip:port/api/v1/rtc/play
 - srt: srt://ip:port?steamid=|path:/live/test|request:pull|
+
+#### 说明文档
+    更多使用说明，请查看Doc目录下的文档
