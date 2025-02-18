@@ -4,7 +4,7 @@ project(SimpleMediaServer)
 
 option(ENABLE_ASAN "Enable lib asan" false)
 option(ENABLE_OPENSSL "Enable openssl" true)
-option(ENABLE_FFMPEG "Enable ffmpeg" true)
+option(ENABLE_FFMPEG "Enable ffmpeg" false)
 option(ENABLE_PROJECT_TRANSCODEVIDEO "Enable test transcodeVideo" false)
 option(ENABLE_PROJECT_TRANSCODEAUDIO "Enable test transcodeAudio" false)
 
