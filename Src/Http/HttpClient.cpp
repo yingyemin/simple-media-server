@@ -84,6 +84,7 @@ int HttpClient::sendHeader(const string& localIp, int localPort, const string& u
             _urlParser.port_ = 443;
         } else {
             onError("invalid protocol: " + _urlParser.protocol_);
+            return -1;
         }
     }
     return start(localIp, localPort, _urlParser.host_, _urlParser.port_, timeout);

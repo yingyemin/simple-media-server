@@ -25,7 +25,7 @@ JT1078Client::~JT1078Client()
     }
 }
 
-void JT1078Client::start(const string& localIp, int localPort, const string& url, int timeout)
+bool JT1078Client::start(const string& localIp, int localPort, const string& url, int timeout)
 {
     if (!timeout) {
         timeout = 5;
@@ -35,7 +35,7 @@ void JT1078Client::start(const string& localIp, int localPort, const string& url
     if (TcpClient::create(localIp, localPort) < 0) {
         close();
         logInfo << "TcpClient::create failed: " << strerror(errno);
-        return ;
+        return false;
     }
 
     _peerUrlParser.parse(url);
@@ -45,14 +45,16 @@ void JT1078Client::start(const string& localIp, int localPort, const string& url
     if (_peerUrlParser.port_ == 0 || _peerUrlParser.host_.empty()) {
         logInfo << "peer ip: " << _peerUrlParser.host_ << ", peerPort: " 
                 << _peerUrlParser.port_ << ", failed: is empty";
-        return ;
+        return false;
     }
     if (TcpClient::connect(_peerUrlParser.host_, _peerUrlParser.port_, timeout) < 0) {
         close();
         logInfo << "TcpClient::connect, ip: " << _peerUrlParser.host_ << ", peerPort: " 
                 << _peerUrlParser.port_ << ", failed: " << strerror(errno);
-        return ;
+        return false;
     }
+
+    return true;
 }
 
 void JT1078Client::stop()

@@ -93,7 +93,7 @@ public:
 	AmfObjectType type_;
 
 	std::string amfString_;
-	double amfNumber_;
+	double amfNumber_ = 0;
 	bool amfBoolean_;  
 };
 

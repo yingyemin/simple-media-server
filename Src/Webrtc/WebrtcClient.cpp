@@ -66,12 +66,12 @@ void WebrtcClient::init()
     });
 }
 
-void WebrtcClient::start(const string& localIp, int localPort, const string& url, int timeout)
+bool WebrtcClient::start(const string& localIp, int localPort, const string& url, int timeout)
 {
     _dtlsSession.reset(new DtlsSession("client"));
 	if (!_dtlsSession->init(WebrtcContext::getDtlsCertificate())) {
 		logError << "dtls session init failed";
-        return ;
+        return false;
     }
 
     auto localSdp = getLocalSdp();
@@ -120,7 +120,12 @@ void WebrtcClient::start(const string& localIp, int localPort, const string& url
         const_cast<shared_ptr<HttpClientApi> &>(client).reset();
     });
     logInfo << "connect to utl: " << url;
-    client->sendHeader(localIp, localPort, apiUrl, timeout);
+    if (client->sendHeader(localIp, localPort, apiUrl, timeout) != -1) {
+        close();
+        return false;
+    }
+
+    return true;
 }
 
 void WebrtcClient::stop()

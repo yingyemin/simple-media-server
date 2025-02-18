@@ -1016,7 +1016,9 @@ void MediaSource::pushStreamToOrigin()
 
     // TODO 可以指定多个endpoint进行推流
     auto pusher = MediaClient::createClient(pushProtocol, uri, MediaClientType_Push);
-    pusher->start("0.0.0.0", 0, url, 5);
+    if (!pusher->start("0.0.0.0", 0, url, 5)) {
+        return ;
+    }
 
     MediaClient::addMediaClient(uri, pusher);
     auto key = pusher.get();

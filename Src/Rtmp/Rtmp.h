@@ -53,5 +53,6 @@ static uint32_t fourccAV1 = (unsigned)('a') << 24 | 'v' << 16 | '0' << 8 | '1';
 static uint32_t fourccVP9 = (unsigned)('v') << 24 | 'p' << 16 | '0' << 8 | '9';
 
 std::string getCodecNameById(int trackType, int codeId);
+int getIdByCodecName(int trackType, const std::string& codeName);
 
 #endif

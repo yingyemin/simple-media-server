@@ -27,7 +27,7 @@ HttpFlvClient::~HttpFlvClient()
     }
 }
 
-void HttpFlvClient::start(const string& localIp, int localPort, const string& url, int timeout)
+bool HttpFlvClient::start(const string& localIp, int localPort, const string& url, int timeout)
 {
     weak_ptr<HttpFlvClient> wSelf = dynamic_pointer_cast<HttpFlvClient>(shared_from_this());
     _demuxer.setOnError([wSelf](const string& err){
@@ -119,7 +119,10 @@ void HttpFlvClient::start(const string& localIp, int localPort, const string& ur
     logInfo << "connect to utl: " << url;
     if (sendHeader(url, timeout) != 0) {
         close();
+        return false;
     }
+
+    return true;
 }
 
 void HttpFlvClient::stop()

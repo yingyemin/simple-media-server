@@ -14,7 +14,7 @@ HttpHlsTsClient::HttpHlsTsClient()
 HttpHlsTsClient::~HttpHlsTsClient()
 {}
 
-void HttpHlsTsClient::start(const string& localIp, int localPort, const string& url, int timeout)
+bool HttpHlsTsClient::start(const string& localIp, int localPort, const string& url, int timeout)
 {
     weak_ptr<HttpHlsTsClient> wSelf = dynamic_pointer_cast<HttpHlsTsClient>(shared_from_this());
 
@@ -42,7 +42,10 @@ void HttpHlsTsClient::start(const string& localIp, int localPort, const string& 
     logInfo << "connect to utl: " << url;
     if (sendHeader(url, timeout) != 0) {
         close();
+        return false;
     }
+
+    return true;
 }
 
 void HttpHlsTsClient::onHttpRequest()

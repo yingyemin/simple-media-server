@@ -343,8 +343,12 @@ void AacTrack::setAacInfoByAdts(const char* data, int len)
 string AacTrack::getAdtsHeader(int frameSize)
 {
 	if (_aacConfig.empty()) {
-		logError << "aac config is empty";
-		return "";
+		logError << "aac config is empty, get aac config by samplerate and channel";
+		setAacInfo(1, channel_, samplerate_);
+		if (_aacConfig.empty()) {
+			logError << "get aac config failed, samplerate:" << samplerate_ << ", channel:" << channel_;
+			return "";
+		}
 	}
 	
 	auto adts = configToAdts(_aacConfig, frameSize + 7);

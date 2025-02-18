@@ -76,10 +76,10 @@ void RtmpClient::init()
 //     return nullptr;
 // }
 
-void RtmpClient::start(const string& localIp, int localPort, const string& url, int timeout)
+bool RtmpClient::start(const string& localIp, int localPort, const string& url, int timeout)
 {
     if (localIp.empty() || url.empty()) {
-        return ;
+        return false;
     }
     _url = url;
     _peerUrlParser.parse(url);
@@ -132,7 +132,7 @@ void RtmpClient::start(const string& localIp, int localPort, const string& url, 
     if (TcpClient::create(localIp, localPort) < 0) {
         close();
         logInfo << "TcpClient::create failed: " << strerror(errno);
-        return ;
+        return false;
     }
 
     logInfo << "_peerUrlParser.host_: " << _peerUrlParser.host_ << ", _peerUrlParser.port_: " << _peerUrlParser.port_
@@ -142,8 +142,10 @@ void RtmpClient::start(const string& localIp, int localPort, const string& url, 
         close();
         logInfo << "TcpClient::connect, ip: " << _peerUrlParser.host_ << ", peerPort: " 
                 << _peerUrlParser.port_ << ", failed: " << strerror(errno);
-        return ;
+        return false;
     }
+
+    return true;
 }
 
 void RtmpClient::stop()

@@ -54,10 +54,16 @@ void RtspClient::setTransType(int type)
     _rtpType = (TransportType)type;
 }
 
-void RtspClient::start(const string& localIp, int localPort, const string& url, int timeout)
+void RtspClient::getProtocolAndType(string& protocol, MediaClientType& type)
+{
+    protocol = _localUrlParser.protocol_;
+    type = _type;
+}
+
+bool RtspClient::start(const string& localIp, int localPort, const string& url, int timeout)
 {
     if (url.empty()) {
-        return ;
+        return false;
     }
 
     _url = url;
@@ -90,7 +96,7 @@ void RtspClient::start(const string& localIp, int localPort, const string& url, 
     if (TcpClient::create(localIp, localPort) < 0) {
         close();
         logInfo << "TcpClient::create failed: " << strerror(errno);
-        return ;
+        return false;
     }
 
     _peerUrlParser.parse(url);
@@ -101,8 +107,10 @@ void RtspClient::start(const string& localIp, int localPort, const string& url, 
         close();
         logInfo << "TcpClient::connect, ip: " << _peerUrlParser.host_ << ", peerPort: " 
                 << _peerUrlParser.port_ << ", failed: " << strerror(errno);
-        return ;
+        return false;
     }
+
+    return true;
 }
 
 void RtspClient::stop()

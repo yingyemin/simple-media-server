@@ -18,6 +18,9 @@ HlsMediaSource::HlsMediaSource(const UrlParser& urlParser, const EventLoop::Ptr&
 HlsMediaSource::~HlsMediaSource()
 {
     logInfo << "~HlsMediaSource";
+    if (_hlsMuxer) {
+        _hlsMuxer->release();
+    }
 }
 
 void HlsMediaSource::onReady()

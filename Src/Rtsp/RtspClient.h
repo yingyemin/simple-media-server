@@ -42,14 +42,18 @@ public:
     void setUsername(const string& username) {_username = username;}
     void setPassword(const string& pwd) {_pwd = pwd;}
 
+    string getPath() {return _localUrlParser.path_;}
+    string getSourceUrl() {return _url;}
+
 public:
     // override MediaClient
-    void start(const string& localIp, int localPort, const string& url, int timeout) override;
+    bool start(const string& localIp, int localPort, const string& url, int timeout) override;
     void stop() override;
     void pause() override;
     void setOnClose(const function<void()>& cb) override;
     void addOnReady(void* key, const function<void()>& onReady) override;
     void setTransType(int type) override;
+    void getProtocolAndType(string& protocol, MediaClientType& type) override;
 
 protected:
     // override TcpClient

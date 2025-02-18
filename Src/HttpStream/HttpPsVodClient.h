@@ -20,7 +20,7 @@ public:
     virtual ~HttpPsVodClient()  {}
 
 public:
-    void start(const string& localIp, int localPort, const string& url, int timeout) override;
+    bool start(const string& localIp, int localPort, const string& url, int timeout) override;
     void decode(const char* data, int len) override;
     void stopDecode();
     int getTrackIndex()  {return _index;}

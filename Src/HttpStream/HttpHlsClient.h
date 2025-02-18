@@ -26,7 +26,7 @@ public:
     void close() override;
 
 public:
-    void start(const string& localIp, int localPort, const string& url, int timeout);
+    bool start(const string& localIp, int localPort, const string& url, int timeout);
     void onHttpResponce();
     void onError(const string& err);
     void setOnHttpResponce(const function<void(const HttpParser& parser)>& cb);

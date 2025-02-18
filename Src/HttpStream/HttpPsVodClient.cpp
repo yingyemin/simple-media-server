@@ -22,7 +22,7 @@ HttpPsVodClient::HttpPsVodClient(MediaClientType type, const string& appName, co
 {
 }
 
-void HttpPsVodClient::start(const string& localIp, int localPort, const string& url, int timeout)
+bool HttpPsVodClient::start(const string& localIp, int localPort, const string& url, int timeout)
 {
     weak_ptr<HttpPsVodClient> wSelf = dynamic_pointer_cast<HttpPsVodClient>(shared_from_this());
 
@@ -60,7 +60,7 @@ void HttpPsVodClient::start(const string& localIp, int localPort, const string& 
     }
     _startDemuxer = true;
     
-    HttpVodClient::start(localIp, localPort, url, timeout);
+    return HttpVodClient::start(localIp, localPort, url, timeout);
 }
 
 void HttpPsVodClient::stopDecode()

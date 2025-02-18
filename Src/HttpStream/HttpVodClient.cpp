@@ -69,7 +69,7 @@ void HttpVodClient::download()
     _downloader->start(_localIp, _localPort, _url, _timeout);
 }
 
-void HttpVodClient::start(const string& localIp, int localPort, const string& url, int timeout)
+bool HttpVodClient::start(const string& localIp, int localPort, const string& url, int timeout)
 {
     _localIp = localIp;
     _localPort = localPort;
@@ -86,7 +86,7 @@ void HttpVodClient::start(const string& localIp, int localPort, const string& ur
         logWarn << "another source is exist: " << _localUrlParser.path_;
         stop();
 
-        return ;
+        return false;
     }
 
     auto frameSrc = dynamic_pointer_cast<FrameMediaSource>(source);
@@ -94,7 +94,7 @@ void HttpVodClient::start(const string& localIp, int localPort, const string& ur
         logWarn << "this source is not rtmp: " << source->getProtocol();
         stop();
 
-        return ;
+        return false;
     }
 
     frameSrc->setOrigin();
@@ -117,6 +117,8 @@ void HttpVodClient::start(const string& localIp, int localPort, const string& ur
 
         return 40;
     }, nullptr);
+
+    return true;
 }
 
 void HttpVodClient::stop()

@@ -22,7 +22,7 @@ HlsClientContext::~HlsClientContext()
     }
 }
 
-void HlsClientContext::start(const string& localIp, int localPort, const string& url, int timeout)
+bool HlsClientContext::start(const string& localIp, int localPort, const string& url, int timeout)
 {
     _localIp = localIp;
     _localPort = localPort;
@@ -146,6 +146,8 @@ void HlsClientContext::start(const string& localIp, int localPort, const string&
             // }
         }
     });
+
+    return true;
 }
 
 void HlsClientContext::startPlay()

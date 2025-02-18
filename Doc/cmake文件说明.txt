@@ -1,0 +1,129 @@
+# cmake版本
+cmake_minimum_required(VERSION 3.0)
+
+# 设置工程名称
+project(SimpleMediaServer)
+
+# 是否支持libasan，这是gcc的内存检测工具，开启这个会影响性能，适用于测试
+option(ENABLE_ASAN "Enable lib asan" true)
+# 是否支持openssl
+option(ENABLE_OPENSSL "Enable openssl" true)
+# 是否支持ffmpeg
+option(ENABLE_FFMPEG "Enable ffmpeg" false)
+# 是否支持srt
+option(ENABLE_SRT "Enable srt" false)
+# 是否编译gbSip工程，简单的sip服务器
+option(ENABLE_PROJECT_GB2818SIP "Enable test gb28181 sip" false)
+# 是否编译转码工程，测试转码的例子
+option(ENABLE_PROJECT_TRANSCODEVIDEO "Enable test transcodeVideo" false)
+option(ENABLE_PROJECT_TRANSCODEAUDIO "Enable test transcodeAudio" false)
+
+#设置调试信息并开启c++11标准
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
+SET(CMAKE_EXE_LINKER_FLAGS " -no-pie") 
+
+set(LINK_LIB_LIST src base)
+
+if (ENABLE_ASAN)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
+    message(STATUS "已启用 Address Sanitize")
+endif ()
+
+if (ENABLE_FFMPEG)
+    message(STATUS "开启FFMPEG")
+    add_definitions(-DENABLE_FFMPEG)
+    # 设置ffmpeg库的头文件目录
+    set(FFMPEG_INCLUDE_DIR "./Thirdparty/libffmpeg/include")
+    # 设置ffmpeg库的二进制文件目录
+    set(FFMPEG_LIBRARY "./Thirdparty/libffmpeg/lib/")
+    # 包含ffmpeg头文件目录
+    include_directories(${FFMPEG_INCLUDE_DIR})
+    # 定义要链接的srtp库
+    link_directories(${FFMPEG_LIBRARY})
+    list(APPEND LINK_LIB_LIST avformat avfilter avcodec swresample swscale postproc avutil z x264 x265 aom opus mp3lame fdk-aac vpx bz2 m freetype lzma drm)
+endif ()
+
+#查找openssl是否安装
+# find_package(OpenSSL QUIET)
+# if (OPENSSL_FOUND AND ENABLE_OPENSSL)
+#     message(STATUS "found library:${OPENSSL_LIBRARIES},ENABLE_OPENSSL defined")
+#     include_directories(${OPENSSL_INCLUDE_DIR})
+#     add_definitions(-DENABLE_OPENSSL)
+#     list(APPEND LINK_LIB_LIST ${OPENSSL_LIBRARIES})
+# else()
+#     message(WARNING "openssl未找到，rtmp将不支持flash播放器，https/wss/rtsps/rtmps也将失效")
+# endif ()
+
+# 设置OpenSSL库的头文件目录
+set(OPENSSL_INCLUDE_DIR "./Thirdparty/libopenssl/include")
+# 设置OpenSSL库的二进制文件目录
+set(OPENSSL_LIBRARY "./Thirdparty/libopenssl/lib/")
+# 包含OpenSSL头文件目录
+include_directories(${OPENSSL_INCLUDE_DIR})
+link_directories(${OPENSSL_LIBRARY})
+list(APPEND LINK_LIB_LIST ssl crypto)
+
+# 设置srtp库的头文件目录
+set(SRTP_INCLUDE_DIR "./Thirdparty/libsrtp/include")
+# 设置srtp库的二进制文件目录
+set(SRTP_LIBRARY "./Thirdparty/libsrtp/lib/")
+# 包含srtp头文件目录
+include_directories(${SRTP_INCLUDE_DIR})
+# 定义要链接的srtp库
+link_directories(${SRTP_LIBRARY})
+list(APPEND LINK_LIB_LIST srtp2)
+
+if (ENABLE_SRT)
+    add_definitions(-DENABLE_SRT)
+    # 设置srt库的头文件目录
+    set(SRT_INCLUDE_DIR "./Thirdparty/libsrt/include")
+    # 设置srt库的二进制文件目录
+    set(SRT_LIBRARY "./Thirdparty/libsrt/lib/")
+    # 包含srt头文件目录
+    include_directories(${SRT_INCLUDE_DIR})
+    # 定义要链接的srt库
+    link_directories(${SRT_LIBRARY})
+    list(APPEND LINK_LIB_LIST srt)
+endif()
+
+# 设置sctp库的头文件目录
+set(SCTP_INCLUDE_DIR "./Thirdparty/libusrsctp/include")
+# 设置srt库的二进制文件目录
+set(SCTP_LIBRARY "./Thirdparty/libusrsctp/lib/")
+# 包含srt头文件目录
+include_directories(${SCTP_INCLUDE_DIR})
+# 定义要链接的srt库
+link_directories(${SCTP_LIBRARY})
+list(APPEND LINK_LIB_LIST usrsctp)
+
+# aux_source_directory(. DIRSRCS)
+
+include_directories(./ ./Base ./Base/Net ./Base/Log ./Base/EventPoller ./Src)
+# link_directories(${PROJECT_SOURCE_DIR}/Base/Log)
+
+add_subdirectory(Base)
+add_subdirectory(Src)
+
+add_executable(SimpleMediaServer main.cpp)
+target_link_libraries(SimpleMediaServer ${LINK_LIB_LIST} dl pthread)
+
+if (ENABLE_PROJECT_TRANSCODEVIDEO)
+    project(transcodeVideo)
+    add_executable(transcodeVideo Tests/transcode/transcodeVideo.cpp)
+    target_link_libraries(transcodeVideo ${LINK_LIB_LIST} dl pthread)
+endif ()
+
+if (ENABLE_PROJECT_TRANSCODEAUDIO)
+    project(transcodeAudio)
+    add_executable(transcodeAudio Tests/transcode/transcodeAudio.cpp)
+    target_link_libraries(transcodeAudio ${LINK_LIB_LIST} dl pthread)
+endif ()
+
+if (ENABLE_PROJECT_GB2818SIP)
+    project(SimpleSipServer)
+    add_subdirectory(GB28181SIP)
+    add_executable(SimpleSipServer gb28181Sip.cpp)
+    target_link_libraries(SimpleSipServer gb28181Sip src base ssl crypto dl pthread)
+endif ()
+

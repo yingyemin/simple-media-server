@@ -7,6 +7,14 @@
     - 如果需要前端页面实例，拷贝research到build目录，http的根目录默认是build
     - gcc版本最好大于8
     - 如果不想编译源码，进群找我要二进制执行文件
+    - 由于ffmpeg库太大，github上有限制上传不了。如果需要将ffmpeg编译进去，可以去gitee上下载（https://gitee.com/inyeme/simple-media-server），或者自行编译，ffmpeg版本7.0
+    - 第三方库都是在centos7上编译的，如果存在兼容性问题，可以自行编译，编译好的库和头文件放到ThirdParty目录下对应的模块即可
+        - libffmpeg （ffmpeg由于依赖库比较多，每个机器上编译依赖的库可能不一样，根据实际情况修改cmakelist里的依赖库）
+        - libopenssl
+        - libsrt
+        - libusrsctp
+        - libsrtp
+    - Thirdparty目录下不仅用编译好的库，对应的源文件也有（src目录），方便自行编译
 
 使用说明
     - 检查配置，如 server.conf,将其拷贝到build目录

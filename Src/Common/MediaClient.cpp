@@ -32,6 +32,20 @@ MediaClient::Ptr MediaClient::getMediaClient(const string& key)
     return nullptr;
 }
 
+unordered_map<string, MediaClient::Ptr> MediaClient::getAllMediaClient()
+{
+    lock_guard<mutex> lck(_mapMtx);
+    return _mapMediaClient;
+}
+
+void MediaClient::for_each_mediaClieant(const function<void(const MediaClient::Ptr& client)>& func)
+{
+    lock_guard<mutex> lck(_mapMtx);
+    for (auto& pr : _mapMediaClient) {
+        func(pr.second);
+    }
+}
+
 MediaClient::Ptr MediaClient::createClient(const string& protocol, const string& path, MediaClientType type)
 {
     auto vecPath = split(path, "/");

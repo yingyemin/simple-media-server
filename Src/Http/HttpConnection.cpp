@@ -774,9 +774,9 @@ void HttpConnection::onPlayHls(const HlsMediaSource::Ptr &hlsSrc)
         logInfo << "response: " << strM3u8;
     });
 
-    _onClose = [hlsSrc, this](){
-        hlsSrc->delConnection(this);
-    };
+    // _onClose = [hlsSrc, this](){
+    //     hlsSrc->delConnection(this);
+    // };
 }
 
 void HttpConnection::handleHlsTs()

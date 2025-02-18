@@ -25,14 +25,17 @@ HttpTsClient::~HttpTsClient()
     }
 }
 
-void HttpTsClient::start(const string& localIp, int localPort, const string& url, int timeout)
+bool HttpTsClient::start(const string& localIp, int localPort, const string& url, int timeout)
 {
     addHeader("Content-Type", "application/json;charset=UTF-8");
     setMethod("GET");
     logInfo << "connect to utl: " << url;
     if (sendHeader(url, timeout) != 0) {
         close();
+        return false;
     }
+
+    return true;
 }
 
 void HttpTsClient::stop()

@@ -14,7 +14,7 @@ static int getUid()
 {
 	random_device rd; // 用于获得种子
     mt19937 gen(rd()); // 初始化随机数生成器，这里使用了Mersenne Twister算法
-    uniform_int_distribution<> distrib(1, 100); // 定义分布范围[1, 100]
+    uniform_int_distribution<> distrib(1, 100000000); // 定义分布范围[1, 100]
  
     int random_number = distrib(gen); // 生成随机数
 
@@ -30,7 +30,6 @@ HlsMuxer::HlsMuxer(const UrlParser& parse)
 HlsMuxer::~HlsMuxer()
 {
 	_timeTask->quit = true;
-	HlsManager::instance()->delMuxer(_parse.path_ + "_" + _parse.vhost_ + "_" + _parse.type_);
 }
 
 void HlsMuxer::init()
@@ -81,6 +80,21 @@ void HlsMuxer::start()
 		}
 	});
 	_playClick.update();
+}
+
+void HlsMuxer::release()
+{
+	HlsManager::instance()->delMuxer(_parse.path_ + "_" + _parse.vhost_ + "_" + _parse.type_);
+	vector<int> vecUid;
+	{
+		lock_guard<mutex> lck(_uidMtx);
+		for (auto& pr : _mapUid2key) {
+			vecUid.push_back(pr.first);
+		}
+	}
+	for (auto& uid : vecUid) {
+		HlsManager::instance()->delMuxer(uid);
+	}
 }
 
 void HlsMuxer::onFrame(const FrameBuffer::Ptr& frame)

@@ -24,7 +24,7 @@ public:
     void close() override;
 
 public:
-    void start(const string& localIp, int localPort, const string& url, int timeout);
+    bool start(const string& localIp, int localPort, const string& url, int timeout);
     void onTsPacket(const char* tsPacket, int len);
     void onError(const string& err);
     void setOnTsPacket(const function<void(const char* tsPacket, int len)>& cb);

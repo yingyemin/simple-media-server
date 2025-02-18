@@ -26,6 +26,7 @@ public:
 	void init();
 	virtual void start();
 	void stop() {_muxer = false;}
+	void release();
 	void onFrame(const FrameBuffer::Ptr& frame);
 	void onTsPacket(const StreamBuffer::Ptr &pkt, int pts, int dts, bool keyframe);
 	void addTrackInfo(const shared_ptr<TrackInfo>& track);

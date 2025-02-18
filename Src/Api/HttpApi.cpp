@@ -95,6 +95,7 @@ void HttpApi::getSourceList(const HttpParser& parser, const UrlParser& urlParser
     json value;
 
     auto totalSource = MediaSource::getAllSource();
+    value["count"] = totalSource.size();
     for (auto& iter : totalSource) {
         auto source = iter.second;
         if (!source) {

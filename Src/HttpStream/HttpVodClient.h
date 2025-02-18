@@ -22,7 +22,7 @@ public:
 
 public:
     // override MediaClient
-    virtual void start(const string& localIp, int localPort, const string& url, int timeout) override;
+    virtual bool start(const string& localIp, int localPort, const string& url, int timeout) override;
     void stop() override;
     void pause() override;
     void setOnClose(const function<void()>& cb) override;

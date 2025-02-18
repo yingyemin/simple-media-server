@@ -295,17 +295,77 @@ bool RtmpConnection::handleNotify(RtmpMessage& rtmp_msg)
         if(_amfDecoder.getString() == "onMetaData") {
             _amfDecoder.decode((const char *)rtmp_msg.payload->data()+bytes_used, rtmp_msg.length-bytes_used);
             _metaData = _amfDecoder.getObjects();
-            
-			// auto server = rtmp_server_.lock();
-			// if (!server) {
-			// 	return false;
-			// }
 
-            // auto session = rtmp_session_.lock();
-            // if(session) {
-			// 	session->SetMetaData(meta_data_);
-			// 	session->SendMetaData(meta_data_);
-            // }
+            int audiosamplerate = 0;
+            int audiochannels = 0;
+            int audiosamplesize = 0;
+            int videodatarate = 0;
+            int audiodatarate = 0;
+            int duration = 0;
+            int videocodecid = 0;
+            int audiocodecid = 0;
+            for (auto& meta : _metaData) {
+                string key = meta.first;
+                auto val = meta.second;
+
+                if (key == "duration") {
+                    duration = (float)val.amfNumber_;
+                } else if (key == "audiosamplerate") {
+                    audiosamplerate = val.amfNumber_;
+                } else if (key == "audiosamplesize") {
+                    audiosamplesize = val.amfNumber_;
+                } else if (key == "stereo") {
+                    audiochannels = val.amfBoolean_ ? 2 : 1;
+                } else if (key == "videocodecid") {
+                    // 找到视频  [AUTO-TRANSLATED:e66249fc]
+                    // Find video
+                    if ((int)val.amfNumber_ != 0) {
+                        videocodecid = val.amfNumber_;
+                    } else if (val.type_ = AMF_STRING) {
+                        videocodecid = getIdByCodecName(VideoTrackType, val.amfString_);
+                    }
+                } else if (key == "audiocodecid") {
+                    // 找到音频  [AUTO-TRANSLATED:126ce656]
+                    // Find audio
+                    if ((int)val.amfNumber_ != 0) {
+                        audiocodecid = val.amfNumber_;
+                    } else if (val.type_ = AMF_STRING) {
+                        audiocodecid = getIdByCodecName(AudioTrackType, val.amfString_);
+                    }
+                } else if (key == "audiodatarate") {
+                    audiodatarate = val.amfNumber_;
+                } else if (key == "videodatarate") {
+                    videodatarate = val.amfNumber_;
+                }
+            }
+
+            auto rtmpSrc = _source.lock();
+            if (!rtmpSrc) {
+                close();
+                return false;
+            }
+
+            if (!_rtmpAudioDecodeTrack && audiocodecid) {
+                _rtmpAudioDecodeTrack = make_shared<RtmpDecodeTrack>(AudioTrackType);
+                if (_rtmpAudioDecodeTrack->createTrackInfo(AudioTrackType, audiocodecid) != 0) {
+                    _validAudioTrack = false;
+                    return false;
+                }
+                auto trackInfo = _rtmpAudioDecodeTrack->getTrackInfo();
+                trackInfo->samplerate_ = audiosamplerate;
+                trackInfo->bitPerSample_ = audiosamplesize;
+                trackInfo->channel_ = audiochannels;
+                rtmpSrc->addTrack(_rtmpAudioDecodeTrack);
+            }
+
+            if (!_rtmpVideoDecodeTrack && videocodecid) {
+                _rtmpVideoDecodeTrack = make_shared<RtmpDecodeTrack>(VideoTrackType);
+                if (_rtmpVideoDecodeTrack->createTrackInfo(VideoTrackType, videocodecid) != 0) {
+                    _validVideoTrack = false;
+                    return false;
+                }
+                rtmpSrc->addTrack(_rtmpVideoDecodeTrack);
+            }
         }
     }
 
@@ -531,7 +591,8 @@ bool RtmpConnection::handleAudio(RtmpMessage& rtmp_msg)
             _validAudioTrack = false;
             return false;
         }
-        if (sound_format == RTMP_CODEC_ID_AAC || sound_format == RTMP_CODEC_ID_MP3) {
+        if (sound_format == RTMP_CODEC_ID_AAC || sound_format == RTMP_CODEC_ID_MP3
+            || sound_format == RTMP_CODEC_ID_OPUS) {
             auto trackInfo = _rtmpAudioDecodeTrack->getTrackInfo();
             trackInfo->samplerate_ = sampleArray[sound_rate];
             trackInfo->bitPerSample_ = bitArray[sound_size];
@@ -549,6 +610,8 @@ bool RtmpConnection::handleAudio(RtmpMessage& rtmp_msg)
         type = RTMP_AAC_SEQUENCE_HEADER;
         rtmpSrc->setAacHeader(_aacHeader, _aacHeaderSize);
         _rtmpAudioDecodeTrack->setConfigFrame(msg);
+
+        return true;
     }
 
     msg->trackIndex_ = AudioTrackType;

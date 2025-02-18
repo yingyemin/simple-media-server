@@ -32,6 +32,11 @@ public:
                         const function<void(HttpResponse& rsp)>& rspFunc);
     static void listRtspPublishInfo(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc);
+
+    static void createRtspServer(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc);
+    static void stopRtspServer(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc);
 };
 
 #endif //RtSpApi_h
