@@ -696,11 +696,16 @@ void HttpConnection::handleHlsM3u8()
     weak_ptr<HttpConnection> wSelf = dynamic_pointer_cast<HttpConnection>(shared_from_this());
 
     if (_urlParser.vecParam_.find("uid") != _urlParser.vecParam_.end()) {
+        string path = _urlParser.path_;
+        trimBack(path, ".m3u8");
+        
         string strM3u8;
         auto uid = stoi(_urlParser.vecParam_["uid"]);
-        auto hlsMuxer = HlsManager::instance()->getMuxer(uid);
+        string streamKey = path + "_" + _urlParser.vhost_ + "_" + _urlParser.type_;
+        auto hlsMuxer = HlsManager::instance()->getMuxer(streamKey);
         if (!hlsMuxer) {
-            logInfo << "find hls muxer by uid(" << uid << ") failed";
+            logInfo << "find hls muxer by streamKey(" << streamKey << ") failed";
+            strM3u8 = "source is not exists";
         } else {
             strM3u8 = hlsMuxer->getM3u8WithUid(uid);
         }
@@ -827,9 +832,11 @@ void HttpConnection::handleLLHlsM3u8()
     if (_urlParser.vecParam_.find("uid") != _urlParser.vecParam_.end()) {
         string strM3u8;
         auto uid = stoi(_urlParser.vecParam_["uid"]);
-        auto hlsMuxer = LLHlsManager::instance()->getMuxer(uid);
+        string streamKey = _urlParser.path_ + "_" + _urlParser.vhost_ + "_" + _urlParser.type_;
+        auto hlsMuxer = LLHlsManager::instance()->getMuxer(streamKey);
         if (!hlsMuxer) {
             logInfo << "find hls muxer by uid(" << uid << ") failed";
+            strM3u8 = "source is not exists";
         } else {
             strM3u8 = hlsMuxer->getM3u8WithUid(uid);
         }

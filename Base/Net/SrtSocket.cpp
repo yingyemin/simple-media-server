@@ -523,7 +523,7 @@ int SrtSocket::connect(const string& peerIp, int port, int timeout)
 
 void SrtSocket::handleEvent(int event, void* args)
 {
-    logInfo << "handle event: " << event;
+    // logInfo << "handle event: " << event;
     if (_isListen) {
         onAccept(args);
         return ;
@@ -657,7 +657,9 @@ int SrtSocket::onAccept(void* args)
             return ;
         }
         // self->close();
-        self->_onAccept();
+        if (self->_onAccept) {
+            self->_onAccept();
+        }
     }, true, false);
 
     return 0;
@@ -753,8 +755,8 @@ ssize_t SrtSocket::send(const Buffer::Ptr pkt, int flag, int offset, struct sock
     }
 
     _remainSize -= totalSendSize;
-    logInfo << "_remainSize: " << _remainSize;
-    logInfo << "totalSendSize: " << totalSendSize;
+    // logInfo << "_remainSize: " << _remainSize;
+    // logInfo << "totalSendSize: " << totalSendSize;
 
     if (_remainSize > 0) {
         _loop->modifyEvent(_fd, 1, nullptr);

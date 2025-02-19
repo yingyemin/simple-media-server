@@ -31,7 +31,7 @@ LLHlsMuxer::LLHlsMuxer(const UrlParser& parse)
 LLHlsMuxer::~LLHlsMuxer()
 {
 	_timeTask->quit = true;
-	LLHlsManager::instance()->delMuxer(_parse.path_ + "_" + _parse.vhost_ + "_" + _parse.type_);
+	// LLHlsManager::instance()->delMuxer(_parse.path_ + "_" + _parse.vhost_ + "_" + _parse.type_);
 }
 
 void LLHlsMuxer::init()
@@ -99,6 +99,21 @@ void LLHlsMuxer::start()
 		}
 	});
 	_playClick.update();
+}
+
+void LLHlsMuxer::release()
+{
+	LLHlsManager::instance()->delMuxer(_parse.path_ + "_" + _parse.vhost_ + "_" + _parse.type_);
+	// vector<int> vecUid;
+	// {
+	// 	lock_guard<mutex> lck(_uidMtx);
+	// 	for (auto& pr : _mapUid2key) {
+	// 		vecUid.push_back(pr.first);
+	// 	}
+	// }
+	// for (auto& uid : vecUid) {
+	// 	HlsManager::instance()->delMuxer(uid);
+	// }
 }
 
 void LLHlsMuxer::onFrame(const FrameBuffer::Ptr& frame)
@@ -310,11 +325,13 @@ string LLHlsMuxer::getM3u8(void* key)
 	int uid = getUid();
 	_playClick.update();
 
-	LLHlsManager::instance()->addMuxer(uid, shared_from_this());
+	// LLHlsManager::instance()->addMuxer(uid, shared_from_this());
 	{
 		lock_guard<mutex> lck(_uidMtx);
-		_mapUid2Time[uid] = time(NULL);
-		_mapUid2key[uid] = key;
+		LLHlsPlayerInfo info;
+		info.key_ = key;
+		info.lastTime_ = time(NULL);
+		_mapPlayer[uid] = info;
 	}
 
 	stringstream ss;
@@ -335,7 +352,7 @@ string LLHlsMuxer::getM3u8WithUid(int uid)
 
 	{
 		lock_guard<mutex> lck(_uidMtx);
-		_mapUid2Time[uid] = time(NULL);
+		_mapPlayer[uid].lastTime_ = time(NULL);
 	}
 
 	lock_guard<mutex> lck(_tsMtx);
@@ -362,22 +379,23 @@ void LLHlsMuxer::onManager()
 	}
 
     lock_guard<mutex> lck(_uidMtx);
-    for (auto it = _mapUid2Time.begin(); it != _mapUid2Time.end();) {
+    for (auto it = _mapPlayer.begin(); it != _mapPlayer.end();) {
         int now = time(NULL);
-        if (now - it->second > playTimeout) {
+        if (now - it->second.lastTime_ > playTimeout) {
 			auto uid = it->first;
-			LLHlsManager::instance()->delMuxer(uid);
-            it = _mapUid2Time.erase(it);
+			auto key = it->second.key_;
+			// LLHlsManager::instance()->delMuxer(uid);
+            it = _mapPlayer.erase(it);
 			
-			auto key = _mapUid2key[uid];
+			// auto key = _mapUid2key[uid];
 			onDelConnection(key);
-			_mapUid2key.erase(uid);
+			// _mapUid2key.erase(uid);
         } else {
             ++it;
         }
     }
 
-	if (_mapUid2Time.size() == 0 && _playClick.startToNow() > playTimeout) {
+	if (_mapPlayer.size() == 0 && _playClick.startToNow() > playTimeout) {
 		onNoPLayer();
 	}
 }

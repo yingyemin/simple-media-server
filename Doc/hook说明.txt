@@ -1,0 +1,124 @@
+onPlay回调：播放鉴权
+接口示例：
+    curl http://127.0.0.1/api/v1/onPlay -d "protocol=rtsp&type=normal&uri=/live/test&vhost=vhost&params=xxxxx"  | python -m json.tool
+    {
+        "authResult": true,
+        "code": "200",
+        "msg": "success"
+    }
+
+    api：/api/v1/onPlay(这只是示例api，实际api以自己的服务为准)
+    参数：
+        protocol：播放的协议
+        type：流类型
+        uri：流ID
+        vhost ：默认是vhost
+        params：其他参数，播放url地址自带的参数
+
+    返回：
+        authResult：是否鉴权成功（主要是依据这个做判断）
+        code：200
+        msg：success
+
+onPublish回调：推流鉴权
+接口示例：
+    curl http://127.0.0.1/api/v1/onPublish -d "protocol=rtsp&type=normal&uri=/live/test&vhost=vhost&params=xxxxx"  | python -m json.tool
+    {
+        "authResult": true,
+        "code": "200",
+        "msg": "success"
+    }
+
+    api：/api/v1/onPublish(这只是示例api，实际api以自己的服务为准)
+    参数：
+        protocol：推流的协议
+        type：流类型
+        uri：流ID
+        vhost ：默认是vhost
+        params：其他参数，推流url地址自带的参数
+
+    返回：
+        authResult：是否鉴权成功（主要是依据这个做判断）
+        code：200
+        msg：success
+
+onNonePlayer回调：无人观看回调，可以在这个回调里停流
+接口示例：
+    curl http://127.0.0.1/api/v1/onNonePlayer -d "protocol=rtsp&type=normal&uri=/live/test&vhost=vhost"  | python -m json.tool
+    {
+        "code": "200",
+        "msg": "success"
+    }
+
+    api：/api/v1/onNonePlayer(这只是示例api，实际api以自己的服务为准)
+    参数：
+        protocol：推流的协议
+        type：流类型
+        uri：流ID
+        vhost ：默认是vhost
+
+    返回：返回参数没有要求
+        code：200
+        msg：success
+
+onKeepAlive回调：服务的心跳，用于做调度
+接口示例：
+    curl http://127.0.0.1/api/v1/onKeepAlive -d "serverId=127.0.0.1：80&originCount=1&playerCount=0&memUsage=93"  | python -m json.tool
+    {
+        "code": "200",
+        "msg": "success"
+    }
+
+    api：/api/v1/onKeepAlive(这只是示例api，实际api以自己的服务为准)
+    参数：
+        serverId：服务id，ip加http的端口
+        originCount：推流的数量
+        playerCount：播放的数量
+        memUsage：内存使用率
+
+    返回：返回参数没有要求
+        code：200
+        msg：success
+
+onStreamStatus：状态上报
+接口示例：
+    curl http://127.0.0.1/api/v1/onStreamStatus -d "protocol=rtsp&type=normal&uri=/live/test&vhost=vhost&status=on&errorCode=success"  | python -m json.tool
+    {
+        "code": "200",
+        "msg": "success"
+    }
+
+    api：/api/v1/onStreamStatus(这只是示例api，实际api以自己的服务为准)
+    参数：
+        protocol：推流的协议
+        type：流类型
+        uri：流ID
+        vhost ：默认是vhost
+        status : on上线，off下线
+        errorCode：错误信息
+
+    返回：返回参数没有要求
+        code：200
+        msg：success
+
+onPlayer：播放状态回调
+接口示例：
+    curl http://127.0.0.1/api/v1/onPlayer -d "protocol=rtsp&type=normal&uri=/live/test&vhost=vhost&status=on&ip=127.0.0.1&port=3556"  | python -m json.tool
+    {
+        "code": "200",
+        "msg": "success"
+    }
+
+    api：/api/v1/onPlayer(这只是示例api，实际api以自己的服务为准)
+    参数：
+        protocol：推流的协议
+        type：流类型
+        uri：流ID
+        vhost ：默认是vhost
+        status : on上线，off下线
+        ip：播放端的ip
+        port：播放端的端口
+
+    返回：返回参数没有要求
+        code：200
+        msg：success

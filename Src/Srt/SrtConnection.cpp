@@ -16,7 +16,7 @@ using namespace std;
 
 static unordered_map<string, string> parseSid(char *sid, int len)
 {
-    string strSid(sid, len);
+    string strSid = UrlParser::urlDecode(string(sid, len));
 
     auto vecParam = split(strSid, "|", ":");
 
@@ -82,7 +82,7 @@ void SrtConnection::init()
         logInfo << "path is: " << _mapParam["path"];
 
         _urlParser.path_ = _mapParam["path"];
-        _urlParser.protocol_ = PROTOCOL_TS;
+        _urlParser.protocol_ = PROTOCOL_SRT;
         _urlParser.vhost_ = DEFAULT_VHOST;
         _urlParser.type_ = DEFAULT_TYPE;
 
@@ -144,6 +144,20 @@ void SrtConnection::onError(const string& err)
 void SrtConnection::handlePull()
 {
     weak_ptr<SrtConnection> wSelf = shared_from_this();
+    if (!EventLoop::getCurrentLoop()) {
+        auto loop = EventLoopPool::instance()->getLoopByCircle();
+        loop->async([wSelf]() {
+            auto self = wSelf.lock();
+            if (!self) {
+                return ;
+            }
+
+            self->handlePull();
+        }, true);
+
+        return ;
+    }
+
     MediaSource::getOrCreateAsync(_urlParser.path_, _urlParser.vhost_, _urlParser.protocol_, _urlParser.type_, 
     [wSelf](const MediaSource::Ptr &src){
         logInfo << "get a src";
@@ -193,7 +207,7 @@ void SrtConnection::onPlayTs(const TsMediaSource::Ptr &tsSrc)
 			}
 			ret.ip_ = self->_socket->getLocalIp();
 			ret.port_ = self->_socket->getLocalPort();
-			ret.protocol_ = PROTOCOL_TS;
+			ret.protocol_ = PROTOCOL_SRT;
 			return ret;
 		});
 		_playTsReader->setDetachCB([wSelf]() {

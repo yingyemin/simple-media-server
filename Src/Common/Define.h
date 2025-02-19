@@ -17,7 +17,7 @@
 #define PROTOCOL_TS "ts"
 #define PROTOCOL_PS "ps"
 #define PROTOCOL_MP4 "mp4"
-#define PROTOCOL_SRT "SRT"
+#define PROTOCOL_SRT "srt"
 #define PROTOCOL_WEBSOCKET "websocket"
 
 #define DEFAULT_TYPE "normal"

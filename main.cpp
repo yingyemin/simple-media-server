@@ -34,6 +34,7 @@
 #include "Api/HookApi.h"
 #include "Api/RtpApi.h"
 #include "Api/WebsocketApi.h"
+#include "Api/SrtApi.h"
 
 #include "Rtmp/RtmpClient.h"
 #include "Rtsp/RtspClient.h"
@@ -168,6 +169,9 @@ int main(int argc, char** argv)
     JT1078Api::initApi();
 #ifdef ENABLE_FFMPEG
     FfmpegApi::initApi();
+#endif
+#ifdef ENABLE_SRT
+    SrtApi::initApi();
 #endif
 
     RtspClient::init();

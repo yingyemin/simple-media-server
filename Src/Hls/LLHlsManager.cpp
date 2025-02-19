@@ -13,34 +13,34 @@ LLHlsManager::Ptr& LLHlsManager::instance()
     return instance;
 }
 
-void LLHlsManager::addMuxer(int uid, const LLHlsMuxer::Ptr& muxer)
-{
-    logInfo << "add muxer: " << uid;
+// void LLHlsManager::addMuxer(int uid, const LLHlsMuxer::Ptr& muxer)
+// {
+//     logInfo << "add muxer: " << uid;
 
-    lock_guard<mutex> lck(_muxerMtx);
-    _mapMuxer.emplace(uid, muxer);
-}
+//     lock_guard<mutex> lck(_muxerMtx);
+//     _mapMuxer.emplace(uid, muxer);
+// }
 
-LLHlsMuxer::Ptr LLHlsManager::getMuxer(int uid)
-{
-    logInfo << "get muxer: " << uid;
+// LLHlsMuxer::Ptr LLHlsManager::getMuxer(int uid)
+// {
+//     logInfo << "get muxer: " << uid;
     
-    lock_guard<mutex> lck(_muxerMtx);
-    auto it = _mapMuxer.find(uid);
-    if (it != _mapMuxer.end()) {
-        return it->second;
-    }
+//     lock_guard<mutex> lck(_muxerMtx);
+//     auto it = _mapMuxer.find(uid);
+//     if (it != _mapMuxer.end()) {
+//         return it->second;
+//     }
 
-    return nullptr;
-}
+//     return nullptr;
+// }
 
-void LLHlsManager::delMuxer(int uid)
-{
-    logInfo << "del muxer: " << uid;
+// void LLHlsManager::delMuxer(int uid)
+// {
+//     logInfo << "del muxer: " << uid;
     
-    lock_guard<mutex> lck(_muxerStrMtx);
-    _mapMuxer.erase(uid);
-}
+//     lock_guard<mutex> lck(_muxerStrMtx);
+//     _mapMuxer.erase(uid);
+// }
 
 void LLHlsManager::addMuxer(const string& key, const LLHlsMuxer::Ptr& muxer)
 {
@@ -67,6 +67,6 @@ void LLHlsManager::delMuxer(const string& key)
 {
     logInfo << "del muxer: " << key;
     
-    lock_guard<mutex> lck(_muxerMtx);
+    lock_guard<mutex> lck(_muxerStrMtx);
     _mapStrMuxer.erase(key);
 }

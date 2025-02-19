@@ -104,6 +104,7 @@ void JT1078Parser::parse(const char *data, size_t len)
         if (index == 0) {
             break;
         } else if (index == -1) {
+            data += 4;
             continue;
         }
 

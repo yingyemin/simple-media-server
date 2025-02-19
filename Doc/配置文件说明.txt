@@ -2,20 +2,21 @@
     # 本地ip地址
     "LocalIp" : "172.24.6.38",
     # 证书，用于https，rtsps，wss等
+    # 可以用自己的证书替换
     "Ssl" : {
         "key" : "./sms.com.key",
         "cert" : "./sms.com.crt"
     },
     # 日志配置
     "Log" : { 
-        # 日志级别，数字越高，级别越大trace，info，warn，error
-        # 0表示trace
+        # 日志级别，数字越高，级别越大trace，debug，info，warn，error
+        # 0表示trace，1表示debug，3：info，4：warn，5：error
         "logLevel" : 0,
         # 是否输出到控制台
         "console" : 1,
         # 最长存多少天
         "maxDay" : 7,
-        # 日志文件的最大地址，单位KB
+        # 单个日志文件的最大大小，单位KB
         "maxSize" : 1024,
         # 最多存多少个日志文件
         "maxCount" : 100
@@ -27,15 +28,17 @@
     "Util" : {
         # 是否开启无人观看停流
         "stopNonePlayerStream" : false,
-        # 无人观看多少时间就停流
+        # 无人观看多少时间就停流，单位ms
         "nonePlayerWaitTime" : 5000,
         # 播放时，找不到流，是否从本地文件找
+        # 可以理解为点播
         "enableLoadFromFile" : true,
         # 心跳时间，单位ms
         "heartbeatTime" : 10000,
         # 第一个track ready后，等待多久进行第一次检查，单位ms
         "firstTrackWaitTime" : 500,
         # 第一次检查后，发现有其他的track，但是该track还没有ready，等待多久进行第二次检查，单位ms
+        # 如果想让流快速，可调低这个值
         "sencondTrackWaitTime" : 5000
     },
     # 回调接口
@@ -44,6 +47,7 @@
         "Type" : "http",
         # 是否开启回调
         "EnableHook" : false,
+        # 回调接口可以换成自己的
         "Http" : {
             # http超时时间
             "timeout" : 10,
@@ -71,6 +75,7 @@
     "Cdn" : {
         # edge模式表示回源
         # forward模式表示转推
+        # 其他值表示不开启cdn功能
         "mode" : "forward1",
         # 回源或者转推的地址
         "endpoint" : "122.51.204.244:1935",
@@ -233,6 +238,8 @@
                 "timeout" : 5000,
                 "ip" : "0.0.0.0",
                 # 用于接收和传输rtp的地址，需要是可以和播放器建链的地址
+                # 局域网环境，可用局域网ip
+                # 公网环境，要用公网ip
                 "candidateIp" : "192.168.0.104",
                 "port" : 7000,
                 "threads" : 1,
@@ -274,7 +281,7 @@
     },
     "Hls" : {
         "Server" : {
-            # ts的切片时长
+            # ts的切片时长，单位ms
             "duration" : 5000,
             # ts的数量
             "segNum" : 5

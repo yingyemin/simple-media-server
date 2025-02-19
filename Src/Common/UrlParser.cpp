@@ -73,6 +73,10 @@ void UrlParser::parse(string url)
         port_ = (port == "" ? 0 : stoi(port));
     }
 
+    if (pos == string::npos) {
+        return ;
+    }
+
     path_ = url.substr(pos);
     for (auto& param : vecParam_) {
         if (param.first == "vhost" && !param.second.empty()) {

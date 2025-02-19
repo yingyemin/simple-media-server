@@ -1,0 +1,179 @@
+主要功能
+    - 作为服务端支持推拉流
+    - 作为客户端支持推拉流
+    - 支持ts
+
+ffmpeg推流接入示例
+    ffmpeg -re -i demo.mp4 -vcodec copy -acodec copy -f mpegts srt://10.0.0.239:6666?streamid=|path:live/test|request:push|
+    ffmpeg编译时要指定--enable-srt，否则不支持srt
+    request:push 表示推流
+    request:pull 表示拉流
+    path:/live/test 流id为/live/test
+
+输出url地址：
+    "url": {
+        "rtsp": "rtsp://10.0.0.239:554/live/test",
+        "rtsp": "rtsp://10.0.0.239:554/live/test?type=ps",
+        "rtsp": "rtsp://10.0.0.239:554/live/test?type=huge",
+        "rtsp": "rtsp://10.0.0.239:554/live/test?type=hugePs",
+        "rtsp": "rtsp://10.0.0.239:554/live/test?type=fastPts",
+        "rtmp": "rtmp://10.0.0.239:1935/live/test",
+        "rtmp": "rtmp://10.0.0.239:1935/live/test?type=enhanced",
+        "rtmp": "rtmp://10.0.0.239:1935/live/test?type=fastPts",
+        "http-flv": "http://10.0.0.239:80/live/test.flv",
+        "ws-flv": "ws://10.0.0.239:80/live/test.flv",
+        "http-mp4": "http://10.0.0.239:80/live/test.mp4",
+        "http-hls": "http://10.0.0.239:80/live/test.m3u8",
+        "srt" : "srt://10.0.0.239:6666?streamid=|path:live/test|request:pull|"
+    }	
+
+查看流上线信息：
+curl http://127.0.0.1/api/v1/getSourceList | python -m json.tool
+{
+    "code": "200",
+    "msg": "success",
+    "count" : 1,
+    "sources": [
+        {
+            # 音频编码信息
+            "audio": {
+                # 编码格式
+                "codec": "aac",
+                # 状态，以就绪还是被舍弃
+                # ready or expire
+                "status": "ready"
+            },
+            # 收到多少字节的数据
+            "bytes": 56580,
+            # 流是什么时间上线的
+            "createTime": 1739702722594,
+            # 流在哪个event线程
+            "epollFd": 5,
+            # 流在线时长
+            "onlineDuration": 3288,
+            # 流名称
+            "path": "/live/test",
+            # 源协议对应的观看数
+            "playerCount": 0,
+            # 源协议
+            "protocol": "rtmp",
+            # 推流的socket信息
+            "socketInfo": {
+                # 本地的ip地址和port
+                "localIp": "127.0.0.1",
+                "localPort": 1935,
+                # 推流客户端的ip地址和port
+                "peerIp": "127.0.0.1",
+                "peerPort": 35766
+            },
+            # 总的观看数
+            "totalPlayerCount": 0,
+            "type": "normal",
+            "vhost": "vhost",
+            # 视频编码信息
+            "video": {
+                "codec": "h264",
+                "fps": 50,
+                "height": 320,
+                "status": "ready",
+                "width": 768
+            }
+        }
+    ]
+}
+
+srt往外推流接口：
+接口示例：
+    curl http://127.0.0.1/api/v1/srt/push/start -d "url=srt://127.0.0.1:6666?streamid=|request:push|path:/live/test1|&appName=live&streamName=test"  | python -m json.tool
+    {
+        "code": "200",
+        "msg": "success"
+    }
+
+    api：/api/v1/srt/push/start
+    参数：
+        url：推流地址
+        appName：app名称
+        streamName：流名称
+
+停止srt推流接口：
+    接口示例：
+    curl http://127.0.0.1/api/v1/srt/push/stop -d "url=srt://127.0.0.1:6666?streamid=|request:push|path:/live/test1|"  | python -m json.tool
+    {
+        "code": "200",
+        "msg": "success"
+    }
+
+    api：/api/v1/srt/push/stop
+    参数：
+        url：推流地址
+
+查看srt往外推流的列表：
+    接口示例：
+    curl http://127.0.0.1/api/v1/srt/push/list
+    {
+        "clients": [
+            {
+                # sms中的流id
+                "path": "/live/10000",
+                # 推流地址
+                "url": "srt://127.0.0.1:6666?streamid=|request:push|path:/live/test1|"
+            }
+        ],
+        "code": "200",
+        "msg": "success"
+    }
+
+    api: /api/v1/srt/push/list
+    参数：
+        无
+
+
+srt从外拉流接口：
+    接口示例：
+    curl http://127.0.0.1/api/v1/srt/pull/start -d "url=srt://127.0.0.1:6666?streamid=|request:pull|path:/live/test|&appName=live&streamName=test1"  | python -m json.tool
+    {
+        "code": "200",
+        "msg": "success"
+    }
+
+    api：/api/v1/srt/pull/start
+    参数：
+        url：拉流地址，源的url
+        appName：app名称，在sms里的应用名称
+        streamName：流名称，在sms里的流名称
+
+停止srt拉流接口：
+    接口示例：
+    curl http://127.0.0.1/api/v1/srt/pull/stop -d "appName=live&streamName=demo"  | python -m json.tool
+    {
+        "code": "200",
+        "msg": "success"
+    }
+
+    api：/api/v1/srt/pull/stop
+    参数：
+        appName：app名称
+        streamName：流名称
+
+查看从外拉rtsp流的列表：
+    接口示例：
+    curl http://127.0.0.1/api/v1/srt/pull/list  | python -m json.tool
+    {
+        "count": 1,
+        "clients": [
+            {
+                # 在sms里的流id，由appName和streamName组成
+                "path": "/live/test",
+                # 源url
+                "url": "rtsp://127.0.0.1/live/10000"
+            }
+        ],
+        "code": "200",
+        "msg": "success"
+    }
+
+    api: /api/v1/srt/pull/list
+    参数:
+        无
+        

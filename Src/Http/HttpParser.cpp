@@ -120,8 +120,10 @@ void HttpParser::parse(const char *data, size_t len)
         } else if (_stage == 2) {
             // logInfo << "_stage == 2";
             // handle hearder line
+
             auto keyPos = strchr(data, ':');
             if (!(keyPos > data && keyPos < pos)) {
+                data = pos + 2;
                 continue;
             }
 

@@ -15,8 +15,13 @@ extern unordered_map<string, function<void(const HttpParser& parser, const UrlPa
 
 void SrtApi::initApi()
 {
-    g_mapApi.emplace("/api/v1/srt/pull", SrtApi::createPullClient);
-    g_mapApi.emplace("/api/v1/srt/push", SrtApi::createPushClient);
+    g_mapApi.emplace("/api/v1/srt/pull/start", SrtApi::createPullClient);
+    g_mapApi.emplace("/api/v1/srt/pull/stop", SrtApi::stopPullClient);
+    g_mapApi.emplace("/api/v1/srt/pull/list", SrtApi::listPullClient);
+
+    g_mapApi.emplace("/api/v1/srt/push/start", SrtApi::createPushClient);
+    g_mapApi.emplace("/api/v1/srt/push/stop", SrtApi::stopPushClient);
+    g_mapApi.emplace("/api/v1/srt/push/list", SrtApi::listPushClient);
 }
 
 void SrtApi::createPullClient(const HttpParser& parser, const UrlParser& urlParser, 
@@ -48,6 +53,59 @@ void SrtApi::createPullClient(const HttpParser& parser, const UrlParser& urlPars
     rspFunc(rsp);
 }
 
+void SrtApi::stopPullClient(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    checkArgs(parser._body, {"appName", "streamName"});
+
+    string key = "/" + parser._body["appName"].get<string>() + "/" + parser._body["streamName"].get<string>();
+    MediaClient::delMediaClient(key);
+
+    value["code"] = "200";
+    value["msg"] = "success";
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void SrtApi::listPullClient(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    int count = 0;
+    auto allClients = MediaClient::getAllMediaClient();
+    for (auto& pr : allClients) {
+        string protocol;
+        MediaClientType type;
+        pr.second->getProtocolAndType(protocol, type);
+
+        if (protocol == "srt" && type == MediaClientType_Pull) {
+            auto srtClient = dynamic_pointer_cast<SrtClient>(pr.second);
+            if (!srtClient) {
+                continue ;
+            }
+            json item;
+            item["path"] = srtClient->getPath();
+            item["url"] = srtClient->getSourceUrl();
+
+            value["clients"].push_back(item);
+            ++count;
+        }
+    }
+
+    value["code"] = "200";
+    value["msg"] = "success";
+    value["count"] = count;
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
 void SrtApi::createPushClient(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc)
 {
@@ -73,6 +131,56 @@ void SrtApi::createPushClient(const HttpParser& parser, const UrlParser& urlPars
     json value;
     value["code"] = 200;
     rsp.setHeader("Access-Control-Allow-Origin", "*");
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void SrtApi::stopPushClient(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    checkArgs(parser._body, {"url"});
+
+    string key = parser._body["url"];
+    MediaClient::delMediaClient(key);
+
+    value["code"] = "200";
+    value["msg"] = "success";
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void SrtApi::listPushClient(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    auto allClients = MediaClient::getAllMediaClient();
+    for (auto& pr : allClients) {
+        string protocol;
+        MediaClientType type;
+        pr.second->getProtocolAndType(protocol, type);
+
+        if (protocol == "srt" && type == MediaClientType_Push) {
+            auto srtClient = dynamic_pointer_cast<SrtClient>(pr.second);
+            if (!srtClient) {
+                continue ;
+            }
+            json item;
+            item["path"] = srtClient->getPath();
+            item["url"] = srtClient->getSourceUrl();
+
+            value["clients"].push_back(item);
+        }
+    }
+
+    value["code"] = "200";
+    value["msg"] = "success";
     rsp.setContent(value.dump());
     rspFunc(rsp);
 }

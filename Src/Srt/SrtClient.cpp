@@ -19,7 +19,7 @@ SrtClient::SrtClient(MediaClientType type, const string& appName, const string& 
     logInfo << "SrtClient";
     _request = (type == MediaClientType_Push ? "push" : "pull");
     _urlParser.path_ = "/" + appName + "/" + streamName;
-    _urlParser.protocol_ = PROTOCOL_TS;
+    _urlParser.protocol_ = PROTOCOL_SRT;
     _urlParser.vhost_ = DEFAULT_VHOST;
     _urlParser.type_ = DEFAULT_TYPE;
 }
@@ -36,22 +36,26 @@ SrtClient::~SrtClient()
     }
 }
 
-void SrtClient::start(const string& localIp, int localPort, const string& url, int timeout)
+bool SrtClient::start(const string& localIp, int localPort, const string& url, int timeout)
 {
+    _url = url;
     _peerUrlParser.parse(url);
     _loop = SrtEventLoopPool::instance()->getLoopByCircle();
 
-    _socket = make_shared<SrtSocket>(_loop, true);
+    _socket = make_shared<SrtSocket>(_loop, false);
     _socket->createSocket(0);
+    int ret = _socket->setsockopt(_socket->getFd(), SOL_SOCKET, SRTO_STREAMID, _peerUrlParser.param_.data(), _peerUrlParser.param_.size());
+    if (ret == -1) {
+        cout << "setsockopt SO_RCVBUF failed";
+        return false;
+    }
+
     if (_socket->connect(_peerUrlParser.host_, _peerUrlParser.port_, timeout) != 0) {
         close();
         logInfo << "TcpClient::connect, ip: " << _peerUrlParser.host_ << ", peerPort: " 
                 << _peerUrlParser.port_ << ", failed";
-    }
 
-    int ret = _socket->setsockopt(_socket->getFd(), SOL_SOCKET, SRTO_STREAMID, _peerUrlParser.param_.data(), _peerUrlParser.param_.size());
-    if (ret == -1) {
-        cout << "setsockopt SO_RCVBUF failed";
+        return false;
     }
 
     weak_ptr<SrtClient> wSelf = shared_from_this();
@@ -64,13 +68,39 @@ void SrtClient::start(const string& localIp, int localPort, const string& url, i
         self->onError("get a err from socket");
     });
 
+    _socket->setAcceptCb([wSelf](){
+        logInfo << "get a new connection from socket";
+        
+        auto self = wSelf.lock();
+        if (!self) {
+            return ;
+        }
+
+        auto acceptFd = self->_socket->accept();
+        auto acceptSocket = make_shared<SrtSocket>(self->_socket->getLoop(), acceptFd);
+        acceptSocket->addToEpoll();
+
+        acceptSocket->setReadCb([wSelf](const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len){
+            auto self = wSelf.lock();
+            if (!self) {
+                return 0;
+            }
+            logInfo << "get a buffer, size: " << buffer->size();
+            return 0;
+        });
+        self->_acceptSocket = acceptSocket;
+    });
+
     if (_request == "push") {
         handlePush();
     } else if (_request == "pull") {
         initPull();
     } else {
         onError("invalid request: " + _request);
+        return false;
     }
+
+    return true;
 }
 
 void SrtClient::stop()
@@ -176,7 +206,7 @@ void SrtClient::onPushTs(const TsMediaSource::Ptr &tsSrc)
 			}
 			ret.ip_ = self->_socket->getLocalIp();
 			ret.port_ = self->_socket->getLocalPort();
-			ret.protocol_ = PROTOCOL_TS;
+			ret.protocol_ = PROTOCOL_SRT;
 			return ret;
 		});
 		_playTsReader->setDetachCB([wSelf]() {

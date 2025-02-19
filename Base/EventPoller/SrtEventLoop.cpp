@@ -105,7 +105,7 @@ void SrtEventLoop::start()
         _fdCount = _mapHander.size();
         _timerTaskCount = _timer->getTaskSize();
 
-        logInfo << "ret: " << ret << ", _mapHander.size(): " << _mapHander.size();
+        // logInfo << "ret: " << ret << ", _mapHander.size(): " << _mapHander.size();
         for (int i = 0; i < read_len; ++i) {
             // struct epoll_event &ev = events[i];
             int fd = m_read_socks[i];
@@ -252,7 +252,7 @@ inline void SrtEventLoop::onAsyncEvent()
     for (auto& func : _enventSwap) {
         try {
             func();
-            logInfo << "do a async event";
+            // logInfo << "do a async event";
         } catch (std::exception &ex) {
             logWarn << "do async event failed: " << ex.what();
         }

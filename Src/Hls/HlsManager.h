@@ -25,13 +25,13 @@ public:
 	HlsMuxer::Ptr getMuxer(const string& key);
 	void delMuxer(const string& key);
 
-	void addMuxer(int uid, const HlsMuxer::Ptr& muxer);
-	HlsMuxer::Ptr getMuxer(int uid);
-	void delMuxer(int uid);
+	// void addMuxer(int uid, const HlsMuxer::Ptr& muxer);
+	// HlsMuxer::Ptr getMuxer(int uid);
+	// void delMuxer(int uid);
 
 private:
-	mutex _muxerMtx;
-	unordered_map<int, HlsMuxer::Ptr> _mapMuxer;
+	// mutex _muxerMtx;
+	// unordered_map<int, HlsMuxer::Ptr> _mapMuxer;
 
 	mutex _muxerStrMtx;
 	unordered_map<string, HlsMuxer::Ptr> _mapStrMuxer;

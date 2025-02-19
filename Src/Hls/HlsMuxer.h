@@ -14,6 +14,13 @@
 
 using namespace std;
 
+class HlsPlayerInfo
+{
+public:
+	uint64_t lastTime_;
+	void* key_;
+};
+
 class HlsMuxer : public enable_shared_from_this<HlsMuxer>
 {
 public:
@@ -60,8 +67,8 @@ private:
 	mutex _tsMtx;
 	map<string, FrameBuffer::Ptr> _mapTs;
 	mutex _uidMtx;
-	unordered_map<int, uint64_t> _mapUid2Time;
-	unordered_map<int, void*> _mapUid2key;
+	unordered_map<int, HlsPlayerInfo> _mapPlayer;
+	// unordered_map<int, void*> _mapUid2key;
 	unordered_map<int, shared_ptr<TrackInfo>> _mapTrackInfo;
 	function<void()> _onNoPLayer;
 	function<void()> _onReady;

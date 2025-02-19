@@ -72,7 +72,8 @@ void TsMediaSource::addTrack(const TsDemuxer::Ptr& track)
             if (!strongSelf) {
                 return;
             }
-            // logInfo << "on frame";
+            // logInfo << "on frame: " << (int)frame->getNalType();
+            strongSelf->MediaSource::onFrame(frame);
             for (auto& wSink : strongSelf->_mapSink) {
                 // logInfo << "on frame to sink";
                 // auto sink = wSink.second.lock();
@@ -328,14 +329,14 @@ void TsMediaSource::inputTs(const StreamBuffer::Ptr& buffer)
     }
     _ring->addBytes(buffer->size());
     
-    logInfo << "TsMediaSource::inputTs: " << this << ", " << _decodeFlag;
+    // logInfo << "TsMediaSource::inputTs: " << this << ", " << _decodeFlag;
     _cache->emplace_back(std::move(buffer));
     // logInfo << "write cache size: " << strongSelf->_cache->size();
     _ring->write(_cache);
     _cache = std::make_shared<list<StreamBuffer::Ptr>>();
 
     if (_decodeFlag) {
-        logInfo << "demuxer->onTsPacket";
+        // logInfo << "demuxer->onTsPacket";
         lock_guard<mutex> lck(_mtxTrack);
         // auto demuxer = _mapTsDecodeTrack[0];
         // demuxer->onTsPacket(buffer->data(), buffer->size(), 0);

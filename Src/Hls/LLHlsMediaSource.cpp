@@ -18,6 +18,10 @@ LLHlsMediaSource::LLHlsMediaSource(const UrlParser& urlParser, const EventLoop::
 LLHlsMediaSource::~LLHlsMediaSource()
 {
     logInfo << "~LLHlsMediaSource";
+    
+    if (_hlsMuxer) {
+        _hlsMuxer->release();
+    }
 }
 
 void LLHlsMediaSource::onReady()

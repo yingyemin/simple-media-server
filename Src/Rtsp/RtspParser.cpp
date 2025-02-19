@@ -108,6 +108,7 @@ void RtspParser::parse(const char *data, size_t len)
                 // handle hearder line
                 auto keyPos = strchr(data, ':');
                 if (!(keyPos > data && keyPos < pos)) {
+                    data = pos + 2;
                     continue;
                 }
 

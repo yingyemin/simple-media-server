@@ -98,7 +98,7 @@ rtsp往外推流接口：
 
 停止rtsp推流接口：
     接口示例：
-    curl http://127.0.0.1/api/v1/rtsp/publish/stop -d "appName=live&streamName=demo"  | python -m json.tool
+    curl http://127.0.0.1/api/v1/rtsp/publish/stop -d "url=rtsp://10.0.0.239:554/Media/Camera_00001"  | python -m json.tool
     {
         "code": "200",
         "msg": "success"
@@ -106,8 +106,7 @@ rtsp往外推流接口：
 
     api：/api/v1/rtsp/publish/stop
     参数：
-        appName：app名称
-        streamName：流名称
+        url：推流地址
 
 查看rtsp往外推流的列表：
     接口示例：

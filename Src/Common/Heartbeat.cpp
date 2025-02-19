@@ -111,6 +111,12 @@ void Heartbeat::startAsync()
 
 void Heartbeat::start()
 {
+    string url = Config::instance()->get("Hook", "Http", "onKeepAlive");
+
+    if(url.empty()) {
+        return ;
+    }
+
     ServerInfo info;
     getSourceInfo(info);
 

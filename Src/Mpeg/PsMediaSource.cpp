@@ -73,6 +73,7 @@ void PsMediaSource::addTrack(const PsDemuxer::Ptr& track)
                 return;
             }
             // logInfo << "on frame";
+            strongSelf->MediaSource::onFrame(frame);
             for (auto& wSink : strongSelf->_mapSink) {
                 // logInfo << "on frame to sink";
                 // auto sink = wSink.second.lock();

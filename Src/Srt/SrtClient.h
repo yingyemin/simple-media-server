@@ -26,9 +26,12 @@ public:
     SrtClient(MediaClientType type, const string& appName, const string& streamName);
     ~SrtClient();
 
+    string getPath() {return _urlParser.path_;}
+    string getSourceUrl() {return _url;}
+
 public:
     // override MediaClient
-    void start(const string& localIp, int localPort, const string& param, int timeout) override;
+    bool start(const string& localIp, int localPort, const string& url, int timeout) override;
     void stop() override;
     void pause() override;
     void setOnClose(const function<void()>& cb) override;
@@ -48,10 +51,12 @@ private:
 private:
     bool _inited = false;
     string _request = "pull";
+    string _url;
     UrlParser _urlParser;
     UrlParser _peerUrlParser;
     SrtEventLoop::Ptr _loop;
     SrtSocket::Ptr _socket;
+    SrtSocket::Ptr _acceptSocket;
     TsMediaSource::Wptr _source;
     TsMediaSource::RingType::DataQueReaderT::Ptr _playTsReader;
     function<void()> _onClose;

@@ -36,6 +36,10 @@ void RtpConnection::init()
         if(!self){
             return;
         }
+        if (buffer->size() < 12) {
+            logError << "rtp packet size too small:" << buffer->size();
+            return;
+        }
         // auto buffer = StreamBuffer::create();
         // buffer->assign(data + 2, len - 2);
         RtpPacket::Ptr rtp = make_shared<RtpPacket>(buffer, 0);

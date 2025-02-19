@@ -19,6 +19,8 @@
 使用说明
     - 检查配置，如 server.conf,将其拷贝到build目录
     - 运行程序：./SimpleMediaServer
+        - 可以指定配置文件：./SimpleMediaServer -c ./test.json
+        - 默认找当前目录的server.json
     - 用ffmpeg推流：ffmpeg -re -i inputfile -c copy -f flv rtmp://ip:port/live/test
     - 用vlc播放
     - rtsp地址：rtsp://ip:port/live/test

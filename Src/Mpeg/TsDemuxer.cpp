@@ -395,6 +395,9 @@ void TsPacketHeader::demux(const StreamBuffer::Ptr& buffer)
     transport_priority_ = (pid_ >> 13) & 0x01;
     pid_ &= 0x1FFF;
 
+    // logInfo << "pid: " << (int)pid_;
+    // logInfo << "payload_unit_start_indicator_: " << (int)payload_unit_start_indicator_;
+
     continuity_counter_ = payload[3];
     transport_scrambling_control_ = (continuity_counter_ >> 6) & 0x03;
     adaptation_field_control_ = (continuity_counter_ >> 4) & 0x03;
@@ -483,6 +486,7 @@ void TsPayload::demux(TsDemuxer *ctx, TsPacket *pkt, const StreamBuffer::Ptr& bu
         }
         else
         {
+            // logInfo << "msg->packet_start_code_prefix_" << (int)msg->packet_start_code_prefix_;
             if (msg->packet_start_code_prefix_ == 0x01)
             {
                 ctx->pushConsumerMessage(msg);
@@ -761,10 +765,10 @@ int TsPayloadPES::demux(TsDemuxer *ctx, TsPacket *pkt, const StreamBuffer::Ptr& 
             msg->packet_data_.assign(payload + pos, cpSize);
             pos += cpSize;
             msg->parsed_data_size_ += cpSize;
-            logInfo << "packet_data_size: " << msg->packet_data_size_
-                    << ", PES_packet_length: " << PES_packet_length_
-                    << ", packet_header_size: " << header_size
-                    << ", cpSize: " << cpSize;
+            // logInfo << "packet_data_size: " << msg->packet_data_size_
+            //         << ", PES_packet_length: " << PES_packet_length_
+            //         << ", packet_header_size: " << header_size
+            //         << ", cpSize: " << cpSize;
         }
     }
 
@@ -1139,6 +1143,9 @@ void TsDemuxer::onDecode(const char* data, int len, int index, int pts, int dts)
     }
 
     if (frame) {
+        dts = dts == 0 ? pts : dts;
+        // logInfo << "pts: " << pts;
+        // logInfo << "dts: " << dts;
         frame->_buffer.assign(data, len);
         frame->_pts = pts / 90; // pts * 1000 / 90000,计算为毫秒
         frame->_dts = dts / 90;
@@ -1331,7 +1338,8 @@ void TsDemuxer::onTsPacket(char* data, int size, uint32_t timestamp)
 
     int tsPacketSize = 188;
 
-    logInfo << "input size: " << size;
+    // logInfo << "input size: " << size;
+    // logInfo << "timestamp: " << timestamp;
 
     while (size >= tsPacketSize) {
         assert(data[0] == 0x47);
@@ -1345,7 +1353,7 @@ void TsDemuxer::onTsPacket(char* data, int size, uint32_t timestamp)
         size -= tsPacketSize;
     }
 
-    logInfo << "after demux size: " << size;
+    // logInfo << "after demux size: " << size;
 
     if (size != 0) {
         _remainBuffer.assign(data, size);

@@ -15,6 +15,13 @@
 
 using namespace std;
 
+class LLHlsPlayerInfo
+{
+public:
+	uint64_t lastTime_;
+	void* key_;
+};
+
 class Mp4SegInfo
 {
 public:
@@ -36,6 +43,7 @@ public:
 	void init();
 	void start();
 	void stop() {_muxer = false;}
+	void release();
 	void onFrame(const FrameBuffer::Ptr& frame);
 	void onFmp4Packet(const Buffer::Ptr &pkt, bool keyframe);
 	void addTrackInfo(const shared_ptr<TrackInfo>& track);
@@ -73,8 +81,8 @@ private:
 	mutex _tsMtx;
 	map<string, Mp4SegInfo> _mapFmp4;
 	mutex _uidMtx;
-	unordered_map<int, uint64_t> _mapUid2Time;
-	unordered_map<int, void*> _mapUid2key;
+	unordered_map<int, LLHlsPlayerInfo> _mapPlayer;
+	// unordered_map<int, void*> _mapUid2key;
 	unordered_map<int, shared_ptr<TrackInfo>> _mapTrackInfo;
 	function<void()> _onNoPLayer;
 	function<void()> _onReady;
