@@ -2,9 +2,15 @@
     - 作为服务端支持推拉流
     - 作为客户端支持推拉流
     - 支持ts
+    - srt url的格式：srt://10.0.0.239:6666?streamid=|path:/live/test|request:push|
+        - path:/live/test 表示流id为 /live/test
+        - request:push 表示推流， pull表示拉流
+    - 兼容ffmpeg的url：srt://172.24.6.9:6666?streamid=#!::r=/live/test,m=publish
+        - r=/live/test 表示流id为 /live/test
+        - m=publish 表示推流，play表示拉流
 
 ffmpeg推流接入示例
-    ffmpeg -re -i demo.mp4 -vcodec copy -acodec copy -f mpegts srt://10.0.0.239:6666?streamid=|path:live/test|request:push|
+    ffmpeg -re -i demo.mp4 -vcodec copy -acodec copy -f mpegts srt://10.0.0.239:6666?streamid=|path:/live/test|request:push|
     ffmpeg编译时要指定--enable-srt，否则不支持srt
     request:push 表示推流
     request:pull 表示拉流
@@ -24,7 +30,7 @@ ffmpeg推流接入示例
         "ws-flv": "ws://10.0.0.239:80/live/test.flv",
         "http-mp4": "http://10.0.0.239:80/live/test.mp4",
         "http-hls": "http://10.0.0.239:80/live/test.m3u8",
-        "srt" : "srt://10.0.0.239:6666?streamid=|path:live/test|request:pull|"
+        "srt" : "srt://10.0.0.239:6666?streamid=|path:/live/test|request:pull|"
     }	
 
 查看流上线信息：

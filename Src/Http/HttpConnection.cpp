@@ -149,6 +149,8 @@ void HttpConnection::onHttpRequest()
                         + _parser._url;
         
         logInfo << "_parser._url: " << _parser._url;
+        UrlParser tmp;
+        _urlParser = tmp;
         _urlParser.parse(_parser._url);
         logInfo <<_urlParser.path_;
 

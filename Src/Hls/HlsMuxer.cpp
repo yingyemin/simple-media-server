@@ -24,6 +24,7 @@ static int getUid()
 HlsMuxer::HlsMuxer(const UrlParser& parse)
 	:_parse(parse)
 {
+	logTrace << "path: " << _parse.path_ + "_" + _parse.vhost_ + "_" + _parse.type_ << endl;
 	_tsBuffer = make_shared<FrameBuffer>();
 }
 
@@ -159,6 +160,10 @@ void HlsMuxer::onTsPacket(const StreamBuffer::Ptr &pkt, int pts, int dts, bool k
 		tsDuration = config["Hls"]["Server"]["duration"];
 	}, "Hls", "Server", "duration");
 
+	static int force = Config::instance()->getAndListen([](const json &config){
+		force = config["Hls"]["Server"]["force"];
+	}, "Hls", "Server", "force");
+
 	if (tsDuration == 0) {
 		tsDuration = 4000;
 	}
@@ -169,9 +174,19 @@ void HlsMuxer::onTsPacket(const StreamBuffer::Ptr &pkt, int pts, int dts, bool k
 	// fwrite(pkt->data(), 1, pkt->size(), fp);
 	// fclose(fp);
 
-	// logInfo << "keyframe : " << keyframe << ", _lastPts: " << _lastPts << ", pts: " << pts;
+	// logInfo << "keyframe : " << keyframe << ", _lastPts: " << _lastPts << ", pts: " << pts
+	// 		<< ", _tsClick.startToNow(): " << _tsClick.startToNow() << ", tsDuration : " << tsDuration;
 
-	if (keyframe && _lastPts != pts && _tsClick.startToNow() > tsDuration) {
+	// if (keyframe) {
+	// 	logInfo << "keyframe : " << keyframe;
+	// }
+	// if (_lastPts != pts) {
+	// 	logInfo << ", _lastPts: " << _lastPts << ", pts: " << pts;
+	// }
+	// if (_tsClick.startToNow() > tsDuration) {
+	// 	logInfo << ", _tsClick.startToNow(): " << _tsClick.startToNow() << ", tsDuration : " << tsDuration;
+	// }
+	if ((keyframe || force) /*&& _lastPts != pts*/ && _tsClick.startToNow() > tsDuration) {
 		_tsBuffer->_dts = _tsClick.startToNow();
 		updateM3u8();
 		_tsClick.update();
@@ -261,6 +276,7 @@ string HlsMuxer::getM3u8(void* key)
 		lock_guard<mutex> lck(_uidMtx);
 		HlsPlayerInfo info;
 		info.key_ = key;
+		logInfo << "update info.lastTime_";
 		info.lastTime_ = time(NULL);
 		_mapPlayer[uid] = info;
 	}
@@ -283,6 +299,7 @@ string HlsMuxer::getM3u8WithUid(int uid)
 
 	{
 		lock_guard<mutex> lck(_uidMtx);
+		logInfo << "update info.lastTime_";
 		_mapPlayer[uid].lastTime_ = time(NULL);
 	}
 
@@ -302,8 +319,8 @@ FrameBuffer::Ptr HlsMuxer::getTsBuffer(const string& key)
 void HlsMuxer::onManager()
 {
     static int playTimeout = Config::instance()->getAndListen([](const json &config){
-        playTimeout = config["Hls"]["Server"]["PlayTimeout"];
-    }, "Hls", "Server", "PlayTimeout");
+        playTimeout = config["Hls"]["Server"]["playTimeout"];
+    }, "Hls", "Server", "playTimeout");
 
 	if (playTimeout == 0) {
 		playTimeout = 5;
@@ -312,6 +329,7 @@ void HlsMuxer::onManager()
     lock_guard<mutex> lck(_uidMtx);
     for (auto it = _mapPlayer.begin(); it != _mapPlayer.end();) {
         int now = time(NULL);
+		logInfo << "uid: " << it->first << ", now: " << now << ", it->second.lastTime_: " << it->second.lastTime_;
         if (now - it->second.lastTime_ > playTimeout) {
 			auto uid = it->first;
 			auto key = it->second.key_;

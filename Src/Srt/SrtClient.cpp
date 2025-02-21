@@ -36,6 +36,12 @@ SrtClient::~SrtClient()
     }
 }
 
+void SrtClient::getProtocolAndType(string& protocol, MediaClientType& type)
+{
+    protocol = _urlParser.protocol_;
+    type = _request == "pull" ? MediaClientType_Pull : MediaClientType_Push;
+}
+
 bool SrtClient::start(const string& localIp, int localPort, const string& url, int timeout)
 {
     _url = url;

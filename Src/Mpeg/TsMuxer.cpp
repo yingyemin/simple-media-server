@@ -437,7 +437,7 @@ int TsMuxer::make_pes_packet(const FrameBuffer::Ptr& frame)
 			memcpy(bits.p_data + bits.i_data, frame->data() + nSendDataOff, TS_LOAD_LEN - bits.i_data);
 			nSendDataOff += TS_LOAD_LEN - bits.i_data;
 
-			onTsPacket(tsPacket, frame->pts(), frame->dts(), frame->keyFrame() || frame->metaFrame());
+			onTsPacket(tsPacket, frame->pts(), frame->dts(), false);
 		} else {
 			bits_write(&bits, 8, 0x47); //ts包起始字节
 			bits_write(&bits, 1, 0);			// transport error indicator
@@ -467,7 +467,7 @@ int TsMuxer::make_pes_packet(const FrameBuffer::Ptr& frame)
 			memcpy(bits.p_data + bits.i_data, frame->data() + nSendDataOff, TS_LOAD_LEN - bits.i_data);
 			nSendDataOff += TS_LOAD_LEN - bits.i_data;
 
-			onTsPacket(tsPacket, frame->pts(), frame->dts(), frame->keyFrame() || frame->metaFrame());
+			onTsPacket(tsPacket, frame->pts(), frame->dts(), false);
 		}
 	}
 

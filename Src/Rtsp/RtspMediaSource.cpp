@@ -339,8 +339,7 @@ int RtspMediaSource::playerCount()
         return 0;
     }
     int count = _ring->readerCount();
-    lock_guard<mutex> lck(_mtxTrack);
-    count -= _mapSink.size();
+    count -= _sinkSize;
 
     return count;
 }

@@ -311,8 +311,8 @@ int RtpMediaSource::playerCount()
     }
     
     int count = _ring->readerCount();
-    lock_guard<mutex> lck(_mtxTrack);
-    count -= _mapSink.size();
+    // lock_guard<mutex> lck(_mtxTrack);
+    count -= _sinkSize;
 
     return count;
 }

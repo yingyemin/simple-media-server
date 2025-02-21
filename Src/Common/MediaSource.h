@@ -130,6 +130,7 @@ protected:
 
     recursive_mutex _mtxStreamSource;
     unordered_map<string/*protocol*/ , unordered_map<string/*type*/ , MediaSource::Wptr> > _streamSource;
+    int _sinkSize = 0;
     unordered_map<MediaSource*, MediaSource::Ptr> _mapSink;
     unordered_map<MediaSource*, MediaSource::Ptr> _mapSource;
     unordered_map<int, shared_ptr<TrackInfo>> _mapTrackInfo;

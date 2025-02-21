@@ -28,6 +28,7 @@ public:
 
     string getPath() {return _urlParser.path_;}
     string getSourceUrl() {return _url;}
+    void getProtocolAndType(string& protocol, MediaClientType& type);
 
 public:
     // override MediaClient

@@ -349,8 +349,8 @@ void TsMediaSource::inputTs(const StreamBuffer::Ptr& buffer)
 int TsMediaSource::playerCount()
 {
     int count = _ring->readerCount();
-    lock_guard<mutex> lck(_mtxTrack);
-    count -= _mapSink.size();
+    // lock_guard<mutex> lck(_mtxTrack);
+    // count -= _mapSink.size();
 
     return count;
 }

@@ -673,12 +673,14 @@ void MediaSource::addSink(const MediaSource::Ptr &src)
 {
     logInfo << "MediaSource::addSink";
     _mapSink.emplace(src.get(), src);
+    _sinkSize = _mapSink.size();
 }
 
 void MediaSource::delSink(const MediaSource::Ptr &src)
 {
     logInfo << "MediaSource::delSink";
     _mapSink.erase(src.get());
+    _sinkSize = _mapSink.size();
 }
 
 void MediaSource::addSource(const MediaSource::Ptr &src)

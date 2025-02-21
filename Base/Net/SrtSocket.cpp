@@ -749,7 +749,8 @@ ssize_t SrtSocket::send(const Buffer::Ptr pkt, int flag, int offset, struct sock
             logInfo << "sendBuffer->_offset: " << sendBuffer->_offset;
             break;
         } else {
-            onError(nullptr);
+            // onError(nullptr);
+            // return 0;
             break;
         }
     }

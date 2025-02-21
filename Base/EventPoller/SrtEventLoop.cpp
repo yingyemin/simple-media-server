@@ -324,10 +324,10 @@ void SrtEventLoop::modifyEvent(int fd, int event, PollCompleteCB cb) {
         modes |= SRT_EPOLL_ERR;
         ret = srt_epoll_update_usock(_epollFd, fd, &modes);
         if (ret < 0) {
-            logError << "del from epoll failed, fd: " << fd;
+            logError << "del from epoll failed, fd: " << fd << ", errno: " << srt_getlasterror_str();
         }
 
-        _mapHander.erase(fd);
+        // _mapHander.erase(fd);
         cb(true);
 
         return ;
