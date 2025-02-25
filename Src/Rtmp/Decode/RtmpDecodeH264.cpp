@@ -83,6 +83,8 @@ void RtmpDecodeH264::decode(const RtmpMessage::Ptr& msg)
         // i b p
         int len =0;
         int num =5;
+        uint8_t *cts_ptr = (uint8_t *)(payload + 2);
+        int32_t cts = (((cts_ptr[0] << 16) | (cts_ptr[1] << 8) | (cts_ptr[2])) + 0xff800000) ^ 0xff800000;
 
         while(num < length) {
 
@@ -93,7 +95,8 @@ void RtmpDecodeH264::decode(const RtmpMessage::Ptr& msg)
 
             auto frame = createFrame();
             frame->_buffer.append((char*)payload + num, len);
-            frame->_pts = frame->_dts = stamp;
+            frame->_dts = stamp;
+            frame->_pts = stamp + cts;
             onFrame(frame);
 
             // logInfo << "is keyframe: " << frame->keyFrame();

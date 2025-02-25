@@ -304,7 +304,7 @@ int TsMuxer::make_pes_packet(const FrameBuffer::Ptr& frame)
 
 	int pid = bVideo ? TS_PID_VIDEO : TS_PID_AUDIO;
 	int frameSize = frame->size();
-	int pesSize = frame->size() + 14; //frame size + pes header size
+	int pesSize = frame->size() + 19; //frame size + pes header size
 
 	if (frame->_codec == "h265") {
 		pesSize += 7;
@@ -340,7 +340,7 @@ int TsMuxer::make_pes_packet(const FrameBuffer::Ptr& frame)
 			bits.i_data += stuff_num - 1;
 		}
 
-		if((nRet = mk_pes_packet(tsPacket->data() + bits.i_data, bVideo, pesSize - 14, 1, 
+		if((nRet = mk_pes_packet(tsPacket->data() + bits.i_data, bVideo, pesSize - 19, 1, 
 						frame->pts(), frame->dts())) <= 0 )
 		{
 			logInfo << "mk_pes_packet failed!";
@@ -383,7 +383,7 @@ int TsMuxer::make_pes_packet(const FrameBuffer::Ptr& frame)
 
 		bits_write(&bits, 8, 0x00);
 
-		if((nRet = mk_pes_packet(tsPacket->data() + bits.i_data, bVideo, pesSize - 14, 1, 
+		if((nRet = mk_pes_packet(tsPacket->data() + bits.i_data, bVideo, pesSize - 19, 1, 
 						frame->pts(), frame->dts())) <= 0 )
 		{
 			logInfo << "mk_pes_packet failed!";
@@ -769,6 +769,8 @@ int TsMuxer::mk_pes_packet(char *buf, int bVideo, int length, int bDtsEn, unsign
 	if (!buf) {
 		return 0;
 	}
+
+	logDebug << "pts: " << pts << " dts: " << dts;
 	
 	pts *= 90;
     dts *= 90;
@@ -776,13 +778,13 @@ int TsMuxer::mk_pes_packet(char *buf, int bVideo, int length, int bDtsEn, unsign
 	// logInfo << "pts: ==================== " << pts;
 
 	bits_buffer_s   bitsBuffer;
-    bitsBuffer.i_size = 14;
+    bitsBuffer.i_size = 19;// no dts 14;
     bitsBuffer.i_data = 0;
     bitsBuffer.i_mask = 0x80;
     bitsBuffer.p_data = (unsigned char *)(buf);
-    memset(bitsBuffer.p_data, 0, 14);
+    memset(bitsBuffer.p_data, 0, 19);
 
-	uint64_t payloadSize = length + 8;
+	uint64_t payloadSize = length + 8 + 5;
 	if (payloadSize > 0xffff) {
 		// logWarn << "payloadSize > 0xffff: " << payloadSize;
 		payloadSize = 0;
@@ -799,32 +801,34 @@ int TsMuxer::mk_pes_packet(char *buf, int bVideo, int length, int bDtsEn, unsign
     bits_write( &bitsBuffer, 1, 0 );    /*copyright*/
     bits_write( &bitsBuffer, 1, 0 );    /*original_or_copy*/
     bits_write( &bitsBuffer, 1, 1 );    /*PTS_flag*/
-    bits_write( &bitsBuffer, 1, 0 );    /*DTS_flag*/
+    bits_write( &bitsBuffer, 1, 1 );    /*DTS_flag*/
     bits_write( &bitsBuffer, 1, 0 );    /*ESCR_flag*/
     bits_write( &bitsBuffer, 1, 0 );    /*ES_rate_flag*/
     bits_write( &bitsBuffer, 1, 0 );    /*DSM_trick_mode_flag*/
     bits_write( &bitsBuffer, 1, 0 );    /*additional_copy_info_flag*/
     bits_write( &bitsBuffer, 1, 0 );    /*PES_CRC_flag*/
     bits_write( &bitsBuffer, 1, 0 );    /*PES_extension_flag*/
-    bits_write( &bitsBuffer, 8, 5);    /*header_data_length*/ 
+    // bits_write( &bitsBuffer, 8, 5);    /*header_data_length*/ 
+    bits_write( &bitsBuffer, 8, 10);    /*header_data_length*/ 
     // 指出包含在 PES 分组标题中的可选字段和任何填充字节所占用的总字节数。该字段之前
     //的字节指出了有无可选字段。
   
     /*PTS,DTS*/ 
-    bits_write( &bitsBuffer, 4, 2 );                    /*'0011'*/
+    // bits_write( &bitsBuffer, 4, 2 );                    /*'0011'*/
+    bits_write( &bitsBuffer, 4, 3 );                    /*'0011'*/
     bits_write( &bitsBuffer, 3, ((pts)>>30)&0x07 );     /*PTS[32..30]*/
     bits_write( &bitsBuffer, 1, 1 );
     bits_write( &bitsBuffer, 15,((pts)>>15)&0x7FFF);    /*PTS[29..15]*/
     bits_write( &bitsBuffer, 1, 1 );
     bits_write( &bitsBuffer, 15,(pts)&0x7FFF);          /*PTS[14..0]*/
     bits_write( &bitsBuffer, 1, 1 );
-    // bits_write( &bitsBuffer, 4, 1 );                    /*'0001'*/
-    // bits_write( &bitsBuffer, 3, ((dts)>>30)&0x07 );     /*DTS[32..30]*/
-    // bits_write( &bitsBuffer, 1, 1 );
-    // bits_write( &bitsBuffer, 15,((dts)>>15)&0x7FFF);    /*DTS[29..15]*/
-    // bits_write( &bitsBuffer, 1, 1 );
-    // bits_write( &bitsBuffer, 15,(dts)&0x7FFF);          /*DTS[14..0]*/
-    // bits_write( &bitsBuffer, 1, 1 );
+    bits_write( &bitsBuffer, 4, 1 );                    /*'0001'*/
+    bits_write( &bitsBuffer, 3, ((dts)>>30)&0x07 );     /*DTS[32..30]*/
+    bits_write( &bitsBuffer, 1, 1 );
+    bits_write( &bitsBuffer, 15,((dts)>>15)&0x7FFF);    /*DTS[29..15]*/
+    bits_write( &bitsBuffer, 1, 1 );
+    bits_write( &bitsBuffer, 15,(dts)&0x7FFF);          /*DTS[14..0]*/
+    bits_write( &bitsBuffer, 1, 1 );
 
 	return bitsBuffer.i_data;
 }

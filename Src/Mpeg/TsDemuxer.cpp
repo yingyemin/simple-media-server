@@ -7,6 +7,7 @@
 #include "Codec/H265Track.h"
 #include "Codec/H264Frame.h"
 #include "Codec/H265Frame.h"
+#include "Codec/AacFrame.h"
 #include "Util/String.h"
 
 #include <fstream>
@@ -26,7 +27,7 @@ const static bool kPrintTSPacketHeader = true;
 const static bool kPrintTsPacketAdapationField = true;
 const static bool kPrintTsPacketPayloadPES = true;
 const static bool kPrintTsPacketPayloadPAT = false;
-const static bool KPrintTsPacketPayloadPMT = false;
+const static bool KPrintTsPacketPayloadPMT = true;
 const static bool kPrintTsAacAdts = true;
 
 class TsPacket;
@@ -128,10 +129,10 @@ public:
     int8_t PES_extension_flag_{0};        // 1bit
     uint8_t PES_header_data_length_{0};   // 8bit
     // if PTS_DTS_flags set '10' or '11'
-    int64_t PTS_{0}; // 33bit
-    int64_t DTS_{0}; // 33bit
+    uint64_t PTS_{0}; // 33bit
+    uint64_t DTS_{0}; // 33bit
 
-    int64_t ESCR_base_{0};       // 33bit
+    uint64_t ESCR_base_{0};       // 33bit
     uint16_t ESCR_extension_{0}; // 9bit
     uint32_t ES_rate_{0};        // 22bit
 
@@ -366,6 +367,15 @@ void TsPacket::demux(TsDemuxer *ctx, const StreamBuffer::Ptr& buffer)
     }
     // logInfo << "demux ts header";
     header_->demux(buffer);
+    auto info = ctx->pidInfo(header_->pid_);
+    if (info) {
+        if (info->seq_ != 16 && header_->continuity_counter_ != (info->seq_ + 1) % 16) {
+            logWarn << "loss packet, pid: " << header_->pid_ << ", last seq: " << (int)info->seq_
+                    << ", cur seq: " << (int)header_->continuity_counter_;
+        }
+        info->seq_ = header_->continuity_counter_;
+    }
+
     if (header_->adaptation_field_control_ == TsAdaptationType::TsAdaptationTypeAdaptationOnly || header_->adaptation_field_control_ == TsAdaptationType::TsAdaptationTypeBoth)
     {
         // 处理adaptation field
@@ -386,10 +396,13 @@ void TsPacketHeader::demux(const StreamBuffer::Ptr& buffer)
         logWarn << "ts packet size < 4";
         return ;
     }
-    auto payload = buffer->data();
+    uint8_t* payload = (uint8_t*)buffer->data();
 
     sync_ = payload[0];
     pid_ = payload[1] << 8 | payload[2];
+    // logInfo << "all byte pid: " << (int)pid_;
+    // logInfo << "payload[1]: " << (int)payload[1];
+    // logInfo << "payload[2]: " << (int)payload[2];
     transport_error_indicator_ = (pid_ >> 15) & 0x01;
     payload_unit_start_indicator_ = (pid_ >> 14) & 0x01;
     transport_priority_ = (pid_ >> 13) & 0x01;
@@ -402,6 +415,8 @@ void TsPacketHeader::demux(const StreamBuffer::Ptr& buffer)
     transport_scrambling_control_ = (continuity_counter_ >> 6) & 0x03;
     adaptation_field_control_ = (continuity_counter_ >> 4) & 0x03;
     continuity_counter_ &= 0x0F;
+
+    // logInfo << "continuity_counter_: " << (int)continuity_counter_;
 
     buffer->substr(4);
 }
@@ -574,7 +589,7 @@ int TsPayloadPES::demux(TsDemuxer *ctx, TsPacket *pkt, const StreamBuffer::Ptr& 
                     return -1;
                 }
                 PTS_ = (preValue >> 1) & 0x07;
-                PTS_ << 30;
+                PTS_ <<= 15;
                 PTS_ |= (readUint16BE(payload + pos) >> 1) & 0x7FFF;
                 PTS_ <<= 15;
                 PTS_ |= ((readUint16BE(payload + pos + 2) >> 1) & 0x7FFF);
@@ -592,7 +607,7 @@ int TsPayloadPES::demux(TsDemuxer *ctx, TsPacket *pkt, const StreamBuffer::Ptr& 
                     return -1;
                 }
                 DTS_ = (preValue >> 1) & 0x07;
-                DTS_ << 30;
+                DTS_ <<= 15;
                 DTS_ |= (readUint16BE(payload + pos) >> 1) & 0x7FFF;
                 DTS_ <<= 15;
                 DTS_ |= ((readUint16BE(payload + pos + 2) >> 1) & 0x7FFF);
@@ -810,7 +825,7 @@ void TsPayloadPAT::demux(TsDemuxer *ctx, const StreamBuffer::Ptr& buffer)
         int16_t program_map_PID = value & 0x1fff;
         // if (kPrintTsPacketPayloadPAT)
         // {
-            logInfo << "PMT table's pid ->" << program_map_PID;
+            // logInfo << "PMT table's pid ->" << program_map_PID;
         // }
         if (program_number > 0)
         {
@@ -924,11 +939,11 @@ void TsPayloadPMT::demux(TsDemuxer *ctx, TsPacket *pkt, const StreamBuffer::Ptr&
             ctx->createTrackInfo(stream_type_str);
         }
 
-        if (KPrintTsPacketPayloadPMT)
-        {
-            logInfo << "PMT elementary_PID->" << elementary_PID
-                    << "stream type->" << stream_type_str;
-        }
+        // if (KPrintTsPacketPayloadPMT)
+        // {
+            // logInfo << "PMT elementary_PID->" << elementary_PID
+            //         << "stream type->" << stream_type_str;
+        // }
     }
 
     CRC_32_ = readUint32BE(payload + pos);
@@ -1093,7 +1108,7 @@ void TsAdaptationField::demux(const StreamBuffer::Ptr& buffer)
     buffer->substr(pos);
 }
 
-void TsDemuxer::onDecode(const char* data, int len, int index, int pts, int dts)
+void TsDemuxer::onDecode(const char* data, int len, int index, uint64_t pts, uint64_t dts)
 {
     if (!data || len == 0) {
         return ;
@@ -1127,9 +1142,11 @@ void TsDemuxer::onDecode(const char* data, int len, int index, int pts, int dts)
     FrameBuffer::Ptr frame;
 
     if (index == AudioTrackType) {
-        frame = make_shared<FrameBuffer>();
         if (_audioCodec == "aac") {
+            frame = make_shared<AacFrame>();
             frame->_startSize = 7;
+        } else {
+            frame = make_shared<FrameBuffer>();
         }
     } else if (index == VideoTrackType && (_videoCodec == "h264" || _videoCodec == "h265")) {
         if (len <= 4) {
@@ -1152,14 +1169,13 @@ void TsDemuxer::onDecode(const char* data, int len, int index, int pts, int dts)
         frame->_index = index;
         frame->_trackType = index;
         frame->_codec = index == VideoTrackType ? _videoCodec : _audioCodec;
-        
-        frame->_startSize = 4;
-        if (readUint32BE(frame->data()) != 1) {
-            frame->_startSize = 3;
-        }
 
         if (index == VideoTrackType) {
             if (_videoCodec == "h265") {
+                frame->_startSize = 4;
+                if (readUint32BE(frame->data()) != 1) {
+                    frame->_startSize = 3;
+                }
                 auto h265frame = dynamic_pointer_cast<H265Frame>(frame);
                 h265frame->split([this, h265frame](const FrameBuffer::Ptr &subFrame){
                     // if (_firstVps || _firstSps || _firstPps) {
@@ -1196,6 +1212,10 @@ void TsDemuxer::onDecode(const char* data, int len, int index, int pts, int dts)
                     }
                 });
             } else if (_videoCodec == "h264") {
+                frame->_startSize = 4;
+                if (readUint32BE(frame->data()) != 1) {
+                    frame->_startSize = 3;
+                }
                 auto h264frame = dynamic_pointer_cast<H264Frame>(frame);
                 h264frame->split([this, h264frame](const FrameBuffer::Ptr &subFrame){
                     // if (_firstSps || _firstPps) {
@@ -1230,6 +1250,14 @@ void TsDemuxer::onDecode(const char* data, int len, int index, int pts, int dts)
                 });
             }
             return ;
+        } else if (frame->getTrackType() == STREAM_TYPE_AUDIO_AAC) {
+            // auto aacframe = dynamic_pointer_cast<AacFrame>(frame);
+            // aacframe->split([this](const FrameBuffer::Ptr &subFrame){
+            //     if (_onFrame) {
+            //         _onFrame(subFrame);
+            //     }
+            // });
+            // return ;
         }
 
         if (_onFrame) {
@@ -1342,7 +1370,11 @@ void TsDemuxer::onTsPacket(char* data, int size, uint32_t timestamp)
     // logInfo << "timestamp: " << timestamp;
 
     while (size >= tsPacketSize) {
-        assert(data[0] == 0x47);
+        if(data[0] != 0x47) {
+            logError << "ts packet error";
+            _remainBuffer.clear();
+            return;
+        }
         TsPacket packet;
         StreamBuffer::Ptr buffer = StreamBuffer::create();
         buffer->move(data, tsPacketSize, false);
@@ -1357,6 +1389,8 @@ void TsDemuxer::onTsPacket(char* data, int size, uint32_t timestamp)
 
     if (size != 0) {
         _remainBuffer.assign(data, size);
+    } else {
+        _remainBuffer.clear();
     }
 }
 

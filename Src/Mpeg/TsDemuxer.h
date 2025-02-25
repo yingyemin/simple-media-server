@@ -81,6 +81,7 @@ struct TsPidInfo
 {
     TsPidType pid_type_{TsPidTypeReserved};
     TSPidTable pid_{TSPidTable::TSPidTableNULL};
+    uint8_t seq_{16};
 };
 
 class TsMessage
@@ -94,8 +95,8 @@ public:
     uint8_t stream_id_{0};
 
     int32_t packet_start_code_prefix_{0};
-    int64_t pts_{0};
-    int64_t dts_{0};
+    uint64_t pts_{0};
+    uint64_t dts_{0};
 
     int32_t packet_data_size_{0};
     int32_t parsed_data_size_{0};
@@ -118,7 +119,7 @@ public:
     virtual void onTsPacket(char* ps_data, int ps_size, uint32_t timestamp);
 
     void setOnDecode(const function<void(const FrameBuffer::Ptr& frame)> cb);
-    void onDecode(const char* data, int len, int index, int pts, int dts);
+    void onDecode(const char* data, int len, int index, uint64_t pts, uint64_t dts);
     void addTrackInfo(const shared_ptr<TrackInfo>& trackInfo);
     void setOnTrackInfo(const function<void(const shared_ptr<TrackInfo>& trackInfo)>& cb);
     void setOnReady(const function<void()>& cb);

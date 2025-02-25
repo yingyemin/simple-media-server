@@ -41,6 +41,8 @@ private:
 
 private:
     bool _inited = false;
+    int _index = 0;
+    FILE* _fp;
     string _request = "pull";
     UrlParser _urlParser;
     SrtEventLoop::Ptr _loop;

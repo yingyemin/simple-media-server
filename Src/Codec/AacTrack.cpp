@@ -185,11 +185,12 @@ string adtsToConfig(const char* data, int &samplerate, int& channel)
 	channel = channel_configuration;
     unsigned char audioSpecificConfig[2];
     unsigned char const audioObjectType = profile + 1;
+	logInfo << "profile:" << (int)profile << " sampling_frequency_index:" << (int)sampling_frequency_index << " channel_configuration:" << (int)channel_configuration;
     audioSpecificConfig[0] = (audioObjectType << 3) | (sampling_frequency_index >> 1);
     audioSpecificConfig[1] = (sampling_frequency_index << 7) | (channel_configuration << 3);
     return string((char *)audioSpecificConfig,2);
 }
-
+// profile:1 sampling_frequency_index:4 channel_configuration:2
 AacADTSHeader configToAdts(const string& config, int length/*aac frame length*/)
 {
 	AacADTSHeader adts;

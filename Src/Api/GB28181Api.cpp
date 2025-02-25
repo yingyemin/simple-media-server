@@ -33,46 +33,46 @@ void GB28181Api::createGB28181Receiver(const HttpParser& parser, const UrlParser
 
     int active = toInt(parser._body["active"]);
 
-    // if (active) {
-    //     int ssrc = toInt(parser._body["ssrc"]);
-    //     int port = toInt(parser._body["port"]);
-    //     int socketType = toInt(parser._body["socketType"]); //1:tcp,2:udp,3:both
-    //     string streamName = parser._body["streamName"];
-    //     string appName = parser._body["appName"];
-    //     string ip = parser._body["ip"];
+    if (active) {
+        int ssrc = toInt(parser._body["ssrc"]);
+        int port = toInt(parser._body["port"]);
+        int socketType = toInt(parser._body["socketType"]); //1:tcp,2:udp,3:both
+        string streamName = parser._body["streamName"];
+        string appName = parser._body["appName"];
+        string ip = parser._body["ip"];
 
-    //     auto pull = make_shared<GB28181ClientPull>(ip, port, appName, streamName, ssrc, socketType);
-    //     pull->create();
-    //     pull->start();
+        auto pull = make_shared<GB28181ClientPull>(ip, port, appName, streamName, ssrc, socketType);
+        pull->create();
+        pull->start();
 
-    //     value["port"] = pull->getLocalPort();
-    //     value["ip"] = pull->getLocalIp();
-    //     value["ssrc"] = ssrc;
-    // } else {
-    //     int newServer = toInt(parser._body["newServer"]);
-    //     if (newServer) {
-    //         int ssrc = toInt(parser._body["ssrc"]);
-    //         int port = toInt(parser._body["port"]);
-    //         int socketType = toInt(parser._body["socketType"]); //1:tcp,2:udp,3:both
-    //         string streamName = parser._body["streamName"];
+        value["port"] = pull->getLocalPort();
+        value["ip"] = pull->getLocalIp();
+        value["ssrc"] = ssrc;
+    } else {
+        int newServer = toInt(parser._body["newServer"]);
+        if (newServer) {
+            int ssrc = toInt(parser._body["ssrc"]);
+            int port = toInt(parser._body["port"]);
+            int socketType = toInt(parser._body["socketType"]); //1:tcp,2:udp,3:both
+            string streamName = parser._body["streamName"];
 
-    //         GB28181Server::instance()->startReceive("0.0.0.0", port, socketType);
+            GB28181Server::instance()->startReceive("0.0.0.0", port, socketType);
 
-    //         if (ssrc) {
-    //             // add ssrc map streamname
-    //         }
-    //         value["port"] = port;
-    //         value["ip"] = Config::instance()->get("LocalIp");
-    //         value["ssrc"] = ssrc;
-    //     } else {
-    //         // add ssrc map streamname
-    //         int ssrc = toInt(parser._body["ssrc"]);
-    //         string gbServerName = parser._body.value("gbServerName", "Server1");
-    //         value["port"] = Config::instance()->get("GB28181", "Server", gbServerName, "port");
-    //         value["ip"] = Config::instance()->get("LocalIp");
-    //         value["ssrc"] = ssrc;
-    //     }
-    // }
+            if (ssrc) {
+                // add ssrc map streamname
+            }
+            value["port"] = port;
+            value["ip"] = Config::instance()->get("LocalIp");
+            value["ssrc"] = ssrc;
+        } else {
+            // add ssrc map streamname
+            int ssrc = toInt(parser._body["ssrc"]);
+            string gbServerName = parser._body.value("gbServerName", "Server1");
+            value["port"] = Config::instance()->get("GB28181", "Server", gbServerName, "port");
+            value["ip"] = Config::instance()->get("LocalIp");
+            value["ssrc"] = ssrc;
+        }
+    }
 
     value["code"] = "200";
     value["msg"] = "success";

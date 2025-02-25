@@ -222,7 +222,7 @@
             "duration" : 5000,
             "segNum" : 5,
             "playTimeout" : 60,
-            "force" : true
+            "force" : false
         }
     }
 }

@@ -106,6 +106,8 @@ void SrtConnection::init()
             handlePull();
         } else if (_request == "push") {
             initPush();
+            // string name = "./" + _urlParser.path_ + ".ts";
+            // _fp = fopen(name.c_str(), "ab+");
         } else {
             onError("invalid request: " + _request);
         }
@@ -115,7 +117,26 @@ void SrtConnection::init()
 void SrtConnection::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)
 {
     // logInfo << "get a buf: " << buffer->size();
-    assert(buffer->data()[0] == 0x47);
+    if(buffer->data()[0] != 0x47); {
+        // logTrace << "get a buf: " << (int)buffer->data()[0];
+    }
+    // string name = "./" + _urlParser.path_ + to_string(_index++) + ".ts";
+    // FILE* fp = fopen(name.c_str(), "ab+");
+    // fwrite(buffer->data(), 1, buffer->size(), fp);
+    // fclose(fp);
+
+    // string name = "../live" + _urlParser.path_ + to_string(_index++) + ".ts";
+    // FILE* fp = fopen(name.c_str(), "ab+");
+    // auto copyBuffer = StreamBuffer::create();
+    // copyBuffer->setCapacity(1024*1024 + 1);
+    // int size = fread(copyBuffer->data(), 1, copyBuffer->size(), _fp);
+    // // fclose(fp);
+    // copyBuffer->setSize(size);
+
+    // if (size < 1024*1024) {
+    //     fseek(_fp, 0, SEEK_SET);
+    // }
+
     auto copyBuffer = StreamBuffer::create();
     copyBuffer->assign(buffer->data(), buffer->size()); 
 

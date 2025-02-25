@@ -2,6 +2,7 @@
 #define _RTMP_DEFINE_H_
 
 #include <string>
+#include <cstdint>
 
 static const int RTMP_VERSION           = 0x3;
 

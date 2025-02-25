@@ -67,6 +67,36 @@ static StreamBuffer::Ptr getFlvAac()
     return frame;
 }
 
+void AacFrame::split(const function<void(const FrameBuffer::Ptr& frame)>& cb)
+{
+    auto payload = (uint8_t*)_buffer.data();
+    uint32_t size = _buffer.size();
+
+    while (size >= 7) { 
+        if (!(payload[0] == 0xFF && (payload[1] & 0xF0) == 0xF0)) {
+            return ;
+        }
+
+        uint32_t aacLen = (payload[3] & 0x03 << 11) | payload[4] << 3 | payload[5] >> 5;
+        if (aacLen > size) {
+            return ;
+        }
+        auto subframe = make_shared<AacFrame>();
+        subframe->_startSize = 7;
+        subframe->_buffer.assign((char*)payload, aacLen);
+        subframe->_pts = _pts; // pts * 1000 / 90000,计算为毫秒
+        subframe->_dts = _dts;
+        subframe->_index = _index;
+        subframe->_trackType = _trackType;
+        subframe->_codec = _codec;
+
+        cb(subframe);
+
+        payload += aacLen;
+        size -= aacLen;
+    }
+}
+
 FrameBuffer::Ptr AacFrame::getMuteForAdts()
 {
     static FrameBuffer::Ptr adtsAac = getAdtsAac();

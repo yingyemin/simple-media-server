@@ -153,7 +153,7 @@ void VideoStampAdjust::inputStamp(uint64_t& pts, uint64_t& dts, int samples)
 
     // logInfo << "video pts: " << pts;
     // logInfo << "video dts: " << dts;
-    // logInfo << "video _adjustPts: " << _adjustPts;
+    // logInfo << "video _adjustPts: " << _adjustDts;
     // 将增量加到_adjustPts（从0开始往上加增量）
     _adjustDts += step;
     
@@ -161,7 +161,7 @@ void VideoStampAdjust::inputStamp(uint64_t& pts, uint64_t& dts, int samples)
     if (dts > pts && dts - dts < 10000) {
         pts = _adjustDts + dts - pts;
     } else {
-        pts = (_adjustDts > (pts - dts)) ? (_adjustDts - (pts - dts)) : 0;
+        pts = (_adjustDts > (pts - dts)) ? (_adjustDts + (pts - dts)) : 0;
     }
     dts = _adjustDts;
     // logInfo << "video adjust pts: " << pts;

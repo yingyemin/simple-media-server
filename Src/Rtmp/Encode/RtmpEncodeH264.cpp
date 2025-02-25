@@ -73,7 +73,7 @@ void RtmpEncodeH264::encode(const FrameBuffer::Ptr& frame)
     auto msg = make_shared<RtmpMessage>();
 
     if (!_append && !_vecFrame.empty()) { 
-        if (_lastStamp != frame->pts() || frame->startSize() > 0) {
+        if (_lastStamp != frame->dts() || frame->startSize() > 0) {
             auto msg = make_shared<RtmpMessage>();
             msg->payload = make_shared<StreamBuffer>(_msgLength + 1);
             
@@ -178,7 +178,7 @@ void RtmpEncodeH264::encode(const FrameBuffer::Ptr& frame)
 
     // onRtmpMessage(msg);
 
-    _lastStamp = frame->pts();
+    _lastStamp = frame->dts();
 }
 
 void RtmpEncodeH264::setOnRtmpPacket(const function<void(const RtmpMessage::Ptr& msg, bool start)>& cb)

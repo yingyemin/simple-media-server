@@ -21,6 +21,8 @@ public:
         _codec = "aac";
     }
 
+    void split(const function<void(const FrameBuffer::Ptr& frame)>& cb) override;
+
     static FrameBuffer::Ptr getMuteForAdts();
     static StreamBuffer::Ptr getMuteForFlv();
     static FrameBuffer::Ptr createFrame(int startSize, int index, bool addStart);
