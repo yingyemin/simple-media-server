@@ -181,7 +181,7 @@ void JT1078Api::stopTalk(const HttpParser& parser, const UrlParser& urlParser,
     json value;
 
     UrlParser taslUrlParser;
-    checkArgs(parser._body, {"appName", "streamName"});
+    checkArgs(parser._body, {"sendAppName", "sendStreamName"});
     string appName = parser._body["sendAppName"];
     string streamName = parser._body["sendStreamName"];
     taslUrlParser.path_ = "/" + appName + "/" + streamName;

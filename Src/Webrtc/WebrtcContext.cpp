@@ -310,6 +310,7 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
             for (auto ptIter : sdpMedia->mapPtInfo_) {
                 logInfo << "video/audio codec:" << ptIter.second->codec_;
                 logInfo << "video/audio pt:" << ptIter.first;
+                logInfo << "videoInfo->codec_:" << videoInfo->codec_;
                 if (videoInfo && strcasecmp(ptIter.second->codec_.data(), videoInfo->codec_.data()) == 0) {
                     findFlag = true;
                     if (isH264) {
@@ -1059,6 +1060,13 @@ void WebrtcContext::handleRtcp(char* buf, int size)
         } else if (subRtcp->getHeader()->type == RtcpType_RR) {
             auto rtcpSr = make_shared<RtcpSR>();
             auto srBuffer = rtcpSr->encode(_lastRtpTs, _totalRtpCnt, _totalRtpBytes, subRtcp->getHeader()->ssrc);
+            if (_socket->getSocketType() == SOCKET_TCP) {
+                uint8_t payload_ptr[2];
+                payload_ptr[0] = srBuffer->size() >> 8;
+                payload_ptr[1] = srBuffer->size() & 0x00FF;
+
+                _socket->send((char*)payload_ptr, 2);
+            }
             _socket->send(srBuffer, 1, 0, 0, _addr, _addrLen);
         }
     });

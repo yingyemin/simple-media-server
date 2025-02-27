@@ -1,0 +1,226 @@
+主要功能：
+    - 作为服务端，支持客户端推流
+    - 支持级联
+    - 支持对讲
+    - 支持 h264/265, aac/g711a/g711u
+
+接入说明：
+    - sms只做了接收1078音视频流的功能，信令需要自己实现
+    - 信令交互过程中，信令服务将sms服务的ip和1078端口发给客户端，客户端把流发到指定的ip和1078端口
+    - sms收到音视频流后，就开始解析流并注册，流id的格式默认为：/live/{simcode}_{channel}，simcode和channel为实际的simcode以及通道号
+    - 可以通过查询流信息接口看到流是否注册成功，以及流id
+    - 可以通过接口：/api/v1/jt1078/create 指定流id
+    - 多端口可通过接口：/api/v1/jt1078/server/open和/api/v1/jt1078/server/stop控制，可用于录像回放
+    - 对讲接口：/api/v1/jt1078/talk/start和/api/v1/jt1078/talk/stop
+    - 级联接口：/api/v1/jt1078/send/start和/api/v1/jt1078/send/stop
+
+查看流上线信息：
+curl http://127.0.0.1/api/v1/getSourceList | python -m json.tool
+{
+    "code": "200",
+    "msg": "success",
+    "count" : 1,
+    "sources": [
+        {
+            # 音频编码信息
+            "audio": {
+                # 编码格式
+                "codec": "aac",
+                # 状态，以就绪还是被舍弃
+                # ready or expire
+                "status": "ready"
+            },
+            # 收到多少字节的数据
+            "bytes": 56580,
+            # 流是什么时间上线的
+            "createTime": 1739702722594,
+            # 流在哪个event线程
+            "epollFd": 5,
+            # 流在线时长
+            "onlineDuration": 3288,
+            # 流名称，流id
+            "path": "/live/12345678910_1",
+            # 源协议对应的观看数
+            "playerCount": 0,
+            # 源协议
+            "protocol": "jt1078",
+            # 推流的socket信息
+            "socketInfo": {
+                # 本地的ip地址和port
+                "localIp": "127.0.0.1",
+                "localPort": 17000,
+                # 推流客户端的ip地址和port
+                "peerIp": "127.0.0.1",
+                "peerPort": 35766
+            },
+            # 总的观看数
+            "totalPlayerCount": 0,
+            "type": "normal",
+            "vhost": "vhost",
+            # 视频编码信息
+            "video": {
+                "codec": "h264",
+                "fps": 50,
+                "height": 320,
+                "status": "ready",
+                "width": 768
+            }
+        }
+    ]
+}
+
+输出url地址：
+    - 流id对应流信息接口里的
+    "url": {
+        "rtsp": "rtsp://10.0.0.239:554/live/12345678910_1",
+        "rtsp": "rtsp://10.0.0.239:554/live/12345678910_1?type=ps",
+        "rtsp": "rtsp://10.0.0.239:554/live/12345678910_1?type=huge",
+        "rtsp": "rtsp://10.0.0.239:554/live/12345678910_1?type=hugePs",
+        "rtsp": "rtsp://10.0.0.239:554/live/12345678910_1?type=fastPts",
+        "rtmp": "rtmp://10.0.0.239:1935/live/12345678910_1",
+        "rtmp": "rtmp://10.0.0.239:1935/live/12345678910_1?type=enhanced",
+        "rtmp": "rtmp://10.0.0.239:1935/live/12345678910_1?type=fastPts",
+        "http-flv": "http://10.0.0.239:80/live/12345678910_1.flv",
+        "ws-flv": "ws://10.0.0.239:80/live/12345678910_1.flv",
+        "http-mp4": "http://10.0.0.239:80/live/12345678910_1.mp4",
+        "http-hls": "http://10.0.0.239:80/live/12345678910_1.m3u8",
+        "srt" : "srt://10.0.0.239:6666?streamid=|path:/live/12345678910_1|request:pull|"
+    }
+
+创建1078流接口
+    - 可通过该接口指定流id
+    - 先调用接口创建流，再通知设备推流
+    接口示例：
+    curl http://127.0.0.1/api/v1/jt1078/create -d "simCode=15990021595&channel=3&port=17000&appName=live&streamName=test" | python -m json.tool
+    {
+        "code": "200",
+        "msg": "success"
+    }
+
+    api: /api/v1/jt1078/create
+    参数：
+        simCode: sim卡号
+        channel: 通道号
+        port: 1078端口
+        appName: 1078应用名，用于构造流id，流id格式：/{appName}/{streamName}
+        streamName: 1078流名，用于构造流id，此例的流id是 /live/test
+
+通过新端口开启1078服务
+    - 可通过该接口开启新端口
+    - 可用于录像回放
+    接口示例：
+    curl http://127.0.0.1/api/v1/jt1078/server/open -d "expire=60&appName=live&streamName=test" | python -m json.tool
+    {
+        "code": "200",
+        "msg": "success",
+        "port": 17001
+    }
+
+    api: /api/v1/jt1078/server/open
+    参数：
+        expire: 有效期，新开的端口，多久没有收到数据则关闭端口，单位秒；
+            - 可选参数，默认15秒
+        appName: 1078应用名，用于构造流id，流id格式：/{appName}/{streamName}；
+            - 可选参数，与streamName一起
+        streamName: 1078流名，用于构造流id，此例的流id是 /live/test；
+            - 可选参数，与appName一起，不设置该参数，则使用设备的simcode和channel构造流id
+
+关闭1078服务
+    - 可通过该接口关闭1078服务
+    接口示例：
+    curl http://127.0.0.1/api/v1/jt1078/server/stop -d "port=17001" | python -m json.tool
+    {
+        "code": "200",
+        "msg": "success"
+    }
+
+    api: /api/v1/jt1078/server/stop
+    参数：
+        port: 1078端口,要关闭的端口
+
+对讲接口
+    接口示例：
+    curl http://127.0.0.1/api/v1/jt1078/talk/start -d "recvSimCode=15990021595&recvChannel=3&recvPort=17000&sendAppName=live&sendStreamName=test&sendSimCode=12345678910&sendChannel=1" | python -m json.tool
+    {
+        "code": "200",
+        "msg": "success"
+    }
+    api: /api/v1/jt1078/talk/start
+    参数：
+        recvSimCode：对讲设备的simcode
+        recvChannel：对讲设备的通道号
+        recvPort：接收对讲设备数据的端口，用于构造唯一key，来存储对讲信息
+        sendAppName：发送给设备的流，appName
+        sendStreamName：发送给设备的流，StreamName
+        sendSimCode：发送给设备的流，simcode，如果该流不是1078流，则需自定义一个simcode
+        sendChannel：发送给设备的流，通道号
+
+关闭对讲
+    接口示例：
+    curl http://127.0.0.1/api/v1/jt1078/talk/stop -d "sendAppName=live&sendStreamName=test" | python -m json.tool
+    {
+        "code": "200",
+        "msg": "success"
+    }
+    api: /api/v1/jt1078/talk/stop
+    参数：
+    sendAppName: 开始对讲接口中传入的sendAppName
+    sendStreamName: 开始对讲接口中传入的sendStreamName
+
+级联接口
+    接口示例：
+    curl http://127.0.0.1/api/v1/jt1078/send/start -d "url=127.0.0.1:8080&simCode=15990021595&channel=3&appName=live&streamName=test" | python -m json.tool
+    {
+        "code": "200",
+        "msg": "success"
+    }
+    api: /api/v1/jt1078/send/start
+    参数：
+        url：上级的地址，如 127.0.0.1:8080
+        simCode: 待级联的流，sim卡号，如果是其他协议的流，需要自定义
+        channel: 待级联的流，通道号，如果是其他协议的流，需要自定义
+        appName: 待级联的流，应用名
+        streamName: 待级联的流，流名
+
+断开级联
+    接口示例：
+    curl http://127.0.0.1/api/v1/jt1078/send/stop -d "url=127.0.0.1:8080" | python -m json.tool
+    {
+        "code": "200",
+        "msg": "success"
+    }
+
+    api: /api/v1/jt1078/send/stop
+    参数：
+        url：上级的url，如 127.0.0.1:8080
+
+获取端口
+    api: /api/v1/jt1078/port/info | python -m json.tool
+    {
+        "code": "200",
+        "msg": "success",
+        "portInfo": {
+            "freePort": [
+                17001,
+                17002,
+                17003,
+                ...参数太多，中间的省略
+                17091,
+                17092,
+                17093,
+                17094,
+                17095,
+                17096,
+                17097,
+                17098,
+                17099
+            ],
+            "maxPort": 17099,
+            "minPort": 17001
+        }
+    }
+    参数：
+        portInfo：端口情况
+            freePort：空闲的端口，可以开启新端口
+            maxPort：端口范围，最大端口
+            minPort：端口范围，最小端口

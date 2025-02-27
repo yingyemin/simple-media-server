@@ -360,8 +360,15 @@ bool RtmpConnection::handleNotify(RtmpMessage& rtmp_msg)
 
             if (!_rtmpVideoDecodeTrack && videocodecid) {
                 _rtmpVideoDecodeTrack = make_shared<RtmpDecodeTrack>(VideoTrackType);
+                if (videocodecid == fourccH265) {
+                    videocodecid = RTMP_CODEC_ID_H265;
+                } else if (videocodecid == fourccAV1) {
+                    videocodecid = RTMP_CODEC_ID_AV1;
+                } else if (videocodecid == fourccVP9) {
+                    videocodecid = RTMP_CODEC_ID_VP9;
+                }
                 if (_rtmpVideoDecodeTrack->createTrackInfo(VideoTrackType, videocodecid) != 0) {
-                    _validVideoTrack = false;
+                    // _validVideoTrack = false;
                     return false;
                 }
                 rtmpSrc->addTrack(_rtmpVideoDecodeTrack);
