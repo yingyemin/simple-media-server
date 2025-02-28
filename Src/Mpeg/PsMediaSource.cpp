@@ -100,6 +100,24 @@ void PsMediaSource::addTrack(const PsDemuxer::Ptr& track)
 
 void PsMediaSource::onReady()
 {
+    std::weak_ptr<PsMediaSource> weakSelf = std::static_pointer_cast<PsMediaSource>(shared_from_this());
+    if (!_ring) {
+        auto lam = [weakSelf](int size) {
+            auto strongSelf = weakSelf.lock();
+            if (!strongSelf) {
+                return;
+            }
+            strongSelf->getLoop()->async([weakSelf, size](){
+                auto strongSelf = weakSelf.lock();
+                if (!strongSelf) {
+                    return;
+                }
+                strongSelf->onReaderChanged(size);
+            }, true, true); 
+        };
+        logInfo << "create _ring";
+        _ring = std::make_shared<RingType>(_ringSize, std::move(lam));
+    }
     MediaSource::onReady();
     if (_muxer) {
         if (!_psEncodeTrack) {

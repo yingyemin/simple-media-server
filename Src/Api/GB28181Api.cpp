@@ -29,11 +29,12 @@ void GB28181Api::createGB28181Receiver(const HttpParser& parser, const UrlParser
     rsp._status = 200;
     json value;
 
-    checkArgs(parser._body, {"active", "ssrc", "port", "socketType", "streamName", "appName", "ip"});
+    checkArgs(parser._body, {"active", "ssrc", "port", "socketType", "ip"});
 
     int active = toInt(parser._body["active"]);
 
     if (active) {
+        checkArgs(parser._body, {"streamName", "appName"});
         int ssrc = toInt(parser._body["ssrc"]);
         int port = toInt(parser._body["port"]);
         int socketType = toInt(parser._body["socketType"]); //1:tcp,2:udp,3:both
@@ -54,7 +55,8 @@ void GB28181Api::createGB28181Receiver(const HttpParser& parser, const UrlParser
             int ssrc = toInt(parser._body["ssrc"]);
             int port = toInt(parser._body["port"]);
             int socketType = toInt(parser._body["socketType"]); //1:tcp,2:udp,3:both
-            string streamName = parser._body["streamName"];
+            // string streamName = parser._body["streamName"];
+            // string appName = parser._body["appName"];
 
             GB28181Server::instance()->startReceive("0.0.0.0", port, socketType);
 

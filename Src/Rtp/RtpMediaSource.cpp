@@ -132,6 +132,24 @@ void RtpMediaSource::addTrack(const RtpDecodeTrack::Ptr& track)
 
 void RtpMediaSource::onReady()
 {
+    std::weak_ptr<RtpMediaSource> weakSelf = std::static_pointer_cast<RtpMediaSource>(shared_from_this());
+    if (!_ring) {
+        auto lam = [weakSelf](int size) {
+            auto strongSelf = weakSelf.lock();
+            if (!strongSelf) {
+                return;
+            }
+            strongSelf->getLoop()->async([weakSelf, size](){
+                auto strongSelf = weakSelf.lock();
+                if (!strongSelf) {
+                    return;
+                }
+                strongSelf->onReaderChanged(size);
+            }, true, true); 
+        };
+        logInfo << "create _ring";
+        _ring = std::make_shared<RingType>(_ringSize, std::move(lam));
+    }
     MediaSource::onReady();
     if (_muxer) {
         std::weak_ptr<RtpMediaSource> weakSelf = std::static_pointer_cast<RtpMediaSource>(shared_from_this());

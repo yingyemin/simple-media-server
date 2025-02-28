@@ -18,6 +18,7 @@ public:
     int expire_ = 0;
     string serverId_;
     string path_;
+    string appName_;
 };
 
 class JT1078Server : public enable_shared_from_this<JT1078Server> {
@@ -41,7 +42,7 @@ public:
     // 后面考虑增加IP参数
     // void stopByIp(int port, int count);
     void setServerId(const string& key);
-    void setStreamPath(int port, const string& path, int expire);
+    void setStreamPath(int port, const string& path, int expire, const string& appName);
     void setPortRange(int minPort, int maxPort);
     int getPort() {return _portManager.get();}
     PortInfo getPortInfo() {return _portManager.getPortInfo();}

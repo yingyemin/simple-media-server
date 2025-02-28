@@ -35,6 +35,39 @@ GB28181Context::~GB28181Context()
 
 bool GB28181Context::init()
 {
+    weak_ptr<GB28181Context> wSelf = shared_from_this();
+        
+    PublishInfo info;
+    info.protocol = _protocol;
+    info.type = _type;
+    info.uri = _uri;
+    info.vhost = _vhost;
+
+    MediaHook::instance()->onPublish(info, [wSelf](const PublishResponse &rsp){
+        auto self = wSelf.lock();
+        if (!self) {
+            return ;
+        }
+
+        if (!rsp.authResult) {
+            self->_alive = false;
+            return ;
+        }
+
+        // if (!rsp.appName.empty() && !rsp.streamName.empty()) {
+        //     self->_uri = "/" + rsp.appName + "/" + rsp.streamName;
+        // }
+        // self->initAfterPublish();
+    });
+
+    // 鉴权后再初始化可能会导致上线慢，后面再看
+    initAfterPublish();
+
+    return true;
+}
+
+void GB28181Context::initAfterPublish()
+{
     UrlParser parser;
     parser.path_ = _uri;
     parser.vhost_ = _vhost;
@@ -48,13 +81,13 @@ bool GB28181Context::init()
 
     if (!source) {
         logWarn << "another stream is exist with the same uri";
-        return false;
+        return ;
     }
     logInfo << "create a GB28181MediaSource";
     auto gbSrc = dynamic_pointer_cast<GB28181MediaSource>(source);
     if (!gbSrc) {
         logWarn << "source is not gb source";
-        return false;
+        return ;
     }
     gbSrc->setOrigin();
 
@@ -112,25 +145,6 @@ bool GB28181Context::init()
     });
 
     _timeClock.start();
-        
-    PublishInfo info;
-    info.protocol = _protocol;
-    info.type = _type;
-    info.uri = _uri;
-    info.vhost = _vhost;
-
-    MediaHook::instance()->onPublish(info, [wSelf](const PublishResponse &rsp){
-        auto self = wSelf.lock();
-        if (!self) {
-            return ;
-        }
-
-        if (!rsp.authResult) {
-            self->_alive = false;
-        }
-    });
-
-    return true;
 }
 
 void GB28181Context::onRtpPacket(const RtpPacket::Ptr& rtp, struct sockaddr* addr, int len, bool sort)
@@ -162,7 +176,7 @@ void GB28181Context::onRtpPacket(const RtpPacket::Ptr& rtp, struct sockaddr* add
 
     rtp->trackIndex_ = 0;
     
-    if (sort) {
+    if (sort && _sort) {
         _sort->onRtpPacket(rtp);
     } else {
         if (rtp->getHeader()->pt == 104 || rtp->getHeader()->pt == 8 || rtp->getHeader()->pt == 0) {

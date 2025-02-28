@@ -138,6 +138,24 @@ void RtspPsMediaSource::addTrack(const RtspPsDecodeTrack::Ptr& track)
 
 void RtspPsMediaSource::onReady()
 {
+    std::weak_ptr<RtspPsMediaSource> weakSelf = std::static_pointer_cast<RtspPsMediaSource>(shared_from_this());
+    if (!_ring) {
+        auto lam = [weakSelf](int size) {
+            auto strongSelf = weakSelf.lock();
+            if (!strongSelf) {
+                return;
+            }
+            strongSelf->getLoop()->async([weakSelf, size](){
+                auto strongSelf = weakSelf.lock();
+                if (!strongSelf) {
+                    return;
+                }
+                strongSelf->onReaderChanged(size);
+            }, true, true); 
+        };
+        logInfo << "create _ring";
+        _ring = std::make_shared<QueType>(_ringSize, std::move(lam));
+    }
     MediaSource::onReady();
     if (_muxer) {
         std::weak_ptr<RtspPsMediaSource> weakSelf = std::static_pointer_cast<RtspPsMediaSource>(shared_from_this());

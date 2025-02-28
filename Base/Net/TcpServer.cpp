@@ -177,6 +177,7 @@ void TcpServer::onManager()
     for (auto &session : _mapSession) {
         //遍历时，可能触发onErr事件(也会操作_session_map)
         try {
+            // onManger中不要执行close函数，会破坏map迭代器
             session.second->onManager();
         } catch (exception &ex) {
             cout << ex.what();

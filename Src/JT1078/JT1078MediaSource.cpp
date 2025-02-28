@@ -129,6 +129,24 @@ void JT1078MediaSource::addTrack(const JT1078DecodeTrack::Ptr& track)
 
 void JT1078MediaSource::onReady()
 {
+    std::weak_ptr<JT1078MediaSource> weakSelf = std::static_pointer_cast<JT1078MediaSource>(shared_from_this());
+    if (!_ring) {
+        auto lam = [weakSelf](int size) {
+            auto strongSelf = weakSelf.lock();
+            if (!strongSelf) {
+                return;
+            }
+            strongSelf->getLoop()->async([weakSelf, size](){
+                auto strongSelf = weakSelf.lock();
+                if (!strongSelf) {
+                    return;
+                }
+                strongSelf->onReaderChanged(size);
+            }, true, true); 
+        };
+        logInfo << "create _ring";
+        _ring = std::make_shared<RingType>(_ringSize, std::move(lam));
+    }
     MediaSource::onReady();
     if (_mapSink.size() == 0 && _ring) {
         // _ring->delOnWrite(this);

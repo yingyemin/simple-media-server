@@ -160,6 +160,24 @@ void RtmpMediaSource::addTrack(const RtmpDecodeTrack::Ptr& track)
 
 void RtmpMediaSource::onReady()
 {
+    std::weak_ptr<RtmpMediaSource> weakSelf = std::static_pointer_cast<RtmpMediaSource>(shared_from_this());
+    if (!_ring) {
+        auto lam = [weakSelf](int size) {
+            auto strongSelf = weakSelf.lock();
+            if (!strongSelf) {
+                return;
+            }
+            strongSelf->getLoop()->async([weakSelf, size](){
+                auto strongSelf = weakSelf.lock();
+                if (!strongSelf) {
+                    return;
+                }
+                strongSelf->onReaderChanged(size);
+            }, true, true); 
+        };
+        logInfo << "create _ring";
+        _ring = std::make_shared<RingType>(_ringSize, std::move(lam));
+    }
     MediaSource::onReady();
     if (_mapSink.size() == 0 && _ring) {
         // _ring->delOnWrite(this);

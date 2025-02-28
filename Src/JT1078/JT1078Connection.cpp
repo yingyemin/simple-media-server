@@ -9,6 +9,7 @@
 #include "Util/String.h"
 #include "Common/Define.h"
 #include "Hook/MediaHook.h"
+#include "Common/Config.h"
 
 using namespace std;
 
@@ -60,6 +61,8 @@ void JT1078Connection::init()
         
         self->onRtpPacket(buffer);
     });
+
+    _timeClock.start();
 }
 
 void JT1078Connection::close()
@@ -71,6 +74,21 @@ void JT1078Connection::close()
 void JT1078Connection::onManager()
 {
     logInfo << "manager";
+    static int timeout = Config::instance()->getAndListen([](const json& config){
+        timeout = Config::instance()->get("JT1078", "Server", "timeout", "", "5000");
+    }, "JT1078", "Server", "timeout", "", "5000");
+
+    if (_timeClock.startToNow() > timeout) {
+        logWarn << _path <<  ": timeout";
+        weak_ptr<JT1078Connection> wSelf = dynamic_pointer_cast<JT1078Connection>(shared_from_this());
+        // 直接close会将tcpserver的map迭代器破坏，用异步接口关闭
+        _loop->async([wSelf](){
+            auto self = wSelf.lock();
+            if (self) {
+                self->close();
+            }
+        }, false);
+    }
 }
 
 void JT1078Connection::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)
@@ -94,62 +112,18 @@ ssize_t JT1078Connection::send(Buffer::Ptr pkt)
 void JT1078Connection::onRtpPacket(const JT1078RtpPacket::Ptr& buffer)
 {
     // logInfo << "simcode: " << buffer->getSimCode();
-    if (!_source.lock()) {
-        UrlParser parser;
-        if (_path.empty()) {
-            string key = buffer->getSimCode() + "_" + to_string(buffer->getLogicNo())
-                        + "_" + to_string(_socket->getLocalPort());
-            auto info = getJt1078Info(key);
-            if (!info.streamName.empty()) {
-                // _key = key;
-                parser.path_ = "/" + info.appName + "/" + info.streamName;
-                delJt1078Info(key);
-            } else {
-                parser.path_ = "/live/" + buffer->getSimCode() + "_" + to_string(buffer->getLogicNo());
-            }
-        } else {
-            parser.path_ = _path;
-        }
-        parser.vhost_ = DEFAULT_VHOST;
-        parser.protocol_ = PROTOCOL_JT1078;
-        parser.type_ = _isTalk ? "talk" : DEFAULT_TYPE;
-        auto source = MediaSource::getOrCreate(parser.path_, parser.vhost_
-                        , parser.protocol_, parser.type_
-                        , [this, parser](){
-                            return make_shared<JT1078MediaSource>(parser, _loop);
-                        });
-
-        if (!source) {
-            logWarn << "another stream is exist with the same uri";
-            close();
-            return ;
-        }
-        logInfo << "create a JT1078MediaSource";
-        auto jtSrc = dynamic_pointer_cast<JT1078MediaSource>(source);
-        if (!jtSrc) {
-            logWarn << "source is not gb source";
-            return ;
-        }
-        jtSrc->setOrigin();
-        jtSrc->setOriginSocket(_socket);
-        weak_ptr<JT1078Connection> wSelf = dynamic_pointer_cast<JT1078Connection>(shared_from_this());
-        jtSrc->addOnDetach(this, [wSelf](){
-            auto self = wSelf.lock();
-            if (!self) {
-                return ;
-            }
-            self->close();
-        });
-        _source = jtSrc;
-
+    _timeClock.update();
+    if (_first) {
+        _first = false;
+        
         PublishInfo info;
-        info.protocol = parser.protocol_;
-        info.type = parser.type_;
-        info.uri = parser.path_;
-        info.vhost = parser.vhost_;
+        info.protocol = PROTOCOL_JT1078;
+        info.type = _isTalk ? "talk" : DEFAULT_TYPE;
+        info.uri = "/" + _app + "/" + buffer->getSimCode() + "_" + to_string(buffer->getLogicNo());;
+        info.vhost = DEFAULT_VHOST;
 
-        // weak_ptr<JT1078Connection> wSelf = dynamic_pointer_cast<JT1078Connection>(shared_from_this());
-        MediaHook::instance()->onPublish(info, [wSelf](const PublishResponse &rsp){
+        weak_ptr<JT1078Connection> wSelf = dynamic_pointer_cast<JT1078Connection>(shared_from_this());
+        MediaHook::instance()->onPublish(info, [wSelf, buffer](const PublishResponse &rsp){
             auto self = wSelf.lock();
             if (!self) {
                 return ;
@@ -157,12 +131,23 @@ void JT1078Connection::onRtpPacket(const JT1078RtpPacket::Ptr& buffer)
 
             if (!rsp.authResult) {
                 self->onError();
+                return ;
             }
+
+            // 本来想通过回调来进行指定流名称，但是会导致上线慢，暂时屏蔽
+            // if (self->_path.empty() && !rsp.appName.empty() && !rsp.streamName.empty()) {
+            //     self->_path = "/" + rsp.appName + "/" + rsp.streamName;
+            // }
+
+            // self->createSource(buffer);
         });
 
-        if (_isTalk) {
-            onJT1078Talk(buffer);
-        }
+        // 不在鉴权回调里创建source了，提升上线速度
+        createSource(buffer);
+    }
+
+    if (!_source.lock()) {
+        return ;
     }
 
     int index = 0;
@@ -185,6 +170,63 @@ void JT1078Connection::onRtpPacket(const JT1078RtpPacket::Ptr& buffer)
     }
 
     _mapTrack[index]->onRtpPacket(buffer);
+}
+
+void JT1078Connection::createSource(const JT1078RtpPacket::Ptr& buffer)
+{
+    UrlParser parser;
+    if (_path.empty()) {
+        _simCode = buffer->getSimCode();
+        _channel = buffer->getLogicNo();
+        string key = buffer->getSimCode() + "_" + to_string(buffer->getLogicNo())
+                    + "_" + to_string(_socket->getLocalPort());
+        auto info = getJt1078Info(key);
+        if (!info.streamName.empty()) {
+            // _key = key;
+            parser.path_ = "/" + info.appName + "/" + info.streamName;
+            delJt1078Info(key);
+        } else {
+            parser.path_ = "/" + _app + "/" + buffer->getSimCode() + "_" + to_string(buffer->getLogicNo());
+        }
+        _path = parser.path_;
+    } else {
+        parser.path_ = _path;
+    }
+    parser.vhost_ = DEFAULT_VHOST;
+    parser.protocol_ = PROTOCOL_JT1078;
+    parser.type_ = _isTalk ? "talk" : DEFAULT_TYPE;
+    auto source = MediaSource::getOrCreate(parser.path_, parser.vhost_
+                    , parser.protocol_, parser.type_
+                    , [this, parser](){
+                        return make_shared<JT1078MediaSource>(parser, _loop);
+                    });
+
+    if (!source) {
+        logWarn << "another stream is exist with the same uri";
+        close();
+        return ;
+    }
+    logInfo << "create a JT1078MediaSource";
+    auto jtSrc = dynamic_pointer_cast<JT1078MediaSource>(source);
+    if (!jtSrc) {
+        logWarn << "source is not gb source";
+        return ;
+    }
+    jtSrc->setOrigin();
+    jtSrc->setOriginSocket(_socket);
+    weak_ptr<JT1078Connection> wSelf = dynamic_pointer_cast<JT1078Connection>(shared_from_this());
+    jtSrc->addOnDetach(this, [wSelf](){
+        auto self = wSelf.lock();
+        if (!self) {
+            return ;
+        }
+        self->close();
+    });
+    _source = jtSrc;
+
+    if (_isTalk) {
+        onJT1078Talk(buffer);
+    }
 }
 
 void JT1078Connection::onJT1078Talk(const JT1078RtpPacket::Ptr& buffer)

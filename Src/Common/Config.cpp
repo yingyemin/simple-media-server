@@ -83,39 +83,39 @@ Variant Config::get(json& value)
     }
 }
 
-Variant Config::get(const string& key1, const string& key2, const string& key3, const string& key4)
+Variant Config::get(const string& key1, const string& key2, const string& key3, const string& key4, const string& value)
 {
     if (!key4.empty()) {
         if (!_config.contains(key1) || !_config[key1].contains(key2) || 
             !_config[key1][key2].contains(key3) || !_config[key1][key2][key3].contains(key4))
         {
-            return "";
+            return value;
         }
         return get(_config[key1][key2][key3][key4]);
     } else if (!key3.empty()) {
         if (!_config.contains(key1) || !_config[key1].contains(key2) || 
             !_config[key1][key2].contains(key3))
         {
-            return "";
+            return value;
         }
         return get(_config[key1][key2][key3]);
     } else if (!key2.empty()) {
         if (!_config.contains(key1) || !_config[key1].contains(key2))
         {
-            return "";
+            return value;
         }
         return get(_config[key1][key2]);
     } else {
         if (!_config.contains(key1))
         {
-            return "";
+            return value;
         }
         return get(_config[key1]);
     }
 }
 
 Variant Config::getAndListen(const function<void(const json& config)>& func, const string& key1, 
-                        const string& key2, const string& key3, const string& key4)
+                        const string& key2, const string& key3, const string& key4, const string& value)
 {
     string key = key1;
     if (!key2.empty()) {
@@ -130,7 +130,7 @@ Variant Config::getAndListen(const function<void(const json& config)>& func, con
     addUpdateFunc(key, func);
     // logInfo << "key: " << key;
 
-    return get(key1, key2, key3, key4);
+    return get(key1, key2, key3, key4, value);
 }
 
 void Config::set(json& jValue, const Variant& value)

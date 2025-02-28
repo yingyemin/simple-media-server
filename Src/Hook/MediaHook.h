@@ -40,6 +40,9 @@ class PublishResponse
 {
 public:
     bool authResult = false;
+    // 用于1078或者28181重新命名
+    string appName;
+    string streamName;
     string err;
 };
 

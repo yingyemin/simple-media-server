@@ -121,7 +121,9 @@ curl http://127.0.0.1/api/v1/getSourceList | python -m json.tool
         expire: 有效期，新开的端口，多久没有收到数据则关闭端口，单位秒；
             - 可选参数，默认15秒
         appName: 1078应用名，用于构造流id，流id格式：/{appName}/{streamName}；
-            - 可选参数，与streamName一起
+            - 可选参数，
+            - 如果没有传streamname，则是指定这个端口收到的流的应用名
+            - 如果指定了streamName，则这个端口只能给该流用，不能接其他的流
         streamName: 1078流名，用于构造流id，此例的流id是 /live/test；
             - 可选参数，与appName一起，不设置该参数，则使用设备的simcode和channel构造流id
 

@@ -366,6 +366,24 @@ void WebrtcMediaSource::processG711(const FrameBuffer::Ptr& frame, const WebrtcE
 
 void WebrtcMediaSource::onReady()
 {
+    std::weak_ptr<WebrtcMediaSource> weakSelf = std::static_pointer_cast<WebrtcMediaSource>(shared_from_this());
+    if (!_ring) {
+        auto lam = [weakSelf](int size) {
+            auto strongSelf = weakSelf.lock();
+            if (!strongSelf) {
+                return;
+            }
+            strongSelf->getLoop()->async([weakSelf, size](){
+                auto strongSelf = weakSelf.lock();
+                if (!strongSelf) {
+                    return;
+                }
+                strongSelf->onReaderChanged(size);
+            }, true, true); 
+        };
+        logInfo << "create _ring";
+        _ring = std::make_shared<QueType>(_ringSize, std::move(lam));
+    }
     MediaSource::onReady();
     if (_muxer) {
         // std::weak_ptr<WebrtcMediaSource> weakSelf = std::static_pointer_cast<WebrtcMediaSource>(shared_from_this());

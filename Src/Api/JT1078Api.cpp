@@ -91,11 +91,15 @@ void JT1078Api::openServer(const HttpParser& parser, const UrlParser& urlParser,
     }
 
     string path;
-    if (parser._body.find("appName") != parser._body.end() 
-            && parser._body.find("streamName") != parser._body.end()) {
-        path = "/" + parser._body["appName"].get<string>() + "/" + parser._body["streamName"].get<string>();
+    string appName;
+    if (parser._body.find("appName") != parser._body.end()) {
+        if (parser._body.find("streamName") != parser._body.end()) {
+            path = "/" + parser._body["appName"].get<string>() + "/" + parser._body["streamName"].get<string>();
+        } else {
+            appName = parser._body["appName"].get<string>();
+        }
     }
-    JT1078Server::instance()->setStreamPath(port, path, expire);
+    JT1078Server::instance()->setStreamPath(port, path, expire, appName);
 
     JT1078Server::instance()->start("0.0.0.0", port, 1);
 

@@ -122,7 +122,7 @@ public:
 protected:
     bool _origin = false;
     uint64_t _createTime = 0;
-    SourceStatus _status;
+    SourceStatus _status = WAITING;
     UrlParser _urlParser;
     EventLoop::Ptr _loop;
     MediaSource::Wptr _originSrc;

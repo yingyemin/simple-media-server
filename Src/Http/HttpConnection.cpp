@@ -367,6 +367,7 @@ void HttpConnection::sendFile() // 将要素按照HttpResponse协议进行组织
         logInfo << "read file";
         auto buffer = self->_httpFile->read();
         if (!buffer) {
+            self->_socket->setOnGetBuffer(nullptr);
             // TODO 定时器停止socket？？
             return false;
         }

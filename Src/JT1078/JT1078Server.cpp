@@ -46,30 +46,33 @@ void JT1078Server::setPortRange(int minPort, int maxPort)
     _portManager.init(minPort, maxPort);
 }
 
-void JT1078Server::setStreamPath(int port, const string& path, int expire)
+void JT1078Server::setStreamPath(int port, const string& path, int expire, const string& appName)
 {
     lock_guard<mutex> lck(_mtx);
     JT1078ServerInfo info;
     info.path_ = path;
     info.expire_ = expire;
+    info.appName_ = appName;
     _serverInfo[port] = info;
 }
 
 void JT1078Server::start(const string& ip, int port, int count, bool isTalk)
 {
     string path;
+    string appName;
     int expire = 0;
     {
         lock_guard<mutex> lck(_mtx);
         auto info = _serverInfo.find(port);
         if (info != _serverInfo.end()) {
             path = _serverInfo[port].path_;
+            appName = _serverInfo[port].appName_;
             expire = _serverInfo[port].expire_;
         }
     }
     
     JT1078Server::Wptr wSelf = shared_from_this();
-    EventLoopPool::instance()->for_each_loop([ip, port, wSelf, path, expire, isTalk, count](const EventLoop::Ptr& loop){
+    EventLoopPool::instance()->for_each_loop([ip, port, wSelf, path, expire, isTalk, count, appName](const EventLoop::Ptr& loop){
         auto self = wSelf.lock();
         if (!self) {
             return ;
@@ -77,7 +80,7 @@ void JT1078Server::start(const string& ip, int port, int count, bool isTalk)
 
         TcpServer::Ptr server = make_shared<TcpServer>(loop, ip.data(), port, 0, 0);
         weak_ptr<TcpServer> wServer = server;
-        server->setOnCreateSession([wSelf, wServer, path, expire, isTalk, count](const EventLoop::Ptr& loop, const Socket::Ptr& socket) -> JT1078Connection::Ptr {
+        server->setOnCreateSession([wSelf, wServer, path, expire, isTalk, count, appName](const EventLoop::Ptr& loop, const Socket::Ptr& socket) -> JT1078Connection::Ptr {
             auto self = wSelf.lock();
             if (!self) {
                 return nullptr;
@@ -85,6 +88,8 @@ void JT1078Server::start(const string& ip, int port, int count, bool isTalk)
             auto connection = make_shared<JT1078Connection>(loop, socket);
             if (!path.empty()) {
                 connection->setPath(path);
+            } else if (!appName.empty()) {
+                connection->setAppName(appName);
             }
             if (isTalk) {
                 connection->setTalkFlag();

@@ -347,24 +347,31 @@ bool MediaSource::getOrCreateAsync(const string &protocol, const string& type,
     // 看来不能用注册回调hook，应该在src里增加一个回调函数变量
     // 增加一个ready函数，里面设置 SourceStatus::AVAILABLE ，可控制加锁
     // 上面的获取源函数需要hook回调，因为没有src可以存回调函数
-    if (src && src->getStatus() < SourceStatus::AVAILABLE) {
+    if (src /*&& src->getStatus() < SourceStatus::AVAILABLE*/) {
         src->addConnection(connKey);
-        src->getLoop()->async([src, cb](){
+        // src->getLoop()->async([src, cb](){
+        //     cb(src);
+        // }, true, false);
+        src->addOnReady(connKey, [src, cb](){ 
             cb(src);
-        }, true, false);
+        });
         return true;
     }
 
     logInfo << "getOrCreateAsync find frame src";
 
-    src = create();
     if (!src) {
-        cb(nullptr);
-        return true;
+        src = create();
+        if (!src) {
+            cb(nullptr);
+            return true;
+        }
+        wsrc = src;
     }
+    
     src->setLoop(_loop);
     src->addConnection(connKey);
-    wsrc = src;
+    
     string frameSrcType = type == "transcode" ? type : DEFAULT_TYPE;
     auto& wframeSource = _streamSource[PROTOCOL_FRAME][frameSrcType];
     auto frameSource = wframeSource.lock();

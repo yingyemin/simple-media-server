@@ -30,6 +30,8 @@ public:
     void createVideoTrack(const string& videoCodec);
     void createAudioTrack(const string& audioCodec, int channel, int sampleBit, int sampleRate);
 
+    void initAfterPublish();
+
 private:
     bool _alive = true;
     int64_t _ssrc = -1;

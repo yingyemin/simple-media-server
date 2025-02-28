@@ -12,6 +12,7 @@
 #include "JT1078Parser.h"
 #include "JT1078DecodeTrack.h"
 #include "JT1078MediaSource.h"
+#include "Util/TimeClock.h"
 
 using namespace std;
 
@@ -49,6 +50,7 @@ public:
     ssize_t send(Buffer::Ptr pkt) override;
 
     void setPath(const string& path) {_path = path;}
+    void setAppName(const string& appName) {_app = appName;}
     void setTalkFlag() {_isTalk = true;}
     void onRtpPacket(const JT1078RtpPacket::Ptr& buffer);
     void setOnClose(const function<void()>& cb) {_onClose = cb;}
@@ -65,12 +67,18 @@ private:
     void onJT1078Talk(const JT1078RtpPacket::Ptr& buffer);
     void startSendTalkData(const JT1078MediaSource::Ptr &src, const JT1078TalkInfo& talkInfo);
     void sendRtpPacket(const JT1078MediaSource::RingDataType &pkt);
+    void createSource(const JT1078RtpPacket::Ptr& buffer);
 
 private:
     bool _isTalk = false;
+    bool _first = true;
+    int _channel = 0;
+    string _simCode;
     string _path;
+    string _app = "live";
     string _key;
     JT1078Parser _parser;
+    TimeClock _timeClock;
     EventLoop::Ptr _loop;
     Socket::Ptr _socket;
     JT1078MediaSource::Wptr _source;

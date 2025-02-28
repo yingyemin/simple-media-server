@@ -32,11 +32,11 @@ public:
                                 const string& key3 = "", const string& key4 = "");
     void addUpdateFunc(const string& key, const function<void(const json& config)>& func);
 
-    Variant get(const string& key1, const string& key2 = "", 
-                                const string& key3 = "", const string& key4 = "");
+    Variant get(const string& key1, const string& key2 = "", const string& key3 = "", 
+                const string& key4 = "", const string& value = "");
 
     Variant getAndListen(const function<void(const json& config)>& func, const string& key1, const string& key2 = "", 
-                                const string& key3 = "", const string& key4 = "");
+                        const string& key3 = "", const string& key4 = "", const string& value = "");
 
     void set(const Variant& value, const string& key1, const string& key2 = "", 
                 const string& key3 = "", const string& key4 = "");

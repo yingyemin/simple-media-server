@@ -144,6 +144,9 @@ void MediaHook::onPublish(const PublishInfo& info, const function<void(const Pub
                 return ;
             }
 
+            rsp.appName = res.value("appName", "");
+            rsp.streamName = res.value("streamName", "");
+
             if (res.find("authResult") == res.end()) {
                 rsp.authResult = false;
                 rsp.err = "authResult is empty";
