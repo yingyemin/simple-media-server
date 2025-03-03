@@ -29,12 +29,12 @@ void GB28181Api::createGB28181Receiver(const HttpParser& parser, const UrlParser
     rsp._status = 200;
     json value;
 
-    checkArgs(parser._body, {"active", "ssrc", "port", "socketType", "ip"});
+    checkArgs(parser._body, {"active", "ssrc", "socketType"});
 
     int active = toInt(parser._body["active"]);
 
     if (active) {
-        checkArgs(parser._body, {"streamName", "appName"});
+        checkArgs(parser._body, {"streamName", "appName", "port", "ip"});
         int ssrc = toInt(parser._body["ssrc"]);
         int port = toInt(parser._body["port"]);
         int socketType = toInt(parser._body["socketType"]); //1:tcp,2:udp,3:both
@@ -50,8 +50,9 @@ void GB28181Api::createGB28181Receiver(const HttpParser& parser, const UrlParser
         value["ip"] = pull->getLocalIp();
         value["ssrc"] = ssrc;
     } else {
-        int newServer = toInt(parser._body["newServer"]);
+        int newServer = toInt(parser._body.value("newServer", "0"));
         if (newServer) {
+            checkArgs(parser._body, {"port"});
             int ssrc = toInt(parser._body["ssrc"]);
             int port = toInt(parser._body["port"]);
             int socketType = toInt(parser._body["socketType"]); //1:tcp,2:udp,3:both
@@ -70,7 +71,7 @@ void GB28181Api::createGB28181Receiver(const HttpParser& parser, const UrlParser
             // add ssrc map streamname
             int ssrc = toInt(parser._body["ssrc"]);
             string gbServerName = parser._body.value("gbServerName", "Server1");
-            value["port"] = Config::instance()->get("GB28181", "Server", gbServerName, "port");
+            value["port"] = (int)Config::instance()->get("GB28181", "Server", gbServerName, "port");
             value["ip"] = Config::instance()->get("LocalIp");
             value["ssrc"] = ssrc;
         }

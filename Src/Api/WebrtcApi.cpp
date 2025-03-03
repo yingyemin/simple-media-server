@@ -102,31 +102,11 @@ void WebrtcApi::rtcPublish(const HttpParser& parser, const UrlParser& urlParser,
         streamName = urlParser.vecParam_.at("streamName");
         sdp = parser._content;
     } else {
-        checkArgs(parser._body, {"streamurl", "sdp"});
-        UrlParser streamurlparser;
-        streamurlparser.parse(parser._body["streamurl"]);
+        checkArgs(parser._body, {"appName", "streamName", "sdp"});
 
-        auto pos = streamurlparser.path_.find_first_of("/", 1);
-        if (pos == string::npos) {
-            HttpResponse rsp;
-            rsp._status = 200;
-            json value;
-            value["msg"] = "url is invalid";
-            value["code"] = 200;
-            rsp.setHeader("Access-Control-Allow-Origin", "*");
-            rsp.setContent(value.dump());
-            rspFunc(rsp);
-
-            return ;
-        }
-
-        appName = streamurlparser.path_.substr(1, pos - 1);
-        streamName = streamurlparser.path_.substr(pos + 1);
-        if (parser._body.find("enableDtls") == parser._body.end()) {
-            enableDtls = 0;
-        } else {
-            enableDtls = toInt(parser._body["enableDtls"]);
-        }
+        appName = parser._body["appName"];
+        streamName = parser._body["streamName"];
+        enableDtls = toInt(parser._body.value("enableDtls", "0"));
         sdp = parser._body["sdp"];
     }
 

@@ -1,0 +1,211 @@
+主要功能：
+    - 支持设备通过主动或被动方式接入
+    - 支持级联，支持主动和被动方式
+    - 支持对讲，支持主动和被动方式
+    - 支持 h264/265, aac/g711a/g711u
+    - 支持tcp和udp
+
+接入说明：
+    - sms只做了接收28181音视频流的功能，信令需要自己实现
+    - 信令交互过程中，信令服务将sms服务的ip和28181端口发给客户端，客户端把流发到指定的ip和28181端口
+    - sms收到音视频流后，就开始解析流并注册，流id的格式默认为：/live/{ssrc}，如ssrc为1000，流id则是/live/1000
+    - 可以通过查询流信息接口看到流是否注册成功，以及流id
+    - 创建接收流接口：/api/v1/gb28181/recv/create，该接口可以创建多端口或获取单端口信息，也可以通过主动模式去服务器拉流
+        - 流和对讲都可以用这个接口
+    - 停止接收流接口：/api/v1/gb28181/recv/stop
+    - 创建发送流接口：/api/v1/gb28181/send/create，既可主动发送，也可被动发送
+        - 流和对讲都可以用这个接口
+    - 停止发送流接口：/api/v1/gb28181/send/stop
+
+查看流上线信息：
+curl http://127.0.0.1/api/v1/getSourceList | python -m json.tool
+{
+    "code": "200",
+    "msg": "success",
+    "count" : 1,
+    "sources": [
+        {
+            # 音频编码信息
+            "audio": {
+                # 编码格式
+                "codec": "aac",
+                # 状态，以就绪还是被舍弃
+                # ready or expire
+                "status": "ready"
+            },
+            # 收到多少字节的数据
+            "bytes": 56580,
+            # 流是什么时间上线的
+            "createTime": 1739702722594,
+            # 流在哪个event线程
+            "epollFd": 5,
+            # 流在线时长
+            "onlineDuration": 3288,
+            # 流名称，流id
+            "path": "/live/10000",
+            # 源协议对应的观看数
+            "playerCount": 0,
+            # 源协议
+            "protocol": "gb28181",
+            # 推流的socket信息
+            "socketInfo": {
+                # 本地的ip地址和port
+                "localIp": "127.0.0.1",
+                "localPort": 10000,
+                # 推流客户端的ip地址和port
+                "peerIp": "127.0.0.1",
+                "peerPort": 35766
+            },
+            # 总的观看数
+            "totalPlayerCount": 0,
+            "type": "normal",
+            "vhost": "vhost",
+            # 视频编码信息
+            "video": {
+                "codec": "h264",
+                "fps": 50,
+                "height": 320,
+                "status": "ready",
+                "width": 768
+            }
+        }
+    ]
+}
+
+输出url地址：
+    - 流id对应流信息接口里的
+    "url": {
+        "rtsp": "rtsp://10.0.0.239:554/live/12345678910_1",
+        "rtsp": "rtsp://10.0.0.239:554/live/12345678910_1?type=ps",
+        "rtsp": "rtsp://10.0.0.239:554/live/12345678910_1?type=huge",
+        "rtsp": "rtsp://10.0.0.239:554/live/12345678910_1?type=hugePs",
+        "rtsp": "rtsp://10.0.0.239:554/live/12345678910_1?type=fastPts",
+        "rtmp": "rtmp://10.0.0.239:1935/live/12345678910_1",
+        "rtmp": "rtmp://10.0.0.239:1935/live/12345678910_1?type=enhanced",
+        "rtmp": "rtmp://10.0.0.239:1935/live/12345678910_1?type=fastPts",
+        "http-flv": "http://10.0.0.239:80/live/12345678910_1.flv",
+        "ws-flv": "ws://10.0.0.239:80/live/12345678910_1.flv",
+        "http-mp4": "http://10.0.0.239:80/live/12345678910_1.mp4",
+        "http-hls": "http://10.0.0.239:80/live/12345678910_1.m3u8",
+        "srt" : "srt://10.0.0.239:6666?streamid=|path:/live/12345678910_1|request:pull|"
+    }
+
+创建接收流接口
+    - 通过改接口创建新的端口用于接收国标流
+    - 通过改接口，获取单端口模式的port，用于接收国标流
+    - 支持主动和被动模式
+    - 音视频流和对讲都是用这个接口
+    接口示例：
+    - 被动模式，单端口
+    curl http://127.0.0.1/api/v1/gb28181/recv/create -d "active=0&ssrc=10000&socketType=1" | python -m json.tool
+    {
+        # 收流ip，通过信令给到设备
+        "ip" : 192.168.0.123,
+        # 收流port，通过信令给到设备
+        "port" : 10000,
+        # ssrc，参数里传入的，这里只是简单的返回
+        "ssrc" : 10000,
+        "code": "200",
+        "msg": "success"
+    }
+
+    api: /api/v1/gb28181/recv/create
+    参数：
+        active: 1:主动模式；0：被动模式
+        ssrc: 指定ssrc值
+        socketType: 1：tcp方式；2：udp方式；3：tcp和udp都可以
+
+    - 被动模式，多端口
+    curl http://127.0.0.1/api/v1/gb28181/recv/create -d "active=0&ssrc=10000&socketType=1&newServer=1&port=10002" | python -m json.tool
+    {
+        # 收流ip，通过信令给到设备
+        "ip" : 192.168.0.123,
+        # 收流port，通过信令给到设备
+        # 参数里传入的，这里只是简单的返回
+        "port" : 10002,
+        # ssrc，参数里传入的，这里只是简单的返回
+        "ssrc" : 10000,
+        "code": "200",
+        "msg": "success"
+    }
+
+    api: /api/v1/gb28181/recv/create
+    参数：
+        active: 1:主动模式；0：被动模式
+        ssrc: 指定ssrc值
+        socketType: 1：tcp方式；2：udp方式；3：tcp和udp都可以
+        newServer：0：单端口模式；1：多端口模式
+        port：端口
+
+    -主动模式
+    curl http://127.0.0.1/api/v1/gb28181/recv/create -d "active=1&ssrc=10000&socketType=1&streamName=test&appName=live&port=10000&ip=127.0.0.1"  | python -m json.tool
+    {
+        "code":"200",
+        # 本地ip
+        "ip":"127.0.0.1",
+        "msg":"success",
+        # 本地端口
+        "port":57608,
+        "ssrc":10000
+    }
+
+    api: /api/v1/gb28181/recv/create
+    参数：
+        active: 1:主动模式；0：被动模式
+        ssrc: 指定ssrc值
+        socketType: 1：tcp方式；2：udp方式；3：tcp和udp都可以
+        port：对端端口
+        ip：对端ip
+        appName: 应用名，用于构造流id，流id格式：/{appName}/{streamName}
+        streamName: 流名，用于构造流id，此例的流id是 /live/test
+
+创建发送流接口
+    - 通过改接口创建客户端或者服务端用于发送国标流
+    - 支持主动和被动模式
+    - 音视频流和对讲都是用这个接口
+
+    接口示例：
+    -主动模式
+    curl http://127.0.0.1/api/v1/gb28181/send/create -d "active=1&ssrc=10000&socketType=1&streamName=test&appName=live&port=10000&ip=127.0.0.1"  | python -m json.tool
+    {
+        "code":"200",
+        # 本地ip
+        "ip":"127.0.0.1",
+        "msg":"success",
+        # 本地端口
+        "port":57608,
+        "ssrc":10000
+    }
+
+    api: /api/v1/gb28181/send/create
+    参数：
+        active: 1:主动模式；0：被动模式
+        ssrc: 指定ssrc值
+        socketType: 1：tcp方式；2：udp方式；3：tcp和udp都可以
+        port：对端端口
+        ip：对端ip
+        appName: 应用名，待发送到上级的流应用名
+        streamName: 流名，待发送到上级的流名
+
+    
+    -被动模式
+    curl http://127.0.0.1/api/v1/gb28181/send/create -d "active=0&ssrc=10000&socketType=1&streamName=test&appName=live&port=10002&ip=127.0.0.1"  | python -m json.tool
+    {
+        "code":"200",
+        # 本地ip，参数中传入，这里只是简单的返回
+        "ip":"127.0.0.1",
+        "msg":"success",
+        # 本地端口，参数中传入，这里只是简单的返回
+        "port":10002,
+        "ssrc":10000
+    }
+
+    api: /api/v1/gb28181/send/create
+    参数：
+        active: 1:主动模式；0：被动模式
+        ssrc: 指定ssrc值
+        socketType: 1：tcp方式；2：udp方式；3：tcp和udp都可以
+        port：本地端口
+        ip：本地ip
+        appName: 应用名，待发送到上级的流应用名
+        streamName: 流名，待发送到上级的流名

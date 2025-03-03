@@ -16,6 +16,8 @@
 // 尤其是在解析各种格式的时候
 // 因为需要按照字节处理
 
+#define tsPacketSize 188
+
 
 TsDemuxer::TsDemuxer()
 {
@@ -400,23 +402,23 @@ void TsPacketHeader::demux(const StreamBuffer::Ptr& buffer)
 
     sync_ = payload[0];
     pid_ = payload[1] << 8 | payload[2];
-    // logInfo << "all byte pid: " << (int)pid_;
-    // logInfo << "payload[1]: " << (int)payload[1];
-    // logInfo << "payload[2]: " << (int)payload[2];
+    logDebug << "all byte pid: " << (int)pid_;
+    logDebug << "payload[1]: " << (int)payload[1];
+    logDebug << "payload[2]: " << (int)payload[2];
     transport_error_indicator_ = (pid_ >> 15) & 0x01;
     payload_unit_start_indicator_ = (pid_ >> 14) & 0x01;
     transport_priority_ = (pid_ >> 13) & 0x01;
     pid_ &= 0x1FFF;
 
-    // logInfo << "pid: " << (int)pid_;
-    // logInfo << "payload_unit_start_indicator_: " << (int)payload_unit_start_indicator_;
+    logDebug << "pid: " << (int)pid_;
+    logDebug << "payload_unit_start_indicator_: " << (int)payload_unit_start_indicator_;
 
     continuity_counter_ = payload[3];
     transport_scrambling_control_ = (continuity_counter_ >> 6) & 0x03;
     adaptation_field_control_ = (continuity_counter_ >> 4) & 0x03;
     continuity_counter_ &= 0x0F;
 
-    // logInfo << "continuity_counter_: " << (int)continuity_counter_;
+    logDebug << "continuity_counter_: " << (int)continuity_counter_;
 
     buffer->substr(4);
 }
@@ -454,10 +456,10 @@ void TsPayload::demux(TsDemuxer *ctx, TsPacket *pkt, const StreamBuffer::Ptr& bu
         return ;
     }
 
-    // logInfo << "ts pid: " << (int) (pkt->header_->pid_);
+    logDebug << "ts pid: " << (int) (pkt->header_->pid_);
     if (pkt->header_->pid_ == TSPidTablePAT)
     {
-        // logInfo << "demux pat";
+        logTrace << "demux pat";
         read_point_field(pkt, buffer);
         pat_->demux(ctx, buffer);
         return;
@@ -469,7 +471,7 @@ void TsPayload::demux(TsDemuxer *ctx, TsPacket *pkt, const StreamBuffer::Ptr& bu
     auto info = ctx->pidInfo(pkt->header_->pid_);
     if (info && info->pid_type_ == TsPidType::TsPidTypePMT)
     {
-        // logInfo << "demux pmt";
+        logTrace << "demux pmt";
         read_point_field(pkt, buffer);
         pmt_->demux(ctx, pkt, buffer);
         return;
@@ -480,7 +482,7 @@ void TsPayload::demux(TsDemuxer *ctx, TsPacket *pkt, const StreamBuffer::Ptr& bu
     // }
     if (info && (info->pid_type_ == TsPidType::TsPidTypeAudio || info->pid_type_ == TsPidType::TsPidTypeVideo))
     {
-        // logInfo << "demux media data";
+        logTrace << "demux media data";
         auto msg = ctx->message(info->pid_);
         if (!msg) {
             return ;
@@ -496,12 +498,12 @@ void TsPayload::demux(TsDemuxer *ctx, TsPacket *pkt, const StreamBuffer::Ptr& bu
             int32_t size = buffer->size();
             msg->append((int8_t*)buffer->data(), size);
             buffer->substr(size);
-            // logInfo << "PES: msg size :" << size;
+            logDebug << "PES: msg size :" << size;
             return;
         }
         else
         {
-            // logInfo << "msg->packet_start_code_prefix_" << (int)msg->packet_start_code_prefix_;
+            logDebug << "msg->packet_start_code_prefix_" << (int)msg->packet_start_code_prefix_;
             if (msg->packet_start_code_prefix_ == 0x01)
             {
                 ctx->pushConsumerMessage(msg);
@@ -780,10 +782,10 @@ int TsPayloadPES::demux(TsDemuxer *ctx, TsPacket *pkt, const StreamBuffer::Ptr& 
             msg->packet_data_.assign(payload + pos, cpSize);
             pos += cpSize;
             msg->parsed_data_size_ += cpSize;
-            // logInfo << "packet_data_size: " << msg->packet_data_size_
-            //         << ", PES_packet_length: " << PES_packet_length_
-            //         << ", packet_header_size: " << header_size
-            //         << ", cpSize: " << cpSize;
+            logDebug << "packet_data_size: " << msg->packet_data_size_
+                    << ", PES_packet_length: " << PES_packet_length_
+                    << ", packet_header_size: " << header_size
+                    << ", cpSize: " << cpSize;
         }
     }
 
@@ -825,7 +827,7 @@ void TsPayloadPAT::demux(TsDemuxer *ctx, const StreamBuffer::Ptr& buffer)
         int16_t program_map_PID = value & 0x1fff;
         // if (kPrintTsPacketPayloadPAT)
         // {
-            // logInfo << "PMT table's pid ->" << program_map_PID;
+            logDebug << "PMT table's pid ->" << program_map_PID;
         // }
         if (program_number > 0)
         {
@@ -941,8 +943,8 @@ void TsPayloadPMT::demux(TsDemuxer *ctx, TsPacket *pkt, const StreamBuffer::Ptr&
 
         // if (KPrintTsPacketPayloadPMT)
         // {
-            // logInfo << "PMT elementary_PID->" << elementary_PID
-            //         << "stream type->" << stream_type_str;
+            logDebug << "PMT elementary_PID->" << elementary_PID
+                    << "stream type->" << stream_type_str;
         // }
     }
 
@@ -1161,8 +1163,8 @@ void TsDemuxer::onDecode(const char* data, int len, int index, uint64_t pts, uin
 
     if (frame) {
         dts = dts == 0 ? pts : dts;
-        // logInfo << "pts: " << pts;
-        // logInfo << "dts: " << dts;
+        logDebug << "pts: " << pts;
+        logDebug << "dts: " << dts;
         frame->_buffer.assign(data, len);
         frame->_pts = pts / 90; // pts * 1000 / 90000,计算为毫秒
         frame->_dts = dts / 90;
@@ -1356,24 +1358,60 @@ void TsDemuxer::setOnReady(const function<void()>& cb)
     _onReady = cb;
 }
 
+bool searchTs(char* data, int size, int& pos)
+{
+    int index = 0;
+    while (true) {
+        if (data[index] == 0x47) {
+            if (index + tsPacketSize < size) {
+                if (data[index + tsPacketSize] == 0x47) {
+                    pos = index;
+                    return true;
+                }
+            } else {
+                pos = index;
+                return false;
+            }
+        }
+
+        if (++index >= size) {
+            return false;
+        }
+    }
+
+    return false;
+}
+
 void TsDemuxer::onTsPacket(char* data, int size, uint32_t timestamp)
 {
     if (_remainBuffer.size() > 0) {
         _remainBuffer.append(data, size);
         data = _remainBuffer.data();
         size = _remainBuffer.size();
+        _remainBuffer.clear();
     }
 
-    int tsPacketSize = 188;
-
-    // logInfo << "input size: " << size;
-    // logInfo << "timestamp: " << timestamp;
+    logDebug << "input size: " << size;
+    logDebug << "timestamp: " << timestamp;
 
     while (size >= tsPacketSize) {
         if(data[0] != 0x47) {
-            logError << "ts packet error";
-            _remainBuffer.clear();
-            return;
+            logInfo << "ts packet error, the first packet != 0x47, start search the ts packet";
+            int pos = -1;
+            bool ret = searchTs(data, size, pos);
+            if (ret && pos > 0) {
+                data += pos;
+                size -= pos;
+                logInfo << "search ths ts in pos: " << pos;
+            } else if (!ret && pos > 0) {
+                data += pos;
+                size -= pos;
+                logInfo << "search a 0x47 in pos: " << pos;
+                break;
+            } else {
+                logInfo << "can not find ts";
+                return;
+            }
         }
         TsPacket packet;
         StreamBuffer::Ptr buffer = StreamBuffer::create();
@@ -1385,12 +1423,10 @@ void TsDemuxer::onTsPacket(char* data, int size, uint32_t timestamp)
         size -= tsPacketSize;
     }
 
-    // logInfo << "after demux size: " << size;
+    logDebug << "after demux size: " << size;
 
     if (size != 0) {
         _remainBuffer.assign(data, size);
-    } else {
-        _remainBuffer.clear();
     }
 }
 

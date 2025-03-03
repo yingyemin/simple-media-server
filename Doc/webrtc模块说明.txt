@@ -1,0 +1,126 @@
+主要功能：
+    - 作为服务端，支持客户端推拉流
+    - 作为客户端，支持向其他服务推拉流
+    - 支持 h264/265/vp8/vp9/av1, opus/g711a/g711u
+    - 支持tcp，udp
+    - 支持将未加密的rtp包发到指定的端口，便于调试
+
+接入说明：
+    - 注意修改配置文件里的candidateIp字段。在局域网，修改为局域网ip。在公网，则修改为公网ip
+    - 本项目提供了一个rtcplayer作为例子，见research目录下的rtcplayer，将research拷贝到执行文件当前目录，在网页上可通过http端口访问
+    - rtc的播放url：webrtc://192.168.1.100:80/live/test
+        - 注意：url里的端口要使用http的端口
+        - webrtc的流程是先通过http请求交互sdp，因此url要填http的端口，用于调用api。webrtc的收流端口在sdp里
+    - 默认使用udp传输，要用tcp，需要改配置文件enableTcp字段(后期计划通过传参数指定)
+
+简单的播放流程：
+    - 先推一个流到服务上
+        - ffmpeg -rtsp_transport tcp -i rtsp://admin:abldyjh2020@192.168.1.120:554 -vcodec copy -acodec copy -f rtsp -rtsp_transport tcp rtsp://190.15.240.11:554/live/test
+    - 访问页面：190.15.240.11:80，选择research，再选择rtcplayer
+    - 修改webrtc的url为 rtc的播放url：webrtc://访问页面：190.15.240.11:80/live/test
+    - 以上例子假定ip为90.15.240.11，http port为80。实际以自己的配置为准
+
+查看流上线信息：
+curl http://127.0.0.1/api/v1/getSourceList | python -m json.tool
+{
+    "code": "200",
+    "msg": "success",
+    "count" : 1,
+    "sources": [
+        {
+            # 音频编码信息
+            "audio": {
+                # 编码格式
+                "codec": "aac",
+                # 状态，以就绪还是被舍弃
+                # ready or expire
+                "status": "ready"
+            },
+            # 收到多少字节的数据
+            "bytes": 56580,
+            # 流是什么时间上线的
+            "createTime": 1739702722594,
+            # 流在哪个event线程
+            "epollFd": 5,
+            # 流在线时长
+            "onlineDuration": 3288,
+            # 流名称，流id
+            "path": "/live/test",
+            # 源协议对应的观看数
+            "playerCount": 0,
+            # 源协议
+            "protocol": "webrtc",
+            # 推流的socket信息
+            "socketInfo": {
+                # 本地的ip地址和port
+                "localIp": "127.0.0.1",
+                "localPort": 17000,
+                # 推流客户端的ip地址和port
+                "peerIp": "127.0.0.1",
+                "peerPort": 35766
+            },
+            # 总的观看数
+            "totalPlayerCount": 0,
+            "type": "normal",
+            "vhost": "vhost",
+            # 视频编码信息
+            "video": {
+                "codec": "h264",
+                "fps": 50,
+                "height": 320,
+                "status": "ready",
+                "width": 768
+            }
+        }
+    ]
+}
+
+输出url地址：
+    - 流id对应流信息接口里的
+    "url": {
+        "rtsp": "rtsp://10.0.0.239:554/live/12345678910_1",
+        "rtsp": "rtsp://10.0.0.239:554/live/12345678910_1?type=ps",
+        "rtsp": "rtsp://10.0.0.239:554/live/12345678910_1?type=huge",
+        "rtsp": "rtsp://10.0.0.239:554/live/12345678910_1?type=hugePs",
+        "rtsp": "rtsp://10.0.0.239:554/live/12345678910_1?type=fastPts",
+        "rtmp": "rtmp://10.0.0.239:1935/live/12345678910_1",
+        "rtmp": "rtmp://10.0.0.239:1935/live/12345678910_1?type=enhanced",
+        "rtmp": "rtmp://10.0.0.239:1935/live/12345678910_1?type=fastPts",
+        "http-flv": "http://10.0.0.239:80/live/12345678910_1.flv",
+        "ws-flv": "ws://10.0.0.239:80/live/12345678910_1.flv",
+        "http-mp4": "http://10.0.0.239:80/live/12345678910_1.mp4",
+        "http-hls": "http://10.0.0.239:80/live/12345678910_1.m3u8",
+        "srt" : "srt://10.0.0.239:6666?streamid=|path:/live/12345678910_1|request:pull|"
+    }
+
+协商播放sdp接口
+    接口示例：
+    curl http://127.0.0.1/api/v1/rtc/play -d "appName=live&streamName=test&enableDtls=true&sdp=xxxxx"
+    {
+        "code" : 200，
+        # 服务器协商后的sdp
+        "sdp" : "*******"
+    }
+
+    api：/api/v1/rtc/play
+    参数：
+        appName：app名称
+        streamName：流名称
+        enableDtls：是否加密传输
+        sdp ：客户端的sdp
+
+协商推流sdp接口
+    接口示例：
+    curl http://127.0.0.1/api/v1/rtc/publish -d "appName=live&streamName=test&enableDtls=true&sdp=xxxxx"
+    {
+        "code" : 200，
+        # 服务器协商后的sdp
+        "sdp" : "*******"
+    }
+
+    api：/api/v1/rtc/publish
+    参数：
+        appName：app名称
+        streamName：流名称
+        enableDtls：是否加密传输
+        sdp ：客户端的sdp
