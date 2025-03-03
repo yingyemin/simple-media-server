@@ -8,6 +8,7 @@
 
 #include "Net/Buffer.h"
 #include "Frame.h"
+#include "UrlParser.h"
 
 using namespace std;
 
@@ -66,6 +67,11 @@ public:
 
     virtual void onFrame(const FrameBuffer::Ptr& frame) {_hasReady = true;}
 
+    void setUrlParser(const UrlParser& parser)
+    {
+        _parser = parser;
+    }
+
     static TrackInfo::Ptr createTrackInfo(const string& codecName);
     static void registerTrackInfo(const string& codecName, const funcCreateTrackInfo& func);
 
@@ -87,6 +93,7 @@ public:
     uint32_t _PicSizeInCtbsY = 0;
     string trackType_;
     string codec_;
+    UrlParser _parser;
 
     static unordered_map<string, funcCreateTrackInfo> _mapCreateTrack;
 };

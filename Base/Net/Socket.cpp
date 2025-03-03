@@ -21,7 +21,7 @@ static int setIpv6Only(int fd, bool flag)
     int opt = flag;
     int ret = setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&opt, sizeof opt);
     if (ret == -1) {
-        cout << "setsockopt IPV6_V6ONLY failed";
+        logWarn << "setsockopt IPV6_V6ONLY failed";
     }
     return ret;
 }
@@ -34,12 +34,12 @@ static int bindSockIpv6(int fd, const char *ifr_ip, uint16_t port) {
     addr.sin6_port = htons(port);
     if (1 != inet_pton(AF_INET6, ifr_ip, &(addr.sin6_addr))) {
         if (strcmp(ifr_ip, "0.0.0.0")) {
-            cout << "inet_pton to ipv6 address failed: " << ifr_ip;
+            logWarn << "inet_pton to ipv6 address failed: " << ifr_ip;
         }
         addr.sin6_addr = IN6ADDR_ANY_INIT;
     }
     if (::bind(fd, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
-        cout << "Bind socket failed: ";
+        logWarn << "Bind socket failed: " << strerror(errno);
         return -1;
     }
     return 0;
@@ -58,7 +58,7 @@ static int bindSockIpv4(int fd, const char *ifr_ip, uint16_t port) {
         addr.sin_addr.s_addr = INADDR_ANY;
     }
     if (::bind(fd, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
-        logError << "Bind socket failed: ";
+        logError << "Bind socket port(" << port << ") failed: " << strerror(errno);
         return -1;
     }
     return 0;
@@ -120,7 +120,7 @@ sockaddr_storage Socket::createSocket(const string& peerIp, int peerPort, int ty
         break;
 
     default:
-        cerr << "unsurpport socket protocol";
+        logWarn << "unsurpport socket protocol";
         break;
     }
 
@@ -144,7 +144,7 @@ int Socket::createSocket(int type, int family)
         break;
 
     default:
-        cerr << "unsurpport socket protocol";
+        logWarn << "unsurpport socket protocol";
         break;
     }
 
@@ -156,7 +156,7 @@ int Socket::createTcpSocket(int family)
     _type = SOCKET_TCP;
     _fd = (int) socket(family, SOCK_STREAM, IPPROTO_TCP);
     if (_fd < 0) {
-        logError << "Create tcp socket failed: ";
+        logError << "Create tcp socket failed: " << strerror(errno);
         return -1;
     }
 
@@ -178,7 +178,7 @@ int Socket::createUdpSocket(int family)
     _type = SOCKET_UDP;
     _fd = (int) socket(family, SOCK_DGRAM, IPPROTO_UDP);
     if (_fd < 0) {
-        logError << "Create udp socket failed: ";
+        logError << "Create udp socket failed: " << strerror(errno);
         return -1;
     }
 
@@ -202,13 +202,13 @@ int Socket::setReuseable()
     int opt = 1;
     int ret = setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, (char *) &opt, static_cast<socklen_t>(sizeof(opt)));
     if (ret == -1) {
-        cout << "setsockopt SO_REUSEADDR failed";
+        logWarn << "setsockopt SO_REUSEADDR failed: " << strerror(errno);
         return ret;
     }
     
     ret = setsockopt(_fd, SOL_SOCKET, SO_REUSEPORT, (char *) &opt, static_cast<socklen_t>(sizeof(opt)));
     if (ret == -1) {
-        cout << "setsockopt SO_REUSEPORT failed";
+        logWarn << "setsockopt SO_REUSEPORT failed: " << strerror(errno);
     }
     
     return ret;
@@ -223,7 +223,7 @@ int Socket::setIpv6Only(bool enable)
     int ret = setsockopt(_fd, IPPROTO_IPV6, IPV6_V6ONLY, reinterpret_cast<char*>(&enable), sizeof(enable));
     if (ret == -1)
     {
-        cout << "setsockopt IPV6_V6ONLY failed";
+        logWarn << "setsockopt IPV6_V6ONLY failed: " << strerror(errno);
     }
     
     return ret;
@@ -235,7 +235,7 @@ int Socket::setNoSigpipe()
     int set = 1;
     auto ret = setsockopt(_fd, SOL_SOCKET, SO_NOSIGPIPE, (char *) &set, sizeof(int));
     if (ret == -1) {
-        cout << "setsockopt SO_NOSIGPIPE failed";
+        logWarn << "setsockopt SO_NOSIGPIPE failed: " << strerror(errno);
     }
     return ret;
 #else
@@ -248,7 +248,7 @@ int Socket::setNoBlocked()
     int ul = 1;
     int ret = ioctl(_fd, FIONBIO, &ul); //设置为非阻塞模式
     if (ret == -1) {
-        cout << "ioctl FIONBIO failed";
+        logWarn << "ioctl FIONBIO failed: " << strerror(errno);
     }
 
     return ret;
@@ -259,7 +259,7 @@ int Socket::setNoDelay()
     int opt = 1;
     int ret = setsockopt(_fd, IPPROTO_TCP, TCP_NODELAY, (char *) &opt, static_cast<socklen_t>(sizeof(opt)));
     if (ret == -1) {
-        cout << "setsockopt TCP_NODELAY failed";
+        logWarn << "setsockopt TCP_NODELAY failed: " << strerror(errno);
     }
     return ret;
 }
@@ -271,7 +271,7 @@ int Socket::setSendBuf(int size)
     }
     int ret = setsockopt(_fd, SOL_SOCKET, SO_SNDBUF, (char *) &size, sizeof(size));
     if (ret == -1) {
-        cout << "setsockopt SO_SNDBUF failed";
+        logWarn << "setsockopt SO_SNDBUF failed: " << strerror(errno);
     }
     return ret;
 }
@@ -284,7 +284,7 @@ int Socket::setRecvBuf(int size)
     }
     int ret = setsockopt(_fd, SOL_SOCKET, SO_RCVBUF, (char *) &size, sizeof(size));
     if (ret == -1) {
-        cout << "setsockopt SO_RCVBUF failed";
+        logWarn << "setsockopt SO_RCVBUF failed: " << strerror(errno);
     }
     return ret;
 }
@@ -298,7 +298,7 @@ int Socket::setCloseWait(int second)
     m_sLinger.l_linger = second; //设置等待时间为x秒
     int ret = setsockopt(_fd, SOL_SOCKET, SO_LINGER, (char *) &m_sLinger, sizeof(linger));
     if (ret == -1) {
-        cout << "setsockopt SO_LINGER failed";
+        logWarn << "setsockopt SO_LINGER failed: " << strerror(errno);
     }
     return ret;
 }
@@ -308,7 +308,7 @@ int Socket::setCloExec()
     int on = 1;
     int flags = fcntl(_fd, F_GETFD);
     if (flags == -1) {
-        cout << "fcntl F_GETFD failed";
+        logWarn << "fcntl F_GETFD failed: " << strerror(errno);
         return -1;
     }
     if (on) {
@@ -319,7 +319,7 @@ int Socket::setCloExec()
     }
     int ret = fcntl(_fd, F_SETFD, flags);
     if (ret == -1) {
-        cout << "fcntl F_SETFD failed";
+        logWarn << "fcntl F_SETFD failed: " << strerror(errno);
         return -1;
     }
     return ret;
@@ -332,7 +332,7 @@ int Socket::setKeepAlive(int interval, int idle, int times)
     int opt = 1;
     int ret = setsockopt(_fd, SOL_SOCKET, SO_KEEPALIVE, (char *) &opt, static_cast<socklen_t>(sizeof(opt)));
     if (ret == -1) {
-        cout << "setsockopt SO_KEEPALIVE failed";
+        logWarn << "setsockopt SO_KEEPALIVE failed: " << strerror(errno);
     }
 #if !defined(_WIN32)
 #if !defined(SOL_TCP) && defined(IPPROTO_TCP)
@@ -345,15 +345,15 @@ int Socket::setKeepAlive(int interval, int idle, int times)
     if (on && interval > 0 && ret != -1) {
         ret = setsockopt(_fd, SOL_TCP, TCP_KEEPIDLE, (char *) &idle, static_cast<socklen_t>(sizeof(idle)));
         if (ret == -1) {
-            cout << "setsockopt TCP_KEEPIDLE failed";
+            logWarn << "setsockopt TCP_KEEPIDLE failed: "  << strerror(errno);
         }
         ret = setsockopt(_fd, SOL_TCP, TCP_KEEPINTVL, (char *) &interval, static_cast<socklen_t>(sizeof(interval)));
         if (ret == -1) {
-            cout << "setsockopt TCP_KEEPINTVL failed";
+            logWarn << "setsockopt TCP_KEEPINTVL failed: " << strerror(errno);
         }
         ret = setsockopt(_fd, SOL_TCP, TCP_KEEPCNT, (char *) &times, static_cast<socklen_t>(sizeof(times)));
         if (ret == -1) {
-            cout << "setsockopt TCP_KEEPCNT failed";
+            logWarn << "setsockopt TCP_KEEPCNT failed: " << strerror(errno);
         }
     }
 #endif
@@ -376,7 +376,7 @@ int Socket::bind(const uint16_t port, const char *localIp)
     // int family = AF_INET;
     if (bindSock(_fd, localIp, port, _family) == -1) {
         close();
-        logInfo << "bind socket failed, ip: " << localIp << ", port: " << port;
+        logInfo << "bind socket failed, ip: " << localIp << ", port: " << port << ", err: " << strerror(errno);
         return -1;
     }
 
@@ -387,7 +387,7 @@ int Socket::listen(int backlog)
 {
     //开始监听
     if (::listen(_fd, backlog) == -1) {
-        cout << "Listen socket failed: ";
+        logError << "Listen socket failed: " << strerror(errno);
         close();
         return -1;
     }
@@ -429,17 +429,17 @@ int Socket::connect(const string& peerIp, int port, int timeout)
         return 0;
     }
     
-    logInfo << "errno: " << errno;
+    logTrace << "fd: " << _fd << ", connect errno: " << errno;
     if (errno == 115) {
         addToEpoll();
         weak_ptr<Socket> wSelf = shared_from_this();
         _loop->addTimerTask(timeout * 1000, [wSelf](){
-            logInfo << "time task start";
+            // logInfo << "time task start";
             auto self = wSelf.lock();
             if (!self) {
                 return 0;
             }
-            logInfo << "time task connect: " << self->_isConnected;
+            logTrace << "fd: " << self->_fd << ", time task, connect status: " << self->_isConnected;
             if (self->_isConnected) {
                 return 0;
             }
@@ -536,9 +536,9 @@ int Socket::onRead(void* args)
         if (nread == -1) {
             if (errno != EAGAIN) {
                 if (_type == 1) {
-                    cout << errno;
+                    logDebug << errno;
                 } else {
-                    cout << "Recv err on udp socket[" << _fd << "]: " << strerror(errno);
+                    logWarn << "Recv err on udp socket[" << _fd << "]: " << strerror(errno);
                 }
             }
             return ret;

@@ -37,7 +37,7 @@ void SrtServer::start(const string& ip, int port, int count, int sockType)
         }
         
         // if (!listened) {
-            logInfo << "start listen =====================";
+            logTrace << "start listen =====================";
             if (socket->listen(1024) == -1) {
                 logInfo << "listen udp failed, port: " << port;
                 return ;
@@ -45,7 +45,7 @@ void SrtServer::start(const string& ip, int port, int count, int sockType)
             // listened = true;
         // }
 
-        logInfo << "socket fd: " << socket->getFd();
+        logDebug << "socket fd: " << socket->getFd();
         socket->addToEpoll();
         socket->setAcceptCb([socket, wSelf](){
             auto acceptFd = socket->accept();

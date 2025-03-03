@@ -24,12 +24,12 @@ JT1078Connection::JT1078Connection(const EventLoop::Ptr& loop, const Socket::Ptr
     ,_loop(loop)
     ,_socket(socket)
 {
-    logInfo << "JT1078Connection";
+    logTrace << "JT1078Connection: " << this;
 }
 
 JT1078Connection::~JT1078Connection()
 {
-    logInfo << "~JT1078Connection";
+    logTrace << "~JT1078Connection: " << this << ", path: " << _path;
     auto jtSrc = _source.lock();
     if (jtSrc) {
         jtSrc->release();
@@ -67,13 +67,13 @@ void JT1078Connection::init()
 
 void JT1078Connection::close()
 {
-    logInfo << "JT1078Connection::close()";
+    logTrace << "path: " << _path << "JT1078Connection::close()";
     TcpConnection::close();
 }
 
 void JT1078Connection::onManager()
 {
-    logInfo << "manager";
+    logTrace << "path: " << _path << ", on manager";
     static int timeout = Config::instance()->getAndListen([](const json& config){
         timeout = Config::instance()->get("JT1078", "Server", "timeout", "", "5000");
     }, "JT1078", "Server", "timeout", "", "5000");
@@ -202,14 +202,14 @@ void JT1078Connection::createSource(const JT1078RtpPacket::Ptr& buffer)
                     });
 
     if (!source) {
-        logWarn << "another stream is exist with the same uri";
+        logWarn << "another stream is exist with the same uri: " << _path;
         close();
         return ;
     }
-    logInfo << "create a JT1078MediaSource";
+    logInfo << "create a JT1078MediaSource: " << _path;
     auto jtSrc = dynamic_pointer_cast<JT1078MediaSource>(source);
     if (!jtSrc) {
-        logWarn << "source is not gb source";
+        logWarn << "source is not gb source: " << _path;
         return ;
     }
     jtSrc->setOrigin();
@@ -288,7 +288,7 @@ void JT1078Connection::startSendTalkData(const JT1078MediaSource::Ptr &jtSrc, co
     _talkSource = jtSrc;
 
     if (!_playReader) {
-        logInfo << "set _playReader";
+        logTrace << "path: " << _path << ", set _playReader";
         weak_ptr<JT1078Connection> wSelf = dynamic_pointer_cast<JT1078Connection>(shared_from_this());
         _playReader = jtSrc->getRing()->attach(_socket->getLoop(), true);
         _playReader->setGetInfoCB([wSelf]() {
@@ -310,7 +310,7 @@ void JT1078Connection::startSendTalkData(const JT1078MediaSource::Ptr &jtSrc, co
             // // strong_self->shutdown(SockException(Err_shutdown, "rtsp ring buffer detached"));
             self->close();
         });
-        logInfo << "setReadCB =================";
+        logTrace << "path: " << _path << ", setReadCB =================";
         _playReader->setReadCB([wSelf](const JT1078MediaSource::RingDataType &pack) {
             auto self = wSelf.lock();
             if (!self/* || pack->empty()*/) {
@@ -340,7 +340,7 @@ void JT1078Connection::startSendTalkData(const JT1078MediaSource::Ptr &jtSrc, co
 
 void JT1078Connection::sendRtpPacket(const JT1078MediaSource::RingDataType &pkt)
 {
-    logInfo << "JT1078Connection::sendRtpPacket";
+    logTrace << "path: " << _path << ", send packet to device";
     for (auto it = pkt->begin(); it != pkt->end(); ++it) {
         auto packet = it->get();
 
@@ -351,7 +351,7 @@ void JT1078Connection::sendRtpPacket(const JT1078MediaSource::RingDataType &pkt)
 
 bool JT1078Connection::addJt1078Info(const string& key, const JT1078Info& info)
 {
-    logInfo << "add info, key: " << key;
+    logDebug << "add info, key: " << key;
     lock_guard<mutex> lck(_lck);
     auto res = _mapJt1078Info.emplace(key, info);
 
@@ -360,7 +360,7 @@ bool JT1078Connection::addJt1078Info(const string& key, const JT1078Info& info)
 
 JT1078Info JT1078Connection::getJt1078Info(const string& key)
 {
-    logInfo << "get info, key: " << key;
+    logDebug << "get info, key: " << key;
     lock_guard<mutex> lck(_lck);
     JT1078Info info;
     if (_mapJt1078Info.find(key) == _mapJt1078Info.end()) {
@@ -372,14 +372,14 @@ JT1078Info JT1078Connection::getJt1078Info(const string& key)
 
 void JT1078Connection::delJt1078Info(const string& key)
 {
-    logInfo << "del info, key: " << key;
+    logDebug << "del info, key: " << key;
     lock_guard<mutex> lck(_lck);
     _mapJt1078Info.erase(key);
 }
 
 bool JT1078Connection::addTalkInfo(const string& key, const JT1078TalkInfo& info)
 {
-    logInfo << "add info, key: " << key;
+    logDebug << "add info, key: " << key;
     lock_guard<mutex> lck(_talkLck);
     auto res = _mapTalkInfo.emplace(key, info);
 
@@ -388,7 +388,7 @@ bool JT1078Connection::addTalkInfo(const string& key, const JT1078TalkInfo& info
 
 JT1078TalkInfo JT1078Connection::getTalkInfo(const string& key)
 {
-    logInfo << "get info, key: " << key;
+    logDebug << "get info, key: " << key;
     lock_guard<mutex> lck(_talkLck);
     JT1078TalkInfo info;
     if (_mapTalkInfo.find(key) == _mapTalkInfo.end()) {
@@ -400,7 +400,7 @@ JT1078TalkInfo JT1078Connection::getTalkInfo(const string& key)
 
 void JT1078Connection::delTalkInfo(const string& key)
 {
-    logInfo << "del info, key: " << key;
+    logDebug << "del info, key: " << key;
     lock_guard<mutex> lck(_talkLck);
     _mapTalkInfo.erase(key);
 }

@@ -54,11 +54,13 @@ void MediaHook::reportByHttp(const string& url, const string&method, const strin
     client->addHeader("Content-Type", "application/json;charset=UTF-8");
     client->setMethod(method);
     client->setContent(msg);
-    client->setOnHttpResponce([client, cb](const HttpParser &parser){
+    client->setOnHttpResponce([url, client, cb](const HttpParser &parser){
         // logInfo << "uri: " << parser._url;
         // logInfo << "status: " << parser._version;
         // logInfo << "method: " << parser._method;
         // logInfo << "_content: " << parser._content;
+
+        logInfo << "client: " << client << ", url: " << url << ", response: " << parser._content;
         if (parser._url != "200") {
             cb("http error", "");
         }
@@ -66,13 +68,13 @@ void MediaHook::reportByHttp(const string& url, const string&method, const strin
             json value = json::parse(parser._content);
             cb("", value);
         } catch (exception& ex) {
-            logInfo << "json parse failed: " << ex.what();
+            logInfo << url << ", json parse failed: " << ex.what();
             cb(ex.what(), nullptr);
         }
 
         const_cast<shared_ptr<HttpClientApi> &>(client).reset();
     });
-    logInfo << "connect to url: " << url;
+    logInfo << "connect to url: " << url << ", body: " << msg << ", client: " << client;
     if (client->sendHeader(url, timeout) != 0) {
         cb("connect to url: " + url + " failed", nullptr);
     }
@@ -133,8 +135,8 @@ void MediaHook::onPublish(const PublishInfo& info, const function<void(const Pub
             logInfo << "Hook url: " << url;
         }, "Hook", "Http", "onPublish");
 
-        reportByHttp(url, "POST", value.dump(), [cb](const string& err, const nlohmann::json& res){
-            logInfo << "on publish: " << url;
+        reportByHttp(url, "POST", value.dump(), [cb, info](const string& err, const nlohmann::json& res){
+            logTrace << "on publish: " << url;
             PublishResponse rsp;
             if (!err.empty()) {
                 rsp.authResult = false;
@@ -151,6 +153,8 @@ void MediaHook::onPublish(const PublishInfo& info, const function<void(const Pub
                 rsp.authResult = false;
                 rsp.err = "authResult is empty";
                 cb(rsp);
+
+                logInfo << "on publish failed, authResult is empty, path: " << info.uri;
 
                 return ;
             }
@@ -203,6 +207,8 @@ void MediaHook::onPlay(const PlayInfo& info, const function<void(const PlayRespo
                 rsp.authResult = false;
                 rsp.err = "authResult is empty";
                 cb(rsp);
+
+                logInfo << "on play failed, authResult is empty, path: " << info.uri;
 
                 return ;
             }

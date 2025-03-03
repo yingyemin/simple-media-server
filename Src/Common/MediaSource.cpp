@@ -32,7 +32,7 @@ MediaSource::MediaSource(const UrlParser& urlParser, const EventLoop::Ptr& loop)
 
 MediaSource::~MediaSource()
 {
-    logInfo << "~MediaSource";
+    logTrace << "~MediaSource" << _urlParser.path_;
     {
         lock_guard<mutex> lck(_mtxOnReadyFunc);
         for (auto onready : _mapOnReadyFunc) {
@@ -104,14 +104,14 @@ MediaSource::Ptr MediaSource::getOrCreate(const string& uri, const string& vhost
 
     lock_guard<recursive_mutex> lck(_mtxTotalSource);
     string key = uri + "_" + vhost;
-    logInfo << "create source, key: " << key;
+    logDebug << "create source, key: " << key;
     auto& src = _totalSource[key];
     if (src && src->getStatus() == SourceStatus::WAITING) {
         src->setStatus(SourceStatus::INIT);
         src->setLoop(EventLoop::getCurrentLoop());
     } else if (!src && create) {
         src = create();
-        logInfo << "srcStream: " << src.get();
+        logTrace << "create a source: " << src.get();
         src->setStatus(SourceStatus::INIT);
         // src->setLoop(EventLoop::getCurrentLoop());
     } else {
@@ -595,7 +595,7 @@ void MediaSource::release(const string &uri, const string& vhost)
 {
     lock_guard<recursive_mutex> lck(_mtxTotalSource);
     string key = uri + "_" + vhost;
-    logInfo << "delete source: " << key;
+    logTrace << "delete source: " << key;
     _totalSource.erase(key);
 }
 
@@ -619,7 +619,7 @@ void MediaSource::release()
     //     }, true, false);
     //     return ;
     // }
-    logInfo << "delete source, _origin: " << _origin;
+    logInfo << "delete source: " << _urlParser.path_ + "_" + _urlParser.vhost_ << ", _origin: " << _origin;
     if (_origin) {
         MediaSource::release(_urlParser.path_, _urlParser.vhost_);
         {
@@ -635,10 +635,10 @@ void MediaSource::release()
             // }
         }
         
-        logInfo << "delete source, _origin: " << _origin;
+        logDebug << "delete source, _origin: " << _origin;
         for (auto sink : _mapSink) {
             // sink.second.lock()->release();
-            logInfo << "del sink";
+            logTrace << "del sink";
             sink.second->release();
         }
         _mapSink.clear();
@@ -659,7 +659,7 @@ void MediaSource::release()
         //     source.second->delSink(self);
         // }
         for (auto& sink : _mapSink) {
-            logInfo << "del sink";
+            logTrace << "del sink";
             // sink.second.lock()->release();
             sink.second->release();
         }
@@ -678,7 +678,7 @@ void MediaSource::release()
 // 这几个函数都会切到源所在线程执行，所以不用加锁
 void MediaSource::addSink(const MediaSource::Ptr &src)
 {
-    logInfo << "MediaSource::addSink";
+    logTrace << "MediaSource::addSink";
     _mapSink.emplace(src.get(), src);
     _sinkSize = _mapSink.size();
 }
@@ -717,6 +717,7 @@ void MediaSource::addTrack(const shared_ptr<TrackInfo>& track)
     }
 
     _mapTrackInfo[track->index_] = track;
+    track->setUrlParser(_urlParser);
 
     lock_guard<mutex> lck(_trackInfoLck);
     _mapLockTrackInfo[track->index_] = track;
@@ -826,8 +827,8 @@ void MediaSource::onFrame(const FrameBuffer::Ptr& frame)
         }, nullptr);
     }
 
-    logInfo << "_audioReady: " << _audioReady;
-    logInfo << "_videoReady: " << _videoReady;
+    logDebug << "_audioReady: " << _audioReady;
+    logDebug << "_videoReady: " << _videoReady;
     if (_audioReady && _videoReady && !_hasReady) {
         onReady();
     }
@@ -853,7 +854,7 @@ void MediaSource::delOnDetach(void* key)
 
 void MediaSource::onReaderChanged(int size)
 {
-    logInfo << "onReaderChanged: " << size;
+    logDebug << "onReaderChanged: " << size << ", path: " << _urlParser.path_;
     if (size != 0) {
         return ;
     }
@@ -873,14 +874,14 @@ void MediaSource::onReaderChanged(int size)
         stopNonePlayerStream = Config::instance()->get("Util", "stopNonePlayerStream");
     }, "Util", "stopNonePlayerStream");
 
-    logInfo << "stopNonePlayerStream: " << stopNonePlayerStream;
+    logTrace << "stopNonePlayerStream: " << stopNonePlayerStream << ", path: " << _urlParser.path_;
 
     if (!_origin || stopNonePlayerStream) {
         static int nonePlayerWaitTime = Config::instance()->getAndListen([](const json& config){
             nonePlayerWaitTime = Config::instance()->get("Util", "nonePlayerWaitTime");
         }, "Util", "nonePlayerWaitTime");
 
-        logInfo << "nonePlayerWaitTime: " << nonePlayerWaitTime;
+        logTrace << "nonePlayerWaitTime: " << nonePlayerWaitTime << ", path: " << _urlParser.path_;
 
         weak_ptr<MediaSource> wSelf = shared_from_this();
         _loop->addTimerTask(nonePlayerWaitTime, [wSelf, size](){
@@ -888,26 +889,26 @@ void MediaSource::onReaderChanged(int size)
             if (!self) {
                 return 0;
             }
-            logInfo << "onReaderChanged task";
+            logTrace << "onReaderChanged task" << ", path: " << self->_urlParser.path_;
             if (size == 0 && self->_origin) {
                 lock_guard<recursive_mutex> lock(MediaSource::_mtxTotalSource);
-                logInfo << "onReaderChanged _mtxStreamSource";
+                logTrace << "onReaderChanged _mtxStreamSource";
                 if (self->_mapConnection.size() > 0 || self->_mapSink.size() > 0) {
                     return 0;
                 }
-                logInfo << "onReaderChanged relese";
+                logTrace << "onReaderChanged relese" << ", path: " << self->_urlParser.path_;
                 self->release();
 
             } else if (size == 0 && !self->_origin) {
                 auto src = MediaSource::get(self->_urlParser.path_, self->_urlParser.vhost_);
-                logInfo << "onReaderChanged get src";
+                logTrace << "onReaderChanged get src" << ", path: " << self->_urlParser.path_;
                 if (src) {
-                    logInfo << "onReaderChanged _mtxStreamSource";
+                    logTrace << "onReaderChanged _mtxStreamSource" << ", path: " << self->_urlParser.path_;
                     lock_guard<recursive_mutex> lck(src->_mtxStreamSource);
                     if (self->_mapConnection.size() > 0 || self->_mapSink.size() > 0) {
                         return 0;
                     }
-                    logInfo << "onReaderChanged relese";
+                    logTrace << "onReaderChanged relese" << ", path: " << self->_urlParser.path_;
                     for (auto source : self->_mapSource) {
                         source.second->delSink(self);
                     }
@@ -965,7 +966,7 @@ void MediaSource::onReady()
 
     {
         string key = _urlParser.path_ + "_" + _urlParser.vhost_;// + "_" + _urlParser.protocol_ + "_" + _urlParser.type_;
-        logInfo << "get a key: " << key;
+        logDebug << "start onready from player: " << key;
         lock_guard<mutex> lckRegister(_mtxRegister);
         auto iter = _mapRegisterEvent.find(key);
         if (iter != _mapRegisterEvent.end()) {

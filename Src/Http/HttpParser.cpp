@@ -26,7 +26,7 @@ void HttpParser::parse(const char *data, size_t len)
         return ;
     }
 
-    logInfo << "_remainData: " << _remainData.buffer();
+    logTrace << "_remainData: " << _remainData.buffer() << ", url: " << _url;
     if (remainSize > 0) {
         _remainData.append(data, len);
         data = _remainData.data();
@@ -34,15 +34,15 @@ void HttpParser::parse(const char *data, size_t len)
     }
 
     // logInfo << "data string: " << string(data, len);
-    logInfo << "_contentLen: " << _contentLen << ": " << this;
-    logInfo << "_stage: " << _stage;
+    logTrace << "_contentLen: " << _contentLen << ": " << this << ", url: " << _url;
+    logTrace << "_stage: " << _stage << ", url: " << _url;
     // logInfo << "buffer : " << string(data, len);
     // 说明上一次没有收全content
     if (_stage == 3) {
         if (_contentLen == -1 || len < _contentLen) {
             // 数据还是不够
             _contentLen -= len;
-            logInfo << "on http body";
+            logTrace << "on http body" << ", url: " << _url;
             onHttpBody(data, len);
             _remainData.clear();
             return ;
@@ -54,7 +54,7 @@ void HttpParser::parse(const char *data, size_t len)
             onHttpBody(data, tmpLen);
             data += tmpLen;
             len -= tmpLen;
-            logInfo << "on http body";
+            logTrace << "on http body" << ", url: " << _url;
             // onHttpRequest();
             _stage = 1;
 
@@ -85,7 +85,7 @@ void HttpParser::parse(const char *data, size_t len)
             break;
         }
         if (pos == data) {
-            logInfo << "pos == data, _contentLen: " << _contentLen;
+            logTrace << "pos == data, _contentLen: " << _contentLen << ", url: " << _url;
             data += 2;
             if (_contentLen > 0 || _contentLen == -1) {
                 onHttpRequest();
@@ -132,7 +132,7 @@ void HttpParser::parse(const char *data, size_t len)
 
             transform(key.begin(), key.end(), key.begin(), ::tolower);
             
-            logInfo << "value is: " << value;
+            logTrace << "value is: " << value << ", url: " << _url;
             auto res = trim(value, " ");
             _mapHeaders[key] = res;
             if (key == "content-length") {
@@ -165,23 +165,23 @@ void HttpParser::parse(const char *data, size_t len)
     }
 
     if (data < end) {
-        logInfo << "have remain data";
+        logTrace << "have remain data" << ", url: " << _url;
         _remainData.assign(data, end - data);
     } else {
-        logInfo << "don't have remain data";
+        logTrace << "don't have remain data" << ", url: " << _url;
         _remainData.clear();
     }
 }
 
 void HttpParser::setOnHttpRequest(const function<void()>& cb)
 {
-    logInfo << "setOnHttpRequest";
+    logTrace << "setOnHttpRequest";
     _onHttpRequest = cb;
 }
 
 void HttpParser::onHttpRequest()
 {
-    logInfo << "onHttpRequest";
+    logTrace << "onHttpRequest";
     if (_onHttpRequest) {
         _onHttpRequest();
     }
@@ -189,7 +189,7 @@ void HttpParser::onHttpRequest()
 
 void HttpParser::setOnHttpBody(const function<void(const char* data, int len)>& cb)
 {
-    logInfo << "setOnHttpBody";
+    logTrace << "setOnHttpBody";
     _onHttpBody = cb;
 }
 

@@ -40,7 +40,7 @@ TcpConnection::~TcpConnection()
 void TcpConnection::onRecv(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int addrLen)
 {
     if (_tlsCtx) {
-        logInfo << "read a packet with ssl";
+        // logInfo << "read a packet with ssl";
         _tlsCtx->onRead(buffer);
     } else {
         onRead(buffer, addr, addrLen);
@@ -59,7 +59,7 @@ void TcpConnection::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* add
     //     }
     //     // onRecv(_readBuffer, addr, len);
     // }
-    logInfo << "read a packet";
+    logTrace << "read a packet";
 }
 
 void TcpConnection::onError()
@@ -70,12 +70,12 @@ void TcpConnection::onError()
 
 void TcpConnection::onManager()
 {
-    logInfo << "manager";
+    logTrace << "manager";
 }
 
 void TcpConnection::close() 
 {
-    logInfo << "close";
+    logTrace << "close";
     if (_closeCb) {
         auto self = shared_from_this();
         if (_loop->isCurrent()) {

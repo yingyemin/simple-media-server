@@ -28,7 +28,7 @@ static int setIpv6Only(int fd, bool flag)
     int opt = flag;
     int ret = setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&opt, sizeof opt);
     if (ret == -1) {
-        cout << "setsockopt IPV6_V6ONLY failed";
+        logWarn << "setsockopt IPV6_V6ONLY failed";
     }
     return ret;
 }
@@ -41,12 +41,12 @@ static int bindSockIpv6(int fd, const char *ifr_ip, uint16_t port) {
     addr.sin6_port = htons(port);
     if (1 != inet_pton(AF_INET6, ifr_ip, &(addr.sin6_addr))) {
         if (strcmp(ifr_ip, "0.0.0.0")) {
-            cout << "inet_pton to ipv6 address failed: " << ifr_ip;
+            logWarn << "inet_pton to ipv6 address failed: " << ifr_ip;
         }
         addr.sin6_addr = IN6ADDR_ANY_INIT;
     }
     if (srt_bind(fd, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
-        cout << "Bind socket failed: ";
+        logWarn << "Bind socket failed: ";
         return -1;
     }
     return 0;
@@ -96,26 +96,26 @@ static int srtErrno()
 SrtSocket::SrtSocket(const SrtEventLoop::Ptr& loop)
     :_loop(loop)
 {
-    logInfo << "SrtSocket";
+    logTrace << "SrtSocket";
 }
 
 SrtSocket::SrtSocket(const SrtEventLoop::Ptr& loop, bool isListen)
     :_loop(loop)
     ,_isListen(isListen)
 {
-    logInfo << "SrtSocket";
+    logTrace << "SrtSocket";
 }
 
 SrtSocket::SrtSocket(const SrtEventLoop::Ptr& loop, int fd)
     :_loop(loop)
     ,_fd(fd)
 {
-    logInfo << "SrtSocket";
+    logTrace << "SrtSocket";
 }
 
 SrtSocket::~SrtSocket()
 {
-    logInfo << "~SrtSocket, fd: " << _fd;
+    logTrace << "~SrtSocket, fd: " << _fd;
     close();
 }
 

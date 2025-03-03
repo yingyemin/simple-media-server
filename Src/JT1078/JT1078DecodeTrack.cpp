@@ -103,7 +103,7 @@ void JT1078DecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
     // fwrite(frame->data(), 1, frame->size(), fp);
     // fclose(fp);
 
-    // logInfo << "JT1078DecodeTrack::onFrame pts: " << frame->pts() << " size: " << frame->size();
+    logTrace << "stream path: " << _trackInfo->_parser.path_ << ", pts: " << frame->pts() << " size: " << frame->size();
     // if (!_ready && _trackInfo->trackType_ == "video") {
     //     if (_trackInfo->codec_ == "h264") {
     //         auto h264Frame = dynamic_pointer_cast<H264Frame>(frame);
@@ -188,12 +188,14 @@ void JT1078DecodeTrack::decodeRtp(const JT1078RtpPacket::Ptr& rtp)
         return ;
     }
 
-    // logInfo << "rtp->getSeq(): " << rtp->getSeq() << ", rtp->getTimestamp(): " << rtp->getTimestamp() << ", codec : " << _trackInfo->codec_;
-
     auto subMark = rtp->getSubMark();
     // static int ii = 0;
     // string name = "testjt1078" + to_string(ii) + ".h264";
     // FILE* fp = fopen(name.c_str(), "ab+");
+
+    logTrace << "stream path: " << _trackInfo->_parser.path_ << ", rtp->getSeq(): " << rtp->getSeq() << ", rtp->getTimestamp(): " << rtp->getTimestamp() 
+            << ", codec : " << _trackInfo->codec_ << ", rtp subMark: " << (int)subMark;
+    
     switch (subMark) {
     case JT1078_Atomic:
         _frame->_buffer.assign(rtp->getPayload(), rtp->getPayloadSize());

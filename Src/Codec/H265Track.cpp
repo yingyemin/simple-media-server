@@ -604,7 +604,7 @@ void H265Track::onFrame(const FrameBuffer::Ptr& frame)
 	if (frame->getNalType() == H265_VPS) {
         setVps(frame);
     } else if (frame->getNalType() == H265_SPS) {
-        setPps(frame);
+        setSps(frame);
     } else if (frame->getNalType() == H265_PPS) {
         setPps(frame);
     }

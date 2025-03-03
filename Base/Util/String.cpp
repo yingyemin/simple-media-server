@@ -210,8 +210,8 @@ string findSubStr(const string& buf, const string& start, const string& end, int
     if (msg_start == string::npos) {
         return "";
     }
-    logInfo << "msg_start: " << msg_start;
-    logInfo << "len: " << len;
+    // logInfo << "msg_start: " << msg_start;
+    // logInfo << "len: " << len;
     auto bufstart = buf.substr(msg_start + len);
     if (end != "") {
         msg_end = bufstart.find(end);

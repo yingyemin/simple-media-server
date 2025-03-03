@@ -179,7 +179,7 @@ void EventLoop::addTimerTask(uint64_t ms, const TimerTask::timerHander &handler,
         return ;
     }
     if (isCurrent()) {
-        logInfo << "add timer";
+        logTrace << "add timer";
         auto task = _timer->addTimer(ms, handler);
         if (cb) {
             cb(true, task);

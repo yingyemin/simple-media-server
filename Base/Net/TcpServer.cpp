@@ -73,7 +73,7 @@ void TcpServer::accept(int event, void* args)
 
         if (connFd == -1) {
             if (errno == EINTR) {
-                logWarn << "accept errno=EINTR";
+                logWarn << "port: " << _port  << ", accept errno=EINTR";
                 continue;
             //建立链接过多，资源不够
             } else if (errno == EMFILE) {
@@ -85,14 +85,14 @@ void TcpServer::accept(int event, void* args)
                     }
                     return 0;
                 }, nullptr);
-                logWarn << "accept errno=EMFILE";
+                logWarn << "port: " << _port  << ", accept errno=EMFILE";
                 break ;
             // 对方传输完毕, 为啥此处直接break?
             } else if (errno == EAGAIN) {
-                logWarn << "accept errno=EAGAIN";
+                logDebug << "port: " << _port  << ", accept errno=EAGAIN";
                 break;
             } else {
-                logWarn << "accept error";
+                logWarn << "port: " << _port << ", accept error";
                 break;
             }
         } else {
@@ -125,7 +125,7 @@ void TcpServer::accept(int event, void* args)
                 if (!server) {
                     return ;
                 }
-                logTrace << "close: " << session->getSocket()->getFd();
+                logTrace << "port: " << server->_port << ", close: " << session->getSocket()->getFd();
                 server->_mapSession.erase(session->getSocket()->getFd());
                 server->_curConns = server->_mapSession.size();
             });
@@ -151,7 +151,7 @@ void TcpServer::accept(int event, void* args)
             // logInfo << "add session";
             _mapSession.emplace(socket->getFd(), session);
             _curConns = _mapSession.size();
-            logTrace << "add session: " << _mapSession.size();
+            logTrace << "port: " << _port  << ",add session: " << _mapSession.size();
         }
 
         if (event & (EPOLLHUP | EPOLLERR)) {
@@ -180,7 +180,7 @@ void TcpServer::onManager()
             // onManger中不要执行close函数，会破坏map迭代器
             session.second->onManager();
         } catch (exception &ex) {
-            cout << ex.what();
+            logWarn << "port: " << _port << ", error: " << ex.what();
         }
     }
 }

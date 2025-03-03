@@ -153,7 +153,7 @@ int TcpClient::connect(const string& peerIp, int peerPort, int timeout)
 void TcpClient::onRecv(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)
 {
     if (_tlsCtx) {
-        logInfo << "read a packet with ssl";
+        // logTrace << "read a packet with ssl";
         _tlsCtx->onRead(buffer);
     } else {
         onRead(buffer, addr, len);
@@ -185,7 +185,7 @@ void TcpClient::close()
         _socket->close();
         _socket = nullptr;
     }
-    logInfo << "TcpClient::close";
+    logTrace << "TcpClient::close";
 }
 
 ssize_t TcpClient::send(Buffer::Ptr pkt)

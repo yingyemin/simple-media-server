@@ -18,7 +18,7 @@ JT1078MediaSource::JT1078MediaSource(const UrlParser& urlParser, const EventLoop
 
 JT1078MediaSource::~JT1078MediaSource()
 {
-    logInfo << "~JT1078MediaSource";
+    logTrace << "~JT1078MediaSource, " << _urlParser.path_;
 }
 
 void JT1078MediaSource::addTrack(const JT1078DecodeTrack::Ptr& track)
@@ -38,7 +38,7 @@ void JT1078MediaSource::addTrack(const JT1078DecodeTrack::Ptr& track)
                 strongSelf->onReaderChanged(size);
             }, true, true); 
         };
-        logInfo << "create _ring";
+        logTrace << "create _ring: " << _urlParser.path_;
         _ring = std::make_shared<RingType>(_ringSize, std::move(lam));
     }
     {
@@ -208,7 +208,7 @@ void JT1078MediaSource::addTrack(const shared_ptr<TrackInfo>& track)
 
 void JT1078MediaSource::addDecodeTrack(const shared_ptr<TrackInfo>& track)
 {
-    logInfo << "addDecodeTrack ========= ";
+    logTrace << "add track: " << track->trackType_ << "path: " << _urlParser.path_;
     MediaSource::addTrack(track);
 
     for (auto& wSink : _mapSink) {

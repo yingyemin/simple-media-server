@@ -34,7 +34,7 @@ void UrlParser::parse(string url)
     }
     // http
     protocol_ = url.substr(0, pos);
-    logInfo << "protocol_ " << protocol_;
+    logTrace << "protocol_ " << protocol_;
 
     auto nextPos = url.find_first_of("?");
     if (nextPos != string::npos) {
@@ -43,7 +43,7 @@ void UrlParser::parse(string url)
         // admin:123456@127.0.0.1/api/v1
         url = url.substr(pos + 3, nextPos - pos - 3);
         vecParam_ = split(param_, "&", "=");
-        logInfo << param_  << " " << url;
+        logTrace << "param: " << param_  << " ,url: " << url;
     } else {
         // admin:123456@127.0.0.1/api/v1
         url = url.substr(pos + 3);
@@ -62,7 +62,7 @@ void UrlParser::parse(string url)
             password_ = vecUser[1];
         }
     }
-    logInfo << host;
+    logTrace << "host: " << host;
     if (host[0] == '[') {
         host_ = findSubStr(host, "[", "]");
         string port = findSubStr(host, "]:", "");
@@ -85,8 +85,8 @@ void UrlParser::parse(string url)
             type_ = param.second;
         }
     }
-    logInfo << "vhost_ " << vhost_;
-    logInfo << "type_ " << type_;
+    logTrace << "vhost_: " << vhost_;
+    logTrace << "type_: " << type_;
 }
 
 std::string UrlParser::urlEncode(const std::string& url, bool convert_space_to_plus) // encode 避免ERL中资源路径与查询字符串中的特殊字符与HTTP请求中的特殊字符产生歧义

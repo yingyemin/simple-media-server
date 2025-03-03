@@ -544,7 +544,7 @@ DataQue<T>::DataQue(size_t max_size, onReaderChanged cb, size_t max_gop_size)
 template <typename T>
 DataQue<T>::~DataQue() 
 {
-    logInfo << "DataQue<T>::~DataQue() ";
+    logTrace << "DataQue<T>::~DataQue() ";
 }
 
 template <typename T>
@@ -723,7 +723,7 @@ void DataQue<T>::onSizeChanged(const EventLoop::Ptr &loop, int size, bool add_fl
     } else {
         --_total_count;
     }
-    logInfo << "_total_count: " << _total_count << this;
+    logTrace<< "_total_count: " << _total_count << this;
     _on_reader_changed(_total_count);
 }
 

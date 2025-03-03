@@ -77,7 +77,7 @@ Variant Config::get(json& value)
         string str = value;
         return str;
     } else {
-        logInfo << "get a value: " << value;
+        logDebug << "get a value: " << value;
         float i = value;
         return i;
     }
@@ -85,6 +85,7 @@ Variant Config::get(json& value)
 
 Variant Config::get(const string& key1, const string& key2, const string& key3, const string& key4, const string& value)
 {
+    logDebug << "get key1 : " << key1 << ", key2: " << key2 << ", key3: " << key3 << ", key4: " << key4;
     if (!key4.empty()) {
         if (!_config.contains(key1) || !_config[key1].contains(key2) || 
             !_config[key1][key2].contains(key3) || !_config[key1][key2][key3].contains(key4))

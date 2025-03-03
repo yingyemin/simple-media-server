@@ -21,7 +21,7 @@ HttpClient::~HttpClient()
 int HttpClient::start(const string& localIp, int localPort, const string& peerIp, int peerPort, int timeout)
 {
     weak_ptr<HttpClient> wSelf = static_pointer_cast<HttpClient>(shared_from_this());
-    logInfo << this;
+    // logTrace << this;
     _parser.setOnHttpRequest([wSelf](){
         // logInfo << "HttpClient setOnHttpRequest";
         auto self = wSelf.lock();
@@ -56,7 +56,7 @@ int HttpClient::start(const string& localIp, int localPort, const string& peerIp
 
 int HttpClient::sendHeader(const string& url, int timeout)
 {
-    logInfo << "url: " << url;
+    logTrace << "url: " << url;
     _urlParser.parse(url);
 
     if (_urlParser.port_ == 0) {
@@ -74,7 +74,7 @@ int HttpClient::sendHeader(const string& url, int timeout)
 
 int HttpClient::sendHeader(const string& localIp, int localPort, const string& url, int timeout)
 {
-    logInfo << "url: " << url;
+    logTrace << "url: " << url;
     _urlParser.parse(url);
 
     if (_urlParser.port_ == 0) {
