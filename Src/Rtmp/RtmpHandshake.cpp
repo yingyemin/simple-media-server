@@ -53,7 +53,7 @@ int RtmpHandshake::parse(const StreamBuffer::Ptr& buffer)
 		}
 		else if (_state == HANDSHAKE_C0C1)
 		{
-			logInfo << "get a c0c1: " << buf_size;
+			logDebug << "get a c0c1: " << buf_size;
 			if (buf_size < 1537) { //c0c1
 				break;
 			}
@@ -82,7 +82,7 @@ int RtmpHandshake::parse(const StreamBuffer::Ptr& buffer)
 		}
 		else if (_state == HANDSHAKE_C2)
 		{
-			logInfo << "get a c2: " << buf_size;
+			logDebug << "get a c2: " << buf_size;
 			if (buf_size < 1536) { //c2
 				break;
 			}

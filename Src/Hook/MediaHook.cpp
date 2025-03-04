@@ -193,7 +193,7 @@ void MediaHook::onPlay(const PlayInfo& info, const function<void(const PlayRespo
             logInfo << "Hook url: " << url;
         }, "Hook", "Http", "onPlay");
 
-        reportByHttp(url, "POST", value.dump(), [cb](const string& err, const nlohmann::json& res){
+        reportByHttp(url, "POST", value.dump(), [cb, info](const string& err, const nlohmann::json& res){
             PlayResponse rsp;
             if (!err.empty()) {
                 rsp.authResult = false;

@@ -15,7 +15,7 @@ int AmfDecoder::decode(const char *data, int size, int n)
 		char type = data[bytes_used];
 		bytes_used += 1;
 
-		logInfo << "type: " << (int)type;
+		logTrace << "type: " << (int)type;
 
 		switch (type)
 		{

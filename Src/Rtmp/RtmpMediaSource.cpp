@@ -41,7 +41,7 @@ RtmpMediaSource::RtmpMediaSource(const UrlParser& urlParser, const EventLoop::Pt
 
 RtmpMediaSource::~RtmpMediaSource()
 {
-    logInfo << "~RtmpMediaSource";
+    logDebug << "~RtmpMediaSource: " << _urlParser.path_;
 }
 
 void RtmpMediaSource::addTrack(const RtmpDecodeTrack::Ptr& track)
@@ -65,7 +65,7 @@ void RtmpMediaSource::addTrack(const RtmpDecodeTrack::Ptr& track)
                 strongSelf->onReaderChanged(size);
             }, true, true); 
         };
-        logInfo << "create _ring";
+        logTrace << "create _ring: " << _urlParser.path_;
         _ring = std::make_shared<RingType>(_ringSize, std::move(lam));
     }
     {
@@ -175,7 +175,7 @@ void RtmpMediaSource::onReady()
                 strongSelf->onReaderChanged(size);
             }, true, true); 
         };
-        logInfo << "create _ring";
+        logTrace << "create _ring, " << _urlParser.path_;
         _ring = std::make_shared<RingType>(_ringSize, std::move(lam));
     }
     MediaSource::onReady();
@@ -200,7 +200,7 @@ void RtmpMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
         _metaData["audiocodecid"] = AmfObject(getCodecId(track->codec_));
     }
     
-    logInfo << "index: " << track->index_ << ", codec: " << track->codec_ ;
+    logDebug << "index: " << track->index_ << ", codec: " << track->codec_ << ", path: " << _urlParser.path_;
     std::weak_ptr<RtmpMediaSource> weakSelf = std::static_pointer_cast<RtmpMediaSource>(shared_from_this());
     if (!_ring) {
         auto lam = [weakSelf](int size) {
@@ -216,15 +216,15 @@ void RtmpMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
                 strongSelf->onReaderChanged(size);
             }, true, true); 
         };
-        logInfo << "create _ring";
+        logTrace << "create _ring";
         _ring = std::make_shared<RingType>(_ringSize, std::move(lam));
     }
     auto rtmpTrack = make_shared<RtmpEncodeTrack>(track);
     {
         lock_guard<mutex> lck(_mtxTrack);
-        logInfo << "add track, index: " << track->index_;
+        // logInfo << "add track, index: " << track->index_;
         int trackType = track->trackType_ == "video" ? VideoTrackType : AudioTrackType;
-        logInfo << "add track, type: " << trackType;
+        // logInfo << "add track, type: " << trackType;
         _mapRtmpEncodeTrack.emplace(trackType, rtmpTrack);
     }
     rtmpTrack->setEnhanced(_enhanced);
@@ -287,7 +287,7 @@ void RtmpMediaSource::addSink(const MediaSource::Ptr &src)
         return ;
     }
 
-    logInfo << "RtmpMediaSource::addSink";
+    logTrace << "RtmpMediaSource::addSink, " << _urlParser.path_;
     MediaSource::addSink(src);
     for (auto& trackIt : _mapRtmpDecodeTrack) {
         src->addTrack(trackIt.second->getTrackInfo());
@@ -329,7 +329,7 @@ void RtmpMediaSource::delSink(const MediaSource::Ptr &src)
         return ;
     }
 
-    logInfo << "RtmpMediaSource::delSink";
+    logTrace << "RtmpMediaSource::delSink, " << _urlParser.path_;
     if (!_loop->isCurrent()) {
         weak_ptr<RtmpMediaSource> wSlef = static_pointer_cast<RtmpMediaSource>(shared_from_this());
         _loop->async([wSlef, src](){

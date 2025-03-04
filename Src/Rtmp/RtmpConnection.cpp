@@ -21,12 +21,12 @@ RtmpConnection::RtmpConnection(const EventLoop::Ptr& loop, const Socket::Ptr& so
     ,_loop(loop)
     ,_socket(socket)
 {
-    logInfo << "RtmpConnection";
+    logInfo << "RtmpConnection: " << this;
 }
 
 RtmpConnection::~RtmpConnection()
 {
-    logInfo << "~RtmpConnection";
+    logInfo << "~RtmpConnection: " << this << ", path: " << _urlParser.path_;
     auto rtmpSrc = _source.lock();
     if (_isPublish && rtmpSrc) {
         rtmpSrc->delConnection(this);
@@ -84,7 +84,7 @@ void RtmpConnection::close()
 
 void RtmpConnection::onManager()
 {
-    logInfo << "manager";
+    logTrace << "manager, path: " << _urlParser.path_;
 }
 
 void RtmpConnection::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)
@@ -96,7 +96,7 @@ void RtmpConnection::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* ad
         _chunk.parse(buffer);
         // logInfo << "parser chunk end";
     } else {
-        logInfo << "parser handshake";
+        logTrace << "parser handshake";
         _handshake->parse(buffer);
     }
 }
@@ -120,7 +120,7 @@ void RtmpConnection::onRtmpChunk(RtmpMessage msg)
     }
 
     bool ret = true;  
-    // logInfo << "get rtmp msg: " << (int)msg.type_id;
+    logTrace << "get rtmp msg: " << (int)msg.type_id;
     switch(msg.type_id)
     {        
         case RTMP_VIDEO:
@@ -130,15 +130,15 @@ void RtmpConnection::onRtmpChunk(RtmpMessage msg)
             ret = handleAudio(msg);
             break;
         case RTMP_INVOKE:
-            logInfo << "handleInvoke";
+            logTrace << "handleInvoke";
             ret = handleInvoke(msg);
             break;
         case RTMP_NOTIFY:
-            logInfo << "handleNotify";
+            logTrace << "handleNotify";
             ret = handleNotify(msg);
             break;
         case RTMP_FLEX_MESSAGE:
-            logInfo << "unsupported rtmp flex message";
+            logTrace << "unsupported rtmp flex message";
 			ret = false;
             break;            
         case RTMP_SET_CHUNK_SIZE:           
@@ -147,7 +147,7 @@ void RtmpConnection::onRtmpChunk(RtmpMessage msg)
 		case RTMP_BANDWIDTH_SIZE:
 			break;
         case RTMP_FLASH_VIDEO:
-            logInfo << "unsupported rtmp flash video";
+            logTrace << "unsupported rtmp flash video";
 			ret = false;
             break;    
         case RTMP_ACK:
@@ -181,9 +181,9 @@ bool RtmpConnection::handleInvoke(RtmpMessage& rtmp_msg)
 
     std::string method = _amfDecoder.getString();
 	//LOG_INFO("[Method] %s\n", method.c_str());
-    logInfo << "method: " << method;
-    logInfo << "rtmp_msg.stream_id: " << rtmp_msg.stream_id;
-    logInfo << "_streamId: " << _streamId;
+    logDebug << "method: " << method;
+    logTrace << "rtmp_msg.stream_id: " << rtmp_msg.stream_id;
+    logTrace << "_streamId: " << _streamId;
     if(rtmp_msg.stream_id == 0) {
         bytes_used += _amfDecoder.decode(rtmp_msg.payload->data()+bytes_used, rtmp_msg.length-bytes_used);
         if(method == "connect") {            
@@ -282,7 +282,7 @@ bool RtmpConnection::handleNotify(RtmpMessage& rtmp_msg)
         return false;
     }
 
-    logInfo << "_amfDecoder.getString(): " << _amfDecoder.getString();
+    logTrace << "_amfDecoder.getString(): " << _amfDecoder.getString();
     if(_amfDecoder.getString() == "@setDataFrame")
     {
         _amfDecoder.reset();
@@ -291,7 +291,7 @@ bool RtmpConnection::handleNotify(RtmpMessage& rtmp_msg)
             return false;
         }
 
-        logInfo << "_amfDecoder.getString(): " << _amfDecoder.getString();
+        logTrace << "_amfDecoder.getString(): " << _amfDecoder.getString();
         if(_amfDecoder.getString() == "onMetaData") {
             _amfDecoder.decode((const char *)rtmp_msg.payload->data()+bytes_used, rtmp_msg.length-bytes_used);
             _metaData = _amfDecoder.getObjects();
