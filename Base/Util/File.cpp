@@ -320,7 +320,7 @@ StreamBuffer::Ptr File::read(int size)
     buffer->setCapacity(size + 1);
 
     int readBytes = fread(buffer->data(), 1, size, _fp);
-    logInfo << "read size: " << readBytes;
+    logTrace << "read size: " << readBytes;
     if (readBytes == 0) {
         return nullptr;
     }

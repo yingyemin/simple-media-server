@@ -179,10 +179,10 @@ void HttpConnection::onHttpRequest()
                         logTrace << "key: " << iter.first << ", value: " << iter.second;
                         self->_parser._body[iter.first] = iter.second;
                     }
-                } else {
-                    for (auto& iter : self->_urlParser.vecParam_) {
-                        self->_parser._body[iter.first] = iter.second;
-                    }
+                }
+
+                for (auto& iter : self->_urlParser.vecParam_) {
+                    self->_parser._body[iter.first] = iter.second;
                 }
 
                 HttpApi::route(self->_parser, self->_urlParser, [wSelf](HttpResponse& rsp){
@@ -359,13 +359,13 @@ void HttpConnection::sendFile() // 将要素按照HttpResponse协议进行组织
 
     weak_ptr<HttpConnection> wSelf = dynamic_pointer_cast<HttpConnection>(shared_from_this());
     _socket->setOnGetBuffer([wSelf](){
-        logInfo << "setOnGetBuffer";
+        logTrace << "setOnGetBuffer";
         auto self = wSelf.lock();
         if (!self) {
             return false;
         }
 
-        logInfo << "read file";
+        logTrace << "read file";
         auto buffer = self->_httpFile->read();
         if (!buffer) {
             self->_socket->setOnGetBuffer(nullptr);
@@ -380,7 +380,7 @@ void HttpConnection::sendFile() // 将要素按照HttpResponse协议进行组织
     // 发送Header
     auto buffer = StreamBuffer::create();
     buffer->assign(rsp_str.str().c_str(),rsp_str.str().size());
-    logInfo << "send rsp: " << rsp_str.str();
+    logTrace << "send rsp: " << rsp_str.str();
     send(buffer);
 
     _parser.clear();

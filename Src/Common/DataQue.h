@@ -237,7 +237,7 @@ DataQueReader<T>::DataQueReader(std::shared_ptr<DataQueStorage<T>> storage)
 template <typename T>
 DataQueReader<T>::~DataQueReader()
 {
-    logInfo << "~_DataQueReader";
+    logTrace << "~_DataQueReader";
     onDetach();
 }
 
@@ -416,7 +416,7 @@ void DataQueStorage<T>::popFrontGop()
 template <typename T>
 DataQueReaderDispatcher<T>::~DataQueReaderDispatcher() 
 {
-    logInfo << "DataQueReaderDispatcher<T>::~DataQueReaderDispatcher() ";
+    logTrace << "DataQueReaderDispatcher<T>::~DataQueReaderDispatcher() ";
     decltype(_reader_map) reader_map;
     reader_map.swap(_reader_map);
     for (auto &pr : reader_map) {

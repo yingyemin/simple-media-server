@@ -14,13 +14,13 @@ FlvMuxerWithRtmp::FlvMuxerWithRtmp(const UrlParser& urlParser, const EventLoop::
 	:_loop(loop)
 	,_urlParser(urlParser)
 {
-	logInfo << "FlvMuxerWithRtmp";
+	logDebug << "FlvMuxerWithRtmp, path: " << _urlParser.path_;
 	_urlParser.protocol_ = PROTOCOL_RTMP;
 }
 
 FlvMuxerWithRtmp::~FlvMuxerWithRtmp()
 {
-	logInfo << "~FlvMuxerWithRtmp";
+	logDebug << "~FlvMuxerWithRtmp, path: " << _urlParser.path_;
 	auto rtmpSrc = _source.lock();
 	if (rtmpSrc) {
 		rtmpSrc->delConnection(this);
@@ -59,18 +59,18 @@ void FlvMuxerWithRtmp::onPlay()
 	// 	}
 	// 	self->onError("source detach");
 	// });
-	logInfo << "Resetting and playing stream";
+	// logInfo << "Resetting and playing stream";
 
 	sendFlvHeader();
 
 	
 	if (rtmpSrc->_avcHeader) {
-		logInfo << "send a avc header";
+		logTrace << "send a avc header, path: " << _urlParser.path_;
 		sendFlvTag(RTMP_VIDEO, 0, rtmpSrc->_avcHeader, rtmpSrc->_avcHeaderSize);
 	}
 
 	if (rtmpSrc->_aacHeader) {
-		logInfo << "send a aac header";
+		logTrace << "send a aac header, path: " << _urlParser.path_;
 		sendFlvTag(RTMP_AUDIO, 0, rtmpSrc->_aacHeader, rtmpSrc->_aacHeaderSize);
 	}
 
@@ -81,13 +81,13 @@ void FlvMuxerWithRtmp::onPlay()
 
     if (enbaleAddMute && tracks.size() == 1 && tracks.begin()->second->trackType_ == "video") {
         _addMute = true;
-        logInfo << "send a aac header";
+        logDebug << "send a aac header, path: " << _urlParser.path_;
 		auto payload = AacTrack::getMuteConfig();
 		sendFlvTag(RTMP_AUDIO, 0, payload, payload->size());
     }
 
 	if (!_playReader) {
-		logInfo << "set _playReader";
+		logDebug << "set _playReader, path: " << _urlParser.path_;
 		_playReader = rtmpSrc->getRing()->attach(EventLoop::getCurrentLoop(), true);
 		_playReader->setGetInfoCB([wSelf]() {
 			auto self = wSelf.lock();
@@ -108,7 +108,7 @@ void FlvMuxerWithRtmp::onPlay()
 			// strong_self->shutdown(SockException(Err_shutdown, "rtsp ring buffer detached"));
 			strong_self->onError("ring buffer detach");
 		});
-		logInfo << "setReadCB =================";
+		// logInfo << "setReadCB =================";
 		_playReader->setReadCB([wSelf](const RtmpMediaSource::RingDataType &pack) {
 			auto self = wSelf.lock();
 			if (!self/* || pack->empty()*/) {
@@ -161,7 +161,7 @@ void FlvMuxerWithRtmp::start()
 	_urlParser.path_ = trimBack(_urlParser.path_, ".flv");
     MediaSource::getOrCreateAsync(_urlParser.path_, _urlParser.vhost_, _urlParser.protocol_, _urlParser.type_, 
     [wSelf](const MediaSource::Ptr &src){
-        logInfo << "get a src";
+        // logInfo << "get a src";
         auto self = wSelf.lock();
         if (!self) {
             return ;
@@ -230,8 +230,8 @@ bool FlvMuxerWithRtmp::sendMediaData(uint8_t type, uint64_t timestamp, const Str
 				codec_id = payload->data()[0] & 0x0f;
 			}
 
-			logInfo << "frame_type : " << (int)frame_type << ", codec_id: " << (int)codec_id
-					<< ", timestamp: " << timestamp;
+			logTrace << "frame_type : " << (int)frame_type << ", codec_id: " << (int)codec_id
+					<< ", timestamp: " << timestamp << ", path: " << _urlParser.path_;
 
 			if (frame_type == 1/* && (codec_id == RTMP_CODEC_ID_H264 || codec_id == RTMP_CODEC_ID_H265)*/) {
 				_hasKeyFrame = true;

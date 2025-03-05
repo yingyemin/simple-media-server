@@ -119,7 +119,7 @@ void RtspParser::parse(const char *data, size_t len)
                 
                 auto res = trim(value, " ");
                 _mapHeaders[key] = res;
-                logInfo << "key:" << key << ",value:" << res << ".";
+                logDebug << "key:" << key << ",value:" << res << ".";
                 if (key == "content-length") {
                     _contentLen = stoi(value);
                 }

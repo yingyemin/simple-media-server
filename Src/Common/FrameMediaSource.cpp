@@ -9,12 +9,12 @@ FrameMediaSource::FrameMediaSource(const UrlParser& urlParser, const EventLoop::
     // _cache = std::make_shared<toolkit::List<Frame::Ptr>>();
     // TODO get it from config
     _ring = std::make_shared<FrameRingType>(250, nullptr);
-    logInfo << "create frame ring: " << _ring;
+    logDebug << "create frame ring: " << _ring;
 }
 
 FrameMediaSource::~FrameMediaSource()
 {
-    logInfo << "~FrameMediaSource";
+    logDebug << "~FrameMediaSource";
 }
 
 // void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
@@ -49,9 +49,9 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
     //     logInfo << "transcode frame: " << _urlParser.type_;
     // }
 
-    // if (!_origin)
-    //     logInfo << "before adjust frame pts: " << frame->_pts << ", frame dts: " << frame->_dts << ", type: " << frame->_trackType
-    //             << ", size: " << frame->size() << ", this: " << this;
+    if (!_origin)
+        logTrace << "before adjust frame pts: " << frame->_pts << ", frame dts: " << frame->_dts << ", type: " << frame->_trackType
+                << ", size: " << frame->size() << ", this: " << this;
     // for (auto& sink : _mapSink) {
         // logInfo << "on frame to sink";
         bool keyframe = false;
@@ -149,9 +149,9 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
                 _audioStampAdjust->inputStamp(frame->_pts, frame->_dts, samples);
             _ring->write(frame, false);
         }
-        // if (!_origin)
-        //     logInfo << "frame pts: " << frame->_pts << ", frame dts: " << frame->_dts 
-        //             << ", type: " << frame->_trackType << ", this: " << this;
+        if (!_origin)
+            logTrace << "frame pts: " << frame->_pts << ", frame dts: " << frame->_dts 
+                    << ", type: " << frame->_trackType << ", this: " << this;
         // logInfo << "keyframe: " << keyframe << ", size: " << frame->size() << ", type: " << (int)frame->getNalType();
         // logInfo << "frame source type: " << _urlParser.type_;
         // _ring->write(frame, keyframe);
@@ -160,7 +160,7 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
 
 void FrameMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
 {
-    logInfo << "on add track to sink";
+    logTrace << "on add track to sink, uri: " << _urlParser.path_;
     MediaSource::addTrack(track);
     if (track->trackType_ == "video" && !_origin) {
         _videoStampAdjust = make_shared<VideoStampAdjust>(0);
@@ -171,7 +171,7 @@ void FrameMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
 
     if (track->isReady()) {
         for (auto& sink : _mapSink) {
-            logInfo << "on add track to sink";
+            logTrace << "on add track to sink, uri: " << _urlParser.path_;
         //     if (sink.second.lock()) {
         //         sink.second.lock()->addTrack(track);
         //     }
@@ -188,7 +188,7 @@ void FrameMediaSource::addSink(const MediaSource::Ptr &sink)
         if (!track.second || !track.second->isReady()) {
             continue;
         }
-        logInfo << "on add track to sink: " << _urlParser.type_;
+        logTrace << "on add track to sink, uri: " << _urlParser.path_;
         sink->addTrack(track.second);
     }
     sink->onReady();
@@ -225,7 +225,7 @@ void FrameMediaSource::addSink(const MediaSource::Ptr &sink)
 
 void FrameMediaSource::delSink(const MediaSource::Ptr& sink)
 {
-    logInfo << "FrameMediaSource::delSink";
+    logTrace << "FrameMediaSource::delSink, uri: " << _urlParser.path_;
     MediaSource::delSink(sink);
     _ring->delOnWrite(sink.get());
     if (_mapSink.size() == 0) {

@@ -5,7 +5,7 @@
         "cert" : "./sms.com.crt"
     },
     "Log" : { 
-        "logLevel" : 0,
+        "logLevel" : 2,
         "console" : 1,
         "maxDay" : 7,
         "maxSize" : 1024,

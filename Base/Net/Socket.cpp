@@ -662,7 +662,7 @@ ssize_t Socket::send(const Buffer::Ptr pkt, int flag, int offset, int length, st
         // logInfo << "overlow buffer: " << _remainSize;
     }
 
-    if (pkt) {
+    if (pkt && pkt->size() > 0) {
         // logInfo << "send pkt size: " << pkt->size() << ", flag : " << flag;
         iovec io;
         int size = length ? length : (pkt->size() - offset);
@@ -678,6 +678,11 @@ ssize_t Socket::send(const Buffer::Ptr pkt, int flag, int offset, int length, st
 
         _remainSize += size;
     } else {
+        if (pkt) {
+            logTrace << "pkt size: " << 0 << ", flag : " << flag;
+        } else {
+            logTrace << "pkt empty, flag : " << flag;
+        }
         // logInfo << "send pkt size: " << 0 << ", flag : " << flag;
     }
 
@@ -698,7 +703,7 @@ ssize_t Socket::send(const Buffer::Ptr pkt, int flag, int offset, int length, st
     for (int i = 0; i < readySize; ++i) {
         auto& sendBuffer = _readyBuffer.front();
         if (sendBuffer->length == 0) {
-            logInfo << "sendBuffer->length is 0";
+            logTrace << "sendBuffer->length is 0";
             _readyBuffer.pop_front();
             continue;
         }
@@ -738,7 +743,7 @@ ssize_t Socket::send(const Buffer::Ptr pkt, int flag, int offset, int length, st
                     break;
                 }
             }
-            logInfo << "sendBuffer->length: " << sendBuffer->length;
+            logTrace << "sendBuffer->length: " << sendBuffer->length;
             break;
         } else {
             break;

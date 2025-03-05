@@ -179,7 +179,7 @@ void MediaSource::getOrCreateAsync(const string& uri, const string& vhost, const
             const string& type, const function<void(const MediaSource::Ptr &src)> &cb, 
             const std::function<MediaSource::Ptr()> &create, void* connKey)
 {
-    logInfo << "getOrCreateAsync start";
+    logTrace << "getOrCreateAsync start";
 
     if (uri.empty() || vhost.empty()) {
         cb(nullptr);
@@ -209,20 +209,24 @@ void MediaSource::getOrCreateAsync(const string& uri, const string& vhost, const
             }, "Cdn", "mode");
 
             lock_guard<recursive_mutex> lck(_mtxTotalSource);
-            if (_totalSource.find(key) == _totalSource.end()) {
+            if (_totalSource.find(key) == _totalSource.end() || !_totalSource[key]) {
                 if (enableLoadFromFile) {
+                    logDebug << "load from file, uri: " << uri;
                     loadFromFile(uri, vhost, protocol, type, cb, create, connKey);
                     return ;
                 } else if (mode == "edge") {
+                    logDebug << "pull stream with edge mode, uri: " << uri;
                     pullStreamFromOrigin(uri, vhost, protocol, type, cb, create, connKey);
                     return ;
                 } else {
+                    logDebug << "source is not ready yet, waitfor a while, uri: " << uri;;
                     string key = uri + "_" + vhost;// + "_" + protocol + "_" + type;
-                    logInfo << "get a key: " << key;
+                    // logInfo << "get a key: " << key;
                     {
                         lock_guard<mutex> lckRegister(_mtxRegister);
                         _mapRegisterEvent[key].push_back([uri, vhost, protocol, type, cb, create, connKey, loop](){
                             loop->async([uri, vhost, protocol, type, cb, create, connKey](){
+                                logDebug << "source is ready, start to play again, uri: " << uri;
                                 MediaSource::getOrCreateAsync(uri, vhost, protocol, type, cb, create, connKey);
                             }, true);
                         });
@@ -243,56 +247,56 @@ void MediaSource::getOrCreateAsync(const string& uri, const string& vhost, const
                     return ;
                 }
             }
-            logInfo << "getOrCreateAsync find the src, key: " << key;
+            logDebug << "getOrCreateAsync find the src, key: " << key;
             src = _totalSource[key];
         
-            if (!src) {
-                if (enableLoadFromFile) {
-                    loadFromFile(uri, vhost, protocol, type, cb, create, connKey);
-                    return ;
-                } else if (mode == "edge") {
-                    pullStreamFromOrigin(uri, vhost, protocol, type, cb, create, connKey);
-                    return ;
-                } else {
-                    string key = uri + "_" + vhost;// + "_" + protocol + "_" + type;
-                    {
-                        lock_guard<mutex> lckRegister(_mtxRegister);
-                        _mapRegisterEvent[key].push_back([uri, vhost, protocol, type, cb, create, connKey, loop](){
-                            loop->async([uri, vhost, protocol, type, cb, create, connKey](){
-                                MediaSource::getOrCreateAsync(uri, vhost, protocol, type, cb, create, connKey);
-                            }, true);
-                        });
-                    }
-                    loop->addTimerTask(waitStreamOnlineTimeMS, [key, cb](){
-                        {
-                            lock_guard<mutex> lckRegister(_mtxRegister);
-                            if (_mapRegisterEvent.find(key) == _mapRegisterEvent.end()) {
-                                return 0;
-                            }
-                            _mapRegisterEvent.erase(key);
-                        }
-                        cb(nullptr);
+            // if (!src) {
+            //     if (enableLoadFromFile) {
+            //         loadFromFile(uri, vhost, protocol, type, cb, create, connKey);
+            //         return ;
+            //     } else if (mode == "edge") {
+            //         pullStreamFromOrigin(uri, vhost, protocol, type, cb, create, connKey);
+            //         return ;
+            //     } else {
+            //         string key = uri + "_" + vhost;// + "_" + protocol + "_" + type;
+            //         {
+            //             lock_guard<mutex> lckRegister(_mtxRegister);
+            //             _mapRegisterEvent[key].push_back([uri, vhost, protocol, type, cb, create, connKey, loop](){
+            //                 loop->async([uri, vhost, protocol, type, cb, create, connKey](){
+            //                     MediaSource::getOrCreateAsync(uri, vhost, protocol, type, cb, create, connKey);
+            //                 }, true);
+            //             });
+            //         }
+            //         loop->addTimerTask(waitStreamOnlineTimeMS, [key, cb](){
+            //             {
+            //                 lock_guard<mutex> lckRegister(_mtxRegister);
+            //                 if (_mapRegisterEvent.find(key) == _mapRegisterEvent.end()) {
+            //                     return 0;
+            //                 }
+            //                 _mapRegisterEvent.erase(key);
+            //             }
+            //             cb(nullptr);
 
-                        return 0;
-                    }, nullptr);
+            //             return 0;
+            //         }, nullptr);
 
-                    return ;
-                }
-            }
-            // logInfo << "protocol: " << protocol;
-            // logInfo << "src->getProtocol(): " << src->getProtocol();
-            // logInfo << "type: " << type;
-            // logInfo << "src->getType(): " << src->getType();
-            // logInfo << "src->getStatus(): " << src->getStatus();
+            //         return ;
+            //     }
+            // }
+            logTrace << "protocol: " << protocol;
+            logTrace << "src->getProtocol(): " << src->getProtocol();
+            logTrace << "type: " << type;
+            logTrace << "src->getType(): " << src->getType();
+            logTrace << "src->getStatus(): " << src->getStatus();
             if (src->getStatus() == SourceStatus::AVAILABLE) {
                 if (src->getProtocol() == protocol && src->getType() == type) {
-                    logInfo << "getOrCreateAsync src:" << uri << " " << protocol << " " << type;
+                    logDebug << "getOrCreateAsync src:" << uri << " " << protocol << " " << type;
                     src->addConnection(connKey);
                     cb(src);
                     return ;
                 }
             } else {
-                logInfo << "source is not ready";
+                logDebug << "source is not ready, uri: " << uri;
                 src->addOnReady(connKey, [uri, vhost, protocol, type, cb, create, connKey, loop](){
                     loop->async([uri, vhost, protocol, type, cb, create, connKey](){
                         MediaSource::getOrCreateAsync(uri, vhost, protocol, type, cb, create, connKey);
@@ -301,7 +305,7 @@ void MediaSource::getOrCreateAsync(const string& uri, const string& vhost, const
                 return ;
             }
         }
-        logInfo << "getOrCreateAsync find other src, key: " << key;
+        logDebug << "getOrCreateAsync find other src, key: " << key;
         // 回调暂时放到这里，后续加上异步上线逻辑后，需要将回调放到异步上线逻辑里
         if (src->getOrCreateAsync(protocol, type, cb, create, connKey)) {
             // cb(nullptr);
@@ -320,7 +324,7 @@ bool MediaSource::getOrCreateAsync(const string &protocol, const string& type,
             const std::function<MediaSource::Ptr()> &create,
             void* connKey)
 {
-    logInfo << "getOrCreateAsync start";
+    logTrace << "getOrCreateAsync start, uri: " << _urlParser.path_;
     lock_guard<recursive_mutex> lck(_mtxStreamSource);
     auto& wsrc = _streamSource[protocol][type];
     auto src = wsrc.lock();
@@ -358,7 +362,7 @@ bool MediaSource::getOrCreateAsync(const string &protocol, const string& type,
         return true;
     }
 
-    logInfo << "getOrCreateAsync find frame src";
+    logTrace << "getOrCreateAsync find frame src, uri: " << _urlParser.path_;
 
     if (!src) {
         src = create();
@@ -388,7 +392,7 @@ bool MediaSource::getOrCreateAsync(const string &protocol, const string& type,
         return true;
     }
 
-    logInfo << "getOrCreateAsync find other src";
+    logTrace << "getOrCreateAsync find other protocol src, uri: " << _urlParser.path_;
 
     UrlParser parser = _urlParser;
     parser.protocol_ = PROTOCOL_FRAME;
@@ -411,7 +415,7 @@ bool MediaSource::getOrCreateAsync(const string &protocol, const string& type,
         frameSource->addSource(srcStream);
         src->addSource(frameSource);
 
-        logInfo << "getOrCreateAsync find other src end： " << src;
+        logTrace << "getOrCreateAsync find other src end： " << src;
         cb(src);
     }, true, true);
 
@@ -1048,14 +1052,14 @@ void MediaSource::pushStreamToOrigin()
 
 void MediaSource::delConnection(void* key)
 {
-    logInfo << "del key: " << key;
+    logTrace << "del key: " << key;
     lock_guard<mutex> lck(_mtxConnection);
     _mapConnection.erase(key);
 }
 
 void MediaSource::addConnection(void* key)
 {
-    logInfo << "add key: " << key;
+    logTrace << "add key: " << key;
     lock_guard<mutex> lck(_mtxConnection);
     _mapConnection[key] = 1;
 }

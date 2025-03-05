@@ -85,9 +85,9 @@ void RtpEncodeH264::encodeFuA(const FrameBuffer::Ptr& frame) {
 
     if (size > 0) { //end
         // logInfo << "pts: " << pts << ", _lastPts: " << _lastPts;
-		if (pts == _lastPts) {
-		    logError << "pts == _lastPts";
-		}
+		// if (pts == _lastPts) {
+		//     logError << "pts == _lastPts";
+		// }
         RtpPacket::Ptr rtp = RtpPacket::create(_trackInfo, size + 2 + 12, pts, _ssrc, _lastSeq++, true/*pts != _lastPts*/);
         fu_flags->end_bit = 1;
         fu_flags->start_bit = 0;
@@ -106,9 +106,9 @@ void RtpEncodeH264::encodeSingle(const FrameBuffer::Ptr& frame) {
     auto frameData = frame->data() + frame->startSize();
     auto pts = _enableFastPts ? frame->dts() * _ptsScale : frame->dts();
 
-    if (pts == _lastPts) {
+    // if (pts == _lastPts) {
         // logError << "pts == _lastPts, " << _lastPts;
-    }
+    // }
 
     RtpPacket::Ptr rtp;
     if (frame->getNalType() == 7 || frame->getNalType() == 8) {
@@ -130,9 +130,9 @@ void RtpEncodeH264::encodeSingle(const FrameBuffer::Ptr& frame) {
     auto frameData = frame->data() + frame->startSize();
     auto pts = _enableFastPts ? frame->dts() * _ptsScale : frame->dts();
 
-    if (pts == _lastPts) {
+    // if (pts == _lastPts) {
         // logError << "pts == _lastPts, " << _lastPts;
-    }
+    // }
     RtpPacket::Ptr rtp;
     RtpPacket::Ptr rtpDump;
     if (frame->getNalType() == 7 || frame->getNalType() == 8) {
