@@ -51,7 +51,7 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
 
     if (!_origin)
         logTrace << "before adjust frame pts: " << frame->_pts << ", frame dts: " << frame->_dts << ", type: " << frame->_trackType
-                << ", size: " << frame->size() << ", this: " << this;
+                << ", size: " << frame->size() << ", path: " << _urlParser.path_ << ", this: " << this;
     // for (auto& sink : _mapSink) {
         // logInfo << "on frame to sink";
         bool keyframe = false;
@@ -151,7 +151,7 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
         }
         if (!_origin)
             logTrace << "frame pts: " << frame->_pts << ", frame dts: " << frame->_dts 
-                    << ", type: " << frame->_trackType << ", this: " << this;
+                    << ", type: " << frame->_trackType << ", path: " << _urlParser.path_ << ", this: " << this;
         // logInfo << "keyframe: " << keyframe << ", size: " << frame->size() << ", type: " << (int)frame->getNalType();
         // logInfo << "frame source type: " << _urlParser.type_;
         // _ring->write(frame, keyframe);

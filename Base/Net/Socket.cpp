@@ -651,43 +651,64 @@ ssize_t Socket::send(const Buffer::Ptr pkt, int flag, int offset, int length, st
     }
     // 需要改为配置读取
     // 超过缓存了，丢掉pkt
-    if (_remainSize > 10 * 1024 * 1024) {
-        if (flag && _sendBuffer->length > 0) {
-            // _readyBuffer.push_back(_sendBuffer);
-            // _sendBuffer = make_shared<SocketBuffer>();
-        } else {
-            // pkt = nullptr;
-            // flag = false;
+    // 做丢包处理，按整包丢，避免tcp数据错位
+    bool dropFlag = flag;
+    bool originDrop = _drop;
+    if (_drop) {
+        // pkt = nullptr;
+    } else if (_remainSize > 10 * 1024 * 1024) {
+        // if (flag && _sendBuffer->length > 0) {
+        //     // _readyBuffer.push_back(_sendBuffer);
+        //     // _sendBuffer = make_shared<SocketBuffer>();
+        // } else {
+        //     // pkt = nullptr;
+        //     // flag = false;
+        // }
+        if (_sendBuffer->length > 0) {
+            _sendBuffer = make_shared<SocketBuffer>();
         }
-        // logInfo << "overlow buffer: " << _remainSize;
+        _drop = true;
+        if (flag) {
+            dropFlag = false;
+        }
+        logTrace << "overlow buffer: " << _remainSize;
     }
 
-    if (pkt && pkt->size() > 0) {
-        // logInfo << "send pkt size: " << pkt->size() << ", flag : " << flag;
-        iovec io;
-        int size = length ? length : (pkt->size() - offset);
-        io.iov_base = pkt->data() + offset;
-        io.iov_len = size;
+    // 已经过了一个整包，重新判断是否要丢包
+    if (dropFlag) {
+        _drop = false;
+    }
 
-        _sendBuffer->vecBuffer.emplace_back(std::move(io));
-        _sendBuffer->rawBuffer.push_back(pkt);
-        _sendBuffer->length += size;
-        _sendBuffer->socket = shared_from_this();
-        _sendBuffer->addr = addr;
-        _sendBuffer->addr_len = addr_len;
+    if (!originDrop) {
+        if (pkt && pkt->size() > 0) {
+            // logInfo << "send pkt size: " << pkt->size() << ", flag : " << flag;
+            iovec io;
+            int size = length ? length : (pkt->size() - offset);
+            io.iov_base = pkt->data() + offset;
+            io.iov_len = size;
 
-        _remainSize += size;
-    } else {
-        if (pkt) {
-            logTrace << "pkt size: " << 0 << ", flag : " << flag;
+            _sendBuffer->vecBuffer.emplace_back(std::move(io));
+            _sendBuffer->rawBuffer.push_back(pkt);
+            _sendBuffer->length += size;
+            _sendBuffer->socket = shared_from_this();
+            _sendBuffer->addr = addr;
+            _sendBuffer->addr_len = addr_len;
+
+            _remainSize += size;
         } else {
-            logTrace << "pkt empty, flag : " << flag;
+            if (pkt) {
+                logTrace << "pkt size: " << 0 << ", flag : " << flag;
+            } else {
+                logTrace << "pkt empty, flag : " << flag;
+            }
+            // logInfo << "send pkt size: " << 0 << ", flag : " << flag;
         }
-        // logInfo << "send pkt size: " << 0 << ", flag : " << flag;
     }
 
     if (flag || _sendBuffer->vecBuffer.size() > 1000) {
-        _readyBuffer.push_back(_sendBuffer);
+        if (_sendBuffer->length > 0) {
+            _readyBuffer.push_back(_sendBuffer);
+        }
         _sendBuffer = make_shared<SocketBuffer>();
     }
 

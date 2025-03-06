@@ -854,9 +854,11 @@ void RtspConnection::handlePlay()
             for (auto it = pack->begin(); it != pack->end(); ++it) {
                 int index = (*it)->trackIndex_;
                 auto transport = strong_self->_mapRtpTransport[index * 2];
-                int bytes = transport->sendRtpPacket(*it, it == pack->end());
-                strong_self->_intervalSendBytes += bytes;
-                strong_self->_totalSendBytes += bytes;
+                if (transport) {
+                    int bytes = transport->sendRtpPacket(*it, it == pack->end());
+                    strong_self->_intervalSendBytes += bytes;
+                    strong_self->_totalSendBytes += bytes;
+                }
                 // logInfo << "type: " << (*it)->type_ << ", stamp: " << (*it)->getStamp();
             }
             // auto rtp = pack->front();

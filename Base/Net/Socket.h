@@ -120,6 +120,7 @@ public:
 private:
     bool _isClient = false;
     bool _isConnected = false;
+    bool _drop = false;
     int _fd = -1;
     int _family = AF_INET;
     int _type = 1;

@@ -41,9 +41,9 @@ JT1078Connection::~JT1078Connection()
         jtSrc->delConnection(this);
     }
 
-    if (_onClose) {
-        _onClose();
-    }
+    // if (_onClose) {
+    //     _onClose();
+    // }
 
     // if (!_key.empty()) {
     //     delJt1078Info(_key);
@@ -69,6 +69,9 @@ void JT1078Connection::close()
 {
     logTrace << "path: " << _path << "JT1078Connection::close()";
     TcpConnection::close();
+    if (_onClose) {
+        _onClose();
+    }
 }
 
 void JT1078Connection::onManager()

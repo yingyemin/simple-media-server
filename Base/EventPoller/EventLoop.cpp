@@ -199,7 +199,7 @@ void EventLoop::async(asyncEventFunc func, bool sync, bool front)
         func();
         return ;
     }
-#if 0
+#if 1
     {
         lock_guard<mutex> lck(_mtxEvents);
         if (front) {
@@ -239,7 +239,7 @@ inline void EventLoop::onAsyncEvent()
     // }
 
     read(_wakeupFd, &one, sizeof(one));
-#if 0
+#if 1
     decltype(_asyncEvents) _enventSwap;
     {
         lock_guard<mutex> lck(_mtxEvents);

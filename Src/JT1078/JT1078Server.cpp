@@ -100,10 +100,10 @@ void JT1078Server::start(const string& ip, int port, int count, bool isTalk)
                 connection->setOnClose([wSelf, wServer, port, count](){
                     auto self = wSelf.lock();
                     auto server = wServer.lock();
-                    logTrace << "server->getCurConnNum(): " << server->getCurConnNum();
+                    // logTrace << "server->getCurConnNum(): " << server->getCurConnNum();
                     if (self && server && server->getCurConnNum() == 0) {
                         self->stopByPort(port, count);
-                        self->_portManager.put(port);
+                        // self->_portManager.put(port);
                     }
                 });
             }
@@ -125,7 +125,7 @@ void JT1078Server::start(const string& ip, int port, int count, bool isTalk)
 
                 if (server->getLastAcceptTime() == 0) {
                     self->stopByPort(server->getPort(), count);
-                    self->_portManager.put(server->getPort());
+                    // self->_portManager.put(server->getPort());
                 }
 
                 return 0;
@@ -142,6 +142,8 @@ void JT1078Server::start(const string& ip, int port, int count, bool isTalk)
 void JT1078Server::stopByPort(int port, int count)
 {
     logTrace << "stop port: " << port;
+    _portManager.put(port);
+
     lock_guard<mutex> lck(_mtx);
     if (_tcpServers.find(port) != _tcpServers.end()) {
         _tcpServers[port].clear();

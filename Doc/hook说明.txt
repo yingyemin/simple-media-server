@@ -46,8 +46,12 @@ onNonePlayer回调：无人观看回调，可以在这个回调里停流
 接口示例：
     curl http://127.0.0.1/api/v1/onNonePlayer -d "protocol=rtsp&type=normal&uri=/live/test&vhost=vhost"  | python -m json.tool
     {
-        "code": "200",
-        "msg": "success"
+        "code":"200",
+        # 多久后断开流，延时断开，单位ms
+        "delay":5000,
+        "msg":"success",
+        # 是否断开流,0表示不断开，1表示断开
+        "stop":0
     }
 
     api：/api/v1/onNonePlayer(这只是示例api，实际api以自己的服务为准)
@@ -57,9 +61,11 @@ onNonePlayer回调：无人观看回调，可以在这个回调里停流
         uri：流ID
         vhost ：默认是vhost
 
-    返回：返回参数没有要求
+    返回：返回参数
         code：200
         msg：success
+        delay: 5000
+        stop: 0
 
 onKeepAlive回调：服务的心跳，用于做调度
 接口示例：

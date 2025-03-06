@@ -11,7 +11,7 @@
     - sms收到音视频流后，就开始解析流并注册，流id的格式默认为：/live/{simcode}_{channel}，simcode和channel为实际的simcode以及通道号
     - 可以通过查询流信息接口看到流是否注册成功，以及流id
     - 可以通过接口：/api/v1/jt1078/create 指定流id
-    - 多端口可通过接口：/api/v1/jt1078/server/open和/api/v1/jt1078/server/stop控制，可用于录像回放
+    - 多端口可通过接口：/api/v1/jt1078/server/open和/api/v1/jt1078/server/close控制，可用于录像回放
     - 对讲接口：/api/v1/jt1078/talk/start和/api/v1/jt1078/talk/stop
     - 级联接口：/api/v1/jt1078/send/start和/api/v1/jt1078/send/stop
 
@@ -131,13 +131,13 @@ curl http://127.0.0.1/api/v1/getSourceList | python -m json.tool
 关闭1078服务
     - 可通过该接口关闭1078服务
     接口示例：
-    curl http://127.0.0.1/api/v1/jt1078/server/stop -d "port=17001" | python -m json.tool
+    curl http://127.0.0.1/api/v1/jt1078/server/close -d "port=17001" | python -m json.tool
     {
         "code": "200",
         "msg": "success"
     }
 
-    api: /api/v1/jt1078/server/stop
+    api: /api/v1/jt1078/server/close
     参数：
         port: 1078端口,要关闭的端口
 
