@@ -17,7 +17,7 @@
     "Util" : {
         "stopNonePlayerStream" : false,
         "nonePlayerWaitTime" : 5000,
-        "enableLoadFromFile" : true,
+        "enableLoadFromFile" : false,
         # 心跳时间，单位ms
         "heartbeatTime" : 10000,
         # 第一个track ready后，等待多久进行第一次检查，单位ms

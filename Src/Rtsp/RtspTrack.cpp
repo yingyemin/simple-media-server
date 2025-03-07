@@ -25,7 +25,7 @@ using namespace std;
 
 static shared_ptr<TrackInfo> createTrackBySdp(const shared_ptr<SdpMedia>& media)
 {
-    logInfo << "createTrackBySdp, codec: " << media->codec_;
+    logDebug << "createTrackBySdp, codec: " << media->codec_;
     shared_ptr<TrackInfo> trackInfo;
     if (strcasecmp(media->codec_.data(), "mpeg4-generic") == 0) {
         auto aacTrackInfo = make_shared<AacTrack>();
@@ -64,7 +64,7 @@ static shared_ptr<TrackInfo> createTrackBySdp(const shared_ptr<SdpMedia>& media)
         trackInfo = mp3Track;
         trackInfo->codec_ = "mp3";
     } else if (strcasecmp(media->codec_.data(), "h264") == 0) {
-        logInfo << "createTrackBySdp h264";
+        logTrace << "createTrackBySdp h264";
         auto h264TrackInfo = H264Track::createTrack(media->index_, media->payloadType_, media->samplerate_);
         //a=fmtp:96 packetization-mode=1;profile-level-id=42C01F;sprop-parameter-sets=Z0LAH9oBQBboQAAAAwBAAAAPI8YMqA==,aM48gA==
         // auto mapFmtp = split(findSubStr(media->fmtp_," ", ""),";","=");
@@ -73,7 +73,7 @@ static shared_ptr<TrackInfo> createTrackBySdp(const shared_ptr<SdpMedia>& media)
         string base64_SPS = findSubStr(sps_pps.data(), "", ",");
         string base64_PPS = findSubStr(sps_pps.data(), ",", "");
 
-        logInfo << "createTrackBySdp start decode base64, sps: " << base64_SPS << ", pps: " << base64_PPS;
+        logDebug << "createTrackBySdp start decode base64, sps: " << base64_SPS << ", pps: " << base64_PPS;
 
         auto spsFrame = make_shared<H264Frame>();
         spsFrame->_startSize = 4;
@@ -93,10 +93,10 @@ static shared_ptr<TrackInfo> createTrackBySdp(const shared_ptr<SdpMedia>& media)
         
         h264TrackInfo->setSps(spsFrame);
         h264TrackInfo->setPps(ppsFrame);
-        logInfo << "createTrackBySdp start trackInfo";
+        // logInfo << "createTrackBySdp start trackInfo";
         trackInfo = h264TrackInfo;
         // trackInfo->codec_ = "h264";
-        logInfo << "createTrackBySdp trackInfo";
+        logTrace << "createTrackBySdp trackInfo";
     } else if (strcasecmp(media->codec_.data(), "h265") == 0) {
         auto h265TrackInfo = make_shared<H265Track>();
         //a=fmtp:96 sprop-sps=QgEBAWAAAAMAsAAAAwAAAwBdoAKAgC0WNrkky/AIAAADAAgAAAMBlQg=; sprop-pps=RAHA8vA8kAA=
@@ -272,7 +272,7 @@ RtspEncodeTrack::RtspEncodeTrack(int trackIndex, const shared_ptr<TrackInfo>& tr
 
 void RtspEncodeTrack::startEncode()
 {
-    logInfo << "RtspEncodeTrack::startEncode";
+    logTrace << "RtspEncodeTrack::startEncode";
     weak_ptr<RtspEncodeTrack> wSelf = dynamic_pointer_cast<RtspEncodeTrack>(shared_from_this());
     if (!_encoder) {
         _encoder = RtpEncoder::create(_trackInfo);

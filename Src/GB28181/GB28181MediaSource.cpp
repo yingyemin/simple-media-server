@@ -38,7 +38,7 @@ void GB28181MediaSource::addTrack(const GB28181DecodeTrack::Ptr& track)
                 strongSelf->onReaderChanged(size);
             }, true, true); 
         };
-        logInfo << "create _ring";
+        logDebug << "create _ring, path: " << _urlParser.path_;
         _ring = std::make_shared<RingType>(_ringSize, std::move(lam));
     }
     {
@@ -143,25 +143,25 @@ void GB28181MediaSource::onReady()
                 strongSelf->onReaderChanged(size);
             }, true, true); 
         };
-        logInfo << "create _ring";
+        logDebug << "create _ring, path: " << _urlParser.path_;
         _ring = std::make_shared<RingType>(_ringSize, std::move(lam));
     }
     MediaSource::onReady();
     if (_muxer) {
         std::weak_ptr<GB28181MediaSource> weakSelf = std::static_pointer_cast<GB28181MediaSource>(shared_from_this());
         _gB28181EncodeTrack->setOnRtpPacket([weakSelf](const RtpPacket::Ptr& rtp){
-            logInfo << "mux a rtp packet";
+            logTrace << "mux a rtp packet";
             auto strongSelf = weakSelf.lock();
             if (!strongSelf) {
                 return;
             }
             if (rtp->getHeader()->mark) {
-                logInfo << "mux a rtp packet mark";
+                logTrace << "mux a rtp packet mark";
                 strongSelf->_cache->emplace_back(std::move(rtp));
                 strongSelf->_ring->write(strongSelf->_cache);
                 strongSelf->_cache = std::make_shared<list<RtpPacket::Ptr>>();
             } else {
-                logInfo << "mux a rtp packet no mark";
+                logTrace << "mux a rtp packet no mark";
                 strongSelf->_cache->emplace_back(std::move(rtp));
             }
         });
@@ -180,7 +180,7 @@ void GB28181MediaSource::onReady()
 
 void GB28181MediaSource::addTrack(const shared_ptr<TrackInfo>& track)
 {
-    logTrace << "GB28181MediaSource::addTrack";
+    logDebug << "GB28181MediaSource::addTrack, path: " << _urlParser.path_ << ", codec: " << track->codec_;
     MediaSource::addTrack(track);
     
     std::weak_ptr<GB28181MediaSource> weakSelf = std::static_pointer_cast<GB28181MediaSource>(shared_from_this());
@@ -198,7 +198,7 @@ void GB28181MediaSource::addTrack(const shared_ptr<TrackInfo>& track)
                 strongSelf->onReaderChanged(size);
             }, true, true); 
         };
-        logInfo << "create _ring";
+        logTrace << "create _ring, path: " << _urlParser.path_;
         _ring = std::make_shared<RingType>(_ringSize, std::move(lam));
     }
     if (!_gB28181EncodeTrack) {
@@ -232,7 +232,7 @@ void GB28181MediaSource::addTrack(const shared_ptr<TrackInfo>& track)
 
 void GB28181MediaSource::addDecodeTrack(const shared_ptr<TrackInfo>& track)
 {
-    logInfo << "addDecodeTrack ========= ";
+    logDebug << "addDecodeTrack, path: " << _urlParser.path_ << ", codec: " << track->codec_;
     MediaSource::addTrack(track);
 
     for (auto& wSink : _mapSink) {
@@ -281,7 +281,7 @@ void GB28181MediaSource::addSink(const MediaSource::Ptr &src)
 
 void GB28181MediaSource::delSink(const MediaSource::Ptr &src)
 {
-    logInfo << "GB28181MediaSource::delSink";
+    logDebug << "GB28181MediaSource::delSink, path: " << _urlParser.path_;
     if (!_loop->isCurrent()) {
         weak_ptr<GB28181MediaSource> wSlef = static_pointer_cast<GB28181MediaSource>(shared_from_this());
         _loop->async([wSlef, src](){
@@ -305,7 +305,7 @@ void GB28181MediaSource::delSink(const MediaSource::Ptr &src)
 
 void GB28181MediaSource::onFrame(const FrameBuffer::Ptr& frame)
 {
-    logInfo << "on get a frame: index : " << frame->getTrackIndex();
+    logTrace << "on get a frame: index : " << frame->getTrackIndex() << ", path: " << _urlParser.path_;
     // auto it = _mapGB28181EncodeTrack.find(frame->getTrackIndex());
     if (!_gB28181EncodeTrack) {
         return ;

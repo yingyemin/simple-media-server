@@ -172,6 +172,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
     uint64_t video_pts = 0;
     int pse_index = 0;
     bool hasAudio = false;
+    bool newPs = false;
 
     // uint8_t audio_es_id = 0;
     //static uint8_t audio_es_type = 0;
@@ -195,7 +196,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
 			&& next_ps_pack[3] == (char)0xBA)
 		{
             //ps header 
-            // logInfo << "get a ps ba";
+            logTrace << "get a ps ba";
             if (incomplete_len < sizeof(PsPacketHeader)) {
                 _remainBuffer.assign(next_ps_pack, incomplete_len);
                 logInfo << "_remainBuffer size: " << _remainBuffer.size();
@@ -212,6 +213,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
                 logInfo << "_remainBuffer size: " << _remainBuffer.size();
                 return -1;
             }
+            newPs = true;
         
             next_ps_pack = next_ps_pack + sizeof(PsPacketHeader) + stuffingLength;
             complete_len = complete_len + sizeof(PsPacketHeader) + stuffingLength;
@@ -223,7 +225,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
 			&& next_ps_pack[2] == (char)0x01
 			&& next_ps_pack[3] == (char)0xBB)
         {
-            // logInfo << "get a ps bb";
+            logTrace << "get a ps bb";
             //ps system header 
             if (incomplete_len < sizeof(PsPacketBBHeader)) {
                 _remainBuffer.assign(next_ps_pack, incomplete_len);
@@ -251,7 +253,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
 			&& next_ps_pack[3] == (char)0xBC)
         {
             //program stream map 
-            // logInfo << "get a ps bc";
+            logTrace << "get a ps bc";
             
             if (incomplete_len < sizeof(PsMapPacket)) {
                 _remainBuffer.assign(next_ps_pack, incomplete_len);
@@ -434,7 +436,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
                 logInfo << "_remainBuffer size: " << _remainBuffer.size();
                 return -1;
             }
-            // logInfo << "get a ps video frame";
+            logTrace << "get a ps video frame";
 
             PsePacket* pse_pack = (PsePacket*)next_ps_pack;
 
@@ -480,8 +482,9 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
             }
             
             // logInfo << "_lastVideoPts: " << _lastVideoPts << ", video_pts: " << video_pts;
-            if (_lastVideoPts != -1 && _lastVideoPts != video_pts && _videoFrame) {
+            if (_videoFrame && newPs /*(_lastVideoPts != -1 && _lastVideoPts != video_pts)*/) {
                 // onDecode(_videoStream);
+                newPs = false;
                 if (_videoCodec != "unknown" && _videoFrame->size() > 0) {
                     // static int i = 0;
                     // string name = "testpsvod" + to_string(i++) + ".h264";
@@ -530,8 +533,8 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
             int packlength = htons(pse_pack->length);
 			int payload_len = packlength - 2 - 1 - pse_pack->stuffingLength;
 
-            logInfo << "incomplete_len: " << incomplete_len;
-            logInfo << "need_len: " << (sizeof(PsePacket) + pse_pack->stuffingLength + payload_len);
+            // logInfo << "incomplete_len: " << incomplete_len;
+            // logInfo << "need_len: " << (sizeof(PsePacket) + pse_pack->stuffingLength + payload_len);
             if (incomplete_len < sizeof(PsePacket) + pse_pack->stuffingLength + payload_len) {
                 _remainBuffer.assign(next_ps_pack, incomplete_len);
                 logInfo << "_remainBuffer size: " << _remainBuffer.size();
@@ -555,7 +558,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
                 logInfo << "_remainBuffer size: " << _remainBuffer.size();
                 return -1;
             }
-            // logInfo << "get a ps audio frame";
+            logTrace << "get a ps audio frame";
 
             FrameBuffer::Ptr audio_stream = createFrame(AudioTrackType);
             PsePacket* pse_pack = (PsePacket*)next_ps_pack;

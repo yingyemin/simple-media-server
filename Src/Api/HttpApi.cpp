@@ -1,7 +1,7 @@
 ﻿#include "HttpApi.h"
 #include "Logger.h"
 #include "Common/Config.h"
-#include "Common/MediaSource.h"
+#include "Common/FrameMediaSource.h"
 #include "Util/String.h"
 #include "Util/Thread.h"
 #include "EventPoller/EventLoopPool.h"
@@ -112,6 +112,7 @@ void HttpApi::getSourceList(const HttpParser& parser, const UrlParser& urlParser
         item["playerCount"] = source->playerCount();
         item["bytes"] = source->getBytes();
         item["createTime"] = source->getCreateTime();
+        item["statuc"] = source->isReady() ? "ready" : "unready";
         item["onlineDuration"] = TimeClock::now() - source->getCreateTime();
         auto tracks = source->getTrackInfo();
         for (auto iter : tracks) {
@@ -153,6 +154,13 @@ void HttpApi::getSourceList(const HttpParser& parser, const UrlParser& urlParser
                 mItem["protocol"] = mSource->getProtocol();
                 mItem["type"] = mSource->getType();
                 mItem["playerCount"] = mSource->playerCount();
+                if (mSource->getProtocol() == "frame") {
+                    auto frameSrc = dynamic_pointer_cast<FrameMediaSource>(mSource);
+                    mItem["video"]["fps"] = frameSrc->getFps();
+                    mItem["video"]["lastFrameTime"] = frameSrc->getLastFrameTime();
+                    mItem["video"]["lastGopTime"] = frameSrc->getLastGopTime();
+                    mItem["video"]["lastKeyframeTime"] = frameSrc->getLastKeyframeTime();
+                }
                 totalPlayerCount += mSource->playerCount();
 
                 item["muxer"].push_back(mItem);

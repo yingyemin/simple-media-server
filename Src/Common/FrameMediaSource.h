@@ -18,6 +18,7 @@
 #include "MediaSource.h"
 #include "Track.h"
 #include "StampAdjust.h"
+#include "Util/TimeClock.h"
 
 #define RTP_GOP_SIZE 512
 
@@ -39,10 +40,20 @@ public:
 
     void inputFrame(const FrameBuffer::Ptr& frame);
     FrameRingType::Ptr getRing() {return _ring;}
+    float getFps() {return _fps;}
+    uint64_t getLastFrameTime() {return TimeClock::now() - _lastFrameTime;}
+    int getLastGopTime() {return _gopTime;}
+    uint64_t getLastKeyframeTime() {return TimeClock::now() - _lastKeyframeTime;}
 
 private:
     bool _sendConfig = false;
     int _ring_size = 25;
+    int _gopTime = 0;
+    float _fps = 0;
+    uint64_t _frameCount = 0;
+    uint64_t _lastFrameTime = 0;
+    uint64_t _lastKeyframeTime = 0;
+    TimeClock _frameClock;
     shared_ptr<StampAdjust> _videoStampAdjust;
     shared_ptr<StampAdjust> _audioStampAdjust;
     FrameRingType::Ptr _ring;

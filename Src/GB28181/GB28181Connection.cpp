@@ -17,12 +17,12 @@ GB28181Connection::GB28181Connection(const EventLoop::Ptr& loop, const Socket::P
     ,_loop(loop)
     ,_socket(socket)
 {
-    logInfo << "GB28181Connection";
+    logDebug << "GB28181Connection";
 }
 
 GB28181Connection::~GB28181Connection()
 {
-    logInfo << "~GB28181Connection";
+    logInfo << "~GB28181Connection, ssrc: " << _ssrc;
     if (_ssrc >= 0) {
         GB28181Manager::instance()->delContext(_ssrc);
     }
@@ -45,14 +45,14 @@ void GB28181Connection::init()
 
 void GB28181Connection::close()
 {
-    logInfo << "GB28181Connection::close()";
+    logDebug << "GB28181Connection::close(), ssrc" << _ssrc;
     _isClose = true;
     TcpConnection::close();
 }
 
 void GB28181Connection::onManager()
 {
-    logInfo << "manager";
+    logDebug << "manager, ssrc" << _ssrc;
 }
 
 void GB28181Connection::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)
@@ -64,12 +64,12 @@ void GB28181Connection::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr*
 void GB28181Connection::onError()
 {
     close();
-    logWarn << "get a error: ";
+    logWarn << "get a error: ; ssrc: " << _ssrc;
 }
 
 ssize_t GB28181Connection::send(Buffer::Ptr pkt)
 {
-    logInfo << "pkt size: " << pkt->size();
+    logTrace << "pkt size: " << pkt->size() << ", ssrc" << _ssrc;
     return TcpConnection::send(pkt);
 }
 

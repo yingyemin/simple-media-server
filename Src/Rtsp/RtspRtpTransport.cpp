@@ -18,7 +18,7 @@ RtspRtpTransport::RtspRtpTransport(int transType, int dataType, const RtspTrack:
     ,_track(track)
 {
     _index = track->getTrackIndex();
-    logInfo << "_index : =========== " << _index;
+    logDebug << "_index : =========== " << _index;
 }
 
 void RtspRtpTransport::start() {

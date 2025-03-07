@@ -103,7 +103,7 @@ void GB28181DecodeTrack::onRtpPacket(const RtpPacket::Ptr& rtp)
 
 void GB28181DecodeTrack::decodeRtp(const RtpPacket::Ptr& rtp)
 {
-    // logInfo << "rtp seq: " << rtp->getSeq();
+    logTrace << "rtp seq: " << rtp->getSeq() << ", size: " << rtp->size();
     // logInfo << "track info codec: " << _trackInfo->codec_;
     if (!_startdecode) {
         _decoder = nullptr;
@@ -127,7 +127,10 @@ void GB28181DecodeTrack::onPsFrame(const FrameBuffer::Ptr frame)
     if (_demuxer) {
         _demuxer->onPsStream(frame->data(), frame->size(), frame->pts(), _ssrc, true);
     }
-    // FILE* fp = fopen("test.ps", "ab+");
+
+    // static int i = 0;
+    // string name = "test-" + to_string(i++) + ".ps";
+    // FILE* fp = fopen(name.c_str(), "ab+");
     // fwrite(frame->_buffer.data(), 1, frame->_buffer.size(), fp);
     // fclose(fp);
 }

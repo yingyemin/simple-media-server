@@ -19,7 +19,7 @@ using namespace std;
 
 RtpDecoder::Ptr RtpDecoder::creatDecoder(const shared_ptr<TrackInfo>& trackInfo)
 {
-    logInfo << "codec: " << trackInfo->codec_;
+    logDebug << "codec: " << trackInfo->codec_;
     if (trackInfo->codec_ == "h264") {
         return make_shared<RtpDecodeH264>(trackInfo);
     } else if (trackInfo->codec_ == "aac") {

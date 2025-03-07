@@ -20,12 +20,12 @@ RtspConnection::RtspConnection(const EventLoop::Ptr& loop, const Socket::Ptr& so
     ,_loop(loop)
     ,_socket(socket)
 {
-    logInfo << "RtspConnection";
+    logDebug << "RtspConnection " << this;
 }
 
 RtspConnection::~RtspConnection()
 {
-    logInfo << "~RtspConnection, _isPublish: " << _isPublish;
+    logDebug << "~RtspConnection, _isPublish: " << _isPublish << ", path: " << _urlParser.path_ << ", this: " << this;
     auto rtspSrc = _source.lock();
     if (_isPublish && rtspSrc) {
         rtspSrc->release();
@@ -126,7 +126,7 @@ void RtspConnection::onRtspPacket()
         {"GET_PARAMETER", &RtspConnection::handleGetParam}
     };
 
-    logInfo << _parser._method;
+    logDebug << _parser._method << ", uri: " << _urlParser.path_;
     auto it = rtspHandle.find(_parser._method);
     if (it != rtspHandle.end()) {
         (this->*(it->second))();
@@ -406,7 +406,7 @@ void RtspConnection::handleAnnounce_l() {
             return ;
         }
         // logInfo << "type: " << track->getTrackType();
-        logInfo << "index: " << track->getTrackIndex() << ", codec : " << media->codec_
+        logDebug << "index: " << track->getTrackIndex() << ", codec : " << media->codec_
                     << ", control: " << media->control_;
         rtspSource->addTrack(track);
         rtspSource->addControl2Index(media->control_, track->getTrackIndex());
@@ -549,7 +549,7 @@ void RtspConnection::sendUnsupportedTransport()
 
 void RtspConnection::handleSetup()
 {
-    logInfo << "url: " << _parser._url;
+    logDebug << "url: " << _parser._url;
     auto rtspSrc = _source.lock();
     if (!rtspSrc) {
         sendBadRequst("source is offline");
@@ -584,7 +584,7 @@ void RtspConnection::handleSetup()
         return ;
     }
 
-    logInfo << "index: " << index << ", codec: " << codec << ", control: " << control;
+    logDebug << "index: " << index << ", codec: " << codec << ", control: " << control;
 
     auto track = rtspSrc->getTrack(index);
     if (!track) {
@@ -640,7 +640,7 @@ void RtspConnection::handleSetup()
             return ;
         }
         auto rtpPort = socketRtp->getLocalPort();
-        logInfo << "getLocalPort: " << rtpPort;
+        logDebug << "getLocalPort: " << rtpPort;
         if (rtpPort < 0) {
             sendNotAcceptable();
             return ;
@@ -693,7 +693,7 @@ void RtspConnection::handleSetup()
         _mapRtcpTransport.emplace(index * 2 + 1, rtcpTrans);
         rtpTrans->setRtcp(rtcpTrans);
 
-        logInfo << "index ============: " << index;
+        // logInfo << "index ============: " << index;
 
         rtpTrans->start();
         rtcpTrans->start();

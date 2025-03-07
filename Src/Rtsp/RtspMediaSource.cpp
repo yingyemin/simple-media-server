@@ -42,7 +42,7 @@ void RtspMediaSource::addTrack(const RtspTrack::Ptr& track)
             }, true, true); 
         };
         _ring = std::make_shared<QueType>(_ringSize, std::move(lam));
-        logInfo << "create _ring: " << _ring;
+        logDebug << "create _ring: " << _ring;
     }
     {
         lock_guard<mutex> lck(_mtxTrack);
@@ -155,7 +155,7 @@ void RtspMediaSource::onReady()
                 strongSelf->onReaderChanged(size);
             }, true, true); 
         };
-        logInfo << "create _ring";
+        logDebug << "create _ring, path: " << _urlParser.path_;
         _ring = std::make_shared<QueType>(_ringSize, std::move(lam));
     }
     MediaSource::onReady();
@@ -184,11 +184,11 @@ void RtspMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
             _sdp = ss.str();
         }
         _sdp += track->getSdp();
-        logInfo << "sdp : " << _sdp;
+        logDebug << "sdp : " << _sdp;
     }
     string control = "trackID=" + to_string(track->index_);
     addControl2Index(control, track->index_);
-    logInfo << "index: " << track->index_ << ", codec: " << track->codec_ << ", control: " << control;
+    logDebug << "index: " << track->index_ << ", codec: " << track->codec_ << ", control: " << control << ", path: " << _urlParser.path_;
     std::weak_ptr<RtspMediaSource> weakSelf = std::static_pointer_cast<RtspMediaSource>(shared_from_this());
     if (!_ring) {
         auto lam = [weakSelf](int size) {
@@ -205,12 +205,12 @@ void RtspMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
             }, true, true); 
         };
         _ring = std::make_shared<QueType>(_ringSize, std::move(lam));
-        logInfo << "create _ring : " << _ring;
+        logDebug << "create _ring : " << _ring << ", path: " << _urlParser.path_;;
     }
     auto rtspTrack = make_shared<RtspEncodeTrack>(track->index_, track);
     {
         lock_guard<mutex> lck(_mtxTrack);
-        logInfo << "add track, index: " << track->index_;
+        logDebug << "add track, index: " << track->index_ << ", path: " << _urlParser.path_;;
         _mapRtspTrack.emplace(track->index_, rtspTrack);
     }
     rtspTrack->setSsrc(track->index_ + 1000);
@@ -296,7 +296,7 @@ void RtspMediaSource::addSink(const MediaSource::Ptr &src)
 
 void RtspMediaSource::delSink(const MediaSource::Ptr &src)
 {
-    logInfo << "RtspMediaSource::delSink";
+    logDebug << "RtspMediaSource::delSink" << ", path: " << _urlParser.path_;
     if (!_loop->isCurrent()) {
         weak_ptr<RtspMediaSource> wSlef = static_pointer_cast<RtspMediaSource>(shared_from_this());
         _loop->async([wSlef, src](){
@@ -340,7 +340,7 @@ void RtspMediaSource::onFrame(const FrameBuffer::Ptr& frame)
 
 void RtspMediaSource::setSdp(const string& sdp)
 {
-    logInfo << "sdp: " << sdp;
+    logDebug << "sdp: " << sdp << ", path: " << _urlParser.path_;;
     lock_guard<mutex> lck(_mtxSdp);
     _sdp = sdp;
 }

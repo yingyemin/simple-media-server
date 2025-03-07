@@ -10,6 +10,7 @@ FrameMediaSource::FrameMediaSource(const UrlParser& urlParser, const EventLoop::
     // TODO get it from config
     _ring = std::make_shared<FrameRingType>(250, nullptr);
     logDebug << "create frame ring: " << _ring;
+    _frameClock.start();
 }
 
 FrameMediaSource::~FrameMediaSource()
@@ -43,7 +44,12 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
         return ;
     }
 
-    
+    uint64_t now = TimeClock::now();
+    if (_frameClock.startToNow() > 5000) {
+        _fps = _frameCount * 1000.0 / _frameClock.startToNow();
+        _frameCount = 0;
+        _frameClock.update();
+    }
 
     // if (_urlParser.type_ == "transcode") {
     //     logInfo << "transcode frame: " << _urlParser.type_;
@@ -56,6 +62,8 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
         // logInfo << "on frame to sink";
         bool keyframe = false;
         if (frame->getTrackType() == VideoTrackType) {
+            _lastFrameTime = now;
+            ++_frameCount;
             // logInfo << "nal type: " << (int)frame->getNalType();
             if (frame->isNonPicNalu()) {
                 return ;
@@ -82,6 +90,8 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
             // }
 
             if (frame->startFrame()) {
+                _gopTime = now - _lastKeyframeTime;
+                _lastKeyframeTime = now;
                 keyframe = true;
                 _sendConfig = true;
 

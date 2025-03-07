@@ -88,8 +88,8 @@ public:
     {
         uint8_t type = (uint8_t)(_buffer[_startSize]) & 0x1F;
         switch(type){
-            case H264NalType::H264_SPS:
-            case H264NalType::H264_PPS:
+            // case H264NalType::H264_SPS:
+            // case H264NalType::H264_PPS:
             case H264NalType::H264_AUD:
             case H264NalType::H264_SEI:
                 return true;
