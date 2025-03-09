@@ -58,6 +58,8 @@ void WebsocketConnection::onWebsocketFrame(const char* data, int len)
             return ;
         }
         frameSrc->setOrigin();
+        frameSrc->setOriginSocket(_socket);
+        frameSrc->setAction(true);
         _source = frameSrc;
 
         auto trackInfo = G711aTrack::createTrack(AudioTrackType, 8, 8000);

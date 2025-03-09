@@ -156,6 +156,8 @@ void WebrtcContext::initPublisher(const string& appName, const string& streamNam
     _source = rtcSource;
     _isPlayer = false;
     rtcSource->setOrigin();
+    rtcSource->setOriginSocket(_socket);
+    rtcSource->setAction(false);
 
     // read config
     shared_ptr<TrackInfo> videoInfo = make_shared<H264Track>();

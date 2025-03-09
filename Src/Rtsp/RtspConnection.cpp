@@ -362,6 +362,7 @@ void RtspConnection::handleAnnounce_l() {
     // _source = dynamic_pointer_cast<RtspMediaSource>(source);
     rtspSource->setSdp(_parser._content);
     rtspSource->setOrigin();
+    rtspSource->setAction(true);
     rtspSource->setOriginSocket(_socket);
     weak_ptr<RtspConnection> wSelf = dynamic_pointer_cast<RtspConnection>(shared_from_this());
     rtspSource->addOnDetach(this, [wSelf](){
@@ -670,20 +671,20 @@ void RtspConnection::handleSetup()
         // logInfo << "client port: " << findSubStr(strClientPort, "", "-");
         // logInfo << "client port: " << findSubStr(strClientPort, "-", "");
 
-        struct sockaddr_in peerAddr;
-        //设置rtp发送目标地址
-        peerAddr.sin_family = AF_INET;
-        peerAddr.sin_port = htons(ui16RtpPort);
-        peerAddr.sin_addr.s_addr = inet_addr(_socket->getPeerIp().data());
-        bzero(&(peerAddr.sin_zero), sizeof peerAddr.sin_zero);
-        socketRtp->bindPeerAddr((struct sockaddr *) (&peerAddr));
+        // struct sockaddr_in peerAddr;
+        // //设置rtp发送目标地址
+        // peerAddr.sin_family = AF_INET;
+        // peerAddr.sin_port = htons(ui16RtpPort);
+        // peerAddr.sin_addr.s_addr = inet_addr(_socket->getPeerIp().data());
+        // bzero(&(peerAddr.sin_zero), sizeof peerAddr.sin_zero);
+        // socketRtp->bindPeerAddr((struct sockaddr *) (&peerAddr));
 
-        //设置rtcp发送目标地址
-        peerAddr.sin_family = AF_INET;
-        peerAddr.sin_port = htons(ui16RtcpPort);
-        peerAddr.sin_addr.s_addr = inet_addr(_socket->getPeerIp().data());
-        bzero(&(peerAddr.sin_zero), sizeof peerAddr.sin_zero);
-        socketRtcp->bindPeerAddr((struct sockaddr *) (&peerAddr));
+        // //设置rtcp发送目标地址
+        // peerAddr.sin_family = AF_INET;
+        // peerAddr.sin_port = htons(ui16RtcpPort);
+        // peerAddr.sin_addr.s_addr = inet_addr(_socket->getPeerIp().data());
+        // bzero(&(peerAddr.sin_zero), sizeof peerAddr.sin_zero);
+        // socketRtcp->bindPeerAddr((struct sockaddr *) (&peerAddr));
 
         socketRtp->addToEpoll();
         socketRtcp->addToEpoll();

@@ -97,6 +97,8 @@ void HttpPsClient::onConnect()
     logInfo << "create a TsMediaSource";
     auto psSource = dynamic_pointer_cast<PsMediaSource>(source);
     psSource->setOrigin();
+    psSource->setOriginSocket(_socket);
+    psSource->setAction(false);
 
     auto psDemuxer = make_shared<PsDemuxer>();
 

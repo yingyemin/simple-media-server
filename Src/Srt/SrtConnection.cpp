@@ -289,6 +289,7 @@ void SrtConnection::initPush()
         logInfo << "create a TsMediaSource";
         auto tsSource = dynamic_pointer_cast<TsMediaSource>(source);
         tsSource->setOrigin();
+        tsSource->setAction(true);
 
         auto tsDemuxer = make_shared<TsDemuxer>();
 

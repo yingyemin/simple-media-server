@@ -114,6 +114,7 @@ void HttpApi::getSourceList(const HttpParser& parser, const UrlParser& urlParser
         item["createTime"] = source->getCreateTime();
         item["statuc"] = source->isReady() ? "ready" : "unready";
         item["onlineDuration"] = TimeClock::now() - source->getCreateTime();
+        item["action"] = source->getAction() ? "push" : "pull";
         auto tracks = source->getTrackInfo();
         for (auto iter : tracks) {
             string status = iter.second->isReady() ? "ready" : "expire";
@@ -231,6 +232,7 @@ void HttpApi::getSourceInfo(const HttpParser& parser, const UrlParser& urlParser
         value["bytes"] = source->getBytes();
         value["createTime"] = source->getCreateTime();
         value["onlineDuration"] = TimeClock::now() - source->getCreateTime();
+        value["action"] = source->getAction() ? "push" : "pull";
         auto tracks = source->getTrackInfo();
         for (auto iter : tracks) {
             string status = iter.second->isReady() ? "ready" : "expire";

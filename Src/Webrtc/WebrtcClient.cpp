@@ -204,6 +204,8 @@ void WebrtcClient::initPuller()
     }
     _source = rtcSource;
     rtcSource->setOrigin();
+    rtcSource->setOriginSocket(_socket);
+    rtcSource->setAction(false);
     {
         lock_guard<mutex> lck(_mtx);
         for (auto &iter : _mapOnReady) {

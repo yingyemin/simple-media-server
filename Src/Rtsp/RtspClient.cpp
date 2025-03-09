@@ -385,6 +385,7 @@ void RtspClient::sendSetup()
                 // _source = dynamic_pointer_cast<RtspMediaSource>(source);
                 rtspSource->setSdp(_parser._content);
                 rtspSource->setOrigin();
+                rtspSource->setAction(false);
 
                 int trackIndex = 0;
                 for (auto& media : _sdpParser._vecSdpMedia) {
@@ -421,6 +422,7 @@ void RtspClient::sendSetup()
             // _source = dynamic_pointer_cast<RtspMediaSource>(source);
             rtspSource->setSdp(_parser._content);
             rtspSource->setOrigin();
+            rtspSource->setAction(false);
 
             int trackIndex = 0;
             for (auto& media : _sdpParser._vecSdpMedia) {

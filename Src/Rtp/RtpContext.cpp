@@ -74,6 +74,7 @@ bool RtpContext::init()
         return false;
     }
     gbSrc->setOrigin();
+    gbSrc->setAction(true);
     _loop = gbSrc->getLoop();
 
     weak_ptr<RtpContext> wSelf = shared_from_this();

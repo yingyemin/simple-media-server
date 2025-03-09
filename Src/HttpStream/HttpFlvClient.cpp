@@ -183,6 +183,8 @@ void HttpFlvClient::onConnect()
         return ;
     }
     rtmpSrc->setOrigin();
+    rtmpSrc->setOriginSocket(_socket);
+    rtmpSrc->setAction(false);
 
     _source = rtmpSrc;
 }

@@ -217,6 +217,7 @@ void JT1078Connection::createSource(const JT1078RtpPacket::Ptr& buffer)
     }
     jtSrc->setOrigin();
     jtSrc->setOriginSocket(_socket);
+    jtSrc->setAction(true);
     weak_ptr<JT1078Connection> wSelf = dynamic_pointer_cast<JT1078Connection>(shared_from_this());
     jtSrc->addOnDetach(this, [wSelf](){
         auto self = wSelf.lock();

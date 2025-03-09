@@ -106,6 +106,8 @@ public:
     void setStatus(const SourceStatus status) {_status = status;}
     int getStatus() {return _status;}
     void setOrigin() {_origin = true;}
+    void setAction(bool isPush) {_isPush = isPush;}
+    bool getAction() {return _isPush;}
     void setOrigin(const MediaSource::Ptr &src);
     MediaSource::Ptr getOrigin();
     bool isOrigin() {return _origin;}
@@ -121,6 +123,7 @@ public:
 
 protected:
     bool _origin = false;
+    bool _isPush = true;
     uint64_t _createTime = 0;
     SourceStatus _status = WAITING;
     UrlParser _urlParser;

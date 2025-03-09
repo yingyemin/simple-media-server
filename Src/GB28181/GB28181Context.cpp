@@ -90,6 +90,7 @@ void GB28181Context::initAfterPublish()
         return ;
     }
     gbSrc->setOrigin();
+    gbSrc->setAction(true);
 
     if (_payloadType == "ps") {
         _videoTrack = make_shared<GB28181DecodeTrack>(0);

@@ -98,6 +98,8 @@ bool HttpVodClient::start(const string& localIp, int localPort, const string& ur
     }
 
     frameSrc->setOrigin();
+    frameSrc->setOriginSocket(_socket);
+    frameSrc->setAction(false);
     _source = frameSrc;
 
     download();

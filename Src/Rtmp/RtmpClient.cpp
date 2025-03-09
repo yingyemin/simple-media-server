@@ -489,6 +489,8 @@ bool RtmpClient::handlePlay()
     }
     // rtmpSrc->setSdp(_parser._content);
     rtmpSrc->setOrigin();
+    rtmpSrc->setOriginSocket(_socket);
+    rtmpSrc->setAction(false);
     // weak_ptr<RtmpConnection> wSelf = dynamic_pointer_cast<RtmpConnection>(shared_from_this());
 
     _source = rtmpSrc; 
