@@ -28,8 +28,9 @@ TranscodeTask::~TranscodeTask()
 
     auto originSrc = _originSource.lock();
     if (originSrc) {
-        originSrc->release();
+        // originSrc->release();
         originSrc->delConnection(this);
+        originSrc->delOnDetach(this);
     }
 }
 

@@ -5,12 +5,16 @@ project(SimpleMediaServer)
 option(ENABLE_ASAN "Enable lib asan" false)
 option(ENABLE_OPENSSL "Enable openssl" true)
 option(ENABLE_FFMPEG "Enable ffmpeg" false)
+option(ENABLE_SRT "Enable srt" true)
+option(ENABLE_PROJECT_GB2818SIP "Enable test gb28181 sip" false)
 option(ENABLE_PROJECT_TRANSCODEVIDEO "Enable test transcodeVideo" false)
 option(ENABLE_PROJECT_TRANSCODEAUDIO "Enable test transcodeAudio" false)
 
 #设置调试信息并开启c++11标准
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O3 -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
 SET(CMAKE_EXE_LINKER_FLAGS " -no-pie") 
+#set(BUILD_SHARED_LIBS OFF)  # 确保静态链接
+#set(CMAKE_EXE_LINKER_FLAGS "-static -static-libgcc")
 
 set(LINK_LIB_LIST src base)
 
@@ -21,6 +25,7 @@ if (ENABLE_ASAN)
 endif ()
 
 if (ENABLE_FFMPEG)
+    message(STATUS "开启FFMPEG")
     add_definitions(-DENABLE_FFMPEG)
     # 设置ffmpeg库的头文件目录
     set(FFMPEG_INCLUDE_DIR "./Thirdparty/libffmpeg/include")
@@ -30,7 +35,7 @@ if (ENABLE_FFMPEG)
     include_directories(${FFMPEG_INCLUDE_DIR})
     # 定义要链接的srtp库
     link_directories(${FFMPEG_LIBRARY})
-    list(APPEND LINK_LIB_LIST avformat avfilter avcodec swresample swscale postproc avutil z x264 x265 opus mp3lame fdk-aac vpx bz2 m freetype lzma drm)
+    list(APPEND LINK_LIB_LIST avformat avfilter avcodec swresample swscale postproc avutil z x264 x265 aom opus mp3lame fdk-aac vpx bz2 m freetype lzma drm)
 endif ()
 
 #查找openssl是否安装
@@ -63,15 +68,18 @@ include_directories(${SRTP_INCLUDE_DIR})
 link_directories(${SRTP_LIBRARY})
 list(APPEND LINK_LIB_LIST srtp2)
 
-# 设置srt库的头文件目录
-set(SRT_INCLUDE_DIR "./Thirdparty/libsrt/include")
-# 设置srt库的二进制文件目录
-set(SRT_LIBRARY "./Thirdparty/libsrt/lib/")
-# 包含srt头文件目录
-include_directories(${SRT_INCLUDE_DIR})
-# 定义要链接的srt库
-link_directories(${SRT_LIBRARY})
-list(APPEND LINK_LIB_LIST srt)
+if (ENABLE_SRT)
+    add_definitions(-DENABLE_SRT)
+    # 设置srt库的头文件目录
+    set(SRT_INCLUDE_DIR "./Thirdparty/libsrt/include")
+    # 设置srt库的二进制文件目录
+    set(SRT_LIBRARY "./Thirdparty/libsrt/lib/")
+    # 包含srt头文件目录
+    include_directories(${SRT_INCLUDE_DIR})
+    # 定义要链接的srt库
+    link_directories(${SRT_LIBRARY})
+    list(APPEND LINK_LIB_LIST srt)
+endif()
 
 # 设置sctp库的头文件目录
 set(SCTP_INCLUDE_DIR "./Thirdparty/libusrsctp/include")
@@ -92,6 +100,7 @@ add_subdirectory(Base)
 add_subdirectory(Src)
 
 add_executable(SimpleMediaServer main.cpp)
+#target_link_libraries(SimpleMediaServer -static ${LINK_LIB_LIST} dl pthread)
 target_link_libraries(SimpleMediaServer ${LINK_LIB_LIST} dl pthread)
 
 if (ENABLE_PROJECT_TRANSCODEVIDEO)
@@ -106,3 +115,9 @@ if (ENABLE_PROJECT_TRANSCODEAUDIO)
     target_link_libraries(transcodeAudio ${LINK_LIB_LIST} dl pthread)
 endif ()
 
+if (ENABLE_PROJECT_GB2818SIP)
+    project(SimpleSipServer)
+    add_subdirectory(GB28181SIP)
+    add_executable(SimpleSipServer gb28181Sip.cpp)
+    target_link_libraries(SimpleSipServer gb28181Sip src base ssl crypto dl pthread)
+endif ()

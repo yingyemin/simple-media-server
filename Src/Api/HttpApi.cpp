@@ -38,6 +38,7 @@ void HttpApi::route(const HttpParser& parser, const UrlParser& urlParser,
     rsp._status = 400;
     json value;
     value["msg"] = msg;
+    value["code"] = 400;
     rsp.setContent(value.dump());
     rspFunc(rsp);
     
@@ -53,6 +54,7 @@ void HttpApi::initApi()
     g_mapApi.emplace("/api/v1/closeClient", HttpApi::closeClient);
     g_mapApi.emplace("/api/v1/getLoopList", HttpApi::getLoopList);
     g_mapApi.emplace("/api/v1/exitServer", HttpApi::exitServer);
+    g_mapApi.emplace("/api/v1/version", HttpApi::getVersion);
 }
 
 void HttpApi::handleConfig(const HttpParser& parser, const UrlParser& urlParser, 
@@ -277,6 +279,13 @@ void HttpApi::getSourceInfo(const HttpParser& parser, const UrlParser& urlParser
                 mItem["protocol"] = mSource->getProtocol();
                 mItem["type"] = mSource->getType();
                 mItem["playerCount"] = mSource->playerCount();
+                if (mSource->getProtocol() == "frame") {
+                    auto frameSrc = dynamic_pointer_cast<FrameMediaSource>(mSource);
+                    mItem["video"]["fps"] = frameSrc->getFps();
+                    mItem["video"]["lastFrameTime"] = frameSrc->getLastFrameTime();
+                    mItem["video"]["lastGopTime"] = frameSrc->getLastGopTime();
+                    mItem["video"]["lastKeyframeTime"] = frameSrc->getLastKeyframeTime();
+                }
                 totalPlayerCount += mSource->playerCount();
 
                 value["muxer"].push_back(mItem);
@@ -413,4 +422,18 @@ void HttpApi::exitServer(const HttpParser& parser, const UrlParser& urlParser,
                         const function<void(HttpResponse& rsp)>& rspFunc)
 {
     exit(0);
+}
+
+void HttpApi::getVersion(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    value["version"] = GIT_VERSION;
+    value["code"] = "200";
+    value["msg"] = "success";
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
 }

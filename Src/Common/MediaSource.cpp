@@ -623,7 +623,8 @@ void MediaSource::release()
     //     }, true, false);
     //     return ;
     // }
-    logInfo << "delete source: " << _urlParser.path_ + "_" + _urlParser.vhost_ << ", _origin: " << _origin;
+    logInfo << "delete source: " << _urlParser.path_ + "_" + _urlParser.vhost_ << ", _origin: " << _origin
+            << ", type: " << _urlParser.type_ << ", protocol: " << _urlParser.protocol_;
     if (_origin) {
         MediaSource::release(_urlParser.path_, _urlParser.vhost_);
         {
@@ -858,7 +859,8 @@ void MediaSource::delOnDetach(void* key)
 
 void MediaSource::onReaderChanged(int size)
 {
-    logDebug << "onReaderChanged: " << size << ", path: " << _urlParser.path_;
+    logDebug << "onReaderChanged: " << size << ", path: " << _urlParser.path_
+            << ", type: " << _urlParser.type_ << ", protocol: " << _urlParser.protocol_;
     if (size != 0) {
         return ;
     }

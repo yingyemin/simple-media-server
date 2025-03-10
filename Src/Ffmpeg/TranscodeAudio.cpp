@@ -230,7 +230,7 @@ bool AudioFifo::write(const AVFrame *frame) {
         _timebase = 1000.0 / _samplerate;
     }
     
-    logInfo << "_channels: " << _channels << ", _samplerate: " << _samplerate << ", pts : " << frame->pts;
+    logTrace << "_channels: " << _channels << ", _samplerate: " << _samplerate << ", pts : " << frame->pts;
     if (frame->pts != AV_NOPTS_VALUE) {
         // 计算fifo audio第一个采样的时间戳
         // double tsp = frame->pts - _timebase * av_audio_fifo_size(_fifo);
@@ -526,8 +526,7 @@ bool AudioEncoder::encode(AVFrame *frame) {
             logWarn << "Error encoding a frame: " << ffmpeg_err(ret);
             return false;
         }
-        // logTrace << "out " << packet->pts << "," << packet->dts << ", size: " << packet->size;
-        //logInfo << "out " << packet->pts << "," << packet->dts << ", size: " << packet->size;
+        logTrace << "out " << packet->pts << "," << packet->dts << ", size: " << packet->size;
         onPacket(packet.get());
     }
     return true;

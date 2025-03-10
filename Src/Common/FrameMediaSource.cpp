@@ -90,8 +90,6 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
             // }
 
             if (frame->startFrame()) {
-                _gopTime = now - _lastKeyframeTime;
-                _lastKeyframeTime = now;
                 keyframe = true;
                 _sendConfig = true;
 
@@ -103,32 +101,36 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
                 }
                 _ring->write(frame, keyframe);
             } else if (frame->isNewNalu() && _frame) {
-                if (_frame->keyFrame() && (_frame->codec() == "h264" || _frame->codec() == "h265")) {
-                    if (!_sendConfig) {
-                        FrameBuffer::Ptr vps;
-                        FrameBuffer::Ptr sps;
-                        FrameBuffer::Ptr pps;
-                        _mapTrackInfo[_frame->_index]->getVpsSpsPps(vps, sps, pps);
+                if (_frame->keyFrame()) {
+                    _gopTime = now - _lastKeyframeTime;
+                    _lastKeyframeTime = now;
+                    if (_frame->codec() == "h264" || _frame->codec() == "h265") {
+                        if (!_sendConfig) {
+                            FrameBuffer::Ptr vps;
+                            FrameBuffer::Ptr sps;
+                            FrameBuffer::Ptr pps;
+                            _mapTrackInfo[_frame->_index]->getVpsSpsPps(vps, sps, pps);
 
-                        if (_mapTrackInfo[_frame->_index]->codec_ == "h264") {
-                            keyframe = true;
-                        } else if (_mapTrackInfo[_frame->_index]->codec_ == "h265") {
-                            keyframe = false;
-                            vps->_dts = _frame->_dts;
-                            vps->_pts = _frame->_pts;
-                            vps->_index = _frame->_index;
-                            _ring->write(vps, true);
+                            if (_mapTrackInfo[_frame->_index]->codec_ == "h264") {
+                                keyframe = true;
+                            } else if (_mapTrackInfo[_frame->_index]->codec_ == "h265") {
+                                keyframe = false;
+                                vps->_dts = _frame->_dts;
+                                vps->_pts = _frame->_pts;
+                                vps->_index = _frame->_index;
+                                _ring->write(vps, true);
+                            }
+                            
+                            sps->_dts = _frame->_dts;
+                            sps->_pts = _frame->_pts;
+                            sps->_index = _frame->_index;
+                            _ring->write(sps, keyframe);
+
+                            pps->_dts = _frame->_dts;
+                            pps->_pts = _frame->_pts;
+                            pps->_index = _frame->_index;
+                            _ring->write(pps, false);
                         }
-                        
-                        sps->_dts = _frame->_dts;
-                        sps->_pts = _frame->_pts;
-                        sps->_index = _frame->_index;
-                        _ring->write(sps, keyframe);
-
-                        pps->_dts = _frame->_dts;
-                        pps->_pts = _frame->_pts;
-                        pps->_index = _frame->_index;
-                        _ring->write(pps, false);
                     }
                     _sendConfig = false;
                 }
@@ -209,7 +211,7 @@ void FrameMediaSource::addSink(const MediaSource::Ptr &sink)
             if (!strongSelf) {
                 return;
             }
-            // strongSelf->onReaderChanged(size);
+            strongSelf->onReaderChanged(size);
         };
         _ring = std::make_shared<FrameRingType>(_ring_size, std::move(lam));
     }

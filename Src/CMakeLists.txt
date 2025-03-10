@@ -93,3 +93,21 @@ add_library(src STATIC
     ${SRC_Record}
     ${SRC_Ffmpeg}
 )
+
+# 获取 Git 版本信息
+execute_process(
+    COMMAND git rev-parse HEAD
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    OUTPUT_VARIABLE GIT_VERSION
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+# 将 Git 版本信息传递给编译器
+target_compile_definitions(
+    ${PROJECT_NAME}
+    PRIVATE
+    GIT_VERSION="${GIT_VERSION}"
+)
+
+# 输出获取的 Git 版本信息
+message(STATUS "Git Version: ${GIT_VERSION}")

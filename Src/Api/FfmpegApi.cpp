@@ -36,6 +36,10 @@ void FfmpegApi::addTask(const HttpParser& parser, const UrlParser& urlParser,
         audioCodec = parser._body["audioCodec"];
     }
 
+    if (videoCodec.empty() && audioCodec.empty()) {
+        throw ApiException(400, "videoCodec or audioCodec must be set");
+    }
+
     string taskId = TranscodeTask::addTask(parser._body["path"], videoCodec, audioCodec);
 
     HttpResponse rsp;
