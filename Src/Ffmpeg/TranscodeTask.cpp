@@ -21,6 +21,7 @@ TranscodeTask::TranscodeTask()
 
 TranscodeTask::~TranscodeTask()
 {
+    logInfo << "taskId: " << _taskId;
     if (_source) {
         _source->release();
         _source->delConnection(this);
@@ -96,6 +97,7 @@ std::string TranscodeTask::init(const std::string& uri, const std::string& video
         frameSrc->setLoop(originSource->getLoop());
     }
 
+    frameSrc->setOrigin(originSource);
     _source = frameSrc;
     weak_ptr<TranscodeTask> wSelf = shared_from_this();
 

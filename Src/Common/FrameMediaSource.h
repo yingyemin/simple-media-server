@@ -47,7 +47,7 @@ public:
 
 private:
     bool _sendConfig = false;
-    int _ring_size = 25;
+    int _ring_size = 256;
     int _gopTime = 0;
     float _fps = 0;
     uint64_t _frameCount = 0;

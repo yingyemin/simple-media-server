@@ -511,7 +511,11 @@ bool AudioEncoder::encode(AVFrame *frame) {
     // logTrace << "enc " << frame->pts;
     //logInfo << "avcodec_send_frame+++++" << endl;
     //avcodec_send_frame 负责给编码器提供未压缩的原始数据
+    frame->pts = _sampleNum * 1000 / _context->sample_rate;
     int ret = avcodec_send_frame(_context.get(), frame);//重采样之后的数据发送到编码线程 CSL 
+    _sampleNum += frame->nb_samples;
+    logTrace << "_sampleNum: " << _sampleNum << ", samplerate: " << _context->sample_rate 
+            << ", frame pts: " << frame->pts;
     //logInfo << "avcodec_send_frame+++++ " << ret << endl;
     if (ret < 0) {
         logWarn << "Error sending a frame " << frame->pts << " to the encoder: " << ffmpeg_err(ret);

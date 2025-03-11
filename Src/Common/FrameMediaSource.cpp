@@ -8,8 +8,8 @@ FrameMediaSource::FrameMediaSource(const UrlParser& urlParser, const EventLoop::
 {
     // _cache = std::make_shared<toolkit::List<Frame::Ptr>>();
     // TODO get it from config
-    _ring = std::make_shared<FrameRingType>(250, nullptr);
-    logDebug << "create frame ring: " << _ring;
+    // _ring = std::make_shared<FrameRingType>(250, nullptr);
+    // logDebug << "create frame ring: " << _ring;
     _frameClock.start();
 }
 
@@ -31,6 +31,11 @@ FrameMediaSource::~FrameMediaSource()
 
 void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
 {
+    if (!_ring) {
+        logDebug << "_ring is empty, path: " << _urlParser.path_ << ", this: " << this;
+        return ;
+    }
+
     if (_origin && !isReady()) {
         MediaSource::onFrame(frame);
         return ;
@@ -173,6 +178,18 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
 void FrameMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
 {
     logTrace << "on add track to sink, uri: " << _urlParser.path_;
+    weak_ptr<FrameMediaSource> weak_self = static_pointer_cast<FrameMediaSource>(shared_from_this());
+    if (!_ring) {
+        auto lam = [weak_self](int size) {
+            auto strongSelf = weak_self.lock();
+            if (!strongSelf) {
+                return;
+            }
+            strongSelf->onReaderChanged(size);
+        };
+        _ring = std::make_shared<FrameRingType>(_ring_size, std::move(lam));
+    }
+
     MediaSource::addTrack(track);
     if (track->trackType_ == "video" && !_origin) {
         _videoStampAdjust = make_shared<VideoStampAdjust>(0);
@@ -206,7 +223,7 @@ void FrameMediaSource::addSink(const MediaSource::Ptr &sink)
     sink->onReady();
     weak_ptr<FrameMediaSource> weak_self = static_pointer_cast<FrameMediaSource>(shared_from_this());
     if (!_ring) {
-            auto lam = [weak_self](int size) {
+        auto lam = [weak_self](int size) {
             auto strongSelf = weak_self.lock();
             if (!strongSelf) {
                 return;
@@ -244,7 +261,9 @@ void FrameMediaSource::delSink(const MediaSource::Ptr& sink)
         for (auto& source : _mapSource) {
             source.second->delSink(static_pointer_cast<FrameMediaSource>(shared_from_this()));
         }
-        release();
+        if (_urlParser.type_ != "transcode") {
+            release();
+        }
     }
 }
 

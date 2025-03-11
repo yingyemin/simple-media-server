@@ -390,6 +390,9 @@ bool MediaSource::getOrCreateAsync(const string &protocol, const string& type,
             cb(src);
         }, true, true);
         return true;
+    } else if (type == "transcode") {
+        cb(nullptr);
+        return true;
     }
 
     logTrace << "getOrCreateAsync find other protocol src, uri: " << _urlParser.path_;
@@ -651,11 +654,10 @@ void MediaSource::release()
         MediaSource::Ptr src;
         {
             auto origin = _originSrc.lock();
-            if (!origin) {
-                return ;
+            if (origin) {
+                lock_guard<recursive_mutex> lck(origin->_mtxStreamSource);
+                origin->_streamSource[_urlParser.protocol_].erase(_urlParser.type_);
             }
-            lock_guard<recursive_mutex> lck(origin->_mtxStreamSource);
-            origin->_streamSource[_urlParser.protocol_].erase(_urlParser.type_);
         }
         
         // lock_guard<mutex> lck(src->_mtxStreamSource);

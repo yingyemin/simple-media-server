@@ -114,6 +114,7 @@ private:
     bool initCodec(int samplerate, int channel, int bitrate, const AVCodec *codec);
 
 private:
+    uint64_t _sampleNum = 0;
     std::function<void(const FrameBuffer::Ptr &)> _onPakcet;
     std::string _codecId;
     const AVCodec *_codec = nullptr;

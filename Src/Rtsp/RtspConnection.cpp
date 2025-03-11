@@ -25,7 +25,7 @@ RtspConnection::RtspConnection(const EventLoop::Ptr& loop, const Socket::Ptr& so
 
 RtspConnection::~RtspConnection()
 {
-    logDebug << "~RtspConnection, _isPublish: " << _isPublish << ", path: " << _urlParser.path_ << ", this: " << this;
+    logInfo << "~RtspConnection, _isPublish: " << _isPublish << ", path: " << _urlParser.path_ << ", this: " << this;
     auto rtspSrc = _source.lock();
     if (_isPublish && rtspSrc) {
         rtspSrc->release();

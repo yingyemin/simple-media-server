@@ -4,6 +4,7 @@
 #include <cctype>
 #include <arpa/inet.h>
 #include <sstream>
+#include <iomanip>
 
 #include "WebrtcClient.h"
 #include "Logger.h"
@@ -14,6 +15,7 @@
 #include "WebrtcContext.h"
 #include "Webrtc.h"
 #include "Codec/H264Track.h"
+#include "Codec/AacTrack.h"
 #include "Hook/MediaHook.h"
 
 using namespace std;
@@ -77,11 +79,11 @@ bool WebrtcClient::start(const string& localIp, int localPort, const string& url
     auto localSdp = getLocalSdp();
     logInfo << "local sdp : " << localSdp;
 
-    string apiUrl = "http://127.0.0.1:1985/rtc/v1/play/";
-    json value;
-    value["streamurl"] = url;
-    value["sdp"] = localSdp;
-    value["api"] = apiUrl;
+    // string apiUrl = "http://127.0.0.1:1985/rtc/v1/play/";
+    // json value;
+    // value["streamurl"] = url;
+    // value["sdp"] = localSdp;
+    // value["api"] = apiUrl;
 
     weak_ptr<WebrtcClient> wSelf = shared_from_this();
     _parser.setOnRtcPacket([wSelf](const char* data, int len){
@@ -96,7 +98,7 @@ bool WebrtcClient::start(const string& localIp, int localPort, const string& url
     shared_ptr<HttpClientApi> client = make_shared<HttpClientApi>(EventLoop::getCurrentLoop());
     client->addHeader("Content-Type", "application/json;charset=UTF-8");
     client->setMethod("GET");
-    client->setContent(value.dump());
+    client->setContent(localSdp);
     client->setOnHttpResponce([wSelf, client](const HttpParser &parser){
         auto self = wSelf.lock();
         if (!self) {
@@ -120,7 +122,7 @@ bool WebrtcClient::start(const string& localIp, int localPort, const string& url
         const_cast<shared_ptr<HttpClientApi> &>(client).reset();
     });
     logInfo << "connect to utl: " << url;
-    if (client->sendHeader(localIp, localPort, apiUrl, timeout) != -1) {
+    if (client->sendHeader(localIp, localPort, url, timeout) != -1) {
         close();
         return false;
     }
@@ -214,8 +216,11 @@ void WebrtcClient::initPuller()
         _mapOnReady.clear();
     }
 
-    shared_ptr<TrackInfo> videoInfo = make_shared<H264Track>();
-    shared_ptr<TrackInfo> audioInfo = make_shared<TrackInfo>();
+    // shared_ptr<TrackInfo> videoInfo = make_shared<H264Track>();
+    // shared_ptr<TrackInfo> audioInfo = make_shared<TrackInfo>();
+
+    // videoInfo->codec_ = "h264";
+    // audioInfo->codec_ = "opus";
 
     stringstream ss;
     initLocalSdpTitle(ss, 2);
@@ -245,9 +250,9 @@ void WebrtcClient::initPusher()
         }
     }
 
-    if (!videoInfo || videoInfo->codec_ != "h264") {
-        throw runtime_error("only surpport h264 now");
-    }
+    // if (!videoInfo || videoInfo->codec_ != "h264") {
+    //     throw runtime_error("only surpport h264 now");
+    // }
 
     stringstream ss;
     initLocalSdpTitle(ss, trackNum);
@@ -287,63 +292,120 @@ void WebrtcClient::initPusherLocalSdpMedia(stringstream& ss, const shared_ptr<Tr
     if (audioInfo) {
         if (audioInfo->codec_ == "g711a") {
             ss << "m=audio 9 UDP/TLS/RTP/SAVPF 8\r\n"
-               << "c=IN IP4 0.0.0.0\r\n"
-               << "a=rtcp:9 IN IP4 0.0.0.0\r\n"
-               << "a=ice-ufrag:" << _iceUfrag << "\r\n"
-               << "a=ice-pwd:" << _icePwd << "\r\n"
-               << "a=ice-options:trickle\r\n"
-               << "a=fingerprint:sha-256 " << WebrtcContext::getFingerprint() << "\r\n"
-               << "a=setup:actpass\r\n"
-               << "a=mid:" << midIndex++ << "\r\n"
-               << "a=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level\r\n"
-               << "a=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time\r\n"
-               << "a=extmap:3 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01\r\n"
-               << "a=extmap:4 urn:ietf:params:rtp-hdrext:sdes:mid\r\n"
-               << "a=sendonly\r\n"
-               << "a=msid:- " << audioMsid << "\r\n"
-               << "a=rtcp-mux\r\n"
-               << "a=rtpmap:8 PCMA/8000\r\n"
-               << "a=ssrc:" << audiossrc << " cname:" << cname << "\r\n"
-               << "a=ssrc:" << audiossrc << " msid:- " << audioMsid << "\r\n";
+               << "a=rtpmap:8 PCMA/8000\r\n";
+        } else if (audioInfo->codec_ == "g711u") {
+            ss << "m=audio 9 UDP/TLS/RTP/SAVPF 0\r\n"
+               << "a=rtpmap:0 PCMU/8000\r\n";
+        } else if (audioInfo->codec_ == "opus") {
+            ss << "m=audio 9 UDP/TLS/RTP/SAVPF 111\r\n"
+               << "a=rtpmap:111 opus/48000/2\r\n"
+               << "a=rtcp-fb:111 transport-cc\r\n"
+               << "a=fmtp:111 minptime=10;useinbandfec=1\r\n";
+        } else if (audioInfo->codec_ == "aac") {
+            ss << "m=audio 9 UDP/TLS/RTP/SAVPF 97\r\n"
+               << "a=rtpmap:97 MPEG4-GENERIC/" << audioInfo->samplerate_ << "/" << audioInfo->channel_ << "\r\n"
+               << "a=fmtp:97 streamtype=5;profile-level-id=1;mode=AAC-hbr;"
+	           << "sizelength=13;indexlength=3;indexdeltalength=3;config=";
+            auto aacTrack = dynamic_pointer_cast<AacTrack>(audioInfo);
+            auto aacCondig = aacTrack->getAacInfo();
+            for(auto &ch : aacCondig){
+                // snprintf(buf, sizeof(buf), "%02X", (uint8_t)ch);
+                // configStr.append(buf);
+                ss << std::hex << setw(2) << setfill('0') << (int)((uint8_t)ch);
+            }
+            ss << "\r\n";
         }
+        ss  << "c=IN IP4 0.0.0.0\r\n"
+            << "a=rtcp:9 IN IP4 0.0.0.0\r\n"
+            << "a=ice-ufrag:" << _iceUfrag << "\r\n"
+            << "a=ice-pwd:" << _icePwd << "\r\n"
+            << "a=ice-options:trickle\r\n"
+            << "a=fingerprint:sha-256 " << WebrtcContext::getFingerprint() << "\r\n"
+            << "a=setup:actpass\r\n"
+            << "a=mid:" << midIndex++ << "\r\n"
+            << "a=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level\r\n"
+            << "a=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time\r\n"
+            << "a=extmap:3 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01\r\n"
+            << "a=extmap:4 urn:ietf:params:rtp-hdrext:sdes:mid\r\n"
+            << "a=sendonly\r\n"
+            << "a=msid:- " << audioMsid << "\r\n"
+            << "a=rtcp-mux\r\n"
+            << "a=ssrc:" << audiossrc << " cname:" << cname << "\r\n"
+            << "a=ssrc:" << audiossrc << " msid:- " << audioMsid << "\r\n";
     }
 
     if (videoInfo) {
         if (videoInfo->codec_ == "h264") {
             ss << "m=video 9 UDP/TLS/RTP/SAVPF 106\r\n"
-               << "c=IN IP4 0.0.0.0\r\n"
-               << "a=rtcp:9 IN IP4 0.0.0.0\r\n"
-               << "a=ice-ufrag:" << _iceUfrag << "\r\n"
-               << "a=ice-pwd:" << _icePwd << "\r\n"
-               << "a=ice-options:trickle\r\n"
-               << "a=fingerprint:sha-256 " << WebrtcContext::getFingerprint() << "\r\n"
-               << "a=setup:actpass\r\n"
-               << "a=mid:" << midIndex++ << "\r\n"
-               << "a=extmap:14 urn:ietf:params:rtp-hdrext:toffset\r\n"
-               << "a=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time\r\n"
-               << "a=extmap:13 urn:3gpp:video-orientation\r\n"
-               << "a=extmap:3 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01\r\n"
-               << "a=extmap:5 http://www.webrtc.org/experiments/rtp-hdrext/playout-delay\r\n"
-               << "a=extmap:6 http://www.webrtc.org/experiments/rtp-hdrext/video-content-type\r\n"
-               << "a=extmap:7 http://www.webrtc.org/experiments/rtp-hdrext/video-timing\r\n"
-               << "a=extmap:8 http://www.webrtc.org/experiments/rtp-hdrext/color-space\r\n"
-               << "a=extmap:4 urn:ietf:params:rtp-hdrext:sdes:mid\r\n"
-               << "a=extmap:10 urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id\r\n"
-               << "a=extmap:11 urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id\r\n"
-               << "a=sendonly\r\n"
-               << "a=msid:- " << videoMsid << "\r\n"
-               << "a=rtcp-mux\r\n"
-               << "a=rtcp-rsize\r\n"
                << "a=rtpmap:106 H264/90000\r\n"
                << "a=rtcp-fb:106 goog-remb\r\n"
                << "a=rtcp-fb:106 transport-cc\r\n"
                << "a=rtcp-fb:106 ccm fir\r\n"
                << "a=rtcp-fb:106 nack\r\n"
                << "a=rtcp-fb:106 nack pli\r\n"
-               << "a=fmtp:106 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f\r\n"
-               << "a=ssrc:" << videossrc << " cname:" << cname << "\r\n"
-               << "a=ssrc:" << videossrc << " msid:- " << videoMsid << "\r\n";
+               << "a=fmtp:106 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f\r\n";
+        } else if (videoInfo->codec_ == "h265") {
+            ss << "m=video 9 UDP/TLS/RTP/SAVPF 106\r\n"
+               << "a=rtpmap:106 H265/90000\r\n"
+               << "a=rtcp-fb:106 goog-remb\r\n"
+               << "a=rtcp-fb:106 transport-cc\r\n"
+               << "a=rtcp-fb:106 ccm fir\r\n"
+               << "a=rtcp-fb:106 nack\r\n"
+               << "a=rtcp-fb:106 nack pli\r\n"
+               << "a=fmtp:106 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f\r\n";
+        } else if (videoInfo->codec_ == "vp8") {
+            ss << "m=video 9 UDP/TLS/RTP/SAVPF 96\r\n"
+               << "a=rtpmap:96 VP8/90000\r\n"
+               << "a=rtcp-fb:96 goog-remb\r\n"
+               << "a=rtcp-fb:96 transport-cc\r\n"
+               << "a=rtcp-fb:96 ccm fir\r\n"
+               << "a=rtcp-fb:96 nack\r\n"
+               << "a=rtcp-fb:96 nack pli\r\n";
+        } else if (videoInfo->codec_ == "vp9") {
+            ss << "m=video 9 UDP/TLS/RTP/SAVPF 100\r\n"
+               << "a=rtpmap:100 VP9/90000\r\n"
+               << "a=rtcp-fb:100 goog-remb\r\n"
+               << "a=rtcp-fb:100 transport-cc\r\n"
+               << "a=rtcp-fb:100 ccm fir\r\n"
+               << "a=rtcp-fb:100 nack\r\n"
+               << "a=rtcp-fb:100 nack pli\r\n"
+               << "a=fmtp:100 profile-id=2";
+        } else if (videoInfo->codec_ == "av1") {
+            ss << "m=video 9 UDP/TLS/RTP/SAVPF 45\r\n"
+               << "a=rtpmap:45 AV1/90000\r\n"
+               << "a=rtcp-fb:45 goog-remb\r\n"
+               << "a=rtcp-fb:45 transport-cc\r\n"
+               << "a=rtcp-fb:45 ccm fir\r\n"
+               << "a=rtcp-fb:45 nack\r\n"
+               << "a=rtcp-fb:45 nack pli\r\n"
+               << "a=fmtp:45 level-idx=5;profile=0;tier=0";
         }
+
+        ss << "c=IN IP4 0.0.0.0\r\n"
+           << "a=rtcp:9 IN IP4 0.0.0.0\r\n"
+           << "a=ice-ufrag:" << _iceUfrag << "\r\n"
+           << "a=ice-pwd:" << _icePwd << "\r\n"
+           << "a=ice-options:trickle\r\n"
+           << "a=fingerprint:sha-256 " << WebrtcContext::getFingerprint() << "\r\n"
+           << "a=setup:actpass\r\n"
+           << "a=mid:" << midIndex++ << "\r\n"
+           << "a=extmap:14 urn:ietf:params:rtp-hdrext:toffset\r\n"
+           << "a=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time\r\n"
+           << "a=extmap:13 urn:3gpp:video-orientation\r\n"
+           << "a=extmap:3 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01\r\n"
+           << "a=extmap:5 http://www.webrtc.org/experiments/rtp-hdrext/playout-delay\r\n"
+           << "a=extmap:6 http://www.webrtc.org/experiments/rtp-hdrext/video-content-type\r\n"
+           << "a=extmap:7 http://www.webrtc.org/experiments/rtp-hdrext/video-timing\r\n"
+           << "a=extmap:8 http://www.webrtc.org/experiments/rtp-hdrext/color-space\r\n"
+           << "a=extmap:4 urn:ietf:params:rtp-hdrext:sdes:mid\r\n"
+           << "a=extmap:10 urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id\r\n"
+           << "a=extmap:11 urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id\r\n"
+           << "a=sendonly\r\n"
+           << "a=msid:- " << videoMsid << "\r\n"
+           << "a=rtcp-mux\r\n"
+           << "a=rtcp-rsize\r\n"
+           << "a=ssrc:" << videossrc << " cname:" << cname << "\r\n"
+           << "a=ssrc:" << videossrc << " msid:- " << videoMsid << "\r\n";
     }
 }
 
@@ -356,7 +418,7 @@ void WebrtcClient::initPullerLocalSdpMedia(stringstream& ss)
     int audiossrc = 10000;
     int videossrc = 20000;
   
-    ss << "m=audio 9 UDP/TLS/RTP/SAVPF 8 111\r\n"
+    ss << "m=audio 9 UDP/TLS/RTP/SAVPF 8 111 0 97\r\n"
         << "c=IN IP4 0.0.0.0\r\n"
         << "a=rtcp:9 IN IP4 0.0.0.0\r\n"
         << "a=ice-ufrag:" << _iceUfrag << "\r\n"
@@ -373,13 +435,15 @@ void WebrtcClient::initPullerLocalSdpMedia(stringstream& ss)
         << "a=msid:- " << audioMsid << "\r\n"
         << "a=rtcp-mux\r\n"
         << "a=rtpmap:8 PCMA/8000\r\n"
+        << "a=rtpmap:0 PCMU/8000\r\n"
+        << "a=rtpmap:97 MPEG4-GENERIC/48000/2\r\n"
         << "a=rtpmap:111 opus/48000/2\r\n"
         << "a=rtcp-fb:111 transport-cc\r\n"
         << "a=fmtp:111 minptime=10;useinbandfec=1\r\n"
         << "a=ssrc:" << audiossrc << " cname:" << cname << "\r\n"
         << "a=ssrc:" << audiossrc << " msid:- " << audioMsid << "\r\n";
 
-    ss << "m=video 9 UDP/TLS/RTP/SAVPF 106\r\n"
+    ss << "m=video 9 UDP/TLS/RTP/SAVPF 106 108 96 100 45\r\n"
         << "c=IN IP4 0.0.0.0\r\n"
         << "a=rtcp:9 IN IP4 0.0.0.0\r\n"
         << "a=ice-ufrag:" << _iceUfrag << "\r\n"
@@ -410,6 +474,33 @@ void WebrtcClient::initPullerLocalSdpMedia(stringstream& ss)
         << "a=rtcp-fb:106 nack\r\n"
         << "a=rtcp-fb:106 nack pli\r\n"
         << "a=fmtp:106 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f\r\n"
+        << "a=rtpmap:108 H265/90000\r\n"
+        << "a=rtcp-fb:108 goog-remb\r\n"
+        << "a=rtcp-fb:108 transport-cc\r\n"
+        << "a=rtcp-fb:108 ccm fir\r\n"
+        << "a=rtcp-fb:108 nack\r\n"
+        << "a=rtcp-fb:108 nack pli\r\n"
+        << "a=fmtp:108 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f\r\n"
+        << "a=rtpmap:96 VP8/90000\r\n"
+        << "a=rtcp-fb:96 goog-remb\r\n"
+        << "a=rtcp-fb:96 transport-cc\r\n"
+        << "a=rtcp-fb:96 ccm fir\r\n"
+        << "a=rtcp-fb:96 nack\r\n"
+        << "a=rtcp-fb:96 nack pli\r\n"
+        << "a=rtpmap:100 VP9/90000\r\n"
+        << "a=rtcp-fb:100 goog-remb\r\n"
+        << "a=rtcp-fb:100 transport-cc\r\n"
+        << "a=rtcp-fb:100 ccm fir\r\n"
+        << "a=rtcp-fb:100 nack\r\n"
+        << "a=rtcp-fb:100 nack pli\r\n"
+        << "a=fmtp:100 profile-id=2"
+        << "a=rtpmap:45 AV1/90000\r\n"
+        << "a=rtcp-fb:45 goog-remb\r\n"
+        << "a=rtcp-fb:45 transport-cc\r\n"
+        << "a=rtcp-fb:45 ccm fir\r\n"
+        << "a=rtcp-fb:45 nack\r\n"
+        << "a=rtcp-fb:45 nack pli\r\n"
+        << "a=fmtp:45 level-idx=5;profile=0;tier=0"
         << "a=ssrc:" << videossrc << " cname:" << cname << "\r\n"
         << "a=ssrc:" << videossrc << " msid:- " << videoMsid << "\r\n";
 }
@@ -418,29 +509,31 @@ void WebrtcClient::setRemoteSdp(const string& sdp)
 {
     _remoteSdp = make_shared<WebrtcSdp>();
     _remoteSdp->parse(sdp);
-    auto rtcSrc = _source.lock();
-    if (!rtcSrc) {
-        logError << "source is empty";
-        return ;
-    }
-    if (_remoteSdp->_vecSdpMedia.size() == 0) {
-        logError << "sdp media line is zero";
-    }
-    for (auto sdpMedia : _remoteSdp->_vecSdpMedia) {
-        if (sdpMedia->media_ == "video") {
-            for (auto ptIter : sdpMedia->mapPtInfo_) {
-                _videoPtInfo = ptIter.second;
-                _videoDecodeTrack = make_shared<WebrtcDecodeTrack>(VideoTrackType, VideoTrackType, _videoPtInfo);
-                if (_videoDecodeTrack->getTrackInfo()) {
-                    rtcSrc->addTrack(_videoDecodeTrack);
+    if (_request == "pull") {
+        auto rtcSrc = _source.lock();
+        if (!rtcSrc) {
+            logError << "source is empty";
+            return ;
+        }
+        if (_remoteSdp->_vecSdpMedia.size() == 0) {
+            logError << "sdp media line is zero";
+        }
+        for (auto sdpMedia : _remoteSdp->_vecSdpMedia) {
+            if (sdpMedia->media_ == "video") {
+                for (auto ptIter : sdpMedia->mapPtInfo_) {
+                    _videoPtInfo = ptIter.second;
+                    _videoDecodeTrack = make_shared<WebrtcDecodeTrack>(VideoTrackType, VideoTrackType, _videoPtInfo);
+                    if (_videoDecodeTrack->getTrackInfo()) {
+                        rtcSrc->addTrack(_videoDecodeTrack);
+                    }
                 }
-            }
-        } else if (sdpMedia->media_ == "audio") {
-            for (auto ptIter : sdpMedia->mapPtInfo_) {
-                _audioPtInfo = ptIter.second;
-                _audioDecodeTrack = make_shared<WebrtcDecodeTrack>(AudioTrackType, AudioTrackType, _audioPtInfo);
-                if (_audioDecodeTrack->getTrackInfo()) {
-                    rtcSrc->addTrack(_audioDecodeTrack);
+            } else if (sdpMedia->media_ == "audio") {
+                for (auto ptIter : sdpMedia->mapPtInfo_) {
+                    _audioPtInfo = ptIter.second;
+                    _audioDecodeTrack = make_shared<WebrtcDecodeTrack>(AudioTrackType, AudioTrackType, _audioPtInfo);
+                    if (_audioDecodeTrack->getTrackInfo()) {
+                        rtcSrc->addTrack(_audioDecodeTrack);
+                    }
                 }
             }
         }
@@ -615,7 +708,9 @@ void WebrtcClient::onStunPacket(const StreamBuffer::Ptr& buffer)
                 }
                 self->_dtlsHandshakeDone = true;
 
-                self->startPlay();
+                if (self->_request == "push") {
+                    self->startPlay();
+                }
             });
             _dtlsSession->startActiveHandshake(_socket);
             _sendDtls = true;
@@ -641,7 +736,7 @@ void WebrtcClient::onStunPacket(const StreamBuffer::Ptr& buffer)
                 self->_dtlsTimeTask = timeTask;
             });
         }
-    } else {
+    } else if (_request == "push") {
         startPlay();
     }
 }
