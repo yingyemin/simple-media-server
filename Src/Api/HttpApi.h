@@ -47,6 +47,9 @@ private:
 
     static void getVersion(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc);
+
+    static void getServerInfo(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc);
 };
 
 #endif //HttpApi_h

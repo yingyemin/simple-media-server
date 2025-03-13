@@ -23,13 +23,19 @@ int guessType(const StreamBuffer::Ptr& buffer)
 		return kStunPkt;
     }
 
+	// 0x0101 stun bind response
+	if (data[0] == 1 && data[1] == 1) {
+		return kStunPkt;
+    }
+
 	if (len >= 13 && data[0] >= 16 && data[0] <= 64) {
 		return kDtlsPkt;
     }
 
 	// 0x80
 	if (len >= 12 && (data[0] & 0xC0) == 0x80) {
-		return (data[1] < 128 || data[1] > 223) ? kRtpPkt : kRtcpPkt;
+		uint8_t pt = data[1] & 0b01111111;
+		return (pt < 64 || pt >= 96) ? kRtpPkt : kRtcpPkt;
 	}
 		
 	return kUnkown;

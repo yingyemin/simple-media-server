@@ -66,6 +66,14 @@ EventLoop::Ptr EventLoopPool::getLoopByCircle()
     return _loops[_index++ % _threadSize];
 }
 
+int EventLoopPool::getStartTime()
+{
+    if (!_startTime) {
+        _startTime = time(nullptr);
+    }
+    return _startTime;
+}
+
 
 //////////////////////////////////////////////////////////////
 

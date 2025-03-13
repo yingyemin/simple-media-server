@@ -16,11 +16,14 @@ public:
     void init(int size, int priority, bool affinity);
     void for_each_loop(const function<void(const EventLoop::Ptr &)> &cb, int count = 0);
     EventLoop::Ptr getLoopByCircle();
+    int getThreadSize() {return _threadSize;}
+    int getStartTime();
 
 protected:
     std::vector<EventLoop::Ptr> _loops;
     int _index = 0;
     int _threadSize = 0;
+    int _startTime = 0;
 };
 
 #ifdef ENABLE_SRT

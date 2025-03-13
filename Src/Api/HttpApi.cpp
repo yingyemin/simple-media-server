@@ -55,6 +55,7 @@ void HttpApi::initApi()
     g_mapApi.emplace("/api/v1/getLoopList", HttpApi::getLoopList);
     g_mapApi.emplace("/api/v1/exitServer", HttpApi::exitServer);
     g_mapApi.emplace("/api/v1/version", HttpApi::getVersion);
+    g_mapApi.emplace("/api/v1/getServerInfo", HttpApi::getServerInfo);
 }
 
 void HttpApi::handleConfig(const HttpParser& parser, const UrlParser& urlParser, 
@@ -110,7 +111,10 @@ void HttpApi::getSourceList(const HttpParser& parser, const UrlParser& urlParser
         item["vhost"] = source->getVhost();
 
         auto loop = source->getLoop();
-        item["epollFd"] = loop->getEpollFd();
+        if (loop) {
+            item["epollFd"] = loop->getEpollFd();
+        }
+        
         item["playerCount"] = source->playerCount();
         item["bytes"] = source->getBytes();
         item["createTime"] = source->getCreateTime();
@@ -422,6 +426,22 @@ void HttpApi::exitServer(const HttpParser& parser, const UrlParser& urlParser,
                         const function<void(HttpResponse& rsp)>& rspFunc)
 {
     exit(0);
+}
+
+void HttpApi::getServerInfo(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    value["eventLoop"]["threadSize"] = EventLoopPool::instance()->getThreadSize();
+    value["eventLoop"]["startTime"] = EventLoopPool::instance()->getStartTime();
+
+    value["code"] = "200";
+    value["msg"] = "success";
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
 }
 
 void HttpApi::getVersion(const HttpParser& parser, const UrlParser& urlParser, 

@@ -96,7 +96,7 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
 
             if (frame->startFrame()) {
                 keyframe = true;
-                _sendConfig = true;
+                // _sendConfig = true;
 
                 if (_videoStampAdjust)
                     _videoStampAdjust->inputStamp(frame->_pts, frame->_dts, 1);

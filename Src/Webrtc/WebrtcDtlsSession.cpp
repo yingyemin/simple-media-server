@@ -529,7 +529,7 @@ int DtlsSession::startActiveHandshake(Socket::Ptr sock)
     bool m_handshake_done = false;
     if (r1 == SSL_ERROR_NONE) {
         m_handshake_done = true;
-        logTrace << ("\n******************dtls handshake is sucess....................\n");
+        logDebug << ("\n******************dtls handshake is sucess....................\n");
     }
 
     uint8_t *data = NULL;

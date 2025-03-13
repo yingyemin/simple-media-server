@@ -96,7 +96,7 @@ bool WebrtcClient::start(const string& localIp, int localPort, const string& url
     });
 
     shared_ptr<HttpClientApi> client = make_shared<HttpClientApi>(EventLoop::getCurrentLoop());
-    client->addHeader("Content-Type", "application/json;charset=UTF-8");
+    // client->addHeader("Content-Type", "application/json;charset=UTF-8");
     client->setMethod("GET");
     client->setContent(localSdp);
     client->setOnHttpResponce([wSelf, client](const HttpParser &parser){
@@ -104,20 +104,20 @@ bool WebrtcClient::start(const string& localIp, int localPort, const string& url
         if (!self) {
             return ;
         }
-        // logInfo << "uri: " << parser._url;
+        logDebug << "uri: " << parser._url;
         // logInfo << "status: " << parser._version;
         // logInfo << "method: " << parser._method;
         // logInfo << "_content: " << parser._content;
-        if (parser._url != "200") {
-            logError << "http error";
+        if (parser._url != "201") {
+            logInfo << "http error: " << parser._content;
             return ;
         }
-        try {
-            json value = json::parse(parser._content);
-            self->setRemoteSdp(value["sdp"]);
-        } catch (exception& ex) {
-            logInfo << "json parse failed: " << ex.what() << ", content: " << parser._content;
-        }
+        // try {
+            // json value = json::parse(parser._content);
+            self->setRemoteSdp(parser._content);
+        // } catch (exception& ex) {
+        //     logInfo << "json parse failed: " << ex.what() << ", content: " << parser._content;
+        // }
 
         const_cast<shared_ptr<HttpClientApi> &>(client).reset();
     });
@@ -228,6 +228,20 @@ void WebrtcClient::initPuller()
 
     _localSdp = make_shared<WebrtcSdp>();
     _localSdp->parse(ss.str());
+
+    // if (!_srtpSession) {
+    //     _srtpSession.reset(new SrtpSession());
+    //     std::string recv_key, send_key;
+    //     if (0 != _dtlsSession->getSrtpKey(recv_key, send_key)) {
+    //         logError << "dtls get srtp key failed";
+    //         throw runtime_error("dtls get srtp key failed");
+    //     }
+
+    //     if (!_srtpSession->init(recv_key, send_key)) {
+    //         logError << "srtp session init failed";
+    //         throw runtime_error("srtp session init failed");
+    //     }
+    // }
 }
 
 void WebrtcClient::initPusher()
@@ -256,7 +270,7 @@ void WebrtcClient::initPusher()
 
     stringstream ss;
     initLocalSdpTitle(ss, trackNum);
-    initPusherLocalSdpMedia(ss, audioInfo, videoInfo);
+    initPusherLocalSdpMedia(ss, videoInfo, audioInfo);
 
     _localSdp = make_shared<WebrtcSdp>();
     _localSdp->parse(ss.str());
@@ -369,7 +383,7 @@ void WebrtcClient::initPusherLocalSdpMedia(stringstream& ss, const shared_ptr<Tr
                << "a=rtcp-fb:100 ccm fir\r\n"
                << "a=rtcp-fb:100 nack\r\n"
                << "a=rtcp-fb:100 nack pli\r\n"
-               << "a=fmtp:100 profile-id=2";
+               << "a=fmtp:100 profile-id=2\r\n";
         } else if (videoInfo->codec_ == "av1") {
             ss << "m=video 9 UDP/TLS/RTP/SAVPF 45\r\n"
                << "a=rtpmap:45 AV1/90000\r\n"
@@ -378,7 +392,7 @@ void WebrtcClient::initPusherLocalSdpMedia(stringstream& ss, const shared_ptr<Tr
                << "a=rtcp-fb:45 ccm fir\r\n"
                << "a=rtcp-fb:45 nack\r\n"
                << "a=rtcp-fb:45 nack pli\r\n"
-               << "a=fmtp:45 level-idx=5;profile=0;tier=0";
+               << "a=fmtp:45 level-idx=5;profile=0;tier=0\r\n";
         }
 
         ss << "c=IN IP4 0.0.0.0\r\n"
@@ -500,7 +514,7 @@ void WebrtcClient::initPullerLocalSdpMedia(stringstream& ss)
         << "a=rtcp-fb:45 ccm fir\r\n"
         << "a=rtcp-fb:45 nack\r\n"
         << "a=rtcp-fb:45 nack pli\r\n"
-        << "a=fmtp:45 level-idx=5;profile=0;tier=0"
+        << "a=fmtp:45 level-idx=5;profile=0;tier=0\r\n"
         << "a=ssrc:" << videossrc << " cname:" << cname << "\r\n"
         << "a=ssrc:" << videossrc << " msid:- " << videoMsid << "\r\n";
 }
@@ -646,7 +660,29 @@ void WebrtcClient::onConnected()
         _socket->send((char*)payload_ptr, 2);
     }
 
+    logDebug << "send a stun request, path: " << _urlParser.path_;
     _socket->send(buffer);
+
+    weak_ptr<WebrtcClient> wSelf = shared_from_this();
+    _loop->addTimerTask(5000, [wSelf, buffer](){
+        auto self = wSelf.lock();
+        if (!self) {
+            return 0;
+        }
+
+        if (self->_socket->getSocketType() == SOCKET_TCP) {
+            uint8_t payload_ptr[2];
+            payload_ptr[0] = buffer->size() >> 8;
+            payload_ptr[1] = buffer->size() & 0x00FF;
+
+            self->_socket->send((char*)payload_ptr, 2);
+        }
+
+        logDebug << "send a stun request, path: " << self->_urlParser.path_;
+        self->_socket->send(buffer);
+
+        return 5000;
+    }, nullptr);
 }
 
 void WebrtcClient::onRead(const StreamBuffer::Ptr& buffer)
@@ -707,6 +743,19 @@ void WebrtcClient::onStunPacket(const StreamBuffer::Ptr& buffer)
                     return ;
                 }
                 self->_dtlsHandshakeDone = true;
+                if (self->_enableSrtp && !self->_srtpSession) {
+                    self->_srtpSession.reset(new SrtpSession());
+                    std::string recv_key, send_key;
+                    if (0 != self->_dtlsSession->getSrtpKey(recv_key, send_key)) {
+                        logError << "dtls get srtp key failed";
+                        throw runtime_error("dtls get srtp key failed");
+                    }
+
+                    if (!self->_srtpSession->init(recv_key, send_key)) {
+                        logError << "srtp session init failed";
+                        throw runtime_error("srtp session init failed");
+                    }
+                }
 
                 if (self->_request == "push") {
                     self->startPlay();
@@ -795,28 +844,31 @@ void WebrtcClient::onRtpPacket(const RtpPacket::Ptr& rtp)
         rtpPacket = rtp;
     }
 
-    if (rtp->getHeader()->pt == _videoPtInfo->payloadType_) {
-        logTrace << "decode rtp";
+    if (rtp->getHeader()->pt == _videoPtInfo->payloadType_ && _videoDecodeTrack) {
+        // logTrace << "decode rtp";
         _videoDecodeTrack->decodeRtp(rtpPacket);
-    } else {
+    } else if (rtp->getHeader()->pt == _audioPtInfo->payloadType_ && _audioDecodeTrack) {
         // logWarn << "videoDecodeTrack is empty";
+        _audioDecodeTrack->decodeRtp(rtpPacket);
     }
 }
 
 void WebrtcClient::startPlay()
 {
     
-    if (_enableSrtp && !_srtpSession) {
-		_srtpSession.reset(new SrtpSession());
-		std::string recv_key, send_key;
-		if (0 != _dtlsSession->getSrtpKey(recv_key, send_key)) {
-			cerr << "dtls get srtp key failed";
-		}
+    // if (_enableSrtp && !_srtpSession) {
+	// 	_srtpSession.reset(new SrtpSession());
+	// 	std::string recv_key, send_key;
+	// 	if (0 != _dtlsSession->getSrtpKey(recv_key, send_key)) {
+	// 		logError << "dtls get srtp key failed";
+    //         throw runtime_error("dtls get srtp key failed");
+	// 	}
 
-        if (!_srtpSession->init(recv_key, send_key)) {
-            cerr << "srtp session init failed";
-        }
-	}
+    //     if (!_srtpSession->init(recv_key, send_key)) {
+    //         logError << "srtp session init failed";
+    //         throw runtime_error("srtp session init failed");
+    //     }
+	// }
 
     weak_ptr<WebrtcClient> wSelf = dynamic_pointer_cast<WebrtcClient>(shared_from_this());
     // _urlParser.path_ = _path;
@@ -924,10 +976,10 @@ void WebrtcClient::sendMedia(const RtpPacket::Ptr& rtp)
     auto data = buffer->data();
     memcpy(data, rtp->data() + 4, nb_cipher);
 
-	auto sdp_video_pt = 106;
+	// auto sdp_video_pt = 106;
 
-	auto _video_payload_type = sdp_video_pt == 0 ? 106 : sdp_video_pt;
-	data[1] = (data[1] & 0x80) | (rtp->type_ == "audio" ? 8 : _video_payload_type);
+	// auto _video_payload_type = sdp_video_pt == 0 ? 106 : sdp_video_pt;
+	data[1] = (data[1] & 0x80) | (rtp->type_ == "audio" ? _audioPtInfo->payloadType_ : _videoPtInfo->payloadType_);
 	uint32_t ssrc = htonl(rtp->type_ == "audio" ? 10000 : 20000);
 	memcpy(data + 8, &ssrc, sizeof(ssrc));	
 

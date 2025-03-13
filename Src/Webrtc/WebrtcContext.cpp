@@ -157,7 +157,7 @@ void WebrtcContext::initPublisher(const string& appName, const string& streamNam
     _isPlayer = false;
     rtcSource->setOrigin();
     rtcSource->setOriginSocket(_socket);
-    rtcSource->setAction(false);
+    rtcSource->setAction(true);
 
     // read config
     shared_ptr<TrackInfo> videoInfo = make_shared<H264Track>();
@@ -593,7 +593,7 @@ void WebrtcContext::checkAndSendRtcpNack()
     vector<uint16_t> videoVecSeq = _videoSort->getLossSeq();
     vector<uint16_t> audioVecSeq = _audioSort->getLossSeq();
 
-    if (!videoVecSeq.empty() && !_videoPtInfo) {
+    if (!videoVecSeq.empty() && _videoPtInfo) {
         RtcpNack videoNack;
         videoNack.setSsrc(_videoPtInfo->ssrc_);
         videoNack.setLossSn(videoVecSeq);
@@ -627,7 +627,7 @@ void WebrtcContext::checkAndSendRtcpNack()
         }
     }
 
-    if (!audioVecSeq.empty() || !_audioPtInfo) {
+    if (!audioVecSeq.empty() && _audioPtInfo) {
         RtcpNack audioNack;
         audioNack.setSsrc(_audioPtInfo->ssrc_);
         audioNack.setLossSn(audioVecSeq);

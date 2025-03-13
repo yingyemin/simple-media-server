@@ -92,7 +92,7 @@ void WebrtcMediaSource::addTrack(const WebrtcDecodeTrack::Ptr& track)
             // logInfo << "on frame";
             strongSelf->MediaSource::onFrame(frame);
             for (auto& sink : strongSelf->_mapSink) {
-                logInfo << "on frame to sink";
+                // logInfo << "on frame to sink";
                 // if (sink.second.lock()) {
                 //     sink.second.lock()->onFrame(frame);
                 // }
@@ -425,6 +425,10 @@ void WebrtcMediaSource::onReady()
 
 int WebrtcMediaSource::playerCount()
 {
+    if (!_ring) {
+        return 0;
+    }
+    
     int count = _ring->readerCount();
     // lock_guard<mutex> lck(_mtxTrack);
     count -= _sinkSize;
