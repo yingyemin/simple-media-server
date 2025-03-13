@@ -9,8 +9,11 @@
 #include "WebrtcRtcpPacket.h"
 #include "WebrtcContextManager.h"
 #include "Codec/H264Track.h"
+#include "Codec/AacTrack.h"
 #include "Hook/MediaHook.h"
 #include "Webrtc.h"
+
+#include <iomanip>
 
 using namespace std;
 
@@ -310,9 +313,9 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
             // cloneTrack(trackInfo, videoInfo);
 
             for (auto ptIter : sdpMedia->mapPtInfo_) {
-                logInfo << "video/audio codec:" << ptIter.second->codec_;
-                logInfo << "video/audio pt:" << ptIter.first;
-                logInfo << "videoInfo->codec_:" << videoInfo->codec_;
+                logTrace << "video/audio codec:" << ptIter.second->codec_;
+                logTrace << "video/audio pt:" << ptIter.first;
+                logTrace << "videoInfo->codec_:" << videoInfo->codec_;
                 if (videoInfo && strcasecmp(ptIter.second->codec_.data(), videoInfo->codec_.data()) == 0) {
                     findFlag = true;
                     if (isH264) {
@@ -401,7 +404,8 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
                 }
                 if (audioInfo && ((strcasecmp(ptIter.second->codec_.data(), audioInfo->codec_.data()) == 0) || 
                     (audioInfo->codec_ == "g711a" && ptIter.second->codec_ == "PCMA") || 
-                    (audioInfo->codec_ == "g711u" && ptIter.second->codec_ == "PCMU"))) {
+                    (audioInfo->codec_ == "g711u" && ptIter.second->codec_ == "PCMU") ||
+                    (audioInfo->codec_ == "aac" && ptIter.second->codec_ == "MPEG4-GENERIC"))) {
                     remotePtInfo = ptIter.second;
                     findFlag = true;
                     break;
@@ -430,6 +434,19 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
             }
 
             _audioPtInfo = remotePtInfo;
+
+            if (_isPlayer && _audioPtInfo->codec_ == "MPEG4-GENERIC") {
+                remotePtInfo->fmtp_ = "streamtype=5;profile-level-id=1;mode=AAC-hbr;sizelength=13;indexlength=3;indexdeltalength=3;config=";
+                auto aacTrack = dynamic_pointer_cast<AacTrack>(audioInfo);
+                auto aacCondig = aacTrack->getAacInfo();
+                stringstream ss;
+                for(auto &ch : aacCondig){
+                    // snprintf(buf, sizeof(buf), "%02X", (uint8_t)ch);
+                    // configStr.append(buf);
+                    ss << std::hex << setw(2) << setfill('0') << (int)((uint8_t)ch);
+                }
+                remotePtInfo->fmtp_ += ss.str();
+            }
         } else {
             return ;
         }

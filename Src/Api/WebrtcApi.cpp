@@ -264,7 +264,7 @@ void WebrtcApi::stopRtcPush(const HttpParser& parser, const UrlParser& urlParser
 
     checkArgs(parser._body, {"url"});
 
-    string key = parser._body["url"];
+    string key = UrlParser::urlDecode(parser._body["url"]);
     MediaClient::delMediaClient(key);
 
     value["code"] = "200";

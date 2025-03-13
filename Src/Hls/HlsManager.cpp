@@ -44,7 +44,7 @@ HlsManager::Ptr& HlsManager::instance()
 
 void HlsManager::addMuxer(const string& key, const HlsMuxer::Ptr& muxer)
 {
-    logInfo << "add muxer: " << key;
+    logDebug << "add muxer: " << key;
 
     lock_guard<mutex> lck(_muxerStrMtx);
     _mapStrMuxer.emplace(key, muxer);
@@ -52,7 +52,7 @@ void HlsManager::addMuxer(const string& key, const HlsMuxer::Ptr& muxer)
 
 HlsMuxer::Ptr HlsManager::getMuxer(const string& key)
 {
-    logInfo << "get muxer: " << key;
+    logDebug << "get muxer: " << key;
     
     lock_guard<mutex> lck(_muxerStrMtx);
     auto it = _mapStrMuxer.find(key);
@@ -65,7 +65,7 @@ HlsMuxer::Ptr HlsManager::getMuxer(const string& key)
 
 void HlsManager::delMuxer(const string& key)
 {
-    logInfo << "del muxer: " << key;
+    logDebug << "del muxer: " << key;
     
     lock_guard<mutex> lck(_muxerStrMtx);
     _mapStrMuxer.erase(key);

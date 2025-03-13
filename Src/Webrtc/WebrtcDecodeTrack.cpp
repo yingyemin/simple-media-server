@@ -22,22 +22,22 @@ static shared_ptr<TrackInfo> createTrackBySdp(int index, const shared_ptr<Webrtc
     shared_ptr<TrackInfo> trackInfo;
     if (strcasecmp(piInfo->codec_.data(), "mpeg4-generic") == 0) {
         auto aacTrackInfo = make_shared<AacTrack>();
-        // string aac_cfg_str = findSubStr(piInfo->fmtp_, "config=", "");
-        // if (aac_cfg_str.empty()) {
-        //     aac_cfg_str = findSubStr(piInfo->fmtp_, "config=", ";");
-        // }
-        // if (aac_cfg_str.empty()) {
-        //     //如果sdp中获取不到aac config信息，那么在rtp也无法获取，那么忽略该Track
-        //     return nullptr;
-        // }
-        // string aac_cfg;
-        // for(int i = 0 ; i < aac_cfg_str.size() / 2 ; ++i ){
-        //     unsigned int cfg;
-        //     sscanf(aac_cfg_str.substr(i * 2, 2).data(), "%02X", &cfg);
-        //     cfg &= 0x00FF;
-        //     aac_cfg.push_back((char)cfg);
-        // }
-        // aacTrackInfo->setAacInfo(aac_cfg);
+        string aac_cfg_str = findSubStr(piInfo->fmtp_, "config=", "");
+        if (aac_cfg_str.empty()) {
+            aac_cfg_str = findSubStr(piInfo->fmtp_, "config=", ";");
+        }
+        if (aac_cfg_str.empty()) {
+            //如果sdp中获取不到aac config信息，那么在rtp也无法获取，那么忽略该Track
+            return nullptr;
+        }
+        string aac_cfg;
+        for(int i = 0 ; i < aac_cfg_str.size() / 2 ; ++i ){
+            unsigned int cfg;
+            sscanf(aac_cfg_str.substr(i * 2, 2).data(), "%02X", &cfg);
+            cfg &= 0x00FF;
+            aac_cfg.push_back((char)cfg);
+        }
+        aacTrackInfo->setAacInfo(aac_cfg);
         trackInfo = aacTrackInfo;
         trackInfo->codec_ = "aac";
         trackInfo->trackType_ = "audio";

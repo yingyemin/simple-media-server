@@ -523,27 +523,30 @@ void WebrtcClient::setRemoteSdp(const string& sdp)
 {
     _remoteSdp = make_shared<WebrtcSdp>();
     _remoteSdp->parse(sdp);
-    if (_request == "pull") {
-        auto rtcSrc = _source.lock();
-        if (!rtcSrc) {
-            logError << "source is empty";
-            return ;
-        }
-        if (_remoteSdp->_vecSdpMedia.size() == 0) {
-            logError << "sdp media line is zero";
-        }
-        for (auto sdpMedia : _remoteSdp->_vecSdpMedia) {
-            if (sdpMedia->media_ == "video") {
-                for (auto ptIter : sdpMedia->mapPtInfo_) {
-                    _videoPtInfo = ptIter.second;
+    
+    auto rtcSrc = _source.lock();
+    if (!rtcSrc && _request == "pull") {
+        logError << "source is empty, path: " << _urlParser.path_;
+        return ;
+    }
+    if (_remoteSdp->_vecSdpMedia.size() == 0) {
+        logError << "sdp media line is zero";
+    }
+    for (auto sdpMedia : _remoteSdp->_vecSdpMedia) {
+        if (sdpMedia->media_ == "video") {
+            for (auto ptIter : sdpMedia->mapPtInfo_) {
+                _videoPtInfo = ptIter.second;
+                if (_request == "pull") {
                     _videoDecodeTrack = make_shared<WebrtcDecodeTrack>(VideoTrackType, VideoTrackType, _videoPtInfo);
                     if (_videoDecodeTrack->getTrackInfo()) {
                         rtcSrc->addTrack(_videoDecodeTrack);
                     }
                 }
-            } else if (sdpMedia->media_ == "audio") {
-                for (auto ptIter : sdpMedia->mapPtInfo_) {
-                    _audioPtInfo = ptIter.second;
+            }
+        } else if (sdpMedia->media_ == "audio") {
+            for (auto ptIter : sdpMedia->mapPtInfo_) {
+                _audioPtInfo = ptIter.second;
+                if (_request == "pull") {
                     _audioDecodeTrack = make_shared<WebrtcDecodeTrack>(AudioTrackType, AudioTrackType, _audioPtInfo);
                     if (_audioDecodeTrack->getTrackInfo()) {
                         rtcSrc->addTrack(_audioDecodeTrack);
@@ -822,7 +825,7 @@ void WebrtcClient::onDtlsPacket(const StreamBuffer::Ptr& buffer)
 
 void WebrtcClient::onRtcpPacket(const StreamBuffer::Ptr& buffer)
 {
-    logInfo << "get a rtcp packet";
+    logDebug << "get a rtcp packet";
 }
 
 void WebrtcClient::onRtpPacket(const RtpPacket::Ptr& rtp)
@@ -967,9 +970,16 @@ void WebrtcClient::sendRtpPacket(const WebrtcMediaSource::DataType &pack)
 
 void WebrtcClient::sendMedia(const RtpPacket::Ptr& rtp)
 {
-    if (rtp->type_ == "audio") {
+    if (!rtp) {
+        return ;
+    } else if (rtp->type_ == "video" && !_videoPtInfo) {
+        logDebug << "video pt info is empty";
+        return ;
+    } else if (rtp->type_ == "audio" && !_audioPtInfo) {
+        logDebug << "audio pt info is empty";
         return ;
     }
+
 	int nb_cipher = rtp->size() - 4;
     // char data[1500];
     auto buffer = make_shared<StreamBuffer>(1500 + 1);

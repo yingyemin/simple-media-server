@@ -107,6 +107,7 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
                 _ring->write(frame, keyframe);
             } else if (frame->isNewNalu() && _frame) {
                 if (_frame->keyFrame()) {
+                    _keyframe = _frame;
                     _gopTime = now - _lastKeyframeTime;
                     _lastKeyframeTime = now;
                     if (_frame->codec() == "h264" || _frame->codec() == "h265") {

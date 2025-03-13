@@ -56,6 +56,8 @@ void HttpApi::initApi()
     g_mapApi.emplace("/api/v1/exitServer", HttpApi::exitServer);
     g_mapApi.emplace("/api/v1/version", HttpApi::getVersion);
     g_mapApi.emplace("/api/v1/getServerInfo", HttpApi::getServerInfo);
+
+    g_mapApi.emplace("/api/v1/streams/keyframe", HttpApi::getKeyframe);
 }
 
 void HttpApi::handleConfig(const HttpParser& parser, const UrlParser& urlParser, 
@@ -227,6 +229,7 @@ void HttpApi::getSourceInfo(const HttpParser& parser, const UrlParser& urlParser
     json value;
 
     json body = parser._body;
+    checkArgs(body, {"path"});
 
     auto source = MediaSource::get(body["path"], body.value("vhost", DEFAULT_VHOST));
     if (source) {
@@ -454,6 +457,83 @@ void HttpApi::getVersion(const HttpParser& parser, const UrlParser& urlParser,
     value["version"] = GIT_VERSION;
     value["code"] = "200";
     value["msg"] = "success";
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void HttpApi::getKeyframe(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    json body = parser._body;
+    checkArgs(body, {"path"});
+
+    do {
+        auto source = MediaSource::get(body["path"], body.value("vhost", DEFAULT_VHOST), PROTOCOL_FRAME, body.value("type", DEFAULT_TYPE));
+        if (!source) {
+            value["code"] = "400";
+            value["msg"] = "source is empty";
+            break;
+        }
+
+        auto frameSrc = dynamic_pointer_cast<FrameMediaSource>(source);
+        if (!frameSrc) {
+            value["code"] = "400";
+            value["msg"] = "source is not frame source";
+            break;
+        }
+
+        if (!frameSrc->isReady()) {
+            value["code"] = "400";
+            value["msg"] = "frame source is ready";
+            break;
+        }
+        
+        auto curLoop = EventLoop::getCurrentLoop();
+        auto sourceLoop = frameSrc->getLoop();
+        if (!curLoop || !sourceLoop) {
+            value["code"] = "400";
+            value["msg"] = "loop is empty";
+            break;
+        }
+        sourceLoop->async([frameSrc, curLoop, rsp, value, rspFunc](){
+            auto keyframe = frameSrc->getKeyframe();
+            auto trackInfos = frameSrc->getTrackInfo();
+            for (auto track: trackInfos) {
+                if (track.second->trackType_ == "video") {
+                    FrameBuffer::Ptr vps;
+                    FrameBuffer::Ptr sps;
+                    FrameBuffer::Ptr pps;
+                    track.second->getVpsSpsPps(vps, sps, pps);
+                    string keyframeStr;
+                    if (vps) {
+                        keyframeStr.append(vps->data(), vps->size());
+                    }
+                    if (sps) {
+                        keyframeStr.append(sps->data(), sps->size());
+                    }
+                    if (pps) {
+                        keyframeStr.append(pps->data(), pps->size());
+                    }
+                    if (keyframe) {
+                        keyframeStr.append(keyframe->data(), keyframe->size());
+                    }
+
+                    curLoop->async([keyframeStr, rsp, rspFunc]() {
+                        auto tmpRsp = rsp;
+                        tmpRsp.setContent(keyframeStr, "application/octet-stream");
+                        rspFunc(tmpRsp);
+                    }, true);
+                }
+            }
+        }, true);
+
+        return;
+    } while(0);
+
     rsp.setContent(value.dump());
     rspFunc(rsp);
 }

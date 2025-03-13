@@ -362,7 +362,7 @@ void WebrtcSdpMedia::parseExtmap(const string& value)
 
 void WebrtcSdpMedia::parseRtpmap(const string& value)
 {
-    logInfo << "parseRtpmap: " << value;
+    logDebug << "parseRtpmap: " << value;
     auto vecValue = split(value, " ");
     if (vecValue.size() < 2) {
         return ;
@@ -510,7 +510,7 @@ void WebrtcSdpMedia::parseSsrcGroup(const string& value)
 
 void WebrtcSdpMedia::encode(stringstream& ss)
 {
-    logInfo << "media pt info size: " << mapPtInfo_.size();
+    logDebug << "media pt info size: " << mapPtInfo_.size();
 
     ss << "m=" << media_ << " " << port_ << " " << protocol_;
     if (media_ == "application") {
@@ -572,7 +572,7 @@ void WebrtcSdpMedia::encode(stringstream& ss)
     }, "Webrtc", "Server", "Server1", "enableRtx");
 
     for (auto& extIter : mapExtmap_) {
-        logInfo << "extIter.first: " << extIter.first << ", extIter.second" << extIter.second;
+        logDebug << "extIter.first: " << extIter.first << ", extIter.second" << extIter.second;
         if (enableTwcc && extIter.first == TWCCUrl) {
             ss << "a=extmap:" << extIter.second << " " << extIter.first << "\r\n";
         }
@@ -708,8 +708,8 @@ void WebrtcSdp::parse(const string& sdp)
     shared_ptr<WebrtcSdpMedia> media;
 
     auto sdpLine = split(sdp, "\r\n");
-    logInfo << "sdp lines: " << sdpLine.size();
-    logInfo << "sdp : " << sdp;
+    logDebug << "sdp lines: " << sdpLine.size();
+    logDebug << "sdp : " << sdp;
     for (int i = 0; i < sdpLine.size(); ++i) {
         auto &line = sdpLine[i];
         if (line.size() < 2 || line[1] != '=') {
@@ -799,8 +799,8 @@ string WebrtcSdp::getSdp()
     stringstream ss;
     _title->encode(ss);
 
-    logInfo << "sdp title: " << ss.str();
-    logInfo << "sdp media size: " << _vecSdpMedia.size();
+    logDebug << "sdp title: " << ss.str();
+    logDebug << "sdp media size: " << _vecSdpMedia.size();
 
     for (auto& sdpMedia : _vecSdpMedia) {
         sdpMedia->encode(ss);

@@ -11,7 +11,7 @@
 #ifndef SRC_FRAME_FRAMEMEDIASOURCE_H_
 #define SRC_FRAME_FRAMEMEDIASOURCE_H_
 
-#include <mutex>
+#include <vector>
 #include <string>
 #include <memory>
 #include <functional>
@@ -44,6 +44,7 @@ public:
     uint64_t getLastFrameTime() {return TimeClock::now() - _lastFrameTime;}
     int getLastGopTime() {return _gopTime;}
     uint64_t getLastKeyframeTime() {return TimeClock::now() - _lastKeyframeTime;}
+    FrameBuffer::Ptr getKeyframe() {return _keyframe;}
 
 private:
     bool _sendConfig = false;
@@ -58,6 +59,7 @@ private:
     shared_ptr<StampAdjust> _audioStampAdjust;
     FrameRingType::Ptr _ring;
     FrameBuffer::Ptr _frame;
+    FrameBuffer::Ptr _keyframe;
 };
 
 

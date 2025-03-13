@@ -218,9 +218,9 @@ void HlsMuxer::updateM3u8()
 	{
 		lock_guard<mutex> lck(_tsMtx);
 		_mapTs.emplace(mkey, _tsBuffer);
-		logInfo << "add ts: " << mkey;
+		logDebug << "add ts: " << mkey;
 		while (_mapTs.size() > tsNum) {
-			logInfo << "erase ts : " << _mapTs.begin()->first;
+			logDebug << "erase ts : " << _mapTs.begin()->first;
 
 			_mapTs.erase(_mapTs.begin());
 			++_firstTsSeq;
@@ -260,7 +260,7 @@ void HlsMuxer::updateM3u8()
 	// fclose(mfp);
 
 	if (_onReady) {
-		logInfo << "hls onready";
+		logDebug << "hls onready";
 		_onReady();
 		_onReady = nullptr;
 	}
@@ -276,7 +276,7 @@ string HlsMuxer::getM3u8(void* key)
 		lock_guard<mutex> lck(_uidMtx);
 		HlsPlayerInfo info;
 		info.key_ = key;
-		logInfo << "update info.lastTime_";
+		logDebug << "update info.lastTime_";
 		info.lastTime_ = time(NULL);
 		_mapPlayer[uid] = info;
 	}
@@ -299,7 +299,7 @@ string HlsMuxer::getM3u8WithUid(int uid)
 
 	{
 		lock_guard<mutex> lck(_uidMtx);
-		logInfo << "update info.lastTime_";
+		logDebug << "update info.lastTime_";
 		_mapPlayer[uid].lastTime_ = time(NULL);
 	}
 
@@ -329,7 +329,7 @@ void HlsMuxer::onManager()
     lock_guard<mutex> lck(_uidMtx);
     for (auto it = _mapPlayer.begin(); it != _mapPlayer.end();) {
         int now = time(NULL);
-		logInfo << "uid: " << it->first << ", now: " << now << ", it->second.lastTime_: " << it->second.lastTime_;
+		logDebug << "uid: " << it->first << ", now: " << now << ", it->second.lastTime_: " << it->second.lastTime_;
         if (now - it->second.lastTime_ > playTimeout) {
 			auto uid = it->first;
 			auto key = it->second.key_;

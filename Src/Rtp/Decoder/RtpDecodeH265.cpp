@@ -132,8 +132,9 @@ void RtpDecodeH265::decode(const RtpPacket::Ptr& rtp)
             // single
             if (nalType < 48) {
                 decodeSingle(rtp->getPayload(), rtp->getPayloadSize(), rtp->getStampMS());
+            } else {
+                logDebug << "no surpport type";
             }
-            logInfo << "no surpport type";
             break;
         }
     }

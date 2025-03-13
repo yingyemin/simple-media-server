@@ -286,7 +286,11 @@ void HttpConnection::writeHttpResponse(HttpResponse& rsp) // 将要素按照Http
     // logTrace << "rsp._body.size(): " << rsp._body.size();
     // logTrace << "rsp_str.str().size(): " << rsp_str.str().size();
 
-    logInfo << "url: " << _parser._url << "body: " << _parser._content << ", response: " << rsp_str.str() << ", this: " << this;
+    if (_parser._url.find("/api/v1") != string::npos) {
+        logInfo << "url: " << _parser._url << "body: " << _parser._content << ", response: " << rsp_str.str() << ", this: " << this;
+    } else {
+        logInfo << "url: " << _parser._url;
+    }
 
     // 发送数据
     auto buffer = StreamBuffer::create();
@@ -720,7 +724,7 @@ void HttpConnection::handleHlsM3u8()
         rsp.setContent(strM3u8);
         writeHttpResponse(rsp);
 
-        logInfo << "m3u8 response: " << strM3u8;
+        logDebug << "m3u8 response: " << strM3u8;
 
         return ;
     }
