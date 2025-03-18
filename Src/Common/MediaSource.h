@@ -98,10 +98,16 @@ public:
     virtual void delConnection(void* key);
     virtual unordered_map<int, shared_ptr<TrackInfo>> getTrackInfo();
     virtual int playerCount() {return 0;}
+    virtual int totalPlayerCount();
     virtual uint64_t getBytes() {return 0;}
+    virtual float getBitrate() {return _bitrate;}
     virtual void getClientList(const function<void(const list<ClientInfo>& info)>& func) {}
     virtual void setOriginSocket(const Socket::Ptr& socket) {_originSocket = socket;}
     virtual Socket::Ptr getOriginSocket() {return _originSocket.lock();}
+    virtual void setAudioStampMode(int mode) {_audioStampMode = mode;}
+    virtual int getAudioStampMode() {return _audioStampMode;}
+    virtual void setVideoStampMode(int mode) {_videoStampMode = mode;}
+    virtual int getVideoStampMode() {return _videoStampMode;}
     
     void setStatus(const SourceStatus status) {_status = status;}
     int getStatus() {return _status;}
@@ -158,6 +164,10 @@ private:
 
 private:
     bool _hasReady = false;
+    int _audioStampMode = 0; //useSourceStamp;
+    int _videoStampMode = 0; //useSourceStamp;
+    float _bitrate = 0;
+    uint64_t _lastBytes_5s = 0;
     Socket::Wptr _originSocket;
     shared_ptr<TimerTask> _task;
     mutex _mtxConnection;

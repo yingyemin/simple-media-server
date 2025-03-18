@@ -24,6 +24,21 @@ public:
     string errorCode;
 };
 
+// 流的心跳
+class StreamHeartbeatInfo
+{
+public:
+    int playerCount = 0;
+    uint64_t bytes = 0;
+    uint64_t createTime = 0;
+    uint64_t currentTime = 0;
+    float bitrate = 0;
+    string protocol;
+    string uri;
+    string vhost;
+    string type;
+};
+
 // 鉴权请求参数
 class PublishInfo
 {
@@ -100,7 +115,9 @@ public:
     void init();
     void reportByHttp(const string& url, const string&method, const string& msg, const function<void(const string& err, 
                 const nlohmann::json& res)>& cb = [](const string& err, const nlohmann::json& res){});
+
     void onStreamStatus(const StreamStatusInfo& info);
+    void onStreamHeartbeat(const StreamHeartbeatInfo& info);
     void onPublish(const PublishInfo& info, const function<void(const PublishResponse& rsp)>& cb);
     void onPlay(const PlayInfo& info, const function<void(const PlayResponse& rsp)>& cb);
     void onPlayer(const PlayerInfo& info);

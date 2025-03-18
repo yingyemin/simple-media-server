@@ -5,11 +5,8 @@
 
 using namespace std;
 
-GB28181ClientPull::GB28181ClientPull(const string& ip, int port, const string& app, 
-    const string& stream, int ssrc, int sockType)
-    :GB28181Client(ip, port, app, stream, ssrc, sockType, false)
-    ,_peerIp(ip)
-    ,_peerPort(port)
+GB28181ClientPull::GB28181ClientPull(const string& app, const string& stream, int ssrc, int sockType)
+    :GB28181Client(MediaClientType_Pull, app, stream, ssrc, sockType)
     ,_sockType(sockType)
     ,_ssrc(ssrc)
     ,_streamName(stream)

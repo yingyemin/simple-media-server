@@ -137,6 +137,38 @@ void JT1078Connection::onRtpPacket(const JT1078RtpPacket::Ptr& buffer)
                 return ;
             }
 
+            static int streamHeartbeatTime = Config::instance()->getAndListen([](const json &config){
+                streamHeartbeatTime = Config::instance()->get("Util", "streamHeartbeatTime");
+            }, "Util", "streamHeartbeatTime");
+
+            if (self->_loop) {
+                self->_loop->addTimerTask(streamHeartbeatTime, [wSelf](){
+                    auto self = wSelf.lock();
+                    if (!self) {
+                        return 0;
+                    }
+
+                    auto jt1078Source = self->_source.lock(); 
+                    if (!jt1078Source) {
+                        return 0;
+                    }
+
+                    StreamHeartbeatInfo info;
+                    info.type = jt1078Source->getType();
+                    info.protocol = jt1078Source->getProtocol();
+                    info.uri = jt1078Source->getPath();
+                    info.vhost = jt1078Source->getVhost();
+                    info.playerCount = jt1078Source->totalPlayerCount();
+                    info.createTime = jt1078Source->getCreateTime();
+                    info.bytes = jt1078Source->getBytes();
+                    info.currentTime = TimeClock::now();
+                    info.bitrate = jt1078Source->getBitrate();
+                    MediaHook::instance()->onStreamHeartbeat(info);
+
+                    return streamHeartbeatTime;
+                }, nullptr);
+            }
+
             // 本来想通过回调来进行指定流名称，但是会导致上线慢，暂时屏蔽
             // if (self->_path.empty() && !rsp.appName.empty() && !rsp.streamName.empty()) {
             //     self->_path = "/" + rsp.appName + "/" + rsp.streamName;

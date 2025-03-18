@@ -105,6 +105,34 @@ void MediaHook::onStreamStatus(const StreamStatusInfo& info)
     }
 }
 
+void MediaHook::onStreamHeartbeat(const StreamHeartbeatInfo& info)
+{
+    json value;
+    value["protocol"] = info.protocol;
+    value["type"] = info.type;
+    value["uri"] = info.uri;
+    value["vhost"] = info.vhost;
+    value["playerCount"] = info.playerCount;
+    value["bitrate"] = info.bitrate;
+    value["bytes"] = info.bytes;
+    value["createTime"] = info.createTime;
+    value["currentTime"] = info.currentTime;
+
+    // static string type = Config::instance()->getAndListen([](const json& config){
+    //     type = Config::instance()->get("Hook", "Type");
+    //     logInfo << "Hook type: " << type;
+    // }, "Hook", "Type");
+
+    if (_type == "http") {
+        static string url = Config::instance()->getAndListen([](const json& config){
+            url = Config::instance()->get("Hook", "Http", "onStreamHeartbeat");
+            logInfo << "Hook url: " << url;
+        }, "Hook", "Http", "onStreamHeartbeat");
+
+        reportByHttp(url, "POST", value.dump());
+    }
+}
+
 // 使用类作为参数，好处是以后修改参数没那么麻烦，坏处是有地方漏了，编译的时候也发现不了
 // 本项目使用类主要是图方便，谨慎用之
 void MediaHook::onPublish(const PublishInfo& info, const function<void(const PublishResponse& rsp)>& cb)

@@ -58,6 +58,38 @@ bool GB28181Context::init()
         //     self->_uri = "/" + rsp.appName + "/" + rsp.streamName;
         // }
         // self->initAfterPublish();
+
+        static int streamHeartbeatTime = Config::instance()->getAndListen([](const json &config){
+            streamHeartbeatTime = Config::instance()->get("Util", "streamHeartbeatTime");
+        }, "Util", "streamHeartbeatTime");
+
+        if (self->_loop) {
+            self->_loop->addTimerTask(streamHeartbeatTime, [wSelf](){
+                auto self = wSelf.lock();
+                if (!self) {
+                    return 0;
+                }
+
+                auto gb28181Source = self->_source.lock(); 
+                if (!gb28181Source) {
+                    return 0;
+                }
+
+                StreamHeartbeatInfo info;
+                info.type = gb28181Source->getType();
+                info.protocol = gb28181Source->getProtocol();
+                info.uri = gb28181Source->getPath();
+                info.vhost = gb28181Source->getVhost();
+                info.playerCount = gb28181Source->totalPlayerCount();
+                info.createTime = gb28181Source->getCreateTime();
+                info.bytes = gb28181Source->getBytes();
+                info.currentTime = TimeClock::now();
+                info.bitrate = gb28181Source->getBitrate();
+                MediaHook::instance()->onStreamHeartbeat(info);
+
+                return streamHeartbeatTime;
+            }, nullptr);
+        }
     });
 
     // 鉴权后再初始化可能会导致上线慢，后面再看

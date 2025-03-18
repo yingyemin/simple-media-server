@@ -11,8 +11,7 @@ public:
     using Ptr = shared_ptr<GB28181ClientPush>;
     using Wptr = weak_ptr<GB28181ClientPush>;
 
-    GB28181ClientPush(const string& ip, int port, const string& app, 
-                    const string& stream, int ssrc, int sockType);
+    GB28181ClientPush(const string& app, const string& stream, int ssrc, int sockType);
     ~GB28181ClientPush();
 
 private:
@@ -21,9 +20,6 @@ private:
 
 private:
     // bool _firstWrite = true;
-    bool _sendFlag = true;
-    string _peerIp;
-    int _peerPort;
     int _sockType;
     int _ssrc;
     string _streamName;

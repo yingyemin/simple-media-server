@@ -847,6 +847,25 @@ unordered_map<int, shared_ptr<TrackInfo>> MediaSource::getTrackInfo()
     return _mapLockTrackInfo;
 }
 
+int MediaSource::totalPlayerCount()
+{
+    int totalPlayerCount = playerCount();
+
+    auto muxerSource = getMuxerSource();
+    for (auto& mIt : muxerSource) {
+        auto tSource = mIt.second;
+        for (auto& tIt: tSource) {
+            auto mSource = tIt.second.lock();
+            if (!mSource) {
+                continue;
+            }
+            totalPlayerCount += mSource->playerCount();
+        }
+    }
+
+    return totalPlayerCount;
+}
+
 void MediaSource::addOnDetach(void* key, const onDetachFunc& func)
 {
     lock_guard<mutex> lck(_mtxOnDetachFunc);
@@ -862,7 +881,11 @@ void MediaSource::delOnDetach(void* key)
 void MediaSource::onReaderChanged(int size)
 {
     logDebug << "onReaderChanged: " << size << ", path: " << _urlParser.path_
-            << ", type: " << _urlParser.type_ << ", protocol: " << _urlParser.protocol_;
+            << ", type: " << _urlParser.type_ << ", protocol: " << _urlParser.protocol_ << "ready: " << isReady();
+    if (!isReady()) {
+        return ;
+    }
+    
     if (size != 0) {
         return ;
     }
@@ -1000,6 +1023,21 @@ void MediaSource::onReady()
 
     if (_origin) {
         pushStreamToOrigin();
+
+        if (_loop) {
+            weak_ptr<MediaSource> wSelf = shared_from_this();
+            _loop->addTimerTask(5000, [wSelf](){
+                auto self = wSelf.lock();
+                if (!self) {
+                    return 0;
+                }
+
+                self->_bitrate = (self->getBytes() - self->_lastBytes_5s) * 8 / 5.0;
+                self->_lastBytes_5s = self->getBytes();
+
+                return 5000;
+            }, nullptr);
+        }
     }
 }
 

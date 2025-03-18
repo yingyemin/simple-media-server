@@ -1,5 +1,5 @@
 {
-    "LocalIp" : "172.24.6.38",
+    "LocalIp" : "172.24.6.9",
     "Ssl" : {
         "key" : "./sms.com.key",
         "cert" : "./sms.com.crt"
@@ -15,11 +15,16 @@
         "size" : 0
     },
     "Util" : {
+        #无人观看是否停流
         "stopNonePlayerStream" : false,
+        #无人观看后，多长时间关流
         "nonePlayerWaitTime" : 5000,
+        #找不到流时，是否找本地文件进行点播
         "enableLoadFromFile" : false,
         # 心跳时间，单位ms
         "heartbeatTime" : 10000,
+        # 流的心跳时间，上报流量等信息，单位ms
+        "streamHeartbeatTime": 10000,
         # 第一个track ready后，等待多久进行第一次检查，单位ms
         "firstTrackWaitTime" : 500,
         # 第一次检查后，发现有其他的track，但是该track还没有ready，等待多久进行第二次检查，单位ms
@@ -31,6 +36,7 @@
         "Http" : {
             "timeout" : 10,
             "onStreamStatus" : "http://127.0.0.1/api/v1/onStreamStatus",
+            "onStreamHeartbeat" : "http://127.0.0.1/api/v1/onStreamHeartbeat",
             "onNonePlayer" : "http://127.0.0.1/api/v1/onNonePlayer",
             "onKeepAlive" : "http://127.0.0.1/api/v1/onKeepAlive",
             "onPublish" : "http://127.0.0.1/api/v1/onPublish",
@@ -56,6 +62,8 @@
         # rtsp tcp模式下使用巨帧会提升性能
         "hugeRtpSize" : 60000,
         "Server" : {
+            # 单位 ms
+            "timeout" : 5000,
             "Server1" : {
                 "ip" : "0.0.0.0",
                 "port" : 11000,
@@ -201,7 +209,10 @@
                 "enableUlpfec" : false,
                 "udpPortMax" : 10000,
                 "udpPortMin" : 6000,
-                "lossIntervel" : 10
+                "lossIntervel" : 0,
+                "debugIp" : "127.0.0.1",
+                "debugPort" : 7100,
+                "debugRtp" : 0
             }
         }
     },

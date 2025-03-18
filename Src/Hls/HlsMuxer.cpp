@@ -362,3 +362,9 @@ void HlsMuxer::onDelConnection(void* key)
 		_onDelConnection(key);
 	}
 }
+
+int HlsMuxer::playerCount()
+{
+	lock_guard<mutex> lck(_uidMtx);
+	return _mapPlayer.size();
+}

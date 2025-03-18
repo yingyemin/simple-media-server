@@ -194,9 +194,17 @@ void FrameMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
     MediaSource::addTrack(track);
     if (track->trackType_ == "video" && !_origin) {
         _videoStampAdjust = make_shared<VideoStampAdjust>(0);
+        auto originSrc = _originSrc.lock();
+        if (originSrc) {
+            _videoStampAdjust->setStampMode((StampMode)originSrc->getVideoStampMode());
+        }
     } else if (track->trackType_ == "audio" && !_origin) {
         _audioStampAdjust = make_shared<AudioStampAdjust>(0);
         _audioStampAdjust->setCodec(track->codec_);
+        auto originSrc = _originSrc.lock();
+        if (originSrc) {
+            _audioStampAdjust->setStampMode((StampMode)originSrc->getAudioStampMode());
+        }
     }
 
     if (track->isReady()) {

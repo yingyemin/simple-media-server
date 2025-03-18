@@ -42,9 +42,20 @@ void GB28181Api::createGB28181Receiver(const HttpParser& parser, const UrlParser
         string appName = parser._body["appName"];
         string ip = parser._body["ip"];
 
-        auto pull = make_shared<GB28181ClientPull>(ip, port, appName, streamName, ssrc, socketType);
-        pull->create();
-        pull->start();
+        static int timeout = Config::instance()->getAndListen([](const json &config){
+            timeout = Config::instance()->get("GB28181", "Server", "timeout");
+        }, "GB28181", "Server", "timeout");
+
+        auto pull = make_shared<GB28181ClientPull>(appName, streamName, ssrc, socketType);
+        pull->create("0.0.0.0", 0, ip + ":" + to_string(port));
+        pull->start("0.0.0.0", 0, ip + ":" + to_string(port), timeout);
+
+        string key = "/" + appName + "/" + streamName;
+        MediaClient::addMediaClient(key, pull);
+
+        pull->setOnClose([key](){
+            MediaClient::delMediaClient(key);
+        });
 
         value["port"] = pull->getLocalPort();
         value["ip"] = pull->getLocalIp();
@@ -101,14 +112,22 @@ void GB28181Api::createGB28181Sender(const HttpParser& parser, const UrlParser& 
         int socketType = toInt(parser._body["socketType"]); //1:tcp,2:udp,3:both
         string streamName = parser._body["streamName"];
         string appName = parser._body["appName"];
-        string ip = parser._body["ip"];
+        string ip = parser._body["ip"];        
 
-        auto push = make_shared<GB28181ClientPush>(ip, port, appName, streamName, ssrc, socketType);
-        push->create();
-        push->start();
+        static int timeout = Config::instance()->getAndListen([](const json &config){
+            timeout = Config::instance()->get("GB28181", "Server", "timeout");
+        }, "GB28181", "Server", "timeout");
+
+        auto push = make_shared<GB28181ClientPush>(appName, streamName, ssrc, socketType);
+        push->create("0.0.0.0", 0, ip + ":" + to_string(port));
+        push->start("0.0.0.0", 0, ip + ":" + to_string(port), timeout);
 
         string key = ip + "_" + to_string(port) + "_" + to_string(ssrc);
-        GB28181Client::addClient(key, push);
+        MediaClient::addMediaClient(key, push);
+
+        push->setOnClose([key](){
+            MediaClient::delMediaClient(key);
+        });
 
         value["port"] = push->getLocalPort();
         value["ip"] = push->getLocalIp();

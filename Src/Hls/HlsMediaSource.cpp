@@ -28,6 +28,11 @@ void HlsMediaSource::onReady()
     // MediaSource::onReady();
 }
 
+int HlsMediaSource::playerCount()
+{
+    return _hlsMuxer->playerCount();
+}
+
 void HlsMediaSource::onHlsReady()
 {
     MediaSource::onReady();

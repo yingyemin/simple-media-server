@@ -5,6 +5,7 @@
 #include "RtmpConnection.h"
 #include "Logger.h"
 #include "Util/String.h"
+#include "Util/TimeClock.h"
 #include "Common/Define.h"
 #include "Rtmp.h"
 #include "Common/Config.h"
@@ -231,6 +232,38 @@ bool RtmpConnection::handleInvoke(RtmpMessage& rtmp_msg)
                 }
 
                 self->handlePublish();
+
+                static int streamHeartbeatTime = Config::instance()->getAndListen([](const json &config){
+                    streamHeartbeatTime = Config::instance()->get("Util", "streamHeartbeatTime");
+                }, "Util", "streamHeartbeatTime");
+
+                if (self->_loop) {
+                    self->_loop->addTimerTask(streamHeartbeatTime, [wSelf](){
+                        auto self = wSelf.lock();
+                        if (!self) {
+                            return 0;
+                        }
+
+                        auto rtmpSource = self->_source.lock(); 
+                        if (!rtmpSource) {
+                            return 0;
+                        }
+
+                        StreamHeartbeatInfo info;
+                        info.type = rtmpSource->getType();
+                        info.protocol = rtmpSource->getProtocol();
+                        info.uri = rtmpSource->getPath();
+                        info.vhost = rtmpSource->getVhost();
+                        info.playerCount = rtmpSource->totalPlayerCount();
+                        info.createTime = rtmpSource->getCreateTime();
+                        info.bytes = rtmpSource->getBytes();
+                        info.currentTime = TimeClock::now();
+                        info.bitrate = rtmpSource->getBitrate();
+                        MediaHook::instance()->onStreamHeartbeat(info);
+
+                        return streamHeartbeatTime;
+                    }, nullptr);
+                }
             });
             ret = true;
         }

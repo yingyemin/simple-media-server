@@ -58,6 +58,7 @@ void HttpApi::initApi()
     g_mapApi.emplace("/api/v1/getServerInfo", HttpApi::getServerInfo);
 
     g_mapApi.emplace("/api/v1/streams/keyframe", HttpApi::getKeyframe);
+    g_mapApi.emplace("/api/v1/streams/setStampMode", HttpApi::setStampMode);
 }
 
 void HttpApi::handleConfig(const HttpParser& parser, const UrlParser& urlParser, 
@@ -457,6 +458,38 @@ void HttpApi::getVersion(const HttpParser& parser, const UrlParser& urlParser,
     value["version"] = GIT_VERSION;
     value["code"] = "200";
     value["msg"] = "success";
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void HttpApi::setStampMode(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    json body = parser._body;
+    checkArgs(body, {"path"});
+    
+    value["code"] = "200";
+    value["msg"] = "success";
+
+    auto source = MediaSource::get(body["path"], body.value("vhost", DEFAULT_VHOST), PROTOCOL_FRAME, body.value("type", DEFAULT_TYPE));
+    if (!source) {
+        value["code"] = "400";
+        value["msg"] = "source is empty";
+    } else {
+        if (body.find("videoStampMode") != body.end()) {
+            StampMode videoMode = body["videoStampMode"];
+            source->setVideoStampMode(videoMode);
+        }
+        if (body.find("audioStampMode") != body.end()) {
+            StampMode audioMode = body["audioStampMode"];
+            source->setAudioStampMode(audioMode);
+        }
+    }
+
     rsp.setContent(value.dump());
     rspFunc(rsp);
 }

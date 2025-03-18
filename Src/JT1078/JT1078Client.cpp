@@ -31,7 +31,7 @@ bool JT1078Client::start(const string& localIp, int localPort, const string& url
         timeout = 5;
     }
     weak_ptr<JT1078Client> wSelf = dynamic_pointer_cast<JT1078Client>(shared_from_this());
-    logInfo << "localIp: " << localIp << ", localPort: " << localPort;
+    logDebug << "localIp: " << localIp << ", localPort: " << localPort;
     if (TcpClient::create(localIp, localPort) < 0) {
         close();
         logInfo << "TcpClient::create failed: " << strerror(errno);
@@ -39,7 +39,7 @@ bool JT1078Client::start(const string& localIp, int localPort, const string& url
     }
 
     _peerUrlParser.parse(url);
-    logInfo << "_peerUrlParser.host_: " << _peerUrlParser.host_ << ", _peerUrlParser.port_: " << _peerUrlParser.port_
+    logDebug << "_peerUrlParser.host_: " << _peerUrlParser.host_ << ", _peerUrlParser.port_: " << _peerUrlParser.port_
             << ", timeout: " << timeout;
     
     if (_peerUrlParser.port_ == 0 || _peerUrlParser.host_.empty()) {

@@ -425,6 +425,39 @@ void RtspConnection::handleAnnounce_l() {
        << "\r\n";
 
     sendMessage(ss.str());
+
+    static int streamHeartbeatTime = Config::instance()->getAndListen([](const json &config){
+        streamHeartbeatTime = Config::instance()->get("Util", "streamHeartbeatTime");
+    }, "Util", "streamHeartbeatTime");
+
+    if (_loop) {
+        weak_ptr<RtspConnection> wSelf = dynamic_pointer_cast<RtspConnection>(shared_from_this());
+        _loop->addTimerTask(streamHeartbeatTime, [wSelf](){
+            auto self = wSelf.lock();
+            if (!self) {
+                return 0;
+            }
+
+            auto rtspSource = self->_source.lock(); 
+            if (!rtspSource) {
+                return 0;
+            }
+
+            StreamHeartbeatInfo info;
+            info.type = self->_urlParser.type_;
+            info.protocol = self->_urlParser.protocol_;
+            info.uri = self->_urlParser.path_;
+            info.vhost = self->_urlParser.vhost_;
+            info.playerCount = rtspSource->totalPlayerCount();
+            info.createTime = rtspSource->getCreateTime();
+            info.bytes = rtspSource->getBytes();
+            info.currentTime = TimeClock::now();
+            info.bitrate = rtspSource->getBitrate();
+            MediaHook::instance()->onStreamHeartbeat(info);
+
+            return streamHeartbeatTime;
+        }, nullptr);
+    }
 }
 
 void RtspConnection::handleAnnounce()

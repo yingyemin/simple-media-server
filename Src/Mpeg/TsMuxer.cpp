@@ -770,7 +770,7 @@ int TsMuxer::mk_pes_packet(char *buf, int bVideo, int length, int bDtsEn, unsign
 		return 0;
 	}
 
-	logDebug << "pts: " << pts << " dts: " << dts;
+	logTrace << "pts: " << pts << " dts: " << dts;
 	
 	pts *= 90;
     dts *= 90;

@@ -87,6 +87,37 @@ void WebsocketConnection::onWebsocketFrame(const char* data, int len)
             }
 
             // self->handlePublish();
+            static int streamHeartbeatTime = Config::instance()->getAndListen([](const json &config){
+                streamHeartbeatTime = Config::instance()->get("Util", "streamHeartbeatTime");
+            }, "Util", "streamHeartbeatTime");
+
+            if (self->_loop) {
+                self->_loop->addTimerTask(streamHeartbeatTime, [wSelf](){
+                    auto self = wSelf.lock();
+                    if (!self) {
+                        return 0;
+                    }
+
+                    auto websocketSource = self->_source.lock(); 
+                    if (!websocketSource) {
+                        return 0;
+                    }
+
+                    StreamHeartbeatInfo info;
+                    info.type = websocketSource->getType();
+                    info.protocol = websocketSource->getProtocol();
+                    info.uri = websocketSource->getPath();
+                    info.vhost = websocketSource->getVhost();
+                    info.playerCount = websocketSource->totalPlayerCount();
+                    info.createTime = websocketSource->getCreateTime();
+                    info.bytes = websocketSource->getBytes();
+                    info.currentTime = TimeClock::now();
+                    info.bitrate = websocketSource->getBitrate();
+                    MediaHook::instance()->onStreamHeartbeat(info);
+
+                    return streamHeartbeatTime;
+                }, nullptr);
+            }
         });
     }
 

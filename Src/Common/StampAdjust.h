@@ -10,12 +10,20 @@
 
 using namespace std;
 
+enum StampMode
+{
+    useSourceStamp,
+    useSystemTime,
+    useSamplerate
+};
+
 class StampAdjust
 {
 public:
     using Ptr = shared_ptr<StampAdjust>;
     virtual void inputStamp(uint64_t& pts, uint64_t& dts, int samples) {}
     virtual void setCodec(const string& codec) {}
+    virtual void setStampMode(StampMode mode) {}
 };
 
 class AudioStampAdjust : public StampAdjust, public enable_shared_from_this<AudioStampAdjust>
@@ -29,9 +37,11 @@ public:
 public:
     void inputStamp(uint64_t& pts, uint64_t& dts, int samples) override;
     void setCodec(const string& codec) override {_codec = codec;}
+    void setStampMode(StampMode mode) {_stampMode = mode;}
 
 private:
-    int _samplerate;
+    StampMode _stampMode = useSourceStamp;
+    int _samplerate = 0;
     uint64_t _count = 0;
     uint64_t _lastPts;
     uint64_t _avgStep = 0;
@@ -54,8 +64,10 @@ public:
 
 public:
     void inputStamp(uint64_t& pts, uint64_t& dts, int samples = 1) override;
+    void setStampMode(StampMode mode) {_stampMode = mode;}
 
 private:
+    StampMode _stampMode = useSourceStamp;
     int _fps;
     int _guessFps = 25;
     uint64_t _count = 0;

@@ -40,6 +40,7 @@ public:
 	void onManager();
 	void onNoPLayer();
 	void onDelConnection(void* key);
+	int playerCount();
 	
 	void updateM3u8();
 	void setOnNoPlayer(const function<void()>& cb) { _onNoPLayer = cb; }

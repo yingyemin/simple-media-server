@@ -214,8 +214,8 @@ void JT1078Api::startSend(const HttpParser& parser, const UrlParser& urlParser,
     checkArgs(parser._body, {"url", "appName", "streamName", "simCode", "channel"});
 
     static int timeout = Config::instance()->getAndListen([](const json &config){
-        timeout = Config::instance()->get("JT1078", "Server", "Server1", "timeout");
-    }, "JT1078", "Server", "Server1", "timeout");
+        timeout = Config::instance()->get("JT1078", "Server", "timeout");
+    }, "JT1078", "Server", "timeout");
 
     auto client = make_shared<JT1078Client>(MediaClientType_Push, parser._body["appName"], parser._body["streamName"]);
     client->setSimCode(parser._body["simCode"]);

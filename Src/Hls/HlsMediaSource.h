@@ -26,6 +26,7 @@ public:
     void addTrack(const shared_ptr<TrackInfo>& track) override;
     void onFrame(const FrameBuffer::Ptr& frame) override;
     void onReady() override;
+    int playerCount() override;
 
     string getM3u8(void* key);
     FrameBuffer::Ptr getTsBuffer(const string& key);

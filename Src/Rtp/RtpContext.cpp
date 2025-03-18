@@ -168,6 +168,39 @@ bool RtpContext::init()
 
         if (!rsp.authResult) {
             self->_alive = false;
+            return ;
+        }
+
+        static int streamHeartbeatTime = Config::instance()->getAndListen([](const json &config){
+            streamHeartbeatTime = Config::instance()->get("Util", "streamHeartbeatTime");
+        }, "Util", "streamHeartbeatTime");
+
+        if (self->_loop) {
+            self->_loop->addTimerTask(streamHeartbeatTime, [wSelf](){
+                auto self = wSelf.lock();
+                if (!self) {
+                    return 0;
+                }
+
+                auto rtpSource = self->_source.lock(); 
+                if (!rtpSource) {
+                    return 0;
+                }
+
+                StreamHeartbeatInfo info;
+                info.type = rtpSource->getType();
+                info.protocol = rtpSource->getProtocol();
+                info.uri = rtpSource->getPath();
+                info.vhost = rtpSource->getVhost();
+                info.playerCount = rtpSource->totalPlayerCount();
+                info.createTime = rtpSource->getCreateTime();
+                info.bytes = rtpSource->getBytes();
+                info.currentTime = TimeClock::now();
+                info.bitrate = rtpSource->getBitrate();
+                MediaHook::instance()->onStreamHeartbeat(info);
+
+                return streamHeartbeatTime;
+            }, nullptr);
         }
     });
 
