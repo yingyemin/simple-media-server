@@ -38,10 +38,11 @@ public:
     void close() override;
     ssize_t send(Buffer::Ptr pkt) override;
 
-    void setServerId(const string& key) {_serverId = key;}
-
 public:
+    void setServerId(const string& key) {_serverId = key;}
     virtual void onWebsocketFrame(const char* data, int len) {}
+    void apiRoute(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc);
 
 protected:
     void onHttpRequest();

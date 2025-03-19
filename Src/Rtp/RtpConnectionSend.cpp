@@ -9,7 +9,7 @@
 #include "Logger.h"
 #include "Util/String.h"
 #include "Common/Define.h"
-#include "Hook/MediaHook.h"
+#include "Common/HookManager.h"
 
 using namespace std;
 
@@ -52,7 +52,10 @@ RtpConnectionSend::~RtpConnectionSend()
         info.uri = _urlParser.path_;
         info.vhost = _urlParser.vhost_;
 
-        MediaHook::instance()->onPlayer(info);
+        auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+        if (hook) {
+            hook->onPlayer(info);
+        }
     }
 }
 
@@ -173,7 +176,10 @@ void RtpConnectionSend::initReader()
         info.uri = _urlParser.path_;
         info.vhost = _urlParser.vhost_;
 
-        MediaHook::instance()->onPlayer(info);
+        auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+        if (hook) {
+            hook->onPlayer(info);
+        }
     }
 }
 

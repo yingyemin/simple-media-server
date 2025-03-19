@@ -9,100 +9,11 @@
 
 #include "Net/Buffer.h"
 #include "Common/json.hpp"
+#include "Common/HookManager.h"
 
 using namespace std;
 
-// 流上下线的参数
-class StreamStatusInfo
-{
-public:
-    string protocol;
-    string uri;
-    string vhost;
-    string type;
-    string status;
-    string errorCode;
-};
-
-// 流的心跳
-class StreamHeartbeatInfo
-{
-public:
-    int playerCount = 0;
-    uint64_t bytes = 0;
-    uint64_t createTime = 0;
-    uint64_t currentTime = 0;
-    float bitrate = 0;
-    string protocol;
-    string uri;
-    string vhost;
-    string type;
-};
-
-// 鉴权请求参数
-class PublishInfo
-{
-public:
-    string protocol;
-    string uri;
-    string vhost;
-    string type;
-    string params;
-};
-
-// 鉴权的返回参数
-class PublishResponse
-{
-public:
-    bool authResult = false;
-    // 用于1078或者28181重新命名
-    string appName;
-    string streamName;
-    string err;
-};
-
-// 鉴权请求参数
-class PlayInfo
-{
-public:
-    string protocol;
-    string uri;
-    string vhost;
-    string type;
-    string params;
-};
-
-// 鉴权的返回参数
-class PlayResponse
-{
-public:
-    bool authResult = false;
-    string err;
-};
-
-class PlayerInfo
-{
-public:
-    string protocol;
-    string uri;
-    string vhost;
-    string type;
-    string ip;
-    string status;
-    int port = 0;
-};
-
-class ServerInfo
-{
-public:
-    string ip;
-    int port = 0;
-    uint64_t originCount = 0;
-    uint64_t playerCount = 0;
-    float memUsage = 0;
-};
-
-class MediaHook : public enable_shared_from_this<MediaHook>
+class MediaHook : public HookBase
 {
 public:
     using Ptr = shared_ptr<MediaHook>;
@@ -113,18 +24,16 @@ public:
 public:
     static MediaHook::Ptr instance();
     void init();
-    void reportByHttp(const string& url, const string&method, const string& msg, const function<void(const string& err, 
-                const nlohmann::json& res)>& cb = [](const string& err, const nlohmann::json& res){});
 
-    void onStreamStatus(const StreamStatusInfo& info);
-    void onStreamHeartbeat(const StreamHeartbeatInfo& info);
-    void onPublish(const PublishInfo& info, const function<void(const PublishResponse& rsp)>& cb);
-    void onPlay(const PlayInfo& info, const function<void(const PlayResponse& rsp)>& cb);
-    void onPlayer(const PlayerInfo& info);
+    void onStreamStatus(const StreamStatusInfo& info) override;
+    void onStreamHeartbeat(const StreamHeartbeatInfo& info) override;
+    void onPublish(const PublishInfo& info, const function<void(const PublishResponse& rsp)>& cb) override;
+    void onPlay(const PlayInfo& info, const function<void(const PlayResponse& rsp)>& cb) override;
+    void onPlayer(const PlayerInfo& info) override;
     void onNonePlayer(const string& protocol, const string& uri, 
-                        const string& vhost, const string& type);
+                        const string& vhost, const string& type) override;
 
-    void onKeepAlive(const ServerInfo& info);
+    void onKeepAlive(const ServerInfo& info) override;
 
 private:
     bool _enableHook = true;

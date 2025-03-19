@@ -16,7 +16,7 @@ MediaHook::Ptr MediaHook::instance()
 
 void MediaHook::init()
 {
-    weak_ptr<MediaHook> wSelf = shared_from_this();
+    weak_ptr<MediaHook> wSelf = dynamic_pointer_cast<MediaHook>(shared_from_this());
     _type = Config::instance()->getAndListen([wSelf](const json& config){
         auto self = wSelf.lock();
         if (!self) {
@@ -33,51 +33,8 @@ void MediaHook::init()
         self->_enableHook = Config::instance()->get("Hook", "EnableHook");
         logInfo << "Hook type: " << self->_enableHook;
     }, "Hook", "EnableHook");
-}
 
-void MediaHook::reportByHttp(const string& url, const string&method, const string& msg, const function<void(const string& err, const json& res)>& cb)
-{
-    static int timeout = Config::instance()->getAndListen([](const json& config){
-        timeout = Config::instance()->get("Hook", "Http", "timeout");
-    }, "Hook", "Http", "timeout");
-
-    if (url.empty()) {
-        return ;
-    }
-    
-    shared_ptr<HttpClientApi> client;
-    if (startWith(url, "https://")) {
-        client = make_shared<HttpClientApi>(EventLoop::getCurrentLoop(), true);
-    } else {
-        client = make_shared<HttpClientApi>(EventLoop::getCurrentLoop());
-    }
-    client->addHeader("Content-Type", "application/json;charset=UTF-8");
-    client->setMethod(method);
-    client->setContent(msg);
-    client->setOnHttpResponce([url, client, cb](const HttpParser &parser){
-        // logInfo << "uri: " << parser._url;
-        // logInfo << "status: " << parser._version;
-        // logInfo << "method: " << parser._method;
-        // logInfo << "_content: " << parser._content;
-
-        logInfo << "client: " << client << ", url: " << url << ", response: " << parser._content;
-        if (parser._url != "200") {
-            cb("http error", "");
-        }
-        try {
-            json value = json::parse(parser._content);
-            cb("", value);
-        } catch (exception& ex) {
-            logInfo << url << ", json parse failed: " << ex.what();
-            cb(ex.what(), nullptr);
-        }
-
-        const_cast<shared_ptr<HttpClientApi> &>(client).reset();
-    });
-    logInfo << "connect to url: " << url << ", body: " << msg << ", client: " << client;
-    if (client->sendHeader(url, timeout) != 0) {
-        cb("connect to url: " + url + " failed", nullptr);
-    }
+    HookManager::instance()->addHook(MEDIA_HOOK, shared_from_this());
 }
 
 void MediaHook::onStreamStatus(const StreamStatusInfo& info)
@@ -101,7 +58,7 @@ void MediaHook::onStreamStatus(const StreamStatusInfo& info)
             logInfo << "Hook url: " << url;
         }, "Hook", "Http", "onStreamStatus");
 
-        reportByHttp(url, "POST", value.dump());
+        HookManager::instance()->reportByHttp(url, "POST", value.dump());
     }
 }
 
@@ -129,7 +86,7 @@ void MediaHook::onStreamHeartbeat(const StreamHeartbeatInfo& info)
             logInfo << "Hook url: " << url;
         }, "Hook", "Http", "onStreamHeartbeat");
 
-        reportByHttp(url, "POST", value.dump());
+        HookManager::instance()->reportByHttp(url, "POST", value.dump());
     }
 }
 
@@ -163,7 +120,7 @@ void MediaHook::onPublish(const PublishInfo& info, const function<void(const Pub
             logInfo << "Hook url: " << url;
         }, "Hook", "Http", "onPublish");
 
-        reportByHttp(url, "POST", value.dump(), [cb, info](const string& err, const nlohmann::json& res){
+        HookManager::instance()->reportByHttp(url, "POST", value.dump(), [cb, info](const string& err, const nlohmann::json& res){
             logTrace << "on publish: " << url;
             PublishResponse rsp;
             if (!err.empty()) {
@@ -221,7 +178,7 @@ void MediaHook::onPlay(const PlayInfo& info, const function<void(const PlayRespo
             logInfo << "Hook url: " << url;
         }, "Hook", "Http", "onPlay");
 
-        reportByHttp(url, "POST", value.dump(), [cb, info](const string& err, const nlohmann::json& res){
+        HookManager::instance()->reportByHttp(url, "POST", value.dump(), [cb, info](const string& err, const nlohmann::json& res){
             PlayResponse rsp;
             if (!err.empty()) {
                 rsp.authResult = false;
@@ -269,7 +226,7 @@ void MediaHook::onPlayer(const PlayerInfo& info)
             logInfo << "Hook url: " << url;
         }, "Hook", "Http", "onPlayer");
 
-        reportByHttp(url, "POST", value.dump(), [](const string& err, const nlohmann::json& res){
+        HookManager::instance()->reportByHttp(url, "POST", value.dump(), [](const string& err, const nlohmann::json& res){
             
         });
     }
@@ -290,7 +247,7 @@ void MediaHook::onNonePlayer(const string& protocol, const string& uri,
             logInfo << "Hook url: " << url;
         }, "Hook", "Http", "onNonePlayer");
 
-        reportByHttp(url, "POST", value.dump());
+        HookManager::instance()->reportByHttp(url, "POST", value.dump());
     }
 }
 
@@ -310,6 +267,6 @@ void MediaHook::onKeepAlive(const ServerInfo& info)
             logInfo << "Hook url: " << url;
         }, "Hook", "Http", "onKeepAlive");
 
-        reportByHttp(url, "POST", value.dump());
+        HookManager::instance()->reportByHttp(url, "POST", value.dump());
     }
 }

@@ -9,7 +9,7 @@
 #include "Common/Define.h"
 #include "RtspPsMediaSource.h"
 #include "Common/Config.h"
-#include "Hook/MediaHook.h"
+#include "Common/HookManager.h"
 
 #include <sstream>
 
@@ -45,7 +45,10 @@ RtspConnection::~RtspConnection()
         info.uri = _urlParser.path_;
         info.vhost = _urlParser.vhost_;
 
-        MediaHook::instance()->onPlayer(info);
+        auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+        if (hook) {
+            hook->onPlayer(info);
+        }
     }
 }
 
@@ -269,19 +272,22 @@ void RtspConnection::handleDescribe()
         info.params = _urlParser.param_;
 
         weak_ptr<RtspConnection> wSelf = dynamic_pointer_cast<RtspConnection>(shared_from_this());
-        MediaHook::instance()->onPlay(info, [wSelf](const PlayResponse &rsp){
-            auto self = wSelf.lock();
-            if (!self) {
-                return ;
-            }
+        auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+        if (hook) {
+            hook->onPlay(info, [wSelf](const PlayResponse &rsp){
+                auto self = wSelf.lock();
+                if (!self) {
+                    return ;
+                }
 
-            if (!rsp.authResult) {
-                self->sendBadRequst("on publish failed" + rsp.err);
-                return ;
-            }
+                if (!rsp.authResult) {
+                    self->sendBadRequst("on publish failed" + rsp.err);
+                    return ;
+                }
 
-            self->handleDescribe_l();
-        });
+                self->handleDescribe_l();
+            });
+        }
 
         // handleDescribe_l();
     }
@@ -453,7 +459,10 @@ void RtspConnection::handleAnnounce_l() {
             info.bytes = rtspSource->getBytes();
             info.currentTime = TimeClock::now();
             info.bitrate = rtspSource->getBitrate();
-            MediaHook::instance()->onStreamHeartbeat(info);
+            auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+            if (hook) {
+                hook->onStreamHeartbeat(info);
+            }
 
             return streamHeartbeatTime;
         }, nullptr);
@@ -485,19 +494,22 @@ void RtspConnection::handleAnnounce()
         info.params = _urlParser.param_;
 
         weak_ptr<RtspConnection> wSelf = dynamic_pointer_cast<RtspConnection>(shared_from_this());
-        MediaHook::instance()->onPublish(info, [wSelf](const PublishResponse &rsp){
-            auto self = wSelf.lock();
-            if (!self) {
-                return ;
-            }
+        auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+        if (hook) {
+            hook->onPublish(info, [wSelf](const PublishResponse &rsp){
+                auto self = wSelf.lock();
+                if (!self) {
+                    return ;
+                }
 
-            if (!rsp.authResult) {
-                self->sendBadRequst("on publish failed" + rsp.err);
-                return ;
-            }
+                if (!rsp.authResult) {
+                    self->sendBadRequst("on publish failed" + rsp.err);
+                    return ;
+                }
 
-            self->handleAnnounce_l();
-        });
+                self->handleAnnounce_l();
+            });
+        }
     }
 }
 
@@ -921,7 +933,10 @@ void RtspConnection::handlePlay()
         info.uri = _urlParser.path_;
         info.vhost = _urlParser.vhost_;
 
-        MediaHook::instance()->onPlayer(info);
+        auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+        if (hook) {
+            hook->onPlayer(info);
+        }
     }
 }
 

@@ -9,7 +9,7 @@
 #include "Common/Define.h"
 #include "Rtmp.h"
 #include "Common/Config.h"
-#include "Hook/MediaHook.h"
+#include "Common/HookManager.h"
 #include "Codec/AacFrame.h"
 #include "Codec/AacTrack.h"
 
@@ -48,7 +48,10 @@ RtmpConnection::~RtmpConnection()
         info.uri = _urlParser.path_;
         info.vhost = _urlParser.vhost_;
 
-        MediaHook::instance()->onPlayer(info);
+        auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+		if (hook) {
+			hook->onPlayer(info);
+		}
     }
 }
 
@@ -220,51 +223,57 @@ bool RtmpConnection::handleInvoke(RtmpMessage& rtmp_msg)
             info.params = _urlParser.param_;
 
             weak_ptr<RtmpConnection> wSelf = dynamic_pointer_cast<RtmpConnection>(shared_from_this());
-            MediaHook::instance()->onPublish(info, [wSelf](const PublishResponse &rsp){
-                auto self = wSelf.lock();
-                if (!self) {
-                    return ;
-                }
+            auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+            if (hook) {
+                hook->onPublish(info, [wSelf](const PublishResponse &rsp){
+                    auto self = wSelf.lock();
+                    if (!self) {
+                        return ;
+                    }
 
-                if (!rsp.authResult) {
-                    self->onError();
-                    return ;
-                }
+                    if (!rsp.authResult) {
+                        self->onError();
+                        return ;
+                    }
 
-                self->handlePublish();
+                    self->handlePublish();
 
-                static int streamHeartbeatTime = Config::instance()->getAndListen([](const json &config){
-                    streamHeartbeatTime = Config::instance()->get("Util", "streamHeartbeatTime");
-                }, "Util", "streamHeartbeatTime");
+                    static int streamHeartbeatTime = Config::instance()->getAndListen([](const json &config){
+                        streamHeartbeatTime = Config::instance()->get("Util", "streamHeartbeatTime");
+                    }, "Util", "streamHeartbeatTime");
 
-                if (self->_loop) {
-                    self->_loop->addTimerTask(streamHeartbeatTime, [wSelf](){
-                        auto self = wSelf.lock();
-                        if (!self) {
-                            return 0;
-                        }
+                    if (self->_loop) {
+                        self->_loop->addTimerTask(streamHeartbeatTime, [wSelf](){
+                            auto self = wSelf.lock();
+                            if (!self) {
+                                return 0;
+                            }
 
-                        auto rtmpSource = self->_source.lock(); 
-                        if (!rtmpSource) {
-                            return 0;
-                        }
+                            auto rtmpSource = self->_source.lock(); 
+                            if (!rtmpSource) {
+                                return 0;
+                            }
 
-                        StreamHeartbeatInfo info;
-                        info.type = rtmpSource->getType();
-                        info.protocol = rtmpSource->getProtocol();
-                        info.uri = rtmpSource->getPath();
-                        info.vhost = rtmpSource->getVhost();
-                        info.playerCount = rtmpSource->totalPlayerCount();
-                        info.createTime = rtmpSource->getCreateTime();
-                        info.bytes = rtmpSource->getBytes();
-                        info.currentTime = TimeClock::now();
-                        info.bitrate = rtmpSource->getBitrate();
-                        MediaHook::instance()->onStreamHeartbeat(info);
+                            StreamHeartbeatInfo info;
+                            info.type = rtmpSource->getType();
+                            info.protocol = rtmpSource->getProtocol();
+                            info.uri = rtmpSource->getPath();
+                            info.vhost = rtmpSource->getVhost();
+                            info.playerCount = rtmpSource->totalPlayerCount();
+                            info.createTime = rtmpSource->getCreateTime();
+                            info.bytes = rtmpSource->getBytes();
+                            info.currentTime = TimeClock::now();
+                            info.bitrate = rtmpSource->getBitrate();
+                            auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+                            if (hook) {
+                                hook->onStreamHeartbeat(info);
+                            }
 
-                        return streamHeartbeatTime;
-                    }, nullptr);
-                }
-            });
+                            return streamHeartbeatTime;
+                        }, nullptr);
+                    }
+                });
+            }
             ret = true;
         }
         else if(method == "play") {   
@@ -275,19 +284,22 @@ bool RtmpConnection::handleInvoke(RtmpMessage& rtmp_msg)
             info.vhost = _urlParser.vhost_;
 
             weak_ptr<RtmpConnection> wSelf = dynamic_pointer_cast<RtmpConnection>(shared_from_this());
-            MediaHook::instance()->onPlay(info, [wSelf](const PlayResponse &rsp){
-                auto self = wSelf.lock();
-                if (!self) {
-                    return ;
-                }
+            auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+            if (hook) {
+                hook->onPlay(info, [wSelf](const PlayResponse &rsp){
+                    auto self = wSelf.lock();
+                    if (!self) {
+                        return ;
+                    }
 
-                if (!rsp.authResult) {
-                    self->onError();
-                    return ;
-                }
+                    if (!rsp.authResult) {
+                        self->onError();
+                        return ;
+                    }
 
-                self->handlePlay();
-            });       
+                    self->handlePlay();
+                });
+            }
             ret = true;
         }
         else if(method == "play2") {         
@@ -1065,7 +1077,10 @@ void RtmpConnection::responsePlay(const MediaSource::Ptr &src)
         info.uri = _urlParser.path_;
         info.vhost = _urlParser.vhost_;
 
-        MediaHook::instance()->onPlayer(info);
+        auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+        if (hook) {
+            hook->onPlayer(info);
+        }
     }
 }
 

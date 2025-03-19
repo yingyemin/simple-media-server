@@ -12,15 +12,15 @@ using namespace std;
 class FuHeader {
 public:
 #if __BYTE_ORDER == __BIG_ENDIAN
-    unsigned start_bit: 1;
-    unsigned end_bit: 1;
-    unsigned reserved: 1;
-    unsigned nal_type: 5;
+    uint8_t start_bit: 1;
+    uint8_t end_bit: 1;
+    uint8_t reserved: 1;
+    uint8_t nal_type: 5;
 #else
-    unsigned nal_type: 5;
-    unsigned reserved: 1;
-    unsigned end_bit: 1;
-    unsigned start_bit: 1;
+    uint8_t nal_type: 5;
+    uint8_t reserved: 1;
+    uint8_t end_bit: 1;
+    uint8_t start_bit: 1;
 #endif
 };
 

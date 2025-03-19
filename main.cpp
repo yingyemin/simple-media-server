@@ -17,6 +17,7 @@
 #include "Ssl/TlsContext.h"
 #include "Common/Heartbeat.h"
 
+#include "Http/HttpClientApi.h"
 #include "Hook/MediaHook.h"
 
 #include "Record/RecordReader.h"
@@ -152,6 +153,7 @@ int main(int argc, char** argv)
     TlsContext::setKeyFile(sslKey, sslCrt);
 
     MediaHook::instance()->init();
+    HookManager::instance()->setOnHookReportByHttp(HttpClientApi::reportByHttp);
 
     RecordReader::init();
 

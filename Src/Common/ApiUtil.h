@@ -1,10 +1,10 @@
 ﻿#ifndef ApiUtil_h
 #define ApiUtil_h
 
-#include "Http/HttpParser.h"
-
 #include <exception>
 #include <string>
+
+#include "Common/json.hpp"
 
 using namespace std;
 

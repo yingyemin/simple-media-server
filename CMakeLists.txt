@@ -2,13 +2,36 @@ cmake_minimum_required(VERSION 3.0)
 
 project(SimpleMediaServer)
 
+#内存检测设置
 option(ENABLE_ASAN "Enable lib asan" false)
+
+#第三方库设置
 option(ENABLE_OPENSSL "Enable openssl" true)
-option(ENABLE_FFMPEG "Enable ffmpeg" false)
-option(ENABLE_SRT "Enable srt" true)
+
+#项目设置
 option(ENABLE_PROJECT_GB2818SIP "Enable test gb28181 sip" false)
 option(ENABLE_PROJECT_TRANSCODEVIDEO "Enable test transcodeVideo" false)
 option(ENABLE_PROJECT_TRANSCODEAUDIO "Enable test transcodeAudio" false)
+
+#模块设置
+option(ENABLE_SRT "Enable srt" true)
+option(ENABLE_HTTP "Enable http and httpstream" true)
+option(ENABLE_RTSP "Enable rtsp and rtp" true)
+option(ENABLE_GB28181 "Enable gb28181 and rtp and mpeg" true)
+option(ENABLE_RTMP "Enable rtmp" true)
+option(ENABLE_JT1078 "Enable jt1078" true)
+option(ENABLE_HLS "Enable hls and mpeg and http" true)
+option(ENABLE_API "Enable api and http" true)
+option(ENABLE_HOOK "Enable hook" true)
+option(ENABLE_FFMPEG "Enable ffmpeg" true)
+option(ENABLE_WEBRTC "Enable webrtc and rtp" true)
+option(ENABLE_RTP "Enable rtp" true)
+option(ENABLE_RECORD "Enable record" true)
+option(ENABLE_MPEG "Enable mpeg" true)
+option(ENABLE_MP4 "Enable mp4" true)
+option(ENABLE_FLV "Enable flv" true)
+option(ENABLE_EHOME2 "Enable ehome2 and gb28181 and rtp and mpeg" true)
+option(ENABLE_EHOME5 "Enable ehome5 and gb28181 and rtp and mpeg" true)
 
 #设置调试信息并开启c++11标准
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
@@ -16,7 +39,7 @@ SET(CMAKE_EXE_LINKER_FLAGS " -no-pie")
 #set(BUILD_SHARED_LIBS OFF)  # 确保静态链接
 #set(CMAKE_EXE_LINKER_FLAGS "-static -static-libgcc")
 
-set(LINK_LIB_LIST src base)
+set(LINK_LIB_LIST base)
 
 if (ENABLE_ASAN)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
@@ -49,24 +72,38 @@ endif ()
 #     message(WARNING "openssl未找到，rtmp将不支持flash播放器，https/wss/rtsps/rtmps也将失效")
 # endif ()
 
-# 设置OpenSSL库的头文件目录
-set(OPENSSL_INCLUDE_DIR "./Thirdparty/libopenssl/include")
-# 设置OpenSSL库的二进制文件目录
-set(OPENSSL_LIBRARY "./Thirdparty/libopenssl/lib/")
-# 包含OpenSSL头文件目录
-include_directories(${OPENSSL_INCLUDE_DIR})
-link_directories(${OPENSSL_LIBRARY})
-list(APPEND LINK_LIB_LIST ssl crypto)
+if (ENABLE_OPENSSL)
+    # 设置OpenSSL库的头文件目录
+    set(OPENSSL_INCLUDE_DIR "./Thirdparty/libopenssl/include")
+    # 设置OpenSSL库的二进制文件目录
+    set(OPENSSL_LIBRARY "./Thirdparty/libopenssl/lib/")
+    # 包含OpenSSL头文件目录
+    include_directories(${OPENSSL_INCLUDE_DIR})
+    link_directories(${OPENSSL_LIBRARY})
+    list(APPEND LINK_LIB_LIST ssl crypto)
+endif ()
 
-# 设置srtp库的头文件目录
-set(SRTP_INCLUDE_DIR "./Thirdparty/libsrtp/include")
-# 设置srtp库的二进制文件目录
-set(SRTP_LIBRARY "./Thirdparty/libsrtp/lib/")
-# 包含srtp头文件目录
-include_directories(${SRTP_INCLUDE_DIR})
-# 定义要链接的srtp库
-link_directories(${SRTP_LIBRARY})
-list(APPEND LINK_LIB_LIST srtp2)
+if (ENABLE_WEBRTC)
+    # 设置srtp库的头文件目录
+    set(SRTP_INCLUDE_DIR "./Thirdparty/libsrtp/include")
+    # 设置srtp库的二进制文件目录
+    set(SRTP_LIBRARY "./Thirdparty/libsrtp/lib/")
+    # 包含srtp头文件目录
+    include_directories(${SRTP_INCLUDE_DIR})
+    # 定义要链接的srtp库
+    link_directories(${SRTP_LIBRARY})
+    list(APPEND LINK_LIB_LIST srtp2)
+
+    # 设置sctp库的头文件目录
+    set(SCTP_INCLUDE_DIR "./Thirdparty/libusrsctp/include")
+    # 设置srt库的二进制文件目录
+    set(SCTP_LIBRARY "./Thirdparty/libusrsctp/lib/")
+    # 包含srt头文件目录
+    include_directories(${SCTP_INCLUDE_DIR})
+    # 定义要链接的srt库
+    link_directories(${SCTP_LIBRARY})
+    list(APPEND LINK_LIB_LIST usrsctp)
+endif ()
 
 if (ENABLE_SRT)
     add_definitions(-DENABLE_SRT)
@@ -80,16 +117,6 @@ if (ENABLE_SRT)
     link_directories(${SRT_LIBRARY})
     list(APPEND LINK_LIB_LIST srt)
 endif()
-
-# 设置sctp库的头文件目录
-set(SCTP_INCLUDE_DIR "./Thirdparty/libusrsctp/include")
-# 设置srt库的二进制文件目录
-set(SCTP_LIBRARY "./Thirdparty/libusrsctp/lib/")
-# 包含srt头文件目录
-include_directories(${SCTP_INCLUDE_DIR})
-# 定义要链接的srt库
-link_directories(${SCTP_LIBRARY})
-list(APPEND LINK_LIB_LIST usrsctp)
 
 # aux_source_directory(. DIRSRCS)
 

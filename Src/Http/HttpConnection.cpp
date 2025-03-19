@@ -1,5 +1,4 @@
 #include "HttpConnection.h"
-#include "Api/HttpApi.h"
 #include "Common/Config.h"
 #include "Log/Logger.h"
 #include "HttpUtil.h"
@@ -10,11 +9,12 @@
 #include "Common/Define.h"
 #include "Util/Base64.h"
 #include "Ssl/SHA1.h"
-#include "Hook/MediaHook.h"
+#include "Common/HookManager.h"
+#include "Common/ApiUtil.h"
 
 using namespace std;
 
-extern unordered_map<string, function<void(const HttpParser& parser, const UrlParser& urlParser, 
+unordered_map<string, function<void(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc)>> g_mapApi;
 
 HttpConnection::HttpConnection(const EventLoop::Ptr& loop, const Socket::Ptr& socket, bool enbaleSsl)
@@ -185,7 +185,7 @@ void HttpConnection::onHttpRequest()
                     self->_parser._body[iter.first] = iter.second;
                 }
 
-                HttpApi::route(self->_parser, self->_urlParser, [wSelf](HttpResponse& rsp){
+                self->apiRoute(self->_parser, self->_urlParser, [wSelf](HttpResponse& rsp){
                     auto self = wSelf.lock();
                     if (self) {
                         self->writeHttpResponse(rsp);
@@ -229,6 +229,35 @@ void HttpConnection::onHttpRequest()
         rsp.setContent(ex.what());
         writeHttpResponse(rsp);
     }
+}
+
+void HttpConnection::apiRoute(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    string msg = "unknwon api";
+    auto it = g_mapApi.find(urlParser.path_);
+    try {
+        if (it != g_mapApi.end()) {
+            it->second(parser, urlParser, rspFunc);
+            return ;
+        }
+    } catch (ApiException& ex) {
+        logInfo << urlParser.path_ << " error: " << ex.what();
+        msg = ex.what();
+    } catch (exception& ex) {
+        logInfo << urlParser.path_ << " error: " << ex.what();
+        msg = ex.what();
+    } catch (...) {
+        logInfo << urlParser.path_ << " error";
+    }
+
+    HttpResponse rsp;
+    rsp._status = 400;
+    json value;
+    value["msg"] = msg;
+    value["code"] = 400;
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
 }
 
 void HttpConnection::writeHttpResponse(HttpResponse& rsp) // 将要素按照HttpResponse协议进行组织，再发送
@@ -502,47 +531,50 @@ void HttpConnection::handleGet()
         info.uri = _urlParser.path_;
         info.vhost = _urlParser.vhost_;
 
-        MediaHook::instance()->onPlay(info, [wSelf](const PlayResponse &rsp){
-            auto self = wSelf.lock();
-            if (!self) {
-                return ;
-            }
-
-            if (!rsp.authResult) {
-                HttpResponse rsp;
-                rsp._status = 400;
-                json value;
-                value["msg"] = "path is not exist: " + self->_urlParser.path_;
-                rsp.setContent(value.dump());
-                self->writeHttpResponse(rsp);
-
-                return ;
-            }
-
-            if (endWith(self->_urlParser.path_, ".flv")) {
-                self->handleFlvStream();
-            } else if (endWith(self->_urlParser.path_, "sms.m3u8")) {
-                self->handleSmsHlsM3u8();
-            } else if (endWith(self->_urlParser.path_, ".ll.m3u8")) {
-                self->handleLLHlsM3u8();
-            } else if (endWith(self->_urlParser.path_, ".m3u8")) {
-                self->handleHlsM3u8();
-            } else if (endWith(self->_urlParser.path_, ".ts")) {
-                if (self->_urlParser.path_.find("_hls") != string::npos) {
-                    self->handleHlsTs();
-                } else {
-                    self->handleTs();
+        auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+        if (hook) {
+            hook->onPlay(info, [wSelf](const PlayResponse &rsp){
+                auto self = wSelf.lock();
+                if (!self) {
+                    return ;
                 }
-            } else if (endWith(self->_urlParser.path_, ".ps")) {
-                self->handlePs();
-            } else if (endWith(self->_urlParser.path_, ".mp4")) {
-                if (self->_urlParser.path_.find("_hls") != string::npos) {
-                    self->handleLLHlsTs();
-                } else {
-                    self->handleFmp4();
+
+                if (!rsp.authResult) {
+                    HttpResponse rsp;
+                    rsp._status = 400;
+                    json value;
+                    value["msg"] = "path is not exist: " + self->_urlParser.path_;
+                    rsp.setContent(value.dump());
+                    self->writeHttpResponse(rsp);
+
+                    return ;
                 }
-            }
-        });
+
+                if (endWith(self->_urlParser.path_, ".flv")) {
+                    self->handleFlvStream();
+                } else if (endWith(self->_urlParser.path_, "sms.m3u8")) {
+                    self->handleSmsHlsM3u8();
+                } else if (endWith(self->_urlParser.path_, ".ll.m3u8")) {
+                    self->handleLLHlsM3u8();
+                } else if (endWith(self->_urlParser.path_, ".m3u8")) {
+                    self->handleHlsM3u8();
+                } else if (endWith(self->_urlParser.path_, ".ts")) {
+                    if (self->_urlParser.path_.find("_hls") != string::npos) {
+                        self->handleHlsTs();
+                    } else {
+                        self->handleTs();
+                    }
+                } else if (endWith(self->_urlParser.path_, ".ps")) {
+                    self->handlePs();
+                } else if (endWith(self->_urlParser.path_, ".mp4")) {
+                    if (self->_urlParser.path_.find("_hls") != string::npos) {
+                        self->handleLLHlsTs();
+                    } else {
+                        self->handleFmp4();
+                    }
+                }
+            });
+        }
     } else {
         logTrace << "download file or dir: " << _urlParser.path_;
         _httpFile = make_shared<HttpFile>(_parser);

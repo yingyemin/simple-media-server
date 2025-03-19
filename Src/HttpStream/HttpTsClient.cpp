@@ -11,7 +11,7 @@ HttpTsClient::HttpTsClient(MediaClientType type, const string& appName, const st
     ,_type(type)
 {
     _localUrlParser.path_ = "/" + appName + "/" + streamName;
-    _localUrlParser.protocol_ = PROTOCOL_RTMP;
+    _localUrlParser.protocol_ = PROTOCOL_TS;
     _localUrlParser.type_ = DEFAULT_TYPE;
     _localUrlParser.vhost_ = DEFAULT_VHOST;
 }

@@ -27,6 +27,9 @@ public:
     void onHttpResponce();
     void setOnHttpResponce(const function<void(const HttpParser& parser)>& cb);
 
+    static void reportByHttp(const string& url, const string&method, const string& msg, const function<void(const string& err, 
+                const nlohmann::json& res)>& cb = [](const string& err, const nlohmann::json& res){});
+
 private:
     EventLoop::Ptr _loop;
     function<void(const HttpParser& parser)> _onHttpResponce;

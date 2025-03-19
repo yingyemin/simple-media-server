@@ -6,43 +6,13 @@
 #include "Util/Thread.h"
 #include "EventPoller/EventLoopPool.h"
 #include "Common/Define.h"
-#include "ApiUtil.h"
+#include "Common/ApiUtil.h"
 #include "Util/TimeClock.h"
 
 using namespace std;
 
-unordered_map<string, function<void(const HttpParser& parser, const UrlParser& urlParser, 
+extern unordered_map<string, function<void(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc)>> g_mapApi;
-
-void HttpApi::route(const HttpParser& parser, const UrlParser& urlParser, 
-                        const function<void(HttpResponse& rsp)>& rspFunc)
-{
-    string msg = "unknwon api";
-    auto it = g_mapApi.find(urlParser.path_);
-    try {
-        if (it != g_mapApi.end()) {
-            it->second(parser, urlParser, rspFunc);
-            return ;
-        }
-    } catch (ApiException& ex) {
-        logInfo << urlParser.path_ << " error: " << ex.what();
-        msg = ex.what();
-    } catch (exception& ex) {
-        logInfo << urlParser.path_ << " error: " << ex.what();
-        msg = ex.what();
-    } catch (...) {
-        logInfo << urlParser.path_ << " error";
-    }
-
-    HttpResponse rsp;
-    rsp._status = 400;
-    json value;
-    value["msg"] = msg;
-    value["code"] = 400;
-    rsp.setContent(value.dump());
-    rspFunc(rsp);
-    
-}
 
 void HttpApi::initApi()
 {

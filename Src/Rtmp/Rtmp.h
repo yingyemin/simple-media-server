@@ -33,8 +33,8 @@ static const int RTMP_CHUNK_DATA_ID     = 6;
 static const int RTMP_CODEC_ID_H264     = 7;
 static const int RTMP_CODEC_ID_H265     = 12;
 static const int RTMP_CODEC_ID_AV1     = 13;
-static const int RTMP_CODEC_ID_AVS3     = 14;
-static const int RTMP_CODEC_ID_H266     = 15;
+static const int RTMP_CODEC_ID_H266     = 14;
+static const int RTMP_CODEC_ID_AVS3     = 15;
 static const int RTMP_CODEC_ID_VP9     = 16;
 
 static const int RTMP_CODEC_ID_MP3      = 2;

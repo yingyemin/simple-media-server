@@ -132,7 +132,10 @@ void Heartbeat::start()
     info.port = port;
     info.memUsage = get_mem_usage();
 
-    MediaHook::instance()->onKeepAlive(info);
+    auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+    if (hook) {
+        hook->onKeepAlive(info);
+    }
 }
 
 void Heartbeat::getSourceInfo(ServerInfo& info)

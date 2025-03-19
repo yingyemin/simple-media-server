@@ -9,7 +9,7 @@
 #include "Util/String.h"
 #include "Define.h"
 #include "FrameMediaSource.h"
-#include "Hook/MediaHook.h"
+#include "HookManager.h"
 #include "Util/TimeClock.h"
 #include "Config.h"
 
@@ -47,7 +47,10 @@ MediaSource::~MediaSource()
     }
     StreamStatusInfo statusInfo{_urlParser.protocol_, _urlParser.path_, _urlParser.vhost_, 
                                 _urlParser.type_, "off", "400"};
-    MediaHook::instance()->onStreamStatus(statusInfo);
+    auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+    if (hook) {
+        hook->onStreamStatus(statusInfo);
+    };
 }
 
 MediaSource::Ptr MediaSource::get(const string& uri, const string& vhost)
@@ -891,14 +894,10 @@ void MediaSource::onReaderChanged(int size)
     }
     
     if (_origin) {
-        static string onNonePlayer = Config::instance()->getAndListen([](const json& config){
-            onNonePlayer = Config::instance()->get("Hook", "Http", "onNonePlayer");
-        }, "Hook", "Http", "onNonePlayer");
-
-        if (!onNonePlayer.empty()) {
-            MediaHook::instance()->onNonePlayer(_urlParser.protocol_, _urlParser.path_, _urlParser.vhost_, _urlParser.type_);
-            // return ;
-        }
+        auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+        if (hook) {
+            hook->onNonePlayer(_urlParser.protocol_, _urlParser.path_, _urlParser.vhost_, _urlParser.type_);
+        };
     }
 
     static int stopNonePlayerStream = Config::instance()->getAndListen([](const json& config){
@@ -993,7 +992,10 @@ void MediaSource::onReady()
 
     StreamStatusInfo statusInfo{_urlParser.protocol_, _urlParser.path_, _urlParser.vhost_, 
                                 _urlParser.type_, "on", "200"};
-    MediaHook::instance()->onStreamStatus(statusInfo);
+    auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+    if (hook) {
+        hook->onStreamStatus(statusInfo);
+    };
 
     {
         string key = _urlParser.path_ + "_" + _urlParser.vhost_;// + "_" + _urlParser.protocol_ + "_" + _urlParser.type_;

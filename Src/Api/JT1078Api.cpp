@@ -1,5 +1,5 @@
 ﻿#include "JT1078Api.h"
-#include "ApiUtil.h"
+#include "Common/ApiUtil.h"
 #include "Logger.h"
 #include "Common/Config.h"
 #include "Common/Define.h"

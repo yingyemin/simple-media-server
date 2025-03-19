@@ -2,7 +2,7 @@
 #include "Common/Define.h"
 #include "Util/String.h"
 #include "Util/MD5.h"
-#include "Hook/MediaHook.h"
+#include "Common/HookManager.h"
 #include "RtspPsMediaSource.h"
 
 #include <arpa/inet.h>
@@ -38,7 +38,10 @@ RtspClient::~RtspClient()
         info.uri = _localUrlParser.path_;
         info.vhost = _localUrlParser.vhost_;
 
-        MediaHook::instance()->onPlayer(info);
+        auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+        if (hook) {
+            hook->onPlayer(info);
+        }
     }
 }
 
@@ -688,7 +691,10 @@ void RtspClient::sendPlayOrPublish()
             info.uri = _localUrlParser.path_;
             info.vhost = _localUrlParser.vhost_;
 
-            MediaHook::instance()->onPlayer(info);
+            auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+            if (hook) {
+                hook->onPlayer(info);
+            }
         }
     }
 

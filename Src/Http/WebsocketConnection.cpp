@@ -6,7 +6,7 @@
 #include "Util/Base64.h"
 #include "Ssl/SHA1.h"
 #include "Codec/G711Track.h"
-#include "Hook/MediaHook.h"
+#include "Common/HookManager.h"
 
 using namespace std;
 WebsocketConnection::WebsocketConnection(const EventLoop::Ptr& loop, const Socket::Ptr& socket, bool enableSsl)
@@ -75,50 +75,53 @@ void WebsocketConnection::onWebsocketFrame(const char* data, int len)
         info.params = _urlParser.param_;
 
         weak_ptr<WebsocketConnection> wSelf = dynamic_pointer_cast<WebsocketConnection>(shared_from_this());
-        MediaHook::instance()->onPublish(info, [wSelf](const PublishResponse &rsp){
-            auto self = wSelf.lock();
-            if (!self) {
-                return ;
-            }
+        auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+        if (hook) {
+            hook->onPublish(info, [wSelf, hook](const PublishResponse &rsp){
+                auto self = wSelf.lock();
+                if (!self) {
+                    return ;
+                }
 
-            if (!rsp.authResult) {
-                self->onError();
-                return ;
-            }
+                if (!rsp.authResult) {
+                    self->onError();
+                    return ;
+                }
 
-            // self->handlePublish();
-            static int streamHeartbeatTime = Config::instance()->getAndListen([](const json &config){
-                streamHeartbeatTime = Config::instance()->get("Util", "streamHeartbeatTime");
-            }, "Util", "streamHeartbeatTime");
+                // self->handlePublish();
+                static int streamHeartbeatTime = Config::instance()->getAndListen([](const json &config){
+                    streamHeartbeatTime = Config::instance()->get("Util", "streamHeartbeatTime");
+                }, "Util", "streamHeartbeatTime");
 
-            if (self->_loop) {
-                self->_loop->addTimerTask(streamHeartbeatTime, [wSelf](){
-                    auto self = wSelf.lock();
-                    if (!self) {
-                        return 0;
-                    }
+                if (self->_loop) {
+                    self->_loop->addTimerTask(streamHeartbeatTime, [wSelf, hook](){
+                        auto self = wSelf.lock();
+                        if (!self) {
+                            return 0;
+                        }
 
-                    auto websocketSource = self->_source.lock(); 
-                    if (!websocketSource) {
-                        return 0;
-                    }
+                        auto websocketSource = self->_source.lock(); 
+                        if (!websocketSource) {
+                            return 0;
+                        }
 
-                    StreamHeartbeatInfo info;
-                    info.type = websocketSource->getType();
-                    info.protocol = websocketSource->getProtocol();
-                    info.uri = websocketSource->getPath();
-                    info.vhost = websocketSource->getVhost();
-                    info.playerCount = websocketSource->totalPlayerCount();
-                    info.createTime = websocketSource->getCreateTime();
-                    info.bytes = websocketSource->getBytes();
-                    info.currentTime = TimeClock::now();
-                    info.bitrate = websocketSource->getBitrate();
-                    MediaHook::instance()->onStreamHeartbeat(info);
+                        StreamHeartbeatInfo info;
+                        info.type = websocketSource->getType();
+                        info.protocol = websocketSource->getProtocol();
+                        info.uri = websocketSource->getPath();
+                        info.vhost = websocketSource->getVhost();
+                        info.playerCount = websocketSource->totalPlayerCount();
+                        info.createTime = websocketSource->getCreateTime();
+                        info.bytes = websocketSource->getBytes();
+                        info.currentTime = TimeClock::now();
+                        info.bitrate = websocketSource->getBitrate();
+                        hook->onStreamHeartbeat(info);
 
-                    return streamHeartbeatTime;
-                }, nullptr);
-            }
-        });
+                        return streamHeartbeatTime;
+                    }, nullptr);
+                }
+            });
+        }
     }
 
     // wavToG711a

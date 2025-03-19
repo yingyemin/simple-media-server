@@ -5,7 +5,7 @@
 #include "Util/Base64.h"
 #include "Ssl/SHA1.h"
 #include "Common/Define.h"
-#include "Hook/MediaHook.h"
+#include "Common/HookManager.h"
 
 using namespace std;
 
@@ -228,7 +228,10 @@ void WebsocketClient::onGetSource(const MediaSource::Ptr& src)
         info.uri = _uri;
         info.vhost = DEFAULT_VHOST;
 
-        MediaHook::instance()->onPlayer(info);
+        auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+        if (hook) {
+            hook->onPlayer(info);
+        }
     }
 }
 

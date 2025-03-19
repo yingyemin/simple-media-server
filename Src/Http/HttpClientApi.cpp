@@ -67,3 +67,48 @@ void HttpClientApi::onError(const string& err)
     onHttpResponce();
     HttpClient::onError(err);
 }
+
+void HttpClientApi::reportByHttp(const string& url, const string&method, const string& msg, const function<void(const string& err, const json& res)>& cb)
+{
+    static int timeout = Config::instance()->getAndListen([](const json& config){
+        timeout = Config::instance()->get("Hook", "Http", "timeout");
+    }, "Hook", "Http", "timeout");
+
+    if (url.empty()) {
+        return ;
+    }
+    
+    shared_ptr<HttpClientApi> client;
+    if (startWith(url, "https://")) {
+        client = make_shared<HttpClientApi>(EventLoop::getCurrentLoop(), true);
+    } else {
+        client = make_shared<HttpClientApi>(EventLoop::getCurrentLoop());
+    }
+    client->addHeader("Content-Type", "application/json;charset=UTF-8");
+    client->setMethod(method);
+    client->setContent(msg);
+    client->setOnHttpResponce([url, client, cb](const HttpParser &parser){
+        // logInfo << "uri: " << parser._url;
+        // logInfo << "status: " << parser._version;
+        // logInfo << "method: " << parser._method;
+        // logInfo << "_content: " << parser._content;
+
+        logInfo << "client: " << client << ", url: " << url << ", response: " << parser._content;
+        if (parser._url != "200") {
+            cb("http error", "");
+        }
+        try {
+            json value = json::parse(parser._content);
+            cb("", value);
+        } catch (exception& ex) {
+            logInfo << url << ", json parse failed: " << ex.what();
+            cb(ex.what(), nullptr);
+        }
+
+        const_cast<shared_ptr<HttpClientApi> &>(client).reset();
+    });
+    logInfo << "connect to url: " << url << ", body: " << msg << ", client: " << client;
+    if (client->sendHeader(url, timeout) != 0) {
+        cb("connect to url: " + url + " failed", nullptr);
+    }
+}

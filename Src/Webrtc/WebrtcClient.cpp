@@ -16,7 +16,7 @@
 #include "Webrtc.h"
 #include "Codec/H264Track.h"
 #include "Codec/AacTrack.h"
-#include "Hook/MediaHook.h"
+#include "Common/HookManager.h"
 
 using namespace std;
 
@@ -57,7 +57,10 @@ WebrtcClient::~WebrtcClient()
         info.uri = _urlParser.path_;
         info.vhost = _urlParser.vhost_;
 
-        MediaHook::instance()->onPlayer(info);
+        auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+        if (hook) {
+            hook->onPlayer(info);
+        }
     }
 }
 
@@ -953,7 +956,10 @@ void WebrtcClient::startPlay(const MediaSource::Ptr &src)
         info.uri = _urlParser.path_;
         info.vhost = _urlParser.vhost_;
 
-        MediaHook::instance()->onPlayer(info);
+        auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+        if (hook) {
+            hook->onPlayer(info);
+        }
     }
 }
 

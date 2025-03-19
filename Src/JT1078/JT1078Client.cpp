@@ -3,7 +3,7 @@
 #include "Common/Config.h"
 #include "Util/String.h"
 #include "Common/Define.h"
-#include "Hook/MediaHook.h"
+#include "Common/HookManager.h"
 
 using namespace std;
 
@@ -185,7 +185,10 @@ void JT1078Client::startSendTalkData(const JT1078MediaSource::Ptr &jtSrc)
         info.uri = _localUrlParser.path_;
         info.vhost = _localUrlParser.vhost_;
 
-        MediaHook::instance()->onPlayer(info);
+        auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+        if (hook) {
+            hook->onPlayer(info);
+        }
     }
 }
 

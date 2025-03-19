@@ -8,7 +8,7 @@
 #include "Logger.h"
 #include "Util/String.h"
 #include "Common/Define.h"
-#include "Hook/MediaHook.h"
+#include "Common/HookManager.h"
 #include "Common/Config.h"
 
 using namespace std;
@@ -126,56 +126,59 @@ void JT1078Connection::onRtpPacket(const JT1078RtpPacket::Ptr& buffer)
         info.vhost = DEFAULT_VHOST;
 
         weak_ptr<JT1078Connection> wSelf = dynamic_pointer_cast<JT1078Connection>(shared_from_this());
-        MediaHook::instance()->onPublish(info, [wSelf, buffer](const PublishResponse &rsp){
-            auto self = wSelf.lock();
-            if (!self) {
-                return ;
-            }
+        auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+        if (hook) {
+            hook->onPublish(info, [wSelf, buffer, hook](const PublishResponse &rsp){
+                auto self = wSelf.lock();
+                if (!self) {
+                    return ;
+                }
 
-            if (!rsp.authResult) {
-                self->onError();
-                return ;
-            }
+                if (!rsp.authResult) {
+                    self->onError();
+                    return ;
+                }
 
-            static int streamHeartbeatTime = Config::instance()->getAndListen([](const json &config){
-                streamHeartbeatTime = Config::instance()->get("Util", "streamHeartbeatTime");
-            }, "Util", "streamHeartbeatTime");
+                static int streamHeartbeatTime = Config::instance()->getAndListen([](const json &config){
+                    streamHeartbeatTime = Config::instance()->get("Util", "streamHeartbeatTime");
+                }, "Util", "streamHeartbeatTime");
 
-            if (self->_loop) {
-                self->_loop->addTimerTask(streamHeartbeatTime, [wSelf](){
-                    auto self = wSelf.lock();
-                    if (!self) {
-                        return 0;
-                    }
+                if (self->_loop) {
+                    self->_loop->addTimerTask(streamHeartbeatTime, [wSelf, hook](){
+                        auto self = wSelf.lock();
+                        if (!self) {
+                            return 0;
+                        }
 
-                    auto jt1078Source = self->_source.lock(); 
-                    if (!jt1078Source) {
-                        return 0;
-                    }
+                        auto jt1078Source = self->_source.lock(); 
+                        if (!jt1078Source) {
+                            return 0;
+                        }
 
-                    StreamHeartbeatInfo info;
-                    info.type = jt1078Source->getType();
-                    info.protocol = jt1078Source->getProtocol();
-                    info.uri = jt1078Source->getPath();
-                    info.vhost = jt1078Source->getVhost();
-                    info.playerCount = jt1078Source->totalPlayerCount();
-                    info.createTime = jt1078Source->getCreateTime();
-                    info.bytes = jt1078Source->getBytes();
-                    info.currentTime = TimeClock::now();
-                    info.bitrate = jt1078Source->getBitrate();
-                    MediaHook::instance()->onStreamHeartbeat(info);
+                        StreamHeartbeatInfo info;
+                        info.type = jt1078Source->getType();
+                        info.protocol = jt1078Source->getProtocol();
+                        info.uri = jt1078Source->getPath();
+                        info.vhost = jt1078Source->getVhost();
+                        info.playerCount = jt1078Source->totalPlayerCount();
+                        info.createTime = jt1078Source->getCreateTime();
+                        info.bytes = jt1078Source->getBytes();
+                        info.currentTime = TimeClock::now();
+                        info.bitrate = jt1078Source->getBitrate();
+                        hook->onStreamHeartbeat(info);
 
-                    return streamHeartbeatTime;
-                }, nullptr);
-            }
+                        return streamHeartbeatTime;
+                    }, nullptr);
+                }
 
-            // 本来想通过回调来进行指定流名称，但是会导致上线慢，暂时屏蔽
-            // if (self->_path.empty() && !rsp.appName.empty() && !rsp.streamName.empty()) {
-            //     self->_path = "/" + rsp.appName + "/" + rsp.streamName;
-            // }
+                // 本来想通过回调来进行指定流名称，但是会导致上线慢，暂时屏蔽
+                // if (self->_path.empty() && !rsp.appName.empty() && !rsp.streamName.empty()) {
+                //     self->_path = "/" + rsp.appName + "/" + rsp.streamName;
+                // }
 
-            // self->createSource(buffer);
-        });
+                // self->createSource(buffer);
+            });
+        }
 
         // 不在鉴权回调里创建source了，提升上线速度
         createSource(buffer);
@@ -370,7 +373,10 @@ void JT1078Connection::startSendTalkData(const JT1078MediaSource::Ptr &jtSrc, co
         info.uri = talkInfo.urlParser.path_;
         info.vhost = talkInfo.urlParser.vhost_;
 
-        MediaHook::instance()->onPlayer(info);
+        auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+        if (hook) {
+            hook->onPlayer(info);
+        }
     }
 }
 

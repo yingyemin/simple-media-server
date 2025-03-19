@@ -15,9 +15,6 @@ using namespace std;
 class HttpApi
 {
 public:
-    static void route(const HttpParser& parser, const UrlParser& urlParser, 
-                            const function<void(HttpResponse& rsp)>& rspFunc);
-
     static void initApi();
 
 private:
