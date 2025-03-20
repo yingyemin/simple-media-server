@@ -1,6 +1,8 @@
 ﻿#ifndef HttpHlsClient_h
 #define HttpHlsClient_h
 
+#ifdef ENABLE_HLS
+
 #include "Http/HttpClient.h"
 #include "Hls/HlsParser.h"
 #include "Common/FrameMediaSource.h"
@@ -47,4 +49,5 @@ private:
     function<void()> _onClose;
 };
 
+#endif
 #endif //HttpHlsClient_h

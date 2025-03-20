@@ -14,24 +14,25 @@ option(ENABLE_PROJECT_TRANSCODEVIDEO "Enable test transcodeVideo" false)
 option(ENABLE_PROJECT_TRANSCODEAUDIO "Enable test transcodeAudio" false)
 
 #模块设置
-option(ENABLE_SRT "Enable srt" true)
-option(ENABLE_HTTP "Enable http and httpstream" true)
-option(ENABLE_RTSP "Enable rtsp and rtp" true)
-option(ENABLE_GB28181 "Enable gb28181 and rtp and mpeg" true)
-option(ENABLE_RTMP "Enable rtmp" true)
-option(ENABLE_JT1078 "Enable jt1078" true)
-option(ENABLE_HLS "Enable hls and mpeg and http" true)
+option(ENABLE_SRT "Enable srt" false)
+option(ENABLE_HTTP "Enable http and httpstream" false)
+option(ENABLE_RTSP "Enable rtsp and rtp and mpeg and rtcp" true)
+option(ENABLE_GB28181 "Enable gb28181 and rtp and mpeg and rtcp" false)
+option(ENABLE_RTMP "Enable rtmp" false)
+option(ENABLE_JT1078 "Enable jt1078" false)
+option(ENABLE_HLS "Enable hls and http" false)
 option(ENABLE_API "Enable api and http" true)
-option(ENABLE_HOOK "Enable hook" true)
-option(ENABLE_FFMPEG "Enable ffmpeg" true)
-option(ENABLE_WEBRTC "Enable webrtc and rtp" true)
-option(ENABLE_RTP "Enable rtp" true)
-option(ENABLE_RECORD "Enable record" true)
-option(ENABLE_MPEG "Enable mpeg" true)
-option(ENABLE_MP4 "Enable mp4" true)
-option(ENABLE_FLV "Enable flv" true)
-option(ENABLE_EHOME2 "Enable ehome2 and gb28181 and rtp and mpeg" true)
-option(ENABLE_EHOME5 "Enable ehome5 and gb28181 and rtp and mpeg" true)
+option(ENABLE_HOOK "Enable hook" false)
+option(ENABLE_FFMPEG "Enable ffmpeg" false)
+option(ENABLE_WEBRTC "Enable webrtc and rtp and rtcp" false)
+option(ENABLE_RTP "Enable rtp and mpeg" false)
+option(ENABLE_RTCP "Enable rtcp" false)
+option(ENABLE_RECORD "Enable record" false)
+option(ENABLE_MPEG "Enable mpeg" false)
+option(ENABLE_MP4 "Enable mp4" false)
+option(ENABLE_FLV "Enable flv" false)
+option(ENABLE_EHOME2 "Enable ehome2 and gb28181 and rtp and mpeg" false)
+option(ENABLE_EHOME5 "Enable ehome5 and gb28181 and rtp and mpeg" false)
 
 #设置调试信息并开启c++11标准
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
@@ -41,49 +42,41 @@ SET(CMAKE_EXE_LINKER_FLAGS " -no-pie")
 
 set(LINK_LIB_LIST base)
 
-if (ENABLE_ASAN)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
-    message(STATUS "已启用 Address Sanitize")
+###RTSP#####
+if (ENABLE_RTSP)
+    add_definitions(-DENABLE_RTSP)
+    option(ENABLE_RTP "Enable rtp and mpeg" true)
+    option(ENABLE_MPEG "Enable mpeg" true)
+    option(ENABLE_RTCP "Enable rtcp" true)
 endif ()
 
-if (ENABLE_FFMPEG)
-    message(STATUS "开启FFMPEG")
-    add_definitions(-DENABLE_FFMPEG)
-    # 设置ffmpeg库的头文件目录
-    set(FFMPEG_INCLUDE_DIR "./Thirdparty/libffmpeg/include")
-    # 设置ffmpeg库的二进制文件目录
-    set(FFMPEG_LIBRARY "./Thirdparty/libffmpeg/lib/")
-    # 包含ffmpeg头文件目录
-    include_directories(${FFMPEG_INCLUDE_DIR})
-    # 定义要链接的srtp库
-    link_directories(${FFMPEG_LIBRARY})
-    list(APPEND LINK_LIB_LIST avformat avfilter avcodec swresample swscale postproc avutil z x264 x265 aom opus mp3lame fdk-aac vpx bz2 m freetype lzma drm)
+###MP4########
+if (ENABLE_MP4)
+    add_definitions(-DENABLE_MP4)
 endif ()
 
-#查找openssl是否安装
-# find_package(OpenSSL QUIET)
-# if (OPENSSL_FOUND AND ENABLE_OPENSSL)
-#     message(STATUS "found library:${OPENSSL_LIBRARIES},ENABLE_OPENSSL defined")
-#     include_directories(${OPENSSL_INCLUDE_DIR})
-#     add_definitions(-DENABLE_OPENSSL)
-#     list(APPEND LINK_LIB_LIST ${OPENSSL_LIBRARIES})
-# else()
-#     message(WARNING "openssl未找到，rtmp将不支持flash播放器，https/wss/rtsps/rtmps也将失效")
-# endif ()
+###Ehome2########
+if (ENABLE_EHOME2)
+    add_definitions(-DENABLE_EHOME2)
+    option(ENABLE_GB28181 "Enable gb28181 and rtp and mpeg" true)
+endif ()
 
-if (ENABLE_OPENSSL)
-    # 设置OpenSSL库的头文件目录
-    set(OPENSSL_INCLUDE_DIR "./Thirdparty/libopenssl/include")
-    # 设置OpenSSL库的二进制文件目录
-    set(OPENSSL_LIBRARY "./Thirdparty/libopenssl/lib/")
-    # 包含OpenSSL头文件目录
-    include_directories(${OPENSSL_INCLUDE_DIR})
-    link_directories(${OPENSSL_LIBRARY})
-    list(APPEND LINK_LIB_LIST ssl crypto)
+###Ehome5########
+if (ENABLE_EHOME5)
+    add_definitions(-DENABLE_EHOME5)
+    option(ENABLE_GB28181 "Enable gb28181 and rtp and mpeg" true)
+endif ()
+
+###GB28181########
+if (ENABLE_GB28181)
+    add_definitions(-DENABLE_GB28181)
+    option(ENABLE_RTP "Enable rtp and mpeg" true)
+    option(ENABLE_MPEG "Enable mpeg" true)
+    option(ENABLE_RTCP "Enable rtcp" true)
 endif ()
 
 if (ENABLE_WEBRTC)
+    message(STATUS "开启WEBRTC，添加srtp和usrsctp")
     # 设置srtp库的头文件目录
     set(SRTP_INCLUDE_DIR "./Thirdparty/libsrtp/include")
     # 设置srtp库的二进制文件目录
@@ -103,9 +96,123 @@ if (ENABLE_WEBRTC)
     # 定义要链接的srt库
     link_directories(${SCTP_LIBRARY})
     list(APPEND LINK_LIB_LIST usrsctp)
+    
+    add_definitions(-DENABLE_WEBRTC)
+    option(ENABLE_RTCP "Enable rtcp" true)
+    option(ENABLE_RTP "Enable rtp and mpeg" true)
+else()
+    message(STATUS "未开启WEBRTC")
+endif ()
+
+###RTMP#####
+if (ENABLE_RTMP)
+    add_definitions(-DENABLE_RTMP)
+endif ()
+
+###Hls########
+if (ENABLE_HLS)
+    add_definitions(-DENABLE_HLS)
+    option(ENABLE_HTTP "Enable http and httpstream" true)
+endif ()
+
+###HOOK########
+if (ENABLE_HOOK)
+    add_definitions(-DENABLE_HOOK)
+endif ()
+
+###RTCP########
+if (ENABLE_RTCP)
+    add_definitions(-DENABLE_RTCP)
+endif ()
+
+###JT1078########
+if (ENABLE_JT1078)
+    add_definitions(-DENABLE_JT1078)
+endif ()
+
+###Flv########
+if (ENABLE_FLV)
+    add_definitions(-DENABLE_FLV)
+endif ()
+
+###Record########
+if (ENABLE_RECORD)
+    add_definitions(-DENABLE_RECORD)
+endif ()
+
+###RTP#####
+if (ENABLE_RTP)
+    add_definitions(-DENABLE_RTP)
+endif ()
+
+###MPEG########
+if (ENABLE_MPEG)
+    add_definitions(-DENABLE_MPEG)
+endif ()
+
+###API########
+if (ENABLE_API)
+    add_definitions(-DENABLE_API)
+    option(ENABLE_HTTP "Enable http and httpstream" true)
+endif ()
+
+###HTTP and HttpStream########
+if (ENABLE_HTTP)
+    add_definitions(-DENABLE_HTTP)
+endif ()
+
+if (ENABLE_ASAN)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
+    message(STATUS "已启用 Address Sanitize")
+else()
+    message(STATUS "停用 Address Sanitize")
+endif ()
+
+if (ENABLE_FFMPEG)
+    message(STATUS "开启FFMPEG")
+    add_definitions(-DENABLE_FFMPEG)
+    # 设置ffmpeg库的头文件目录
+    set(FFMPEG_INCLUDE_DIR "./Thirdparty/libffmpeg/include")
+    # 设置ffmpeg库的二进制文件目录
+    set(FFMPEG_LIBRARY "./Thirdparty/libffmpeg/lib/")
+    # 包含ffmpeg头文件目录
+    include_directories(${FFMPEG_INCLUDE_DIR})
+    # 定义要链接的srtp库
+    link_directories(${FFMPEG_LIBRARY})
+    list(APPEND LINK_LIB_LIST avformat avfilter avcodec swresample swscale postproc avutil z x264 x265 aom opus mp3lame fdk-aac vpx bz2 m freetype lzma drm)
+else()
+    message(STATUS "未开启FFMPEG")
+endif ()
+
+#查找openssl是否安装
+# find_package(OpenSSL QUIET)
+# if (OPENSSL_FOUND AND ENABLE_OPENSSL)
+#     message(STATUS "found library:${OPENSSL_LIBRARIES},ENABLE_OPENSSL defined")
+#     include_directories(${OPENSSL_INCLUDE_DIR})
+#     add_definitions(-DENABLE_OPENSSL)
+#     list(APPEND LINK_LIB_LIST ${OPENSSL_LIBRARIES})
+# else()
+#     message(WARNING "openssl未找到，rtmp将不支持flash播放器，https/wss/rtsps/rtmps也将失效")
+# endif ()
+
+if (ENABLE_OPENSSL)
+    message(STATUS "开启openssl")
+    add_definitions(-DENABLE_OPENSSL)
+    # 设置OpenSSL库的头文件目录
+    set(OPENSSL_INCLUDE_DIR "./Thirdparty/libopenssl/include")
+    # 设置OpenSSL库的二进制文件目录
+    set(OPENSSL_LIBRARY "./Thirdparty/libopenssl/lib/")
+    # 包含OpenSSL头文件目录
+    include_directories(${OPENSSL_INCLUDE_DIR})
+    link_directories(${OPENSSL_LIBRARY})
+    list(APPEND LINK_LIB_LIST ssl crypto)
+else()
+    message(STATUS "未开启openssl")
 endif ()
 
 if (ENABLE_SRT)
+    message(STATUS "开启libsrt")
     add_definitions(-DENABLE_SRT)
     # 设置srt库的头文件目录
     set(SRT_INCLUDE_DIR "./Thirdparty/libsrt/include")
@@ -116,6 +223,8 @@ if (ENABLE_SRT)
     # 定义要链接的srt库
     link_directories(${SRT_LIBRARY})
     list(APPEND LINK_LIB_LIST srt)
+else()
+    message(STATUS "未开启libsrt")
 endif()
 
 # aux_source_directory(. DIRSRCS)

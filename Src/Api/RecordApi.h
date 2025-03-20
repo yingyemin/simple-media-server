@@ -1,6 +1,8 @@
 ﻿#ifndef RecordApi_h
 #define RecordApi_h
 
+#ifdef ENABLE_RECORD
+
 #include "Http/HttpParser.h"
 #include "Common/UrlParser.h"
 #include "Http/HttpResponse.h"
@@ -23,4 +25,5 @@ public:
                         const function<void(HttpResponse& rsp)>& rspFunc);
 };
 
+#endif
 #endif //RecordApi_h

@@ -14,19 +14,26 @@ extern unordered_map<string, function<void(const HttpParser& parser, const UrlPa
 
 void HttpStreamApi::initApi()
 {
+#ifdef ENABLE_RTMP
     g_mapApi.emplace("/api/v1/http/flv/play/start", HttpStreamApi::startFlvPlay);
     g_mapApi.emplace("/api/v1/http/flv/play/stop", HttpStreamApi::stopFlvPlay);
     g_mapApi.emplace("/api/v1/http/flv/play/list", HttpStreamApi::listFlvPlayInfo);
+#endif
     
+#ifdef ENABLE_HLS
     g_mapApi.emplace("/api/v1/http/hls/play/start", HttpStreamApi::startHlsPlay);
     g_mapApi.emplace("/api/v1/http/hls/play/stop", HttpStreamApi::stopHlsPlay);
     g_mapApi.emplace("/api/v1/http/hls/play/list", HttpStreamApi::listHlsPlayInfo);
-    
+#endif
+
+#ifdef ENABLE_MPEG
     g_mapApi.emplace("/api/v1/http/ps/vod/play/start", HttpStreamApi::startPsVodPlay);
     g_mapApi.emplace("/api/v1/http/ps/vod/play/stop", HttpStreamApi::stopPsVodPlay);
     g_mapApi.emplace("/api/v1/http/ps/vod/play/list", HttpStreamApi::listPsVodPlayInfo);
+#endif
 }
 
+#ifdef ENABLE_RTMP
 void HttpStreamApi::startFlvPlay(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc)
 {
@@ -72,7 +79,9 @@ void HttpStreamApi::listFlvPlayInfo(const HttpParser& parser, const UrlParser& u
 {
     
 }
+#endif
 
+#ifdef ENABLE_HLS
 void HttpStreamApi::startHlsPlay(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc)
 {
@@ -118,7 +127,9 @@ void HttpStreamApi::listHlsPlayInfo(const HttpParser& parser, const UrlParser& u
 {
     
 }
+#endif
 
+#ifdef ENABLE_MPEG
 void HttpStreamApi::startPsVodPlay(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc)
 {
@@ -164,3 +175,4 @@ void HttpStreamApi::listPsVodPlayInfo(const HttpParser& parser, const UrlParser&
 {
     
 }
+#endif

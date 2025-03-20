@@ -7,11 +7,17 @@
 #include "Common/UrlParser.h"
 #include "HttpResponse.h"
 #include "HttpFile.h"
+#ifdef ENABLE_HLS
 #include "Hls/HlsMediaSource.h"
 #include "Hls/LLHlsMediaSource.h"
+#endif
+#ifdef ENABLE_MPEG
 #include "Mpeg/TsMediaSource.h"
 #include "Mpeg/PsMediaSource.h"
+#endif
+#ifdef ENABLE_MP4
 #include "Mp4/Fmp4MediaSource.h"
+#endif
 
 #include <string>
 #include <unordered_map>
@@ -60,17 +66,23 @@ protected:
     void handleFlvStream();
     void handleSmsHlsM3u8();
     void handleHlsM3u8();
+#ifdef ENABLE_HLS
     void onPlayHls(const HlsMediaSource::Ptr &hlsSrc);
+    void onPlayLLHls(const LLHlsMediaSource::Ptr &hlsSrc);
+#endif
     void handleHlsTs();
     void handleLLHlsM3u8();
-    void onPlayLLHls(const LLHlsMediaSource::Ptr &hlsSrc);
     void handleLLHlsTs();
     void handleTs();
-    void onPlayTs(const TsMediaSource::Ptr &TsSrc);
     void handlePs();
+#ifdef ENABLE_MPEG
+    void onPlayTs(const TsMediaSource::Ptr &TsSrc);
     void onPlayPs(const PsMediaSource::Ptr &psSrc);
+#endif
     void handleFmp4();
+#ifdef ENABLE_MP4
     void onPlayFmp4(const Fmp4MediaSource::Ptr &fmp4Src);
+#endif
 
     void onError(const string& msg);
 
@@ -88,9 +100,16 @@ protected:
     UrlParser _urlParser;
     WebsocketContext _websocket;
     shared_ptr<HttpFile> _httpFile;
+
+#ifdef ENABLE_MPEG
     TsMediaSource::RingType::DataQueReaderT::Ptr _playTsReader;
     PsMediaSource::RingType::DataQueReaderT::Ptr _playPsReader;
+#endif
+
+#ifdef ENABLE_MP4
     Fmp4MediaSource::RingType::DataQueReaderT::Ptr _playFmp4Reader;
+#endif
+
     EventLoop::Ptr _loop;
     Socket::Ptr _socket;
     function<void()> _onClose;

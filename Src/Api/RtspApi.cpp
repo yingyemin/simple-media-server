@@ -1,4 +1,6 @@
-﻿#include "RtspApi.h"
+﻿#ifdef ENABLE_RTSP
+
+#include "RtspApi.h"
 #include "Common/ApiUtil.h"
 #include "Logger.h"
 #include "Common/Config.h"
@@ -261,3 +263,4 @@ void RtspApi::stopRtspServer(const HttpParser& parser, const UrlParser& urlParse
     rspFunc(rsp);
 }
 
+#endif

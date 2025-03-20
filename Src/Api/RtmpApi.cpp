@@ -1,4 +1,6 @@
-﻿#include "RtmpApi.h"
+﻿#ifdef ENABLE_RTMP
+
+#include "RtmpApi.h"
 #include "Common/ApiUtil.h"
 #include "Logger.h"
 #include "Common/Config.h"
@@ -135,3 +137,4 @@ void RtmpApi::listRtmpPublishInfo(const HttpParser& parser, const UrlParser& url
     
 }
 
+#endif

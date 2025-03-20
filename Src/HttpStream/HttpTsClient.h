@@ -1,6 +1,8 @@
 ﻿#ifndef HttpTsClient_h
 #define HttpTsClient_h
 
+#ifdef ENABLE_MPEG
+
 #include "Common/MediaClient.h"
 #include "Mpeg/TsDemuxer.h"
 #include "Http/HttpClient.h"
@@ -54,4 +56,5 @@ private:
     function<void()> _onClose;
 };
 
+#endif
 #endif //HttpFlvClient_h

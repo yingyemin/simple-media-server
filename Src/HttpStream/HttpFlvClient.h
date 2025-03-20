@@ -1,6 +1,8 @@
 ﻿#ifndef HttpFlvClient_h
 #define HttpFlvClient_h
 
+#ifdef ENABLE_RTMP
+
 #include "Common/MediaClient.h"
 #include "Flv/FlvDemuxer.h"
 #include "Http/HttpClient.h"
@@ -65,4 +67,5 @@ private:
     function<void()> _onClose;
 };
 
+#endif
 #endif //HttpFlvClient_h

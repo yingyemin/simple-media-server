@@ -3,9 +3,15 @@
 #include "Log/Logger.h"
 #include "HttpUtil.h"
 #include "Util/String.h"
+
+#ifdef ENABLE_RTMP
 #include "Rtmp/FlvMuxerWithRtmp.h"
+#endif
+
+#ifdef ENABLE_HLS
 #include "Hls/HlsManager.h"
 #include "Hls/LLHlsManager.h"
+#endif
 #include "Common/Define.h"
 #include "Util/Base64.h"
 #include "Ssl/SHA1.h"
@@ -650,6 +656,7 @@ void HttpConnection::handleOptions()
 
 void HttpConnection::handleFlvStream()
 {
+#ifdef ENABLE_RTMP
     HttpResponse rsp;
     rsp._status = 200;
     rsp.setHeader("Content-Type", HttpUtil::getMimeType(_urlParser.path_));
@@ -699,10 +706,19 @@ void HttpConnection::handleFlvStream()
     _onClose = [flvMux](){
         flvMux->setOnDetach(nullptr);
     };
+#else
+    HttpResponse rsp;
+    rsp._status = 400;
+    json value;
+    value["msg"] = "rtmp not enabled";
+    rsp.setContent(value.dump());
+    writeHttpResponse(rsp);
+#endif
 }
 
 void HttpConnection::handleSmsHlsM3u8()
 {
+#ifdef ENABLE_HLS
     string path = _urlParser.path_;
     trimBack(path, ".sms.m3u8");
     auto pos = path.find_last_of("/");
@@ -729,10 +745,19 @@ void HttpConnection::handleSmsHlsM3u8()
     // rsp.setHeader("Connection", "keep-alive");
     rsp.setContent(ss.str());
     writeHttpResponse(rsp);
+#else
+    HttpResponse rsp;
+    rsp._status = 400;
+    json value;
+    value["msg"] = "hls not enabled";
+    rsp.setContent(value.dump());
+    writeHttpResponse(rsp);
+#endif
 }
 
 void HttpConnection::handleHlsM3u8()
 {
+#ifdef ENABLE_HLS
     weak_ptr<HttpConnection> wSelf = dynamic_pointer_cast<HttpConnection>(shared_from_this());
 
     if (_urlParser.vecParam_.find("uid") != _urlParser.vecParam_.end()) {
@@ -795,8 +820,17 @@ void HttpConnection::handleHlsM3u8()
         }
         return make_shared<HlsMediaSource>(self->_urlParser, nullptr, true);
     }, this);
+#else
+    HttpResponse rsp;
+    rsp._status = 400;
+    json value;
+    value["msg"] = "hls not enabled";
+    rsp.setContent(value.dump());
+    writeHttpResponse(rsp);
+#endif
 }
 
+#ifdef ENABLE_HLS
 void HttpConnection::onPlayHls(const HlsMediaSource::Ptr &hlsSrc)
 {
     weak_ptr<HttpConnection> wSelf = dynamic_pointer_cast<HttpConnection>(shared_from_this());
@@ -823,9 +857,11 @@ void HttpConnection::onPlayHls(const HlsMediaSource::Ptr &hlsSrc)
     //     hlsSrc->delConnection(this);
     // };
 }
+#endif
 
 void HttpConnection::handleHlsTs()
 {
+#ifdef ENABLE_HLS
     // if (_urlParser.vecParam_.find("uid") == _urlParser.vecParam_.end()) {
     //     HttpResponse rsp;
     //     rsp._status = 404;
@@ -863,10 +899,19 @@ void HttpConnection::handleHlsTs()
     // rsp.setHeader("Connection", "keep-alive");
     rsp.setContent(tsString);
     writeHttpResponse(rsp);
+#else
+    HttpResponse rsp;
+    rsp._status = 400;
+    json value;
+    value["msg"] = "hls not enabled";
+    rsp.setContent(value.dump());
+    writeHttpResponse(rsp);
+#endif
 }
 
 void HttpConnection::handleLLHlsM3u8()
 {
+#ifdef ENABLE_HLS 
     weak_ptr<HttpConnection> wSelf = dynamic_pointer_cast<HttpConnection>(shared_from_this());
 
     if (_urlParser.vecParam_.find("uid") != _urlParser.vecParam_.end()) {
@@ -926,8 +971,17 @@ void HttpConnection::handleLLHlsM3u8()
         }
         return make_shared<LLHlsMediaSource>(self->_urlParser, nullptr, true);
     }, this);
+#else
+    HttpResponse rsp;
+    rsp._status = 400;
+    json value;
+    value["msg"] = "hls not enabled";
+    rsp.setContent(value.dump());
+    writeHttpResponse(rsp);
+#endif
 }
 
+#ifdef ENABLE_HLS
 void HttpConnection::onPlayLLHls(const LLHlsMediaSource::Ptr &hlsSrc)
 {
     weak_ptr<HttpConnection> wSelf = dynamic_pointer_cast<HttpConnection>(shared_from_this());
@@ -954,9 +1008,11 @@ void HttpConnection::onPlayLLHls(const LLHlsMediaSource::Ptr &hlsSrc)
         hlsSrc->delConnection(this);
     };
 }
+#endif
 
 void HttpConnection::handleLLHlsTs()
 {
+#ifdef ENABLE_HLS
     // if (_urlParser.vecParam_.find("uid") == _urlParser.vecParam_.end()) {
     //     HttpResponse rsp;
     //     rsp._status = 404;
@@ -994,10 +1050,19 @@ void HttpConnection::handleLLHlsTs()
     // rsp.setHeader("Connection", "keep-alive");
     rsp.setContent(tsString);
     writeHttpResponse(rsp);
+#else
+    HttpResponse rsp;
+    rsp._status = 400;
+    json value;
+    value["msg"] = "hls not enabled";
+    rsp.setContent(value.dump());
+    writeHttpResponse(rsp);
+#endif
 }
 
 void HttpConnection::handleTs()
 {
+#ifdef ENABLE_MPEG
     HttpResponse rsp;
     rsp._status = 200;
     rsp.setHeader("Content-Type", HttpUtil::getMimeType(_urlParser.path_));
@@ -1039,8 +1104,17 @@ void HttpConnection::handleTs()
         }
         return make_shared<TsMediaSource>(self->_urlParser, nullptr, true);
     }, this);
+#else
+    HttpResponse rsp;
+    rsp._status = 400;
+    json value;
+    value["msg"] = "ts not enabled";
+    rsp.setContent(value.dump());
+    writeHttpResponse(rsp);
+#endif
 }
 
+#ifdef ENABLE_MPEG
 void HttpConnection::onPlayTs(const TsMediaSource::Ptr &tsSrc)
 {
     weak_ptr<HttpConnection> wSelf = dynamic_pointer_cast<HttpConnection>(shared_from_this());
@@ -1096,9 +1170,11 @@ void HttpConnection::onPlayTs(const TsMediaSource::Ptr &tsSrc)
         };
 	}
 } 
+#endif
 
 void HttpConnection::handlePs()
 {
+#ifdef ENABLE_MPEG
     HttpResponse rsp;
     rsp._status = 200;
     rsp.setHeader("Content-Type", HttpUtil::getMimeType(_urlParser.path_));
@@ -1140,8 +1216,17 @@ void HttpConnection::handlePs()
         }
         return make_shared<PsMediaSource>(self->_urlParser, nullptr, true);
     }, this);
+#else
+    HttpResponse rsp;
+    rsp._status = 400;
+    json value;
+    value["msg"] = "ps not enabled";
+    rsp.setContent(value.dump());
+    writeHttpResponse(rsp);
+#endif
 }
 
+#ifdef ENABLE_MPEG
 void HttpConnection::onPlayPs(const PsMediaSource::Ptr &psSrc)
 {
     weak_ptr<HttpConnection> wSelf = dynamic_pointer_cast<HttpConnection>(shared_from_this());
@@ -1198,9 +1283,11 @@ void HttpConnection::onPlayPs(const PsMediaSource::Ptr &psSrc)
         };
 	}
 } 
+#endif
 
 void HttpConnection::handleFmp4()
 {
+#ifdef ENABLE_MP4
     HttpResponse rsp;
     rsp._status = 200;
     rsp.setHeader("Content-Type", HttpUtil::getMimeType(_urlParser.path_));
@@ -1242,8 +1329,17 @@ void HttpConnection::handleFmp4()
         }
         return make_shared<Fmp4MediaSource>(self->_urlParser, nullptr, true);
     }, this);
+#else
+    HttpResponse rsp;
+    rsp._status = 400;
+    json value;
+    value["msg"] = "mp4 not enabled";
+    rsp.setContent(value.dump());
+    writeHttpResponse(rsp);
+#endif
 }
 
+#ifdef ENABLE_MP4
 void HttpConnection::onPlayFmp4(const Fmp4MediaSource::Ptr &fmp4Src)
 {
     weak_ptr<HttpConnection> wSelf = dynamic_pointer_cast<HttpConnection>(shared_from_this());
@@ -1303,3 +1399,4 @@ void HttpConnection::onPlayFmp4(const Fmp4MediaSource::Ptr &fmp4Src)
         };
 	}
 } 
+#endif

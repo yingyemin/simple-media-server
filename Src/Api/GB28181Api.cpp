@@ -1,4 +1,6 @@
-﻿#include "GB28181Api.h"
+﻿#ifdef ENABLE_GB28181
+
+#include "GB28181Api.h"
 #include "Logger.h"
 #include "Common/Config.h"
 #include "Util/String.h"
@@ -164,3 +166,4 @@ void GB28181Api::stopGB28181Sender(const HttpParser& parser, const UrlParser& ur
     
 }
 
+#endif

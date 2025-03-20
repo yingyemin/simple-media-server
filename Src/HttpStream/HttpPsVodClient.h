@@ -1,6 +1,8 @@
 ﻿#ifndef HttpPsVodClient_H
 #define HttpPsVodClient_H
 
+#ifdef ENABLE_MPEG
+
 #include <unordered_map>
 #include <string>
 #include <memory>
@@ -38,5 +40,5 @@ private:
     shared_ptr<PsDemuxer> _demuxer;
 };
 
-
+#endif
 #endif //HttpPsVodClient_H

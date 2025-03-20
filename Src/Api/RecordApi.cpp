@@ -1,4 +1,6 @@
-﻿#include "Common/ApiUtil.h"
+﻿#ifdef ENABLE_RECORD
+
+#include "Common/ApiUtil.h"
 #include "Logger.h"
 #include "Common/Config.h"
 #include "Util/String.h"
@@ -75,3 +77,5 @@ void RecordApi::stopRecord(const HttpParser& parser, const UrlParser& urlParser,
     rsp.setContent(value.dump());
     rspFunc(rsp);
 }
+
+#endif

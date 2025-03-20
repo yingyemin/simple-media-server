@@ -1,4 +1,6 @@
-﻿#include "JT1078Api.h"
+﻿#ifdef ENABLE_JT1078
+
+#include "JT1078Api.h"
 #include "Common/ApiUtil.h"
 #include "Logger.h"
 #include "Common/Config.h"
@@ -276,3 +278,5 @@ void JT1078Api::getPortInfo(const HttpParser& parser, const UrlParser& urlParser
     rsp.setContent(value.dump());
     rspFunc(rsp);
 }
+
+#endif

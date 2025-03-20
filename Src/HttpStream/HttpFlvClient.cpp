@@ -1,4 +1,6 @@
-﻿#include "HttpFlvClient.h"
+﻿#ifdef ENABLE_RTMP
+
+#include "HttpFlvClient.h"
 #include "Logger.h"
 #include "Common/Config.h"
 #include "Util/String.h"
@@ -380,3 +382,5 @@ void HttpFlvClient::handleAudio(const char* data, int len)
 
     // return ;
 }
+
+#endif

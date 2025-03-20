@@ -1,4 +1,7 @@
-﻿#include "SrtApi.h"
+﻿
+#ifdef ENABLE_SRT
+
+#include "SrtApi.h"
 #include "Logger.h"
 #include "Util/String.h"
 #include "Common/ApiUtil.h"
@@ -7,8 +10,6 @@
 #include <unordered_map>
 
 using namespace std;
-
-#ifdef ENABLE_SRT
 
 extern unordered_map<string, function<void(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc)>> g_mapApi;

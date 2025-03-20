@@ -1,4 +1,6 @@
-﻿#include "HookApi.h"
+﻿#ifdef ENABLE_HOOK
+
+#include "HookApi.h"
 #include "Logger.h"
 #include "Common/Config.h"
 #include "Common/ApiUtil.h"
@@ -88,3 +90,5 @@ void HookApi::onKeepAlive(const HttpParser& parser, const UrlParser& urlParser,
     rsp.setContent(value.dump());
     rspFunc(rsp);
 }
+
+#endif

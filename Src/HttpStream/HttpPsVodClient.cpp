@@ -1,4 +1,6 @@
-﻿#include <cstdlib>
+﻿#ifdef ENABLE_MPEG
+
+#include <cstdlib>
 #include <string>
 #include <algorithm>
 #include <cctype>
@@ -88,3 +90,5 @@ void HttpPsVodClient::decode(const char* data, int len)
     // fwrite(data, 1, len, fp);
     // fclose(fp);
 }
+
+#endif

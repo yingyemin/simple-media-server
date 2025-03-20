@@ -2,7 +2,6 @@
 #define HttpVodClient_h
 
 #include "Common/MediaClient.h"
-#include "Mpeg/PsDemuxer.h"
 #include "HttpDownload.h"
 #include "Http/HttpChunkedParser.h"
 #include "Common/FrameMediaSource.h"

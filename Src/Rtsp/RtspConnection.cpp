@@ -287,6 +287,8 @@ void RtspConnection::handleDescribe()
 
                 self->handleDescribe_l();
             });
+        } else {
+            handleDescribe_l();
         }
 
         // handleDescribe_l();
@@ -509,6 +511,8 @@ void RtspConnection::handleAnnounce()
 
                 self->handleAnnounce_l();
             });
+        } else {
+            handleAnnounce_l();
         }
     }
 }

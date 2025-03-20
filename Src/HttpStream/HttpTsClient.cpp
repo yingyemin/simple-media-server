@@ -1,4 +1,6 @@
-﻿#include "HttpTsClient.h"
+﻿#ifdef ENABLE_MPEG
+
+#include "HttpTsClient.h"
 #include "Logger.h"
 #include "Common/Config.h"
 #include "Util/String.h"
@@ -168,3 +170,5 @@ void HttpTsClient::setOnClose(const function<void()>& cb)
 {
     _onClose = cb;
 }
+
+#endif

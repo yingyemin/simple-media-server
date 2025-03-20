@@ -1,6 +1,8 @@
 ﻿#ifndef HookApi_h
 #define HookApi_h
 
+#ifdef ENABLE_HOOK
+
 #include "Http/HttpParser.h"
 #include "Common/UrlParser.h"
 #include "Http/HttpResponse.h"
@@ -34,4 +36,5 @@ private:
                         const function<void(HttpResponse& rsp)>& rspFunc);
 };
 
+#endif
 #endif //HookApi_h

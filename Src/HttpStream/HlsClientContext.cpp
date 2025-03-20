@@ -1,4 +1,6 @@
-﻿#include "HlsClientContext.h"
+﻿#ifdef ENABLE_HLS
+
+#include "HlsClientContext.h"
 #include "Logger.h"
 #include "Common/Config.h"
 #include "Util/String.h"
@@ -355,3 +357,5 @@ void HlsClientContext::putTsList()
         }, nullptr);
     }
 }
+
+#endif

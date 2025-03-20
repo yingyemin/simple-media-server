@@ -1,27 +1,60 @@
+#ifdef ENABLE_RTSP
 #include "Rtsp/RtspServer.h"
+#include "Rtsp/RtspClient.h"
+#endif
+
+#if defined(ENABLE_HTTP) || defined(ENABLE_API) || defined(ENABLE_HLS)
 #include "Http/HttpServer.h"
-#include "GB28181/GB28181Server.h"
-#include "Ehome2/Ehome2Server.h"
-#include "Ehome5/Ehome5Server.h"
-#include "Rtmp/RtmpServer.h"
-#include "Webrtc/WebrtcServer.h"
-#include "Srt/SrtServer.h"
-#include "JT1078/JT1078Server.h"
-#include "Rtp/RtpServer.h"
-
-#include "Log/Logger.h"
-#include "EventLoopPool.h"
-#include "WorkPoller/WorkLoopPool.h"
-#include "Common/Config.h"
-#include "Util/Thread.h"
-#include "Ssl/TlsContext.h"
-#include "Common/Heartbeat.h"
-
 #include "Http/HttpClientApi.h"
+#endif
+
+#if defined(ENABLE_GB28181) || defined(ENABLE_EHOME2) || defined(ENABLE_EHOME5)
+#include "GB28181/GB28181Server.h"
+#endif
+
+#ifdef ENABLE_EHOME2
+#include "Ehome2/Ehome2Server.h"
+#endif
+
+#ifdef ENABLE_EHOME5
+#include "Ehome5/Ehome5Server.h"
+#endif
+
+#ifdef ENABLE_RTMP
+#include "Rtmp/RtmpServer.h"
+#include "Rtmp/RtmpClient.h"
+#endif
+
+#ifdef ENABLE_WEBRTC
+#include "Webrtc/WebrtcServer.h"
+#include "Webrtc/WebrtcClient.h"
+#endif
+
+#ifdef ENABLE_SRT
+#include "Srt/SrtServer.h"
+#endif
+
+#ifdef ENABLE_JT1078
+#include "JT1078/JT1078Server.h"
+#endif
+
+#if defined(ENABLE_GB28181) || defined(ENABLE_EHOME2) || defined(ENABLE_EHOME5) || defined(ENABLE_RTSP) || defined(ENABLE_WEBRTC) || defined(ENABLE_RTP)
+#include "Rtp/RtpServer.h"
+#endif
+
+#ifdef ENABLE_OPENSSL
+#include "Ssl/TlsContext.h"
+#endif
+
+#ifdef ENABLE_HOOK
 #include "Hook/MediaHook.h"
+#endif
 
+#ifdef ENABLE_RECORD
 #include "Record/RecordReader.h"
+#endif
 
+#ifdef ENABLE_API
 #include "Api/HttpApi.h"
 #include "Api/RtmpApi.h"
 #include "Api/RtspApi.h"
@@ -36,10 +69,7 @@
 #include "Api/RtpApi.h"
 #include "Api/WebsocketApi.h"
 #include "Api/SrtApi.h"
-
-#include "Rtmp/RtmpClient.h"
-#include "Rtsp/RtspClient.h"
-#include "Webrtc/WebrtcClient.h"
+#endif
 
 #include "Codec/AacTrack.h"
 #include "Codec/AV1Track.h"
@@ -59,6 +89,13 @@
 #include "Codec/H266Frame.h"
 #include "Codec/VP8Frame.h"
 #include "Codec/VP9Frame.h"
+
+#include "Log/Logger.h"
+#include "EventLoopPool.h"
+#include "WorkPoller/WorkLoopPool.h"
+#include "Common/Config.h"
+#include "Util/Thread.h"
+#include "Common/Heartbeat.h"
 
 #include <unistd.h>
 #include <string.h>
@@ -148,39 +185,60 @@ int main(int argc, char** argv)
     setFileLimits();
     setCoreLimits();
 
+#ifdef ENABLE_OPENSSL
     auto sslKey = Config::instance()->get("Ssl", "key");
     auto sslCrt = Config::instance()->get("Ssl", "cert");
     TlsContext::setKeyFile(sslKey, sslCrt);
+#endif
 
+#ifdef ENABLE_HOOK
     MediaHook::instance()->init();
     HookManager::instance()->setOnHookReportByHttp(HttpClientApi::reportByHttp);
+#endif
 
+#ifdef ENABLE_RECORD
     RecordReader::init();
+#endif
 
+#ifdef ENABLE_API
+#if defined(ENABLE_HTTP) || defined(ENABLE_API) || defined(ENABLE_HLS)
     HttpApi::initApi();
-    HookApi::initApi();
-    RtmpApi::initApi();
-    RtspApi::initApi();
-    GB28181Api::initApi();
-    RtpApi::initApi();
     WebsocketApi::initApi();
-    WebrtcApi::initApi();
     HttpStreamApi::initApi();
+#endif
+#ifdef ENABLE_HOOK
+    HookApi::initApi();
+#endif
+#ifdef ENABLE_RTMP
+    RtmpApi::initApi();
+#endif
+#ifdef ENABLE_RTSP
+    RtspApi::initApi();
+#endif
+#ifdef ENABLE_GB28181
+    GB28181Api::initApi();
+#endif
+#ifdef ENABLE_RTP
+    RtpApi::initApi();
+#endif
+#ifdef ENABLE_WEBRTC
+    WebrtcApi::initApi();
+#endif
+#ifdef ENABLE_RECORD
     RecordApi::initApi();
+#endif
+#ifdef ENABLE_API
     TestApi::initApi();
+#endif
+#ifdef ENABLE_JT1078
     JT1078Api::initApi();
+#endif
 #ifdef ENABLE_FFMPEG
     FfmpegApi::initApi();
 #endif
 #ifdef ENABLE_SRT
     SrtApi::initApi();
 #endif
-
-    RtspClient::init();
-    RtmpClient::init();
-    WebrtcClient::init();
-#ifdef ENABLE_SRT
-    SrtSocket::initSrt();
 #endif
 
     AacTrack::registerTrackInfo();
@@ -206,8 +264,10 @@ int main(int argc, char** argv)
     Heartbeat::Ptr beat = make_shared<Heartbeat>();
     beat->startAsync();
 
+#ifdef ENABLE_RTSP
     // 开启RTSP SERVER
     // 参数需要改成从配置读取
+    RtspClient::init();
     auto rtspConfigVec = configJson["Rtsp"]["Server"];
     for (auto server : rtspConfigVec.items()) {
         string serverId = server.key();
@@ -231,7 +291,10 @@ int main(int argc, char** argv)
         //     RtspServer::instance()->start(ip, sslPort, count);
         // }
     }
+#endif
 
+#ifdef ENABLE_RTMP
+    RtmpClient::init();
     auto rtmpConfigVec = configJson["Rtmp"]["Server"];
     for (auto server : rtmpConfigVec.items()) {
         string serverId = server.key();
@@ -254,7 +317,9 @@ int main(int argc, char** argv)
         //     RtspServer::instance()->start(ip, sslPort, count);
         // }
     }
+#endif
 
+#if defined(ENABLE_GB28181) || defined(ENABLE_EHOME2) || defined(ENABLE_EHOME5)
     auto GB28181ConfigVec = configJson["GB28181"]["Server"];
     for (auto server : GB28181ConfigVec.items()) {
         string serverId = server.key();
@@ -278,7 +343,9 @@ int main(int argc, char** argv)
         //     RtspServer::instance()->start(ip, sslPort, count);
         // }
     }
+#endif
     
+#if defined(ENABLE_GB28181) || defined(ENABLE_EHOME2) || defined(ENABLE_EHOME5) || defined(ENABLE_RTSP) || defined(ENABLE_WEBRTC) || defined(ENABLE_RTP)
     auto rtpConfigVec = configJson["Rtp"]["Server"];
     for (auto server : rtpConfigVec.items()) {
         string serverId = server.key();
@@ -302,7 +369,9 @@ int main(int argc, char** argv)
         //     RtspServer::instance()->start(ip, sslPort, count);
         // }
     }
+#endif
 
+#ifdef ENABLE_EHOME2
     auto ehome2ConfigVec = configJson["Ehome2"]["Server"];
     for (auto server : ehome2ConfigVec.items()) {
         string serverId = server.key();
@@ -326,7 +395,9 @@ int main(int argc, char** argv)
         //     RtspServer::instance()->start(ip, sslPort, count);
         // }
     }
+#endif
 
+#ifdef ENABLE_EHOME5
     auto ehome5ConfigVec = configJson["Ehome5"]["Server"];
     for (auto server : ehome5ConfigVec.items()) {
         string serverId = server.key();
@@ -350,7 +421,9 @@ int main(int argc, char** argv)
         //     RtspServer::instance()->start(ip, sslPort, count);
         // }
     }
+#endif
 
+#ifdef ENABLE_JT1078
     auto jt1078ConfigVec = configJson["JT1078"]["Server"];
     int maxPort = jt1078ConfigVec.value("portMax", 0);
     int minPort = jt1078ConfigVec.value("portMin", 0);
@@ -382,7 +455,9 @@ int main(int argc, char** argv)
         //     RtspServer::instance()->start(ip, sslPort, count);
         // }
     }
+#endif
 
+#if defined(ENABLE_HTTP) || defined(ENABLE_API) || defined(ENABLE_HLS)
     auto websocketConfigVec = configJson["Websocket"]["Server"];
     for (auto server : websocketConfigVec.items()) {
         string serverId = server.key();
@@ -397,11 +472,11 @@ int main(int argc, char** argv)
         int sslPort = websocketConfig["sslPort"];
         int count = websocketConfig["threads"];
 
-        logInfo << "start http api, port: " << port;
+        logInfo << "start websocket server, port: " << port;
         if (port) {
             HttpServer::instance()->start(ip, port, count, false, true);
         }
-        logInfo << "start https server, sslPort: " << sslPort;
+        logInfo << "start websockets server, sslPort: " << sslPort;
         if (sslPort) {
             HttpServer::instance()->start(ip, sslPort, count, true, true);
         }
@@ -431,7 +506,10 @@ int main(int argc, char** argv)
             HttpServer::instance()->start(ip, sslPort, count, true);
         }
     }
+#endif
 
+#ifdef ENABLE_WEBRTC
+    WebrtcClient::init();
     auto WebrtcConfigVec = configJson["Webrtc"]["Server"];
     for (auto server : WebrtcConfigVec.items()) {
         string serverId = server.key();
@@ -456,8 +534,10 @@ int main(int argc, char** argv)
         //     RtspServer::instance()->start(ip, sslPort, count);
         // }
     }
+#endif
 
 #ifdef ENABLE_SRT
+    SrtSocket::initSrt();
     auto srtConfigVec = configJson["Srt"]["Server"];
     for (auto server : srtConfigVec.items()) {
         string serverId = server.key();

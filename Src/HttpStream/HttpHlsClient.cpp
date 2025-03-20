@@ -1,4 +1,6 @@
-﻿#include "HttpHlsClient.h"
+﻿#ifdef ENABLE_HLS
+
+#include "HttpHlsClient.h"
 #include "Logger.h"
 #include "Common/Config.h"
 #include "Util/String.h"
@@ -128,3 +130,5 @@ void HttpHlsClient::onHttpResponce()
         _onHttpResponce(_parser);
     }
 }
+
+#endif

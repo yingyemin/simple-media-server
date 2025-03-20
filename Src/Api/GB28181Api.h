@@ -1,6 +1,8 @@
 ﻿#ifndef GB28181Api_h
 #define GB28181Api_h
 
+#ifdef ENABLE_GB28181
+
 #include "Http/HttpParser.h"
 #include "Common/UrlParser.h"
 #include "Http/HttpResponse.h"
@@ -26,4 +28,5 @@ public:
                         const function<void(HttpResponse& rsp)>& rspFunc);
 };
 
+#endif
 #endif //GB28181Api_h

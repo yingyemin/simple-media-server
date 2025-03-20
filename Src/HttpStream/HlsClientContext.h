@@ -1,6 +1,8 @@
 ﻿#ifndef HlsClientContext_h
 #define HlsClientContext_h
 
+#ifdef ENABLE_HLS
+
 #include "Common/MediaClient.h"
 #include "HttpStream/HttpHlsClient.h"
 #include "HttpStream/HttpHlsTsClient.h"
@@ -65,4 +67,5 @@ private:
     function<void()> _onClose;
 };
 
+#endif
 #endif // HlsClientContext_h

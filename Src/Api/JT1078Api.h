@@ -1,6 +1,8 @@
 ﻿#ifndef JT1078Api_h
 #define JT1078Api_h
 
+#ifdef ENABLE_JT1078
+
 #include "Http/HttpParser.h"
 #include "Common/UrlParser.h"
 #include "Http/HttpResponse.h"
@@ -41,4 +43,5 @@ public:
                         const function<void(HttpResponse& rsp)>& rspFunc);
 };
 
+#endif
 #endif //JT1078Api_h

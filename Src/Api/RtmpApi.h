@@ -1,6 +1,8 @@
 ﻿#ifndef RtmpApi_h
 #define RtmpApi_h
 
+#ifdef ENABLE_RTMP
+
 #include "Http/HttpParser.h"
 #include "Common/UrlParser.h"
 #include "Http/HttpResponse.h"
@@ -34,4 +36,5 @@ public:
                         const function<void(HttpResponse& rsp)>& rspFunc);
 };
 
+#endif
 #endif //RtmpApi_h

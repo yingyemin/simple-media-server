@@ -1,4 +1,6 @@
-﻿#include "WebrtcApi.h"
+﻿#ifdef ENABLE_WEBRTC
+
+#include "WebrtcApi.h"
 #include "Logger.h"
 #include "Util/String.h"
 #include "Common/ApiUtil.h"
@@ -304,3 +306,5 @@ void WebrtcApi::listRtcPush(const HttpParser& parser, const UrlParser& urlParser
     // rsp.setContent(value.dump());
     // rspFunc(rsp);
 }
+
+#endif
