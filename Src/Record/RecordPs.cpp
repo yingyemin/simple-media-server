@@ -1,4 +1,6 @@
-﻿#include <cstdlib>
+﻿#ifdef ENABLE_MPEG
+
+#include <cstdlib>
 #include <string>
 #include <algorithm>
 #include <cctype>
@@ -146,3 +148,5 @@ void RecordPs::setOnClose(const function<void()>& cb)
 {
     _onClose = cb;
 }
+
+#endif

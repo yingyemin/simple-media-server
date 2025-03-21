@@ -1,4 +1,6 @@
-﻿#ifndef RecordPs_H
+﻿#ifdef ENABLE_MPEG
+
+#ifndef RecordPs_H
 #define RecordPs_H
 
 #include <unordered_map>
@@ -43,5 +45,5 @@ private:
     function<void()> _onClose;
 };
 
-
+#endif
 #endif //RecordPs_H

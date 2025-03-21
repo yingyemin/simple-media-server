@@ -73,6 +73,7 @@ void WebrtcClient::init()
 
 bool WebrtcClient::start(const string& localIp, int localPort, const string& url, int timeout)
 {
+#ifdef ENABLE_HTTP
     _dtlsSession.reset(new DtlsSession("client"));
 	if (!_dtlsSession->init(WebrtcContext::getDtlsCertificate())) {
 		logError << "dtls session init failed";
@@ -129,6 +130,10 @@ bool WebrtcClient::start(const string& localIp, int localPort, const string& url
         close();
         return false;
     }
+#else
+    logInfo << "not support http client";
+    close();
+#endif
 
     return true;
 }

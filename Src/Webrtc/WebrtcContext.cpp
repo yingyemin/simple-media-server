@@ -846,6 +846,50 @@ void WebrtcContext::onStunPacket(const Socket::Ptr& socket, const WebrtcStun& st
 		return ;
 	}
 
+    weak_ptr<WebrtcContext> wSelf = dynamic_pointer_cast<WebrtcContext>(shared_from_this());
+    if (_isPlayer) {
+        auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+        if (hook) {
+            PlayInfo info;
+            info.protocol = PROTOCOL_WEBRTC;
+            info.type = DEFAULT_TYPE;
+            info.uri = _path;
+            info.vhost = DEFAULT_VHOST;
+            info.params = _params;
+            hook->onPlay(info, [wSelf](const PlayResponse &rsp){
+                auto self = wSelf.lock();
+                if (!self) {
+                    return ;
+                }
+
+                if (!rsp.authResult) {
+                    self->close();
+                }
+            });
+        }
+    } else {
+        PublishInfo info;
+        info.protocol = PROTOCOL_WEBRTC;
+        info.type = DEFAULT_TYPE;
+        info.uri = _path;
+        info.vhost = DEFAULT_VHOST;
+        info.params = _params;
+
+        auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+        if (hook) {
+            hook->onPublish(info, [wSelf](const PublishResponse &rsp){
+                auto self = wSelf.lock();
+                if (!self) {
+                    return ;
+                }
+
+                if (!rsp.authResult) {
+                    self->close();
+                }
+            });
+        }
+    }
+
     if (!_addr && addr) {
         _socket = socket;
 	    _addrLen = len;
@@ -853,7 +897,6 @@ void WebrtcContext::onStunPacket(const Socket::Ptr& socket, const WebrtcStun& st
 	    memcpy(_addr, addr, len);
 
         _loop = socket->getLoop();
-        weak_ptr<WebrtcContext> wSelf = dynamic_pointer_cast<WebrtcContext>(shared_from_this());
 
         if (!_isPlayer) {
             auto rtcSrc = _source.lock();
@@ -950,7 +993,7 @@ void WebrtcContext::onStunPacket(const Socket::Ptr& socket, const WebrtcStun& st
 	socket->send(buffer->data(), buffer->size(), 1, _addr, len);
 	_lastRecvTime = time(nullptr);
 
-    if (!_enbaleDtls) {
+    if (!_enbaleDtls && _isPlayer) {
         startPlay(); 
     }
 }

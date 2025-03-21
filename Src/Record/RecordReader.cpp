@@ -46,6 +46,7 @@ bool RecordReader::start()
     string ext= _filePath.substr(_filePath.rfind('.') + 1);
     auto abpath = File::absolutePath(_filePath, rootPath);
     if (!strcasecmp(ext.data(), "ps") || !strcasecmp(ext.data(), "mpeg")) {
+#ifdef ENABLE_MPEG
         if (!_file.open(abpath, "rb+")) {
             return false;
         }
@@ -141,6 +142,10 @@ bool RecordReader::start()
             //     return 40 - (int)take;
             // }
         }, nullptr);
+#else
+    logInfo << "not add mpeg moudle";
+    return false;
+#endif
     } else if (!strcasecmp(ext.data(), "mp4")) {
         return readMp4(abpath);
     } else {
@@ -152,6 +157,7 @@ bool RecordReader::start()
 
 bool RecordReader::readMp4(const string& path)
 {
+#ifdef ENABLE_MP4
     weak_ptr<RecordReader> wSelf = shared_from_this();
 
     auto demuxer = make_shared<Mp4FileReader>(path);
@@ -259,6 +265,10 @@ bool RecordReader::readMp4(const string& path)
     }, nullptr);
 
     return true;
+#else
+    logInfo << "not add mp4 moudle";
+    return false;
+#endif
 }
 
 void RecordReader::stop()

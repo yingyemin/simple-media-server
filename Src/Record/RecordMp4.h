@@ -1,6 +1,8 @@
 ﻿#ifndef RecordMp4_H
 #define RecordMp4_H
 
+#ifdef ENABLE_MP4
+
 #include <unordered_map>
 #include <string>
 #include <memory>
@@ -45,5 +47,5 @@ private:
     function<void()> _onClose;
 };
 
-
+#endif
 #endif //RecordPs_H

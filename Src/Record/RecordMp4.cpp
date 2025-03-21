@@ -1,4 +1,6 @@
-﻿#include <cstdlib>
+﻿#ifdef ENABLE_MP4
+
+#include <cstdlib>
 #include <string>
 #include <algorithm>
 #include <cctype>
@@ -164,3 +166,5 @@ void RecordMp4::setOnClose(const function<void()>& cb)
 {
     _onClose = cb;
 }
+
+#endif

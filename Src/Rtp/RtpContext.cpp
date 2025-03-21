@@ -80,13 +80,14 @@ bool RtpContext::init()
     weak_ptr<RtpContext> wSelf = shared_from_this();
     if (_payloadType == "ps" || _payloadType == "ts") {
         _videoTrack = make_shared<RtpDecodeTrack>(0, _payloadType);
+        gbSrc->addTrack(_videoTrack);
     } else {
         if (_videoTrack) {
             _loop->async([wSelf, gbSrc](){
                 auto self = wSelf.lock();
                 if (self){
                     gbSrc->addTrack(self->_videoTrack);
-                    gbSrc->addDecodeTrack(self->_videoTrack->getTrackInfo());
+                    // gbSrc->addDecodeTrack(self->_videoTrack->getTrackInfo());
                 }
             }, true);
         }
@@ -95,7 +96,7 @@ bool RtpContext::init()
                 auto self = wSelf.lock();
                 if (self){
                     gbSrc->addTrack(self->_audioTrack);
-                    gbSrc->addDecodeTrack(self->_audioTrack->getTrackInfo());
+                    // gbSrc->addDecodeTrack(self->_audioTrack->getTrackInfo());
                 }
             }, true);
         }

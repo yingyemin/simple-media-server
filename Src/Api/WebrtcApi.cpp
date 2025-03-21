@@ -62,6 +62,7 @@ void WebrtcApi::rtcPlay(const HttpParser& parser, const UrlParser& urlParser,
     auto context = make_shared<WebrtcContext>();
     context->setDtls(enableDtls);
     context->initPlayer(appName, streamName, sdp);
+    context->setParams(urlParser.param_);
 
     WebrtcContextManager::instance()->addContext(context->getUsername(), context);
 

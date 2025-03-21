@@ -214,19 +214,19 @@ void JT1078DecodeTrack::decodeRtp(const JT1078RtpPacket::Ptr& rtp)
         _frame->_buffer.assign(rtp->getPayload(), rtp->getPayloadSize());
         break;
     case JT1078_Intermediate:
-        if (_lossRtp || rtp->getSeq() != (uint16_t)(_lastSeq + 1)) {
-            _lossRtp = true;
-            _frame->_buffer.clear();
-            break;
-        }
+        // if (_lossRtp || rtp->getSeq() != (uint16_t)(_lastSeq + 1)) {
+        //     _lossRtp = true;
+        //     _frame->_buffer.clear();
+        //     break;
+        // }
         _frame->_buffer.append(rtp->getPayload(), rtp->getPayloadSize());
         break;
     case JT1078_Last:
-        if (_lossRtp || rtp->getSeq() != (uint16_t)(_lastSeq + 1)) {
-            _lossRtp = true;
-            _frame->_buffer.clear();
-            break;
-        }
+        // if (_lossRtp || rtp->getSeq() != (uint16_t)(_lastSeq + 1)) {
+        //     _lossRtp = true;
+        //     _frame->_buffer.clear();
+        //     break;
+        // }
         _frame->_pts = rtp->getTimestamp();
         _frame->_buffer.append(rtp->getPayload(), rtp->getPayloadSize());
         // _frame->_startSize = 4;
