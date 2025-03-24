@@ -5,7 +5,7 @@
 #include <arpa/inet.h>
 
 #include "Ehome5Connection.h"
-#include "GB28181/GB28181Manager.h"
+#include "Rtp/RtpManager.h"
 #include "Logger.h"
 #include "Util/String.h"
 #include "Common/Define.h"
@@ -23,8 +23,8 @@ Ehome5Connection::Ehome5Connection(const EventLoop::Ptr& loop, const Socket::Ptr
 Ehome5Connection::~Ehome5Connection()
 {
     logInfo << "~Ehome5Connection";
-    // if (_ssrc >= 0) {
-    //     GB28181Manager::instance()->delContext(_ssrc);
+    // if (!_ssrc.empty()) {
+    //     RtpManager::instance()->delContext(_ssrc);
     // }
 }
 
@@ -91,7 +91,7 @@ void Ehome5Connection::onEhomePacket(const char* data, int len)
     if (!_context)
     {
         string uri = "/live/" + _ssrc;
-        _context = make_shared<GB28181Context>(_loop, uri, DEFAULT_VHOST, PROTOCOL_EHOME5, DEFAULT_TYPE);
+        _context = make_shared<RtpContext>(_loop, uri, DEFAULT_VHOST, PROTOCOL_EHOME5, DEFAULT_TYPE);
         _context->setPayloadType(_payloadType);
 
         if (_payloadType == "nalu") {
@@ -109,7 +109,7 @@ void Ehome5Connection::onEhomePacket(const char* data, int len)
             return ;
         }
 
-        // GB28181Manager::instance()->addContext(_ssrc, _context);
+        // RtpManager::instance()->addContext(_ssrc, _context);
     } else if (!_context->isAlive()) {
         close();
         return ;

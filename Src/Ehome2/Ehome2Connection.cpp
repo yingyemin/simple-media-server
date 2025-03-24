@@ -5,7 +5,7 @@
 #include <arpa/inet.h>
 
 #include "Ehome2Connection.h"
-#include "GB28181/GB28181Manager.h"
+#include "Rtp/RtpManager.h"
 #include "Logger.h"
 #include "Util/String.h"
 #include "Common/Define.h"
@@ -24,7 +24,7 @@ Ehome2Connection::~Ehome2Connection()
 {
     logInfo << "~Ehome2Connection";
     if (_ssrc >= 0) {
-        GB28181Manager::instance()->delContext(_ssrc);
+        RtpManager::instance()->delContext(_ssrc);
     }
 }
 
@@ -84,14 +84,14 @@ void Ehome2Connection::onRtpPacket(const RtpPacket::Ptr& rtp)
     if (!_context)
     {
         string uri = "/live/" + to_string(_ssrc);
-        _context = make_shared<GB28181Context>(_loop, uri, DEFAULT_VHOST, PROTOCOL_EHOME2, DEFAULT_TYPE);
+        _context = make_shared<RtpContext>(_loop, uri, DEFAULT_VHOST, PROTOCOL_EHOME2, DEFAULT_TYPE);
         if (!_context->init()) {
             _context = nullptr;
             close();
             return ;
         }
 
-        GB28181Manager::instance()->addContext(_ssrc, _context);
+        RtpManager::instance()->addContext(_ssrc, _context);
     } else if (!_context->isAlive()) {
         close();
         return ;

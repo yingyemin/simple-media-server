@@ -134,6 +134,7 @@ FrameBuffer::Ptr H266Frame::createFrame(int startSize, int index, bool addStart)
 
     if (addStart) {
         frame->_buffer.assign("\x00\x00\x00\x01", 4);
+        frame->_startSize = 4;
     };
 
     return frame;

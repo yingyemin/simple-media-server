@@ -59,7 +59,7 @@ else()
 endif ()
 
 ###GB28181########
-if (ENABLE_GB28181 OR ENABLE_EHOME5 OR ENABLE_EHOME2)
+if (ENABLE_GB28181)
     message(STATUS "add gb28181 moudle")
     project(gb28181)
     add_definitions(-DENABLE_GB28181)

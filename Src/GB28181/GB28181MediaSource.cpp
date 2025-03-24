@@ -316,6 +316,10 @@ void GB28181MediaSource::onFrame(const FrameBuffer::Ptr& frame)
 
 int GB28181MediaSource::playerCount()
 {
+    if (!_ring) {
+        return 0;
+    }
+    
     int count = _ring->readerCount();
     // lock_guard<mutex> lck(_mtxTrack);
     count -= _sinkSize;

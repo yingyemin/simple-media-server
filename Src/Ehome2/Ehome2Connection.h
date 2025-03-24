@@ -10,7 +10,7 @@
 #include "Net/TcpConnection.h"
 #include "Rtp/RtpPacket.h"
 #include "Ehome2Parser.h"
-#include "GB28181/GB28181Context.h"
+#include "Rtp/RtpContext.h"
 
 
 using namespace std;
@@ -38,7 +38,7 @@ public:
 private:
     int _ssrc = -1;
     Ehome2Parser _parser;
-    GB28181Context::Ptr _context;
+    RtpContext::Ptr _context;
     EventLoop::Ptr _loop;
     Socket::Ptr _socket;
 };

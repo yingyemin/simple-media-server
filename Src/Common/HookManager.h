@@ -15,6 +15,14 @@
 class StreamStatusInfo
 {
 public:
+    StreamStatusInfo(bool isOrigin, const std::string& protocol, const std::string& uri, const std::string& vhost, 
+        const std::string& type, const std::string& status, const std::string& errorCode)
+        :isOrigin(isOrigin), protocol(protocol), uri(uri), vhost(vhost), type(type), status(status), errorCode(errorCode)
+    {
+    }
+
+public:
+    bool isOrigin = false;
     std::string protocol;
     std::string uri;
     std::string vhost;

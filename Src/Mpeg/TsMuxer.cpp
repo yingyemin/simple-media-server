@@ -174,6 +174,12 @@ void TsMuxer::addTrackInfo(const shared_ptr<TrackInfo>& trackInfo)
             _videoCodec = STREAM_TYPE_VIDEO_H264;
         } else if (trackInfo->codec_ == "h265") {
             _videoCodec = STREAM_TYPE_VIDEO_HEVC;
+        } else if (trackInfo->codec_ == "vp8") {
+            _videoCodec = STREAM_TYPE_VIDEO_VP8;
+        } else if (trackInfo->codec_ == "vp9") {
+            _videoCodec = STREAM_TYPE_VIDEO_VP9;
+        } else if (trackInfo->codec_ == "av1") {
+            _videoCodec = STREAM_TYPE_VIDEO_AV1;
         }
     } else if (trackInfo->trackType_ == "audio") {
         _mapStreamId[trackInfo->index_] = _lastAudioId++;
@@ -185,6 +191,8 @@ void TsMuxer::addTrackInfo(const shared_ptr<TrackInfo>& trackInfo)
             _audioCodec = STREAM_TYPE_AUDIO_G711ULAW;
         } else if (trackInfo->codec_ == "mp3") {
             _audioCodec = STREAM_TYPE_AUDIO_MP3;
+        } else if (trackInfo->codec_ == "opus") {
+            _audioCodec = STREAM_TYPE_AUDIO_OPUS;
         }
     }
 }

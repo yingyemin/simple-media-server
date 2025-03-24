@@ -45,10 +45,10 @@ MediaSource::~MediaSource()
             iter.second();
         }
     }
-    StreamStatusInfo statusInfo{_urlParser.protocol_, _urlParser.path_, _urlParser.vhost_, 
+    StreamStatusInfo statusInfo{_origin, _urlParser.protocol_, _urlParser.path_, _urlParser.vhost_, 
                                 _urlParser.type_, "off", "400"};
     auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
-    if (hook) {
+    if (hook && isOrigin()) {
         hook->onStreamStatus(statusInfo);
     };
 }
@@ -990,10 +990,10 @@ void MediaSource::onReady()
         logInfo << "track type: " << track.second->trackType_ << ", codec: " << track.second->codec_ << "(" << msg << ")";
     }
 
-    StreamStatusInfo statusInfo{_urlParser.protocol_, _urlParser.path_, _urlParser.vhost_, 
+    StreamStatusInfo statusInfo{isOrigin(), _urlParser.protocol_, _urlParser.path_, _urlParser.vhost_, 
                                 _urlParser.type_, "on", "200"};
     auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
-    if (hook) {
+    if (hook && isOrigin()) {
         hook->onStreamStatus(statusInfo);
     };
 

@@ -10,7 +10,7 @@
 #include "Net/TcpConnection.h"
 #include "Rtp/RtpPacket.h"
 #include "Ehome5Parser.h"
-#include "GB28181/GB28181Context.h"
+#include "Rtp/RtpContext.h"
 
 
 using namespace std;
@@ -52,7 +52,7 @@ private:
     std::string _payloadType = "ps";
 
     Ehome5Parser _parser;
-    GB28181Context::Ptr _context;
+    RtpContext::Ptr _context;
     EventLoop::Ptr _loop;
     Socket::Ptr _socket;
 };

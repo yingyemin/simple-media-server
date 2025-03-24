@@ -26,27 +26,28 @@ void PsMuxer::onFrame(const FrameBuffer::Ptr& frame)
         return ;
     }
 
-    if (frame->metaFrame()) {
-        _sendMetaFrame = true;
-    }
+    // framesouce 里已经添加了sps等帧，这里不再重复添加
+    // if (frame->metaFrame()) {
+    //     _sendMetaFrame = true;
+    // }
 
-    if (frame->keyFrame()) {
-        if (!_sendMetaFrame) {
-            auto track = _mapTrackInfo[frame->getTrackIndex()];
-            if (track->codec_ == "h264") {
-                auto h264Track = dynamic_pointer_cast<H264Track>(track);
-                encode(h264Track->_sps);
-                encode(h264Track->_pps);
-            } else if (track->codec_ == "h265") {
-                auto h265Track = dynamic_pointer_cast<H265Track>(track);
-                encode(h265Track->_vps);
-                encode(h265Track->_sps);
-                encode(h265Track->_pps);
-            }
-        } else {
-            _sendMetaFrame = false;
-        }
-    }
+    // if (frame->keyFrame()) {
+    //     if (!_sendMetaFrame) {
+    //         auto track = _mapTrackInfo[frame->getTrackIndex()];
+    //         if (track->codec_ == "h264") {
+    //             auto h264Track = dynamic_pointer_cast<H264Track>(track);
+    //             encode(h264Track->_sps);
+    //             encode(h264Track->_pps);
+    //         } else if (track->codec_ == "h265") {
+    //             auto h265Track = dynamic_pointer_cast<H265Track>(track);
+    //             encode(h265Track->_vps);
+    //             encode(h265Track->_sps);
+    //             encode(h265Track->_pps);
+    //         }
+    //     } else {
+    //         _sendMetaFrame = false;
+    //     }
+    // }
     
     // _mapStampAdjust[frame->_index]->inputStamp(frame->_pts, frame->_dts, 1);
     encode(frame);
@@ -65,6 +66,7 @@ void PsMuxer::stopEncode()
 void PsMuxer::addTrackInfo(const shared_ptr<TrackInfo>& trackInfo)
 {
     if (!trackInfo) {
+        throw runtime_error("trackInfo is null");
         return ;
     }
 
@@ -76,6 +78,14 @@ void PsMuxer::addTrackInfo(const shared_ptr<TrackInfo>& trackInfo)
             _videoCodec = STREAM_TYPE_VIDEO_H264;
         } else if (trackInfo->codec_ == "h265") {
             _videoCodec = STREAM_TYPE_VIDEO_HEVC;
+        } else if (trackInfo->codec_ == "vp8") {
+            _videoCodec = STREAM_TYPE_VIDEO_VP8;
+        } else if (trackInfo->codec_ == "vp9") {
+            _videoCodec = STREAM_TYPE_VIDEO_VP9;
+        } else if (trackInfo->codec_ == "av1") {
+            _videoCodec = STREAM_TYPE_VIDEO_AV1;
+        } else {
+            throw runtime_error("unsupport video codec: " + trackInfo->codec_);
         }
     } else if (trackInfo->trackType_ == "audio") {
         _mapStampAdjust[trackInfo->index_] = make_shared<AudioStampAdjust>(0);
@@ -88,6 +98,10 @@ void PsMuxer::addTrackInfo(const shared_ptr<TrackInfo>& trackInfo)
             _audioCodec = STREAM_TYPE_AUDIO_G711ULAW;
         } else if (trackInfo->codec_ == "mp3") {
             _audioCodec = STREAM_TYPE_AUDIO_MP3;
+        } else if (trackInfo->codec_ == "opus") {
+            _audioCodec = STREAM_TYPE_AUDIO_OPUS;
+        } else {
+            throw runtime_error("unsupport audio codec: " + trackInfo->codec_);
         }
     }
 }

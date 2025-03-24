@@ -167,8 +167,8 @@ void RtpServer::start(const string& ip, int port, int count, int sockType)
                 return ;
             }
             socket->addToEpoll();
-            static auto gbManager = RtpManager::instance();
-            gbManager->init(loop);
+            static auto rtpManager = RtpManager::instance();
+            rtpManager->init(loop);
             // socket->setOnGetRecvBuffer([](){
             //     auto buffer = make_shared<StreamBuffer>(1500 + 4);
             //     buffer->substr(4);
@@ -180,7 +180,7 @@ void RtpServer::start(const string& ip, int port, int count, int sockType)
                 // auto rtp = make_shared<RtpPacket>(buffer, 0, 4);
                 auto rtp = make_shared<RtpPacket>(buffer, 0);
                 // create rtpmanager
-                gbManager->onRtpPacket(rtp, addr, len);
+                rtpManager->onRtpPacket(rtp, addr, len);
 
                 return 0;
             });

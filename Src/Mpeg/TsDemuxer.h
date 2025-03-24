@@ -128,7 +128,7 @@ public:
     void pushPidInfo(TSPidTable pidtable, TsPidType type);
     shared_ptr<TsMessage> message(TSPidTable pidtable);
     void pushConsumerMessage(shared_ptr<TsMessage> message);
-    void createTrackInfo(const string& codec);
+    void createTrackInfo(const string& codec, int type);
     void clear();
 
 private:

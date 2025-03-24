@@ -75,10 +75,10 @@ private:
     bool _hasVideoReady = false;
     bool _hasAudioReady = false;
 
-    bool _firstAac = true;
-    bool _firstVps = true;
-    bool _firstSps = true;
-    bool _firstPps = true;
+    // bool _firstAac = true;
+    // bool _firstVps = true;
+    // bool _firstSps = true;
+    // bool _firstPps = true;
     uint8_t _waitPackets = 0;
     uint8_t _audio_es_type = 0;
     uint8_t _video_es_type = 0;

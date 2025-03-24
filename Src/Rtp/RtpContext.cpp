@@ -20,7 +20,6 @@ RtpContext::RtpContext(const EventLoop::Ptr& loop, const string& uri, const stri
     ,_type(type)
     ,_loop(loop)
 {
-
 }
 
 RtpContext::~RtpContext()

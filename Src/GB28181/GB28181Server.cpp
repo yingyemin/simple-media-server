@@ -1,9 +1,9 @@
 ﻿#include "GB28181Server.h"
 #include "Logger.h"
 #include "EventLoopPool.h"
-#include "GB28181Connection.h"
-#include "GB28181ConnectionSend.h"
-#include "GB28181Manager.h"
+#include "Rtp/RtpConnection.h"
+#include "Rtp/RtpConnectionSend.h"
+#include "Rtp/RtpManager.h"
 
 using namespace std;
 
@@ -27,8 +27,8 @@ void GB28181Server::startReceive(const string& ip, int port, int sockType)
     auto loop = EventLoop::getCurrentLoop();
     if (sockType == 1 || sockType == 3) {
         TcpServer::Ptr server = make_shared<TcpServer>(loop, ip.data(), port, 0, 0);
-        server->setOnCreateSession([](const EventLoop::Ptr& loop, const Socket::Ptr& socket) -> GB28181Connection::Ptr {
-            return make_shared<GB28181Connection>(loop, socket);
+        server->setOnCreateSession([](const EventLoop::Ptr& loop, const Socket::Ptr& socket) -> RtpConnection::Ptr {
+            return make_shared<RtpConnection>(loop, socket);
         });
         server->start();
         lock_guard<mutex> lck(_mtx);
@@ -42,7 +42,7 @@ void GB28181Server::startReceive(const string& ip, int port, int sockType)
             return ;
         }
         socket->addToEpoll();
-        static auto gbManager = GB28181Manager::instance();
+        static auto gbManager = RtpManager::instance();
         gbManager->init(loop);
         socket->setReadCb([](const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len){
             auto rtp = make_shared<RtpPacket>(buffer, 0);
@@ -63,8 +63,8 @@ void GB28181Server::startSend(const string& ip, int port, int sockType,
     auto loop = EventLoop::getCurrentLoop();
     if (sockType == 1 || sockType == 3) {
         TcpServer::Ptr server = make_shared<TcpServer>(loop, ip.data(), port, 0, 0);
-        server->setOnCreateSession([app, stream, ssrc](const EventLoop::Ptr& loop, const Socket::Ptr& socket) -> GB28181ConnectionSend::Ptr {
-            auto connection = make_shared<GB28181ConnectionSend>(loop, socket, 1);
+        server->setOnCreateSession([app, stream, ssrc](const EventLoop::Ptr& loop, const Socket::Ptr& socket) -> RtpConnectionSend::Ptr {
+            auto connection = make_shared<RtpConnectionSend>(loop, socket, 1);
             connection->init();
             connection->setMediaInfo(app, stream, ssrc);
 
@@ -82,7 +82,7 @@ void GB28181Server::startSend(const string& ip, int port, int sockType,
             return ;
         }
         socket->addToEpoll();
-        auto connection = make_shared<GB28181ConnectionSend>(loop, socket, 2);
+        auto connection = make_shared<RtpConnectionSend>(loop, socket, 2);
         connection->init();
         connection->setMediaInfo(app, stream, ssrc);
         socket->setReadCb([connection](const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len){
@@ -106,8 +106,8 @@ void GB28181Server::start(const string& ip, int port, int count, int sockType)
         }
         if (sockType == 1 || sockType == 3) {
             TcpServer::Ptr server = make_shared<TcpServer>(loop, ip.data(), port, 0, 0);
-            server->setOnCreateSession([](const EventLoop::Ptr& loop, const Socket::Ptr& socket) -> GB28181Connection::Ptr {
-                return make_shared<GB28181Connection>(loop, socket);
+            server->setOnCreateSession([](const EventLoop::Ptr& loop, const Socket::Ptr& socket) -> RtpConnection::Ptr {
+                return make_shared<RtpConnection>(loop, socket);
             });
             server->start();
             lock_guard<mutex> lck(self->_mtx);
@@ -121,7 +121,7 @@ void GB28181Server::start(const string& ip, int port, int count, int sockType)
                 return ;
             }
             socket->addToEpoll();
-            static auto gbManager = GB28181Manager::instance();
+            static auto gbManager = RtpManager::instance();
             gbManager->init(loop);
             // socket->setOnGetRecvBuffer([](){
             //     auto buffer = make_shared<StreamBuffer>(1500 + 4);

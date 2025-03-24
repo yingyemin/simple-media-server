@@ -2,7 +2,7 @@
 #include "Logger.h"
 #include "EventLoopPool.h"
 #include "Ehome5Connection.h"
-// #include "GB28181/GB28181Manager.h"
+#include "Rtp/RtpManager.h"
 
 using namespace std;
 
@@ -38,27 +38,27 @@ void Ehome5Server::start(const string& ip, int port, int count, int sockType)
             lock_guard<mutex> lck(self->_mtx);
             self->_tcpServers[port].emplace_back(server);
         } 
-        // if (sockType == 2 || sockType == 3) {
-        //     Socket::Ptr socket = make_shared<Socket>(loop);
-        //     socket->createSocket(SOCKET_UDP);
-        //     if (socket->bind(port, ip.data()) == -1) {
-        //         logInfo << "bind udp failed, port: " << port;
-        //         return ;
-        //     }
-        //     socket->addToEpoll();
-        //     static auto gbManager = GB28181Manager::instance();
-        //     gbManager->init(loop);
-        //     socket->setReadCb([](const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len){
-        //         auto rtp = make_shared<RtpPacket>(buffer, 0);
-        //         // create rtpmanager
-        //         gbManager->onRtpPacket(rtp, addr, len);
+        if (sockType == 2 || sockType == 3) {
+            Socket::Ptr socket = make_shared<Socket>(loop);
+            socket->createSocket(SOCKET_UDP);
+            if (socket->bind(port, ip.data()) == -1) {
+                logInfo << "bind udp failed, port: " << port;
+                return ;
+            }
+            socket->addToEpoll();
+            static auto rtpManager = RtpManager::instance();
+            rtpManager->init(loop);
+            socket->setReadCb([](const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len){
+                auto rtp = make_shared<RtpPacket>(buffer, 0);
+                // create rtpmanager
+                rtpManager->onRtpPacket(rtp, addr, len);
 
-        //         return 0;
-        //     });
-        //     socket->setRecvBuf(4 * 1024 * 1024);
-        //     lock_guard<mutex> lck(self->_mtx);
-        //     self->_udpSockets[port].emplace_back(socket);
-        // }
+                return 0;
+            });
+            socket->setRecvBuf(4 * 1024 * 1024);
+            lock_guard<mutex> lck(self->_mtx);
+            self->_udpSockets[port].emplace_back(socket);
+        }
     });
 }
 

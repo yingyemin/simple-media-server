@@ -40,6 +40,7 @@ void MediaHook::init()
 void MediaHook::onStreamStatus(const StreamStatusInfo& info)
 {
     json value;
+    value["isOrigin"] = info.isOrigin;
     value["protocol"] = info.protocol;
     value["errorCode"] = info.errorCode;
     value["status"] = info.status;

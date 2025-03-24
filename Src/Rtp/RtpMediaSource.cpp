@@ -18,7 +18,7 @@ RtpMediaSource::RtpMediaSource(const UrlParser& urlParser, const EventLoop::Ptr&
 
 RtpMediaSource::~RtpMediaSource()
 {
-    logInfo << "~RtpMediaSource";
+    logInfo << "~RtpMediaSource, path: " << _urlParser.path_;
 }
 
 void RtpMediaSource::addTrack(const RtpDecodeTrack::Ptr& track)
@@ -38,7 +38,7 @@ void RtpMediaSource::addTrack(const RtpDecodeTrack::Ptr& track)
                 strongSelf->onReaderChanged(size);
             }, true, true); 
         };
-        logInfo << "create _ring";
+        logDebug << "create _ring, path: " << _urlParser.path_;
         _ring = std::make_shared<RingType>(_ringSize, std::move(lam));
     }
     {
@@ -147,7 +147,7 @@ void RtpMediaSource::onReady()
                 strongSelf->onReaderChanged(size);
             }, true, true); 
         };
-        logInfo << "create _ring";
+        logDebug << "create _ring, path: " << _urlParser.path_;
         _ring = std::make_shared<RingType>(_ringSize, std::move(lam));
     }
     MediaSource::onReady();
@@ -161,12 +161,12 @@ void RtpMediaSource::onReady()
                     return;
                 }
                 if (rtp->getHeader()->mark) {
-                    logInfo << "mux a rtp packet mark";
+                logTrace << "mux a rtp packet mark";
                     strongSelf->_cache->emplace_back(std::move(rtp));
                     strongSelf->_ring->write(strongSelf->_cache);
                     strongSelf->_cache = std::make_shared<list<RtpPacket::Ptr>>();
                 } else {
-                    logInfo << "mux a rtp packet no mark";
+                    logTrace << "mux a rtp packet no mark";
                     strongSelf->_cache->emplace_back(std::move(rtp));
                 }
             });
@@ -186,7 +186,7 @@ void RtpMediaSource::onReady()
 
 void RtpMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
 {
-    logTrace << "RtpMediaSource::addTrack";
+    logDebug << "GB28181MediaSource::addTrack, path: " << _urlParser.path_ << ", codec: " << track->codec_;
     MediaSource::addTrack(track);
     
     std::weak_ptr<RtpMediaSource> weakSelf = std::static_pointer_cast<RtpMediaSource>(shared_from_this());
@@ -204,7 +204,7 @@ void RtpMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
                 strongSelf->onReaderChanged(size);
             }, true, true); 
         };
-        logInfo << "create _ring";
+        logTrace << "create _ring, path: " << _urlParser.path_;
         _ring = std::make_shared<RingType>(_ringSize, std::move(lam));
     }
 
@@ -232,7 +232,7 @@ void RtpMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
 
 void RtpMediaSource::addDecodeTrack(const shared_ptr<TrackInfo>& track)
 {
-    logInfo << "addDecodeTrack ========= ";
+    logDebug << "addDecodeTrack, path: " << _urlParser.path_ << ", codec: " << track->codec_;
     MediaSource::addTrack(track);
 
     for (auto& wSink : _mapSink) {
@@ -281,7 +281,7 @@ void RtpMediaSource::addSink(const MediaSource::Ptr &src)
 
 void RtpMediaSource::delSink(const MediaSource::Ptr &src)
 {
-    logInfo << "RtpMediaSource::delSink";
+    logDebug << "GB28181MediaSource::delSink, path: " << _urlParser.path_;
     if (!_loop->isCurrent()) {
         weak_ptr<RtpMediaSource> wSlef = static_pointer_cast<RtpMediaSource>(shared_from_this());
         _loop->async([wSlef, src](){
@@ -305,7 +305,7 @@ void RtpMediaSource::delSink(const MediaSource::Ptr &src)
 
 void RtpMediaSource::onFrame(const FrameBuffer::Ptr& frame)
 {
-    logInfo << "on get a frame: index : " << frame->getTrackIndex();
+    logTrace << "on get a frame: index : " << frame->getTrackIndex() << ", path: " << _urlParser.path_;
     if (_payloadType == "ps" || _payloadType == "ts") {
         if (_mapRtpEncodeTrack.find(0) == _mapRtpEncodeTrack.end()) {
             return ;

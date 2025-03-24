@@ -2,7 +2,7 @@
 #include "Logger.h"
 #include "EventLoopPool.h"
 #include "Ehome2Connection.h"
-#include "GB28181/GB28181Manager.h"
+#include "Rtp/RtpManager.h"
 
 using namespace std;
 
@@ -46,12 +46,12 @@ void Ehome2Server::start(const string& ip, int port, int count, int sockType)
                 return ;
             }
             socket->addToEpoll();
-            static auto gbManager = GB28181Manager::instance();
-            gbManager->init(loop);
+            static auto rtpManager = RtpManager::instance();
+            rtpManager->init(loop);
             socket->setReadCb([](const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len){
                 auto rtp = make_shared<RtpPacket>(buffer, 0);
                 // create rtpmanager
-                gbManager->onRtpPacket(rtp, addr, len);
+                rtpManager->onRtpPacket(rtp, addr, len);
 
                 return 0;
             });

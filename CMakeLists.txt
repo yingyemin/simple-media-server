@@ -5,7 +5,7 @@ project(SimpleMediaServer)
 #内存检测设置
 option(ENABLE_ASAN "Enable lib asan" false)
 
-#第三方库设置
+#第三方库设置，目前不能置为false，否则编译无法通过
 option(ENABLE_OPENSSL "Enable openssl" true)
 
 #项目设置
@@ -14,25 +14,25 @@ option(ENABLE_PROJECT_TRANSCODEVIDEO "Enable test transcodeVideo" false)
 option(ENABLE_PROJECT_TRANSCODEAUDIO "Enable test transcodeAudio" false)
 
 #模块设置
-option(ENABLE_SRT "Enable srt" false)
-option(ENABLE_HTTP "Enable http and httpstream" false)
+option(ENABLE_SRT "Enable srt" true)
+option(ENABLE_HTTP "Enable http and httpstream" true)
 option(ENABLE_RTSP "Enable rtsp and rtp and mpeg and rtcp" true)
-option(ENABLE_GB28181 "Enable gb28181 and rtp and mpeg and rtcp" false)
-option(ENABLE_RTMP "Enable rtmp" false)
-option(ENABLE_JT1078 "Enable jt1078" false)
-option(ENABLE_HLS "Enable hls and http" false)
+option(ENABLE_GB28181 "Enable gb28181 and rtp and mpeg and rtcp" true)
+option(ENABLE_RTMP "Enable rtmp" true)
+option(ENABLE_JT1078 "Enable jt1078" true)
+option(ENABLE_HLS "Enable hls and http" true)
 option(ENABLE_API "Enable api and http" true)
-option(ENABLE_HOOK "Enable hook" false)
+option(ENABLE_HOOK "Enable hook" true)
 option(ENABLE_FFMPEG "Enable ffmpeg" false)
-option(ENABLE_WEBRTC "Enable webrtc and rtp and rtcp" false)
-option(ENABLE_RTP "Enable rtp and mpeg" false)
-option(ENABLE_RTCP "Enable rtcp" false)
-option(ENABLE_RECORD "Enable record" false)
-option(ENABLE_MPEG "Enable mpeg" false)
-option(ENABLE_MP4 "Enable mp4" false)
-option(ENABLE_FLV "Enable flv" false)
-option(ENABLE_EHOME2 "Enable ehome2 and gb28181 and rtp and mpeg" false)
-option(ENABLE_EHOME5 "Enable ehome5 and gb28181 and rtp and mpeg" false)
+option(ENABLE_WEBRTC "Enable webrtc and rtp and rtcp" true)
+option(ENABLE_RTP "Enable rtp and mpeg" true)
+option(ENABLE_RTCP "Enable rtcp" true)
+option(ENABLE_RECORD "Enable record" true)
+option(ENABLE_MPEG "Enable mpeg" true)
+option(ENABLE_MP4 "Enable mp4" true)
+option(ENABLE_FLV "Enable flv" true)
+option(ENABLE_EHOME2 "Enable ehome2 and rtp and mpeg" true)
+option(ENABLE_EHOME5 "Enable ehome5 and rtp and mpeg" true)
 
 #设置调试信息并开启c++11标准
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
@@ -45,9 +45,9 @@ set(LINK_LIB_LIST base)
 ###RTSP#####
 if (ENABLE_RTSP)
     add_definitions(-DENABLE_RTSP)
-    option(ENABLE_RTP "Enable rtp and mpeg" true)
-    option(ENABLE_MPEG "Enable mpeg" true)
-    option(ENABLE_RTCP "Enable rtcp" true)
+    set(ENABLE_RTP true CACHE BOOL "Enable rtp and mpeg" FORCE)
+    set(ENABLE_MPEG true CACHE BOOL "Enable mpeg" FORCE)
+    set(ENABLE_RTCP true CACHE BOOL "Enable rtcp" FORCE)
 endif ()
 
 ###MP4########
@@ -58,21 +58,25 @@ endif ()
 ###Ehome2########
 if (ENABLE_EHOME2)
     add_definitions(-DENABLE_EHOME2)
-    option(ENABLE_GB28181 "Enable gb28181 and rtp and mpeg" true)
+    set(ENABLE_RTP true CACHE BOOL "Enable rtp and mpeg" FORCE)
+    set(ENABLE_MPEG true CACHE BOOL "Enable mpeg" FORCE)
+    set(ENABLE_RTCP true CACHE BOOL "Enable rtcp" FORCE)
 endif ()
 
 ###Ehome5########
 if (ENABLE_EHOME5)
     add_definitions(-DENABLE_EHOME5)
-    option(ENABLE_GB28181 "Enable gb28181 and rtp and mpeg" true)
+    set(ENABLE_RTP true CACHE BOOL "Enable rtp and mpeg" FORCE)
+    set(ENABLE_MPEG true CACHE BOOL "Enable mpeg" FORCE)
+    set(ENABLE_RTCP true CACHE BOOL "Enable rtcp" FORCE)
 endif ()
 
 ###GB28181########
 if (ENABLE_GB28181)
     add_definitions(-DENABLE_GB28181)
-    option(ENABLE_RTP "Enable rtp and mpeg" true)
-    option(ENABLE_MPEG "Enable mpeg" true)
-    option(ENABLE_RTCP "Enable rtcp" true)
+    set(ENABLE_RTP true CACHE BOOL "Enable rtp and mpeg" FORCE)
+    set(ENABLE_MPEG true CACHE BOOL "Enable mpeg" FORCE)
+    set(ENABLE_RTCP true CACHE BOOL "Enable rtcp" FORCE)
 endif ()
 
 if (ENABLE_WEBRTC)
@@ -98,8 +102,8 @@ if (ENABLE_WEBRTC)
     list(APPEND LINK_LIB_LIST usrsctp)
     
     add_definitions(-DENABLE_WEBRTC)
-    option(ENABLE_RTCP "Enable rtcp" true)
-    option(ENABLE_RTP "Enable rtp and mpeg" true)
+    set(ENABLE_RTP true CACHE BOOL "Enable rtp and mpeg" FORCE)
+    set(ENABLE_RTCP true CACHE BOOL "Enable rtcp" FORCE)
 else()
     message(STATUS "未开启WEBRTC")
 endif ()
@@ -112,7 +116,7 @@ endif ()
 ###Hls########
 if (ENABLE_HLS)
     add_definitions(-DENABLE_HLS)
-    option(ENABLE_HTTP "Enable http and httpstream" true)
+    set(ENABLE_HTTP true CACHE BOOL "Enable http and httpstream" FORCE)
 endif ()
 
 ###HOOK########
@@ -153,7 +157,7 @@ endif ()
 ###API########
 if (ENABLE_API)
     add_definitions(-DENABLE_API)
-    option(ENABLE_HTTP "Enable http and httpstream" true)
+    set(ENABLE_HTTP true CACHE BOOL "Enable http and httpstream" FORCE)
 endif ()
 
 ###HTTP and HttpStream########
