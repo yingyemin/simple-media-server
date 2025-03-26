@@ -111,6 +111,10 @@ void JT1078Parser::parse(const char *data, size_t len)
         // if (length <= 950) {
             // 协议规定，包不能大于950,但是有些设备不按照标准来，先去掉这个限制
             StreamBuffer::Ptr buffer = StreamBuffer::create();
+            if (length % 80 == 4 && data[payloadIndex] == 0x00 && data[payloadIndex + 1] == 0x01 && 
+                (uint8_t)data[payloadIndex + 2] == 0xa0 && data[payloadIndex + 3] == 0x00) {
+                payloadIndex += 4;
+            }
             buffer->assign(data, index);
             auto rtp = make_shared<JT1078RtpPacket>(buffer);
             rtp->setPayloadIndex(payloadIndex);

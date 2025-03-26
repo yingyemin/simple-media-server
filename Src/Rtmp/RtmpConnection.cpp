@@ -273,6 +273,8 @@ bool RtmpConnection::handleInvoke(RtmpMessage& rtmp_msg)
                         }, nullptr);
                     }
                 });
+            } else {
+                handlePublish();
             }
             ret = true;
         }
@@ -299,6 +301,8 @@ bool RtmpConnection::handleInvoke(RtmpMessage& rtmp_msg)
 
                     self->handlePlay();
                 });
+            } else {
+                handlePlay();
             }
             ret = true;
         }

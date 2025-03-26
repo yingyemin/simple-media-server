@@ -20,7 +20,7 @@ JT1078RtpPacket::JT1078RtpPacket(const StreamBuffer::Ptr& buffer)
 
 char* JT1078RtpPacket::getPayload()
 {
-    return _buffer->data() + _payloadIndex;;
+    return _buffer->data() + _payloadIndex;
 }
 
 size_t JT1078RtpPacket::getPayloadSize()

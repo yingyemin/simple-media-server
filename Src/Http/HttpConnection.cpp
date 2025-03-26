@@ -580,6 +580,30 @@ void HttpConnection::handleGet()
                     }
                 }
             });
+        } else {
+            if (endWith(_urlParser.path_, ".flv")) {
+                handleFlvStream();
+            } else if (endWith(_urlParser.path_, "sms.m3u8")) {
+                handleSmsHlsM3u8();
+            } else if (endWith(_urlParser.path_, ".ll.m3u8")) {
+                handleLLHlsM3u8();
+            } else if (endWith(_urlParser.path_, ".m3u8")) {
+                handleHlsM3u8();
+            } else if (endWith(_urlParser.path_, ".ts")) {
+                if (_urlParser.path_.find("_hls") != string::npos) {
+                    handleHlsTs();
+                } else {
+                    handleTs();
+                }
+            } else if (endWith(_urlParser.path_, ".ps")) {
+                handlePs();
+            } else if (endWith(_urlParser.path_, ".mp4")) {
+                if (_urlParser.path_.find("_hls") != string::npos) {
+                    handleLLHlsTs();
+                } else {
+                    handleFmp4();
+                }
+            }
         }
     } else {
         logTrace << "download file or dir: " << _urlParser.path_;
