@@ -21,6 +21,7 @@ enum PayloadType
     PayloadType_Mp3 = 14,
     PayloadType_G729 = 18,
     PayloadType_SVACA = 20,
+    PayloadType_ADPCMA = 22,
     PayloadType_JPEG = 26,
     PayloadType_MP2T = 33,
     PayloadType_AV1X = 35,

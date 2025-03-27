@@ -16,6 +16,7 @@ class JT1078ServerInfo
 {
 public:
     int expire_ = 0;
+    uint64_t timeout_ = 0;
     string serverId_;
     string path_;
     string appName_;
@@ -42,7 +43,7 @@ public:
     // 后面考虑增加IP参数
     // void stopByIp(int port, int count);
     void setServerId(const string& key);
-    void setStreamPath(int port, const string& path, int expire, const string& appName);
+    void setStreamPath(int port, const string& path, int expire, const string& appName, int timeout);
     void setPortRange(int minPort, int maxPort);
     int getPort() {return _portManager.get();}
     PortInfo getPortInfo() {return _portManager.getPortInfo();}

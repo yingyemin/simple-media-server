@@ -40,7 +40,8 @@ void RtmpDecodeTrack::createDecoder()
         } else if (_trackInfo->codec_ == "aac") {
             _decoder = dynamic_pointer_cast<RtmpDecode>(make_shared<RtmpDecodeAac>(_trackInfo));
         } else if (_trackInfo->codec_ == "g711a" || _trackInfo->codec_ == "g711u"
-                    || _trackInfo->codec_ == "mp3" || _trackInfo->codec_ == "opus") {
+                    || _trackInfo->codec_ == "mp3" || _trackInfo->codec_ == "opus" 
+                    || _trackInfo->codec_ == "adpcma") {
             _decoder = dynamic_pointer_cast<RtmpDecode>(make_shared<RtmpDecodeCommon>(_trackInfo));
         } else if (_trackInfo->codec_ == "av1") {
             _decoder = dynamic_pointer_cast<RtmpDecode>(make_shared<RtmpDecodeAV1>(_trackInfo));

@@ -37,11 +37,12 @@ static const int RTMP_CODEC_ID_H266     = 14;
 static const int RTMP_CODEC_ID_AVS3     = 15;
 static const int RTMP_CODEC_ID_VP9     = 16;
 
+static const int RTMP_CODEC_ID_ADPCM    = 1;
 static const int RTMP_CODEC_ID_MP3      = 2;
 static const int RTMP_CODEC_ID_G711A    = 7;
 static const int RTMP_CODEC_ID_G711U    = 8;
 static const int RTMP_CODEC_ID_AAC      = 10;
-static const int RTMP_CODEC_ID_OPUS      = 13;
+static const int RTMP_CODEC_ID_OPUS     = 13;
 
 static const int RTMP_StreamID_CONTROL  = 0;
 static const int RTMP_StreamID_MEDIA    = 0;

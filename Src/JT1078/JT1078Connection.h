@@ -19,6 +19,7 @@ using namespace std;
 class JT1078Info
 {
 public:
+    uint64_t timeout = 0;
     string appName = "live";
     string streamName;
 };
@@ -26,8 +27,8 @@ public:
 class JT1078TalkInfo
 {
 public:
-    string simCode;
     int channel;
+    string simCode;
     UrlParser urlParser;
 };
 
@@ -52,6 +53,7 @@ public:
     void setPath(const string& path) {_path = path;}
     void setAppName(const string& appName) {_app = appName;}
     void setTalkFlag() {_isTalk = true;}
+    void setTimeout(int timeout) {_timeout = timeout;}
     void onRtpPacket(const JT1078RtpPacket::Ptr& buffer);
     void setOnClose(const function<void()>& cb) {_onClose = cb;}
 
@@ -73,6 +75,7 @@ private:
     bool _isTalk = false;
     bool _first = true;
     int _channel = 0;
+    int _timeout = 0;
     string _simCode;
     string _path;
     string _app = "live";

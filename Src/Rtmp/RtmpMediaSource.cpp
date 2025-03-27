@@ -22,7 +22,17 @@ static int getCodecId(const string& codecName)
         return RTMP_CODEC_ID_G711A;
     } else if (codecName == "g711u") {
         return RTMP_CODEC_ID_G711U;
-    } 
+    } else if (codecName == "mp3") {
+        return RTMP_CODEC_ID_MP3;
+    } else if (codecName == "adpcma") {
+        return RTMP_CODEC_ID_ADPCM;
+    } else if (codecName == "opus") {
+        return RTMP_CODEC_ID_OPUS;
+    } else if (codecName == "av1") {
+        return RTMP_CODEC_ID_AV1;
+    } else if (codecName == "vp9") {
+        return RTMP_CODEC_ID_VP9;
+    }
 
     return 0;
 }
@@ -193,11 +203,12 @@ void RtmpMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
 
     MediaSource::addTrack(track);
     if (track->trackType_ == "video") {
+        _metaData["videocodecid"] = AmfObject(getIdByCodecName(VideoTrackType, track->codec_));
         _metaData["videodatarate"] = AmfObject(5000);
-        _metaData["videocodecid"] = AmfObject(getCodecId(track->codec_));
     } else {
+        _metaData["audiocodecid"] = AmfObject(getIdByCodecName(AudioTrackType, track->codec_));
         _metaData["audiodatarate"] = AmfObject(160);
-        _metaData["audiocodecid"] = AmfObject(getCodecId(track->codec_));
+        _metaData["audiosamplerate"] = AmfObject(track->samplerate_);
     }
     
     logDebug << "index: " << track->index_ << ", codec: " << track->codec_ << ", path: " << _urlParser.path_;

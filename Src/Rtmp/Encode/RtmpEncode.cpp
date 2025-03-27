@@ -31,7 +31,8 @@ RtmpEncode::Ptr RtmpEncode::create(const shared_ptr<TrackInfo>& trackInfo)
     } else if (trackInfo->codec_ == "av1") {
         source =  make_shared<RtmpEncodeAV1>(trackInfo);
     } else if (trackInfo->codec_ == "g711a" || trackInfo->codec_ == "g711u"
-            || trackInfo->codec_ == "mp3" || trackInfo->codec_ == "opus") {
+            || trackInfo->codec_ == "mp3" || trackInfo->codec_ == "opus"
+            || trackInfo->codec_ == "adpcma") {
         source =  make_shared<RtmpEncodeCommon>(trackInfo);
     } else {
         return nullptr;

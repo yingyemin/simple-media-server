@@ -25,58 +25,80 @@ void JT1078DecodeTrack::onRtpPacket(const JT1078RtpPacket::Ptr& rtp)
 {
     if (!_trackInfo) {
         if (rtp->getTrackType() == "video") {
-            if (rtp->getCodecType() == "h264") {
-                auto trackInfo = H264Track::createTrack(_index, 96, 90000);
-                _trackInfo = dynamic_pointer_cast<TrackInfo>(trackInfo);
+            // if (rtp->getCodecType() == "h264") {
+            //     auto trackInfo = H264Track::createTrack(_index, 96, 90000);
+            //     _trackInfo = dynamic_pointer_cast<TrackInfo>(trackInfo);
+            //     onTrackInfo(_trackInfo);
+            //     _frame = make_shared<H264Frame>();
+            //     _frame->_startSize = 4;
+            // } else if (rtp->getCodecType() == "h265") {
+            //     auto trackInfo = make_shared<H265Track>();
+            //     trackInfo->codec_ = "h265";
+            //     trackInfo->index_ = _index;
+            //     trackInfo->trackType_ = "video";
+            //     trackInfo->payloadType_ = 96;
+            //     trackInfo->samplerate_ = 90000;
+            //     _trackInfo = dynamic_pointer_cast<TrackInfo>(trackInfo);
+            //     onTrackInfo(_trackInfo);
+            //     _frame = make_shared<H265Frame>();
+            //     _frame->_startSize = 4;
+            // } else {
+            //     // logInfo << "unsurpport video codec" << rtp->getCodecType();
+            //     return ;
+            // }
+            _trackInfo = TrackInfo::createTrackInfo(rtp->getCodecType());
+            if (_trackInfo) {
                 onTrackInfo(_trackInfo);
-                _frame = make_shared<H264Frame>();
-                _frame->_startSize = 4;
-            } else if (rtp->getCodecType() == "h265") {
-                auto trackInfo = make_shared<H265Track>();
-                trackInfo->codec_ = "h265";
-                trackInfo->index_ = _index;
-                trackInfo->trackType_ = "video";
-                trackInfo->payloadType_ = 96;
-                trackInfo->samplerate_ = 90000;
-                _trackInfo = dynamic_pointer_cast<TrackInfo>(trackInfo);
-                onTrackInfo(_trackInfo);
-                _frame = make_shared<H265Frame>();
-                _frame->_startSize = 4;
-            } else {
-                // logInfo << "unsurpport video codec" << rtp->getCodecType();
-                return ;
             }
+
+            int startSize = 0;
+            if (rtp->getCodecType() == "h264" || rtp->getCodecType() == "h265" || rtp->getCodecType() == "h266") {
+                startSize = 4;
+            }
+
+            _frame = FrameBuffer::createFrame(rtp->getCodecType(), startSize, VideoTrackType, 0);
         } else if (rtp->getTrackType() == "audio") {
-            if (rtp->getCodecType() == "g711a") {
-                auto trackInfo = make_shared<G711aTrack>();
-                trackInfo->codec_ = "g711a";
-                trackInfo->index_ = _index;
-                trackInfo->trackType_ = "audio";
-                trackInfo->samplerate_ = 8000;
-                _trackInfo = dynamic_pointer_cast<TrackInfo>(trackInfo);
+            _trackInfo = TrackInfo::createTrackInfo(rtp->getCodecType());
+            if (_trackInfo) {
                 onTrackInfo(_trackInfo);
-            } else if (rtp->getCodecType() == "g711u") {
-                auto trackInfo = make_shared<G711uTrack>();
-                trackInfo->codec_ = "g711u";
-                trackInfo->index_ = _index;
-                trackInfo->trackType_ = "audio";
-                trackInfo->samplerate_ = 8000;
-                _trackInfo = dynamic_pointer_cast<TrackInfo>(trackInfo);
-                onTrackInfo(_trackInfo);
-            } else if (rtp->getCodecType() == "aac") {
-                auto trackInfo = make_shared<AacTrack>();
-                trackInfo->codec_ = "aac";
-                trackInfo->index_ = _index;
-                trackInfo->trackType_ = "audio";
-                trackInfo->payloadType_ = 97;
-                trackInfo->samplerate_ = 44100;
-                _trackInfo = dynamic_pointer_cast<TrackInfo>(trackInfo);
-                onTrackInfo(_trackInfo);
-            } else {
-                // logInfo << "unsurpport audio codec" << rtp->getCodecType();
-                return ;
             }
-            _frame = make_shared<FrameBuffer>();
+
+            int startSize = 0;
+            if (rtp->getCodecType() == "aac") {
+                startSize = 7;
+            }
+
+            _frame = FrameBuffer::createFrame(rtp->getCodecType(), startSize, AudioTrackType, 0);
+            // if (rtp->getCodecType() == "g711a") {
+            //     auto trackInfo = make_shared<G711aTrack>();
+            //     trackInfo->codec_ = "g711a";
+            //     trackInfo->index_ = _index;
+            //     trackInfo->trackType_ = "audio";
+            //     trackInfo->samplerate_ = 8000;
+            //     _trackInfo = dynamic_pointer_cast<TrackInfo>(trackInfo);
+            //     onTrackInfo(_trackInfo);
+            // } else if (rtp->getCodecType() == "g711u") {
+            //     auto trackInfo = make_shared<G711uTrack>();
+            //     trackInfo->codec_ = "g711u";
+            //     trackInfo->index_ = _index;
+            //     trackInfo->trackType_ = "audio";
+            //     trackInfo->samplerate_ = 8000;
+            //     _trackInfo = dynamic_pointer_cast<TrackInfo>(trackInfo);
+            //     onTrackInfo(_trackInfo);
+            // } else if (rtp->getCodecType() == "aac") {
+            //     auto trackInfo = make_shared<AacTrack>();
+            //     trackInfo->codec_ = "aac";
+            //     trackInfo->index_ = _index;
+            //     trackInfo->trackType_ = "audio";
+            //     trackInfo->payloadType_ = 97;
+            //     trackInfo->samplerate_ = 44100;
+            //     _trackInfo = dynamic_pointer_cast<TrackInfo>(trackInfo);
+            //     onTrackInfo(_trackInfo);
+            // } else {
+            //     // logInfo << "unsurpport audio codec" << rtp->getCodecType();
+            //     return ;
+            // }
+            // _frame = make_shared<FrameBuffer>();
         }
     }
 

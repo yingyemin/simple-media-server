@@ -50,6 +50,10 @@ string getCodecNameById(int trackType, int codeId)
             return "mp3";
             break;
         
+        case RTMP_CODEC_ID_ADPCM:
+            return "adpcma";
+            break;
+        
         case RTMP_CODEC_ID_OPUS:
             return "opus";
             break;
@@ -80,6 +84,8 @@ int getIdByCodecName(int trackType, const string& codeName)
     } else {
         if (codeName == "aac") {
             return RTMP_CODEC_ID_AAC;
+        } else if (codeName == "adpcma") {
+            return RTMP_CODEC_ID_ADPCM;
         } else if (codeName == "g711a") {
             return RTMP_CODEC_ID_G711A;
         } else if (codeName == "g711u") {

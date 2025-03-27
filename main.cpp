@@ -75,6 +75,7 @@
 #include "Codec/AV1Track.h"
 #include "Codec/Mp3Track.h"
 #include "Codec/G711Track.h"
+#include "Codec/AdpcmaTrack.h"
 #include "Codec/OpusTrack.h"
 #include "Codec/H264Track.h"
 #include "Codec/H265Track.h"
@@ -246,6 +247,7 @@ int main(int argc, char** argv)
     Mp3Track::registerTrackInfo();
     G711aTrack::registerTrackInfo();
     G711uTrack::registerTrackInfo();
+    AdpcmaTrack::registerTrackInfo();
     OpusTrack::registerTrackInfo();
     H264Track::registerTrackInfo();
     H265Track::registerTrackInfo();

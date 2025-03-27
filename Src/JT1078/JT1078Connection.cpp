@@ -81,7 +81,9 @@ void JT1078Connection::onManager()
         timeout = Config::instance()->get("JT1078", "Server", "timeout", "", "5000");
     }, "JT1078", "Server", "timeout", "", "5000");
 
-    if (_timeClock.startToNow() > timeout) {
+    int curTimeout = _timeout == 0 ? timeout : _timeout;
+
+    if (_timeClock.startToNow() > curTimeout) {
         logWarn << _path <<  ": timeout";
         weak_ptr<JT1078Connection> wSelf = dynamic_pointer_cast<JT1078Connection>(shared_from_this());
         // 直接close会将tcpserver的map迭代器破坏，用异步接口关闭
@@ -122,7 +124,18 @@ void JT1078Connection::onRtpPacket(const JT1078RtpPacket::Ptr& buffer)
         PublishInfo info;
         info.protocol = PROTOCOL_JT1078;
         info.type = _isTalk ? "talk" : DEFAULT_TYPE;
-        info.uri = "/" + _app + "/" + buffer->getSimCode() + "_" + to_string(buffer->getLogicNo());;
+
+        string key = buffer->getSimCode() + "_" + to_string(buffer->getLogicNo())
+                    + "_" + to_string(_socket->getLocalPort());
+        auto jt1078Info = getJt1078Info(key);
+        if (!jt1078Info.streamName.empty()) {
+            // _key = key;
+            info.uri = "/" + jt1078Info.appName + "/" + jt1078Info.streamName;
+            _timeout = jt1078Info.timeout;
+        } else {
+            info.uri = "/" + _app + "/" + buffer->getSimCode() + "_" + to_string(buffer->getLogicNo());
+        }
+
         info.vhost = DEFAULT_VHOST;
 
         weak_ptr<JT1078Connection> wSelf = dynamic_pointer_cast<JT1078Connection>(shared_from_this());

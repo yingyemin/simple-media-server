@@ -21,6 +21,8 @@ int getPayloadType(const string& codec) {
         return 6;
     } else if (codec == "g711u") {
         return 7;
+    } else if (codec == "adpcma") {
+        return 26;
     } else if (codec == "h264") {
         return 98;
     } else if (codec == "h265") {

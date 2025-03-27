@@ -35,6 +35,7 @@ void JT1078Api::create(const HttpParser& parser, const UrlParser& urlParser,
     JT1078Info info;
     info.appName = parser._body["appName"];
     info.streamName = parser._body["streamName"];
+    info.timeout = toInt(parser._body.value("timeout", "0"));
     bool res = JT1078Connection::addJt1078Info(key, info);
 
     HttpResponse rsp;
@@ -92,6 +93,8 @@ void JT1078Api::openServer(const HttpParser& parser, const UrlParser& urlParser,
         expire = toInt(parser._body["expire"]);
     }
 
+    int timeout = toInt(parser._body.value("timeout", "5"));
+
     string path;
     string appName;
     if (parser._body.find("appName") != parser._body.end()) {
@@ -101,7 +104,7 @@ void JT1078Api::openServer(const HttpParser& parser, const UrlParser& urlParser,
             appName = parser._body["appName"].get<string>();
         }
     }
-    JT1078Server::instance()->setStreamPath(port, path, expire, appName);
+    JT1078Server::instance()->setStreamPath(port, path, expire, appName, timeout);
 
     JT1078Server::instance()->start("0.0.0.0", port, 1);
 
