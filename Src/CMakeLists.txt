@@ -178,6 +178,7 @@ if (ENABLE_JT1078)
     project(jt1078)
     add_definitions(-DENABLE_JT1078)
     aux_source_directory("JT1078" SRC_JT1078)
+    aux_source_directory("PcmTranscode" SRC_JT1078)
     add_library(jt1078 STATIC 
         ${SRC_JT1078}
     )

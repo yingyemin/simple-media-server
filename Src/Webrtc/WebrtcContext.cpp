@@ -847,7 +847,8 @@ void WebrtcContext::onStunPacket(const Socket::Ptr& socket, const WebrtcStun& st
 	}
 
     weak_ptr<WebrtcContext> wSelf = dynamic_pointer_cast<WebrtcContext>(shared_from_this());
-    if (_isPlayer) {
+    if (_isPlayer && !_hasOnAuth) {
+        _hasOnAuth = true;
         auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
         if (hook) {
             PlayInfo info;
@@ -867,7 +868,9 @@ void WebrtcContext::onStunPacket(const Socket::Ptr& socket, const WebrtcStun& st
                 }
             });
         }
-    } else {
+    } else if (!_isPlayer && !_hasOnAuth) {
+        _hasOnAuth = true;
+        
         PublishInfo info;
         info.protocol = PROTOCOL_WEBRTC;
         info.type = DEFAULT_TYPE;
