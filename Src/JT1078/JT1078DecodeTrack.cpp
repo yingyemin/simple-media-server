@@ -18,6 +18,8 @@ using namespace std;
 JT1078DecodeTrack::JT1078DecodeTrack(int trackIndex)
 {
     _index = trackIndex;
+	_state.index =0;
+	_state.valprev =0;
     // _frame = make_shared<FrameBuffer>();
 }
 
@@ -58,7 +60,13 @@ void JT1078DecodeTrack::onRtpPacket(const JT1078RtpPacket::Ptr& rtp)
 
             _frame = FrameBuffer::createFrame(rtp->getCodecType(), startSize, VideoTrackType, 0);
         } else if (rtp->getTrackType() == "audio") {
-            _trackInfo = TrackInfo::createTrackInfo(rtp->getCodecType());
+            logDebug << "rtp->getCodecType() : " << rtp->getCodecType() << ", rtp->getCodecType() != adpcma = " << (rtp->getCodecType() != "adpcma");
+            if (rtp->getCodecType() != "adpcma") {
+                _trackInfo = TrackInfo::createTrackInfo(rtp->getCodecType());
+            } else {
+                _trackInfo = TrackInfo::createTrackInfo("g711a");
+                _originAudioCodec = "adpcma";
+            }
             if (_trackInfo) {
                 onTrackInfo(_trackInfo);
             }
@@ -180,6 +188,57 @@ void JT1078DecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
     //         }
     //     }
     // }
+
+    if (_originAudioCodec == "adpcma") {
+        uint8_t* payload = (uint8_t*)frame->data();
+        uint8_t* start = payload;
+        uint64_t size = frame->size();
+        if (payload[0] == 0x00 && payload[1] == 0x01 && 
+                ((payload[2] & 0xff) == (size - 4) / 2) && payload[3] == 0x00)
+        {
+            payload += 8;
+            size -= 8;
+
+            _state.valprev = (uint16_t)(((start[5] << 8) & 0xff00) | (start[4] & 0xff));
+            _state.index = start[6];
+        } else {
+            payload += 4;
+            size -= 4;
+
+            _state.valprev = (uint16_t)(((start[1] << 8) & 0xff00) | (start[0] & 0xff));
+            _state.index = start[2];
+        }
+
+        uint16_t* pcm = new uint16_t[size*2];
+        adpcm_decoder((char*)payload, (short*)pcm, size * 2, &_state);
+        uint8_t* pcmdata = new uint8_t[size*4];
+        for (int i = 0, k = 0; i < size*2; i++)
+        {
+            short s = pcm[i];
+            pcmdata[k++] = (uint8_t)(s & 0xff);
+            pcmdata[k++] = (uint8_t)((s >> 8) & 0xff);
+        }
+
+        auto newFrame = FrameBuffer::createFrame("g711a", 0, frame->_index, 0);
+        // auto pcmFrame = make_shared<FrameBuffer>();
+        // pcmFrame->_buffer.assign((char*)pcmdata, size * 4);
+        
+        newFrame->_buffer.resize(size * 2);
+        _g711aEncode.pcm_2_alaw((const int16_t *)pcmdata, (uint8_t *)newFrame->data(), size * 2);
+
+        newFrame->_dts = frame->_pts;
+        newFrame->_index = _trackInfo->index_;
+        newFrame->_codec = _trackInfo->codec_;
+        newFrame->_trackType = _trackInfo->trackType_ == "video" ? VideoTrackType : AudioTrackType;
+        if (_onFrame) {
+            _onFrame(newFrame);
+        }
+
+        delete[] pcm;
+        delete[] pcmdata;
+
+        return ;
+    }
 
     frame->_dts = frame->_pts;
     frame->_index = _trackInfo->index_;

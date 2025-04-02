@@ -5,6 +5,9 @@
 #include "Common/Track.h"
 #include "Common/Frame.h"
 #include "JT1078RtpPacket.h"
+#include "PcmTranscode/AdpcmaTranscode.h"
+#include "PcmTranscode/G711Transcode.h"
+
 #include <unordered_map>
 
 using namespace std;
@@ -44,6 +47,9 @@ private:
     int _index;
     int _type;
     uint16_t _lastSeq = 0;
+    string _originAudioCodec;
+    adpcm_state _state;
+    G711Transcode _g711aEncode;
     FrameBuffer::Ptr _frame;
     shared_ptr<TrackInfo> _trackInfo;
     function<void()> _onReady;

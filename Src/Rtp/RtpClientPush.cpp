@@ -5,11 +5,8 @@
 
 using namespace std;
 
-RtpClientPush::RtpClientPush(const string& ip, int port, const string& app, 
-    const string& stream, int ssrc, int sockType)
-    :RtpClient(ip, port, app, stream, ssrc, sockType, true)
-    ,_peerIp(ip)
-    ,_peerPort(port)
+RtpClientPush::RtpClientPush(const string& app, const string& stream, int ssrc, int sockType)
+    :RtpClient(MediaClientType_Push, app, stream, ssrc, sockType)
     ,_sockType(sockType)
     ,_ssrc(ssrc)
     ,_streamName(stream)

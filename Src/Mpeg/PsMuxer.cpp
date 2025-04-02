@@ -180,12 +180,12 @@ int PsMuxer::encode(const FrameBuffer::Ptr& frame)
 */
 int PsMuxer::makePsHeader(int dts, int index)
 {
-    // lScrExt 的时钟是27000000，dts的是90000，因此要乘以300
-    // 这里lScrExt肯定是0了
-    unsigned long long lScrExt = (dts * 300) % 100;
     // auto pData = _psFrame->data() + index;
     unsigned char pData[PS_HDR_LEN] = {0};
     dts *= 90;
+    // lScrExt 的时钟是27000000，dts的是90000，因此要乘以300
+    // 这里lScrExt肯定是0了
+    unsigned long long lScrExt = (dts * 300) % 100;
  
     // 这里除以100是由于sdp协议返回的video的频率是90000，帧率是25帧/s，所以每次递增的量是3600,
     // 所以实际你应该根据你自己编码里的时间戳来处理以保证时间戳的增量为3600即可，

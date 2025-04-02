@@ -44,9 +44,20 @@ void RtpApi::createRtpReceiver(const HttpParser& parser, const UrlParser& urlPar
         int socketType = toInt(parser._body["socketType"]); //1:tcp,2:udp,3:both
         string ip = parser._body["ip"];
 
-        auto pull = make_shared<RtpClientPull>(ip, port, appName, streamName, ssrc, socketType);
-        pull->create();
-        pull->start();
+        static int timeout = Config::instance()->getAndListen([](const json &config){
+            timeout = Config::instance()->get("GB28181", "Server", "timeout");
+        }, "GB28181", "Server", "timeout", "", "5000");
+
+        auto pull = make_shared<RtpClientPull>(appName, streamName, ssrc, socketType);
+        pull->create("0.0.0.0", 0, ip + ":" + to_string(port));
+        pull->start("0.0.0.0", 0, ip + ":" + to_string(port), timeout);
+
+        string key = "/" + appName + "/" + streamName;
+        MediaClient::addMediaClient(key, pull);
+
+        pull->setOnClose([key](){
+            MediaClient::delMediaClient(key);
+        });
 
         value["port"] = pull->getLocalPort();
         value["ip"] = pull->getLocalIp();
@@ -149,14 +160,20 @@ void RtpApi::createRtpSender(const HttpParser& parser, const UrlParser& urlParse
         string payloadType = parser._body.value("payloadType", "ps");
         string onlyTrack = parser._body.value("onlyTrack", "all");
 
-        auto push = make_shared<RtpClientPush>(ip, port, appName, streamName, ssrc, socketType);
-        push->setPayloadType(payloadType);
-        push->setOnlyTrack(onlyTrack);
-        push->create();
-        push->start();
+        static int timeout = Config::instance()->getAndListen([](const json &config){
+            timeout = Config::instance()->get("GB28181", "Server", "timeout");
+        }, "GB28181", "Server", "timeout", "", "5000");
+
+        auto push = make_shared<RtpClientPush>(appName, streamName, ssrc, socketType);
+        push->create("0.0.0.0", 0, ip + ":" + to_string(port));
+        push->start("0.0.0.0", 0, ip + ":" + to_string(port), timeout);
 
         string key = ip + "_" + to_string(port) + "_" + to_string(ssrc);
-        RtpClient::addClient(key, push);
+        MediaClient::addMediaClient(key, push);
+
+        push->setOnClose([key](){
+            MediaClient::delMediaClient(key);
+        });
 
         value["port"] = push->getLocalPort();
         value["ip"] = push->getLocalIp();

@@ -141,7 +141,7 @@ void Config::set(json& jValue, const Variant& value)
     } else if (jValue.is_number_float()) {
         jValue = value.as<float>();
     } else {
-        jValue = value.as<int>();
+        jValue = value.as<string>();
     }
 }
 

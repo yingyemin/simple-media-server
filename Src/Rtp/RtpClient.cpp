@@ -1,21 +1,22 @@
 ﻿#include "RtpClient.h"
 #include "Logger.h"
+#include "Common/Define.h"
 
 using namespace std;
 
-mutex RtpClient::_mtx;
-unordered_map<string, RtpClient::Ptr> RtpClient::_mapClient;
 
-RtpClient::RtpClient(const string& ip, int port, const string& app, 
-    const string& stream, int ssrc, int sockType, bool sendFlag)
-    :_sendFlag(sendFlag)
-    ,_peerIp(ip)
-    ,_peerPort(port)
+RtpClient::RtpClient(MediaClientType type, const string& app, 
+    const string& stream, int ssrc, int sockType)
+    :_type(type)
     ,_sockType(sockType)
     ,_ssrc(ssrc)
     ,_streamName(stream)
     ,_appName(app)
 {
+    _localUrlParser.path_ = "/" + _appName + "/" + _streamName;
+    _localUrlParser.protocol_ = PROTOCOL_RTP;
+    _localUrlParser.type_ = DEFAULT_TYPE;
+    _localUrlParser.vhost_ = DEFAULT_VHOST;
 }
 
 RtpClient::~RtpClient()
@@ -23,32 +24,22 @@ RtpClient::~RtpClient()
     
 }
 
-void RtpClient::addClient(const string& key, const RtpClient::Ptr& client)
+void RtpClient::create(const string& localIp, int localPort, const string& url)
 {
-    lock_guard<mutex> lck(_mtx);
-    if (_mapClient.find(key) != _mapClient.end()) {
+    _peerUrlParser.parse(url);
+    logDebug << "_peerUrlParser.host_: " << _peerUrlParser.host_ << ", _peerUrlParser.port_: " << _peerUrlParser.port_;
+    
+    if (_peerUrlParser.port_ == 0 || _peerUrlParser.host_.empty()) {
+        logInfo << "peer ip: " << _peerUrlParser.host_ << ", peerPort: " 
+                << _peerUrlParser.port_ << ", failed: is empty";
         return ;
     }
-    _mapClient[key] = client;
-}
 
-
-RtpClient::Ptr RtpClient::getClient(const string& key)
-{
-    lock_guard<mutex> lck(_mtx);
-    if (_mapClient.find(key) == _mapClient.end()) {
-        return nullptr;
-    }
-    return _mapClient[key];
-}
-
-void RtpClient::create()
-{
     _socket = make_shared<Socket>(EventLoop::getCurrentLoop());
     if (_sockType == SOCKET_TCP) {
         _socket->createSocket(_sockType);
     } else {
-        auto addr = _socket->createSocket(_peerIp, _peerPort, _sockType);
+        auto addr = _socket->createSocket(_peerUrlParser.host_, _peerUrlParser.port_, _sockType);
         _addr = *((sockaddr*)&addr);
     }
 }
@@ -77,12 +68,12 @@ EventLoop::Ptr RtpClient::getLoop()
     return _socket->getLoop();
 }
 
-void RtpClient::start()
+bool RtpClient::start(const string& localIp, int localPort, const string& url, int timeout)
 {
     weak_ptr<RtpClient> wSelf = shared_from_this();
 
     if (_sockType == SOCKET_TCP) {
-        _socket->connect(_peerIp, _peerPort);
+        _socket->connect(_peerUrlParser.host_, _peerUrlParser.port_, timeout);
         _socket->setWriteCb([wSelf](){
             auto self = wSelf.lock();
             if (self) {
@@ -109,20 +100,32 @@ void RtpClient::start()
             self->stop();
         }
     });
+
+    return true;
 }
 
 void RtpClient::stop()
 {
     logTrace << "RtpClient::stop()";
-    string key = _peerIp + "_" + to_string(_peerPort) + "_" + to_string(_ssrc);
-    lock_guard<mutex> lck(_mtx);
-    _mapClient.erase(key);
+    if (_onClose) {
+        _onClose();
+    }
+}
+
+void RtpClient::pause()
+{
+
+}
+
+void RtpClient::setOnClose(const function<void()>& cb)
+{
+    _onClose = cb;
 }
 
 void RtpClient::onConnected()
 {
     _socket->setWriteCb(nullptr);
-    if (_sendFlag) {
+    if (_type == MediaClientType_Push) {
         doPush();
     } else {
         doPull();

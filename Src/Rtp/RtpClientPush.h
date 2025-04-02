@@ -11,8 +11,7 @@ public:
     using Ptr = shared_ptr<RtpClientPush>;
     using Wptr = weak_ptr<RtpClientPush>;
 
-    RtpClientPush(const string& ip, int port, const string& app, 
-                    const string& stream, int ssrc, int sockType);
+    RtpClientPush(const string& app, const string& stream, int ssrc, int sockType);
     ~RtpClientPush();
 
 public:

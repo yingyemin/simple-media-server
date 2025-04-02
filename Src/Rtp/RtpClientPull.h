@@ -12,7 +12,7 @@ public:
     using Ptr = shared_ptr<RtpClientPull>;
     using Wptr = weak_ptr<RtpClientPull>;
 
-    RtpClientPull(const string& ip, int port, const string& app, 
+    RtpClientPull(const string& app, 
                     const string& stream, int ssrc, int sockType);
     ~RtpClientPull();
 

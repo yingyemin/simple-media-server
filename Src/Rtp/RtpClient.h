@@ -3,6 +3,8 @@
 
 #include "Net/Socket.h"
 #include "Net/TcpClient.h"
+#include "Common/MediaClient.h"
+#include "Common/UrlParser.h"
 
 #include <string>
 #include <unordered_map>
@@ -12,29 +14,31 @@
 
 using namespace std;
 
-class RtpClient : public enable_shared_from_this<RtpClient> {
+class RtpClient : public MediaClient, public enable_shared_from_this<RtpClient> {
 public:
     using Ptr = shared_ptr<RtpClient>;
     using Wptr = weak_ptr<RtpClient>;
 
-    RtpClient(const string& ip, int port, const string& app, 
-                    const string& stream, int ssrc, int sockType, bool sendFlag);
+    RtpClient(MediaClientType type, const string& app, 
+                    const string& stream, int ssrc, int sockType);
     ~RtpClient();
 
 public:
+    // override MediaClient
+    bool start(const string& localIp, int localPort, const string& url, int timeout) override;
+    void stop() override;
+    void pause() override;
+    void setOnClose(const function<void()>& cb) override;
+
+public:
     // sockType: 1:tcp, 2:udp, 3:both
-    void create();
-    void start();
-    void stop();
+    void create(const string& localIp, int localPort, const string& url);
 
     string getLocalIp();
     int getLocalPort();
     EventLoop::Ptr getLoop();
     Socket::Ptr getSocket() {return _socket;}
     sockaddr* getAddr() {return &_addr;}
-
-    static void addClient(const string& key, const RtpClient::Ptr& client);
-    static RtpClient::Ptr getClient(const string& key);
 
 private:
     void onConnected();
@@ -45,9 +49,9 @@ private:
 
 private:
     // bool _firstWrite = true;
-    bool _sendFlag = true;
-    string _peerIp;
-    int _peerPort;
+    MediaClientType _type;
+    UrlParser _localUrlParser;
+    UrlParser _peerUrlParser;
     int _sockType;
     int _ssrc;
     string _streamName;
@@ -55,10 +59,7 @@ private:
 
     Socket::Ptr _socket;
     sockaddr _addr;
-
-    static mutex _mtx;
-    // string : ip_port_socktype
-    static unordered_map<string, RtpClient::Ptr> _mapClient;
+    function<void()> _onClose;
 };
 
 #endif //RtpClient_h
