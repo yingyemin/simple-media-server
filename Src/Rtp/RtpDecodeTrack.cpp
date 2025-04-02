@@ -161,9 +161,13 @@ void RtpDecodeTrack::onPsFrame(const FrameBuffer::Ptr frame)
     if (_psDemuxer) {
         _psDemuxer->onPsStream(frame->data(), frame->size(), frame->pts(), _ssrc, true);
     }
-    FILE* fp = fopen("test3.ps", "ab+");
-    fwrite(frame->_buffer.data(), 1, frame->_buffer.size(), fp);
-    fclose(fp);
+    // if (frame->_index == VideoTrackType) {
+    //     static int i = 0;
+    //     string name = "test-" + to_string(i++) + ".ps";
+    //     FILE* fp = fopen(name.c_str(), "ab+");
+    //     fwrite(frame->_buffer.data(), 1, frame->_buffer.size(), fp);
+    //     fclose(fp);
+    // }
 }
 
 void RtpDecodeTrack::onTsFrame(const FrameBuffer::Ptr frame)
@@ -210,11 +214,13 @@ void RtpDecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
             _onFrame(frame);
         }
     }
-    if (frame->_index == VideoTrackType) {
-        FILE* fp = fopen("test3.h264", "ab+");
-        fwrite(frame->_buffer.data(), 1, frame->_buffer.size(), fp);
-        fclose(fp);
-    }
+    // if (frame->_index == VideoTrackType) {
+    //     static int i = 0;
+    //     string name = "test-" + to_string(i++) + ".h264";
+    //     FILE* fp = fopen(name.c_str(), "ab+");
+    //     fwrite(frame->_buffer.data(), 1, frame->_buffer.size(), fp);
+    //     fclose(fp);
+    // }
     // logInfo << "decode a frame: " << frame->_index << ", decoder codec: " << _trackInfo->codec_;
 }
 

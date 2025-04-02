@@ -68,17 +68,18 @@ public:
     void clear();
 
 private:
-    bool _hasAudio = false;
-    bool _hasVideo = false;
+    // bool _hasAudio = false;
+    // bool _hasVideo = false;
 
-    bool _hasReady = false;
-    bool _hasVideoReady = false;
-    bool _hasAudioReady = false;
+    // bool _hasReady = false;
+    // bool _hasVideoReady = false;
+    // bool _hasAudioReady = false;
 
     // bool _firstAac = true;
     // bool _firstVps = true;
     // bool _firstSps = true;
     // bool _firstPps = true;
+    bool _newPs = false;
     uint8_t _waitPackets = 0;
     uint8_t _audio_es_type = 0;
     uint8_t _video_es_type = 0;
