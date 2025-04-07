@@ -104,7 +104,7 @@ void RtpApi::createRtpReceiver(const HttpParser& parser, const UrlParser& urlPar
         } else {
             // add ssrc map streamname
             string gbServerName = parser._body.value("gbServerName", "Server1");
-            value["port"] = Config::instance()->get("Rtp", "Server", gbServerName, "port");
+            value["port"] = (int)Config::instance()->get("Rtp", "Server", gbServerName, "port");
             value["ip"] = Config::instance()->get("LocalIp");
             value["ssrc"] = ssrc;
             

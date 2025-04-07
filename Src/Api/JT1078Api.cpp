@@ -18,9 +18,11 @@ extern unordered_map<string, function<void(const HttpParser& parser, const UrlPa
 void JT1078Api::initApi()
 {
     g_mapApi.emplace("/api/v1/jt1078/create", JT1078Api::create);
+    g_mapApi.emplace("/api/v1/jt1078/delete", JT1078Api::deleteCreateInfo);
     g_mapApi.emplace("/api/v1/jt1078/server/open", JT1078Api::openServer);
     g_mapApi.emplace("/api/v1/jt1078/server/close", JT1078Api::closeServer);
     g_mapApi.emplace("/api/v1/jt1078/talk/start", JT1078Api::startTalk);
+    g_mapApi.emplace("/api/v1/jt1078/delete", JT1078Api::deleteTalkInfo);
     g_mapApi.emplace("/api/v1/jt1078/talk/stop", JT1078Api::stopTalk);
     g_mapApi.emplace("/api/v1/jt1078/send/start", JT1078Api::startSend);
     g_mapApi.emplace("/api/v1/jt1078/send/stop", JT1078Api::stopSend);
@@ -68,6 +70,25 @@ void JT1078Api::create(const HttpParser& parser, const UrlParser& urlParser,
         value["code"] = "400";
         value["msg"] = "add jt1078 info failed";
     }
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void JT1078Api::deleteCreateInfo(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    checkArgs(parser._body, {"simCode", "channel", "port"});
+    string key = parser._body["simCode"].get<string>() + "_" + parser._body["channel"].get<string>() + "_" + parser._body["port"].get<string>();
+    
+
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    JT1078Connection::delJt1078Info(key);
+
+    value["code"] = "200";
+    value["msg"] = "success";
     rsp.setContent(value.dump());
     rspFunc(rsp);
 }
@@ -178,6 +199,27 @@ void JT1078Api::startTalk(const HttpParser& parser, const UrlParser& urlParser,
         value["code"] = "400";
         value["msg"] = "add jt1078 info failed";
     }
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void JT1078Api::deleteTalkInfo(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    // recv参数，对讲设备的参数
+    // send参数，准备发往对讲设备的源流的参数
+    checkArgs(parser._body, {"recvSimCode", "recvChannel", "recvPort"});
+    string key = parser._body["recvSimCode"].get<string>() + "_" + parser._body["recvChannel"].get<string>()
+                 + "_" + parser._body["recvPort"].get<string>();
+                 
+    JT1078Connection::delJt1078Info(key);
+
+    value["code"] = "200";
+    value["msg"] = "success";
     rsp.setContent(value.dump());
     rspFunc(rsp);
 }

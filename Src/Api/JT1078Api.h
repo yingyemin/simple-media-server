@@ -21,6 +21,9 @@ public:
     static void create(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc);
 
+    static void deleteCreateInfo(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc);
+
     static void openServer(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc);
 
@@ -28,6 +31,9 @@ public:
                         const function<void(HttpResponse& rsp)>& rspFunc);
                         
     static void startTalk(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc);
+                        
+    static void deleteTalkInfo(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc);
                         
     static void stopTalk(const HttpParser& parser, const UrlParser& urlParser, 
