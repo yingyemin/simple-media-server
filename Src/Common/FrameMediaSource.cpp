@@ -68,7 +68,7 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
         bool keyframe = false;
         if (frame->getTrackType() == VideoTrackType) {
             _lastFrameTime = now;
-            ++_frameCount;
+            // ++_frameCount;
             // logInfo << "nal type: " << (int)frame->getNalType();
             if (frame->isNonPicNalu()) {
                 return ;
@@ -95,6 +95,7 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
             // }
 
             if (frame->startFrame()) {
+                ++_frameCount;
                 keyframe = true;
                 // _sendConfig = true;
 
@@ -106,6 +107,7 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
                 }
                 _ring->write(frame, keyframe);
             } else if (frame->isNewNalu() && _frame) {
+                ++_frameCount;
                 if (_frame->keyFrame()) {
                     _keyframe = _frame;
                     _gopTime = now - _lastKeyframeTime;

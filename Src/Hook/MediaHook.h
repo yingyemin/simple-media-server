@@ -34,6 +34,7 @@ public:
                         const string& vhost, const string& type) override;
 
     void onKeepAlive(const ServerInfo& info) override;
+    void onRegisterServer(const RegisterServerInfo& info) override;
 
 private:
     bool _enableHook = true;

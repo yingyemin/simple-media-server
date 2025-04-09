@@ -20,6 +20,7 @@ public:
     void startAsync();
     void start();
     void getSourceInfo(ServerInfo& info);
+    void registerServer();
 
 public:
 

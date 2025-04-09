@@ -87,8 +87,27 @@ Heartbeat::~Heartbeat()
 
 }
 
+void Heartbeat::registerServer()
+{
+    logDebug << "registerServer";
+
+    RegisterServerInfo info;
+    info.ip = Config::instance()->get("LocalIp");
+    info.port = Config::instance()->get("Http", "Api", "Api1", "port");
+    info.httpServerPort = Config::instance()->get("Http", "Server", "Server1", "port");
+    info.rtmpServerPort = Config::instance()->get("Rtmp", "Server", "Server1", "port");
+    info.rtspServerPort = Config::instance()->get("Rtsp", "Server", "Server1", "port");
+
+    auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+    if (hook) {
+        hook->onRegisterServer(info);
+    }
+}
+
 void Heartbeat::startAsync()
 {
+    registerServer();
+
     static int timeMs = Config::instance()->getAndListen([](const json &config){
         timeMs = Config::instance()->get("Util", "heartbeatTime");
     }, "Util", "heartbeatTime");
@@ -128,9 +147,24 @@ void Heartbeat::start()
         port = Config::instance()->get("Http", "Api", "Api1", "port");
     }, "Http", "Api", "Api1", "port");
 
+    static int httpServerPort = Config::instance()->getAndListen([](const json &config){
+        httpServerPort = Config::instance()->get("Http", "Server", "Server1", "port");
+    }, "Http", "Server", "Server1", "port");
+
+    static int rtmpServerPort = Config::instance()->getAndListen([](const json &config){
+        rtmpServerPort = Config::instance()->get("Rtmp", "Server", "Server1", "port");
+    }, "Rtmp", "Server", "Server1", "port");
+
+    static int rtspServerPort = Config::instance()->getAndListen([](const json &config){
+        rtspServerPort = Config::instance()->get("Rtsp", "Server", "Server1", "port");
+    }, "Rtsp", "Server", "Server1", "port");
+
     info.ip = ip;
     info.port = port;
     info.memUsage = get_mem_usage();
+    info.httpServerPort = httpServerPort;
+    info.rtmpServerPort = rtmpServerPort;
+    info.rtspServerPort = rtspServerPort;
 
     auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
     if (hook) {

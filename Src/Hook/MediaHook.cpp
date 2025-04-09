@@ -256,6 +256,11 @@ void MediaHook::onKeepAlive(const ServerInfo& info)
 {
     json value;
     value["serverId"] = info.ip + ":" + to_string(info.port);
+    value["ip"] = info.ip;
+    value["port"] = info.port;
+    value["httpServerPort"] = info.httpServerPort;
+    value["rtmpServerPort"] = info.rtmpServerPort;
+    value["rtspServerPort"] = info.rtspServerPort;
     value["originCount"] = info.originCount;
     value["playerCount"] = info.playerCount;
     value["memUsage"] = info.memUsage;
@@ -267,6 +272,28 @@ void MediaHook::onKeepAlive(const ServerInfo& info)
             url = Config::instance()->get("Hook", "Http", "onKeepAlive");
             logInfo << "Hook url: " << url;
         }, "Hook", "Http", "onKeepAlive");
+
+        HookManager::instance()->reportByHttp(url, "POST", value.dump());
+    }
+}
+
+void MediaHook::onRegisterServer(const RegisterServerInfo& info)
+{
+    json value;
+    value["serverId"] = info.ip + ":" + to_string(info.port);
+    value["ip"] = info.ip;
+    value["port"] = info.port;
+    value["httpServerPort"] = info.httpServerPort;
+    value["rtmpServerPort"] = info.rtmpServerPort;
+    value["rtspServerPort"] = info.rtspServerPort;
+
+    logInfo << "server info: " << value.dump();
+
+    if (_type == "http") {
+        static string url = Config::instance()->getAndListen([](const json& config){
+            url = Config::instance()->get("Hook", "Http", "onRegisterServer");
+            logInfo << "Hook url: " << url;
+        }, "Hook", "Http", "onRegisterServer");
 
         HookManager::instance()->reportByHttp(url, "POST", value.dump());
     }

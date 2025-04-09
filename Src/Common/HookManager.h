@@ -104,9 +104,22 @@ class ServerInfo
 public:
     std::string ip;
     int port = 0;
+    uint16_t httpServerPort = 0;
+    uint16_t rtspServerPort = 0;
+    uint16_t rtmpServerPort = 0;
     uint64_t originCount = 0;
     uint64_t playerCount = 0;
     float memUsage = 0;
+};
+
+class RegisterServerInfo
+{
+public:
+    std::string ip;
+    int port = 0;
+    uint16_t httpServerPort = 0;
+    uint16_t rtspServerPort = 0;
+    uint16_t rtmpServerPort = 0;
 };
 
 class HookBase : public std::enable_shared_from_this<HookBase>
@@ -123,6 +136,7 @@ public:
                         const std::string& vhost, const std::string& type) = 0;
 
     virtual void onKeepAlive(const ServerInfo& info) = 0;
+    virtual void onRegisterServer(const RegisterServerInfo& info) = 0;
 };
 
 class HookManager : public std::enable_shared_from_this<HookManager>

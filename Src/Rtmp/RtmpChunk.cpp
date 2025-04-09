@@ -243,14 +243,16 @@ int RtmpChunk::parseChunkBody(uint8_t* buf, uint32_t size, uint32_t &bytesUsed)
 	}
 
 	// logInfo << "size: " << size;
+	// logInfo << "payload size: " << msg.payload->size();
 	// logInfo << "chunkSize: " << chunkSize;
 	// logInfo << "bodyBytesUsed: " << bodyBytesUsed;
 	// logInfo << "msg.index: " << msg.index;
+	// logInfo << "msg.length: " << msg.length;
 	if (size < (chunkSize + bodyBytesUsed)) {
 		return 0;
 	}
 
-	if (msg.index + chunkSize > msg.length) {
+	if ((msg.index + chunkSize > msg.length) || msg.index + chunkSize > msg.payload->size()) {
 		return -1;
 	}
 

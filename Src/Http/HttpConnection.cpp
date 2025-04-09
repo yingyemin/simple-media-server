@@ -508,7 +508,11 @@ void HttpConnection::handleGet()
 
     _parser._contentLen = 0;
 
-    if (startWith(_urlParser.path_, "/live") || startWith(_urlParser.path_, "/vod")) {
+    static int httpServerPort = Config::instance()->getAndListen([](const json &config){
+        httpServerPort = Config::instance()->get("Http", "Server", "Server1", "port");
+    }, "Http", "Server", "Server1", "port");
+
+    if (_socket->getLocalPort() == httpServerPort) {
         static int interval = Config::instance()->getAndListen([](const json &config){
             interval = Config::instance()->get("Http", "Server", "Server1", "interval");
             if (interval == 0) {

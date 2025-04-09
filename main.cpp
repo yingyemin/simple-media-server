@@ -162,16 +162,29 @@ int main(int argc, char** argv)
     if (consoleLog) {
         Logger::instance()->addChannel(std::make_shared<ConsoleChannel>("ConsoleChannel", LTrace));
     }
-    auto fileChannel = std::make_shared<FileChannel>("FileChannel", Path::exeDir() + "log/", LTrace);
+
+    string prefixname = Config::instance()->get("Log", "prefixname");
+    auto fileChannel = std::make_shared<FileChannel>("FileChannel", Path::exeDir() + "log/", prefixname, LTrace);
 
     //日志最多保存天数
-    fileChannel->setMaxDay(Config::instance()->get("Log", "maxDay"));
+    static int ilogmaxday = Config::instance()->getAndListen([fileChannel](const json &config){
+        ilogmaxday = Config::instance()->get("Log", "maxDay");
+        fileChannel->setMaxDay(ilogmaxday);
+    }, "Log", "maxDay");
+    fileChannel->setMaxDay(ilogmaxday);
 
     //配置日志最大保留个数和单个日志切片大小
-    size_t ilogmaxsize = Config::instance()->get("Log", "maxSize");
-    size_t ilogmaxcount =  Config::instance()->get("Log", "maxSize");
-    fileChannel->setFileMaxCount(ilogmaxcount);
+    static int ilogmaxsize = Config::instance()->getAndListen([fileChannel](const json &config){
+        ilogmaxsize = Config::instance()->get("Log", "maxSize");
+        fileChannel->setFileMaxSize(ilogmaxsize);
+    }, "Log", "maxSize");
     fileChannel->setFileMaxSize(ilogmaxsize);
+
+    static int ilogmaxcount = Config::instance()->getAndListen([fileChannel](const json &config){
+        ilogmaxcount = Config::instance()->get("Log", "maxCount");
+        fileChannel->setFileMaxCount(ilogmaxcount);
+    }, "Log", "maxCount");
+    fileChannel->setFileMaxCount(ilogmaxcount);
 
     Logger::instance()->addChannel(fileChannel);
     Logger::instance()->setWriter(std::make_shared<AsyncLogWriter>());
@@ -500,6 +513,30 @@ int main(int argc, char** argv)
         int count = httpApiConfig["threads"];
 
         logInfo << "start http api, port: " << port;
+        if (port) {
+            HttpServer::instance()->start(ip, port, count);
+        }
+        logInfo << "start https api, sslPort: " << sslPort;
+        if (sslPort) {
+            HttpServer::instance()->start(ip, sslPort, count, true);
+        }
+    }
+    
+    auto httpServerConfigVec = configJson["Http"]["Server"];
+    for (auto server : httpServerConfigVec.items()) {
+        string serverId = server.key();
+        auto httpServerConfig = server.value();
+
+        if (!httpServerConfig.is_object()) {
+            continue;
+        }
+
+        const string ip = httpServerConfig["ip"];
+        int port = httpServerConfig["port"];
+        int sslPort = httpServerConfig["sslPort"];
+        int count = httpServerConfig["threads"];
+
+        logInfo << "start http server, port: " << port;
         if (port) {
             HttpServer::instance()->start(ip, port, count);
         }

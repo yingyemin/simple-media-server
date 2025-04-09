@@ -524,8 +524,10 @@ bool RtmpConnection::handleVideo(RtmpMessage& rtmp_msg)
         } else if (readUint32BE((char*)payload + 1) == fourccVP9) {
             codec_id = RTMP_CODEC_ID_VP9;
         } else {
-            close();
-            return false;
+            if (!rtmpSrc->isReady()) {
+                close();
+                return false;
+            }
         }
     } else {
         frame_type = (payload[0] >> 4) & 0x0f;
