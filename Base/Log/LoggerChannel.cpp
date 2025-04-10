@@ -207,26 +207,28 @@ static uint64_t getDay(time_t second) {
     return (second + s_gmtoff) / s_second_per_day;
 }
 
-static string getLogFilePath(const string &dir, time_t second, LogLevel level, int32_t index) {
+static string getLogFilePath(const string &dir, const string &prefixName, time_t second, LogLevel level, int32_t index) {
     //time_t s1 = time(nullptr);
     //struct tm *p = localtime(&s1);
     //struct tm *tm = localtime(&second);
     auto tm = TimeClock::localtime(second);
     char buf[128];
-    snprintf(buf, sizeof(buf), "SimpleMediaServer.%d-%02d-%02d_%02d.log", 1900 + tm.tm_year, 1 + tm.tm_mon, tm.tm_mday, index);
+    snprintf(buf, sizeof(buf), "%s.%d-%02d-%02d_%02d.log", prefixName.c_str(), 1900 + tm.tm_year, 1 + tm.tm_mon, tm.tm_mday, index);
     
     return dir + buf;
 }
 
 FileChannel::~FileChannel() {}
 
-FileChannel::FileChannel(const string &name, const string &dir, LogLevel level) 
+FileChannel::FileChannel(const string &name, const string& dir, const string &prefixName, LogLevel level) 
     : FileChannelBase(name, "", level) 
 {
     _dir = dir;
     if (_dir.back() != '/') {
         _dir.append("/");
     }
+
+    _prefixName = prefixName;
 
     //收集所有日志文件: _log_file_map将存储此文件夹下所有的log,因此即使流媒体重启，也能获取或清除超过max_day的日志
     File::scanDir(_dir, [this](const string &path, bool isDir) -> bool {
@@ -351,7 +353,7 @@ void FileChannel::changeFile(time_t second, const LogContext::Ptr &ctx) {
     size_t index = _index_vssstringstream;
     _index_vssstringstream++;
 
-    auto log_file = getLogFilePath(_dir, second, ctx->_level,index);
+    auto log_file = getLogFilePath(_dir, _prefixName, second, ctx->_level,index);
     //_index_vssstringstream=_index_vssstringstream+1;
     //记录所有的日志文件，以便后续删除老的日志
     _log_file_map.emplace(log_file);
