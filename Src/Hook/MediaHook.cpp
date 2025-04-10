@@ -46,12 +46,19 @@ void MediaHook::onStreamStatus(const StreamStatusInfo& info)
     value["status"] = info.status;
     value["type"] = info.type;
     value["uri"] = info.uri;
+    value["streamId"] = info.uri;
     value["vhost"] = info.vhost;
+    value["action"] = info.action;
 
-    // static string type = Config::instance()->getAndListen([](const json& config){
-    //     type = Config::instance()->get("Hook", "Type");
-    //     logInfo << "Hook type: " << type;
-    // }, "Hook", "Type");
+    static string ip = Config::instance()->getAndListen([](const json &config){
+        ip = Config::instance()->get("LocalIp");
+    }, "LocalIp");
+
+    static int httpPort = Config::instance()->getAndListen([](const json& config){
+        httpPort = Config::instance()->get("Http", "Api", "Api1", "port");
+    }, "Http", "Api", "Api1", "port");
+
+    value["serverId"] = ip + ":" + to_string(httpPort);
 
     if (_type == "http") {
         static string url = Config::instance()->getAndListen([](const json& config){

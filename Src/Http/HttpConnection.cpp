@@ -29,6 +29,7 @@ HttpConnection::HttpConnection(const EventLoop::Ptr& loop, const Socket::Ptr& so
     ,_socket(socket)
 {
     logInfo << "HttpConnection: " << this;
+    _clock.start();
 }
 
 HttpConnection::~HttpConnection()
@@ -74,11 +75,26 @@ void HttpConnection::close()
 void HttpConnection::onManager()
 {
     logTrace << "manager: " << this;
+    static int keepaliveTime = Config::instance()->getAndListen([](const json &config){
+        keepaliveTime = Config::instance()->get("Http", "Server", "Server1", "keepaliveTime", "15");
+    }, "Http", "Server", "Server1", "keepaliveTime", "15");
+
+    HttpConnection::Wptr wSelf = dynamic_pointer_cast<HttpConnection>(shared_from_this());
+    if (_clock.startToNow() > keepaliveTime * 1000) {
+        logInfo << "manager: " << this << " keealive timeout";
+        _loop->async([wSelf](){
+            auto self = wSelf.lock();
+            if (self) {
+                self->close();
+            }
+        }, false);
+    }
 }
 
 void HttpConnection::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)
 {
     logTrace << "get a buf: " << buffer->size();
+    _clock.update();
     _parser.parse(buffer->data(), buffer->size());
 }
 
@@ -100,6 +116,7 @@ void HttpConnection::onError(const string& msg)
 
 ssize_t HttpConnection::send(Buffer::Ptr pkt)
 {
+    _clock.update();
     _totalSendBytes += pkt->size();
     _intervalSendBytes += pkt->size();
     // logInfo << "pkt size: " << pkt->size();
@@ -269,12 +286,23 @@ void HttpConnection::apiRoute(const HttpParser& parser, const UrlParser& urlPars
 void HttpConnection::writeHttpResponse(HttpResponse& rsp) // 将要素按照HttpResponse协议进行组织，再发送
 {
     // 完善头部字段
-    if(_parser._mapHeaders["connection"] == "keep-alive"){
+    static int keepaliveTime = Config::instance()->getAndListen([](const json &config){
+        keepaliveTime = Config::instance()->get("Http", "Server", "Server1", "keepaliveTime", "15");
+    }, "Http", "Server", "Server1", "keepaliveTime", "15");
+
+    bool bClose = false;
+    if(_parser._mapHeaders["connection"] == "keep-alive" && rsp.getHeader("Connection") != "close"){
         logInfo << "CONNECTION IS keep-alive";
         rsp.setHeader("Connection","keep-alive");
+
+        string keepAliveString = "timeout=";
+        keepAliveString += keepaliveTime;
+        keepAliveString += ", max=100";
+        rsp.setHeader("Keep-Alive", std::move(keepAliveString));
     }
     else{
         rsp.setHeader("Connection","close");
+        bClose = true;
     }
     if(!rsp._body.empty() && !rsp.hasHeader("Content-Length")){
         rsp.setHeader("Content-Length",std::to_string(rsp._body.size()));
@@ -291,6 +319,7 @@ void HttpConnection::writeHttpResponse(HttpResponse& rsp) // 将要素按照Http
 
     if (_isWebsocket) {
         rsp._status = 101;
+        bClose = false;
 
         rsp._headers["Connection"] = "Upgrade";
         rsp.setHeader("Upgrade", "websocket");
@@ -332,10 +361,15 @@ void HttpConnection::writeHttpResponse(HttpResponse& rsp) // 将要素按照Http
     buffer->assign(rsp_str.str().c_str(),rsp_str.str().size());
     // logInfo << "send rsp: " << rsp_str.str();
     TcpConnection::send(buffer);
+    _clock.update();
 
     _parser.clear();
     if (!_isWebsocket) {
         _onHttpBody = nullptr;
+    }
+
+    if (bClose) {
+        close();
     }
 }
 

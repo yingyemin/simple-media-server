@@ -7,6 +7,7 @@
 #include "Common/UrlParser.h"
 #include "HttpResponse.h"
 #include "HttpFile.h"
+#include "Util/TimeClock.h"
 #ifdef ENABLE_HLS
 #include "Hls/HlsMediaSource.h"
 #include "Hls/LLHlsMediaSource.h"
@@ -99,6 +100,7 @@ protected:
     HttpParser _parser;
     UrlParser _urlParser;
     WebsocketContext _websocket;
+    TimeClock _clock;
     shared_ptr<HttpFile> _httpFile;
 
 #ifdef ENABLE_MPEG
