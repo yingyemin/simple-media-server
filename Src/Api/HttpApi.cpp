@@ -91,7 +91,7 @@ void HttpApi::getSourceList(const HttpParser& parser, const UrlParser& urlParser
         item["playerCount"] = source->playerCount();
         item["bytes"] = source->getBytes();
         item["createTime"] = source->getCreateTime();
-        item["statuc"] = source->isReady() ? "ready" : "unready";
+        item["status"] = source->isReady() ? "ready" : "unready";
         item["onlineDuration"] = TimeClock::now() - source->getCreateTime();
         item["action"] = source->getAction() ? "push" : "pull";
         auto tracks = source->getTrackInfo();

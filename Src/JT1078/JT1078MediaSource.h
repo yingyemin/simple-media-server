@@ -55,6 +55,7 @@ private:
     bool _start = false;
     int _ringSize = 512;
     int _channel;
+    uint64_t _lastStamp = 0;
 
     string _simCode;
     mutex _mtxSdp;
