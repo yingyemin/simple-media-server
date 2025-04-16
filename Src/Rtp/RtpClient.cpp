@@ -42,6 +42,7 @@ void RtpClient::create(const string& localIp, int localPort, const string& url)
         auto addr = _socket->createSocket(_peerUrlParser.host_, _peerUrlParser.port_, _sockType);
         _addr = *((sockaddr*)&addr);
     }
+    _socket->bind(0, "0.0.0.0");
 }
 
 string RtpClient::getLocalIp()

@@ -22,6 +22,8 @@ public:
                         const function<void(HttpResponse& rsp)>& rspFunc);
     static void createRtpSender(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc);
+    static void startRtpSender(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc);
     static void stopRtpReceiver(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc);
     static void stopRtpSender(const HttpParser& parser, const UrlParser& urlParser, 

@@ -92,7 +92,7 @@ void RtpEncodeTrack::onFrame(const FrameBuffer::Ptr& frame)
 void RtpEncodeTrack::onPsFrame(const FrameBuffer::Ptr& frame)
 {
     if (_encoder) {
-        logInfo << "rtp encode a ps frame";
+        logTrace << "rtp encode a ps frame";
         _encoder->encode(frame);
     }
     // FILE* fp = fopen("psmuxer.ps", "ab+");
@@ -103,7 +103,7 @@ void RtpEncodeTrack::onPsFrame(const FrameBuffer::Ptr& frame)
 void RtpEncodeTrack::onTsFrame(const FrameBuffer::Ptr& frame)
 {
     if (_encoder) {
-        logInfo << "rtp encode a ps frame";
+        logTrace << "rtp encode a ps frame";
         _encoder->encode(frame);
     }
     // FILE* fp = fopen("psmuxer.ps", "ab+");
@@ -123,7 +123,7 @@ void RtpEncodeTrack::onRtpPacket(const RtpPacket::Ptr& rtp)
     if (_onRtpPacket) {
         _onRtpPacket(rtp);
     }
-    logInfo << "encode a rtp packet";
+    logTrace << "encode a rtp packet";
     // _ssrc = rtp->getSSRC();
     // _seq = rtp->getSeq();
     // _timestap = rtp->getStamp();

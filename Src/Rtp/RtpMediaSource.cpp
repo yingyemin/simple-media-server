@@ -155,7 +155,7 @@ void RtpMediaSource::onReady()
         std::weak_ptr<RtpMediaSource> weakSelf = std::static_pointer_cast<RtpMediaSource>(shared_from_this());
         for (auto& track : _mapRtpEncodeTrack) {
             track.second->setOnRtpPacket([weakSelf](const RtpPacket::Ptr& rtp){
-                logInfo << "mux a rtp packet";
+                logTrace << "mux a rtp packet";
                 auto strongSelf = weakSelf.lock();
                 if (!strongSelf) {
                     return;

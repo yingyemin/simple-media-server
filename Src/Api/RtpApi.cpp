@@ -20,6 +20,7 @@ void RtpApi::initApi()
 {
     g_mapApi.emplace("/api/v1/rtp/recv/create", RtpApi::createRtpReceiver);
     g_mapApi.emplace("/api/v1/rtp/send/create", RtpApi::createRtpSender);
+    g_mapApi.emplace("/api/v1/rtp/send/start", RtpApi::startRtpSender);
     g_mapApi.emplace("/api/v1/rtp/recv/stop", RtpApi::stopRtpReceiver);
     g_mapApi.emplace("/api/v1/rtp/send/stop", RtpApi::stopRtpSender);
 }
@@ -49,8 +50,8 @@ void RtpApi::createRtpReceiver(const HttpParser& parser, const UrlParser& urlPar
         }, "GB28181", "Server", "timeout", "", "5000");
 
         auto pull = make_shared<RtpClientPull>(appName, streamName, ssrc, socketType);
-        pull->create("0.0.0.0", 0, ip + ":" + to_string(port));
-        pull->start("0.0.0.0", 0, ip + ":" + to_string(port), timeout);
+        pull->create("0.0.0.0", 0, "rtp://" + ip + ":" + to_string(port));
+        pull->start("0.0.0.0", 0, "rtp://" + ip + ":" + to_string(port), timeout);
 
         string key = "/" + appName + "/" + streamName;
         MediaClient::addMediaClient(key, pull);
@@ -160,13 +161,13 @@ void RtpApi::createRtpSender(const HttpParser& parser, const UrlParser& urlParse
         string payloadType = parser._body.value("payloadType", "ps");
         string onlyTrack = parser._body.value("onlyTrack", "all");
 
-        static int timeout = Config::instance()->getAndListen([](const json &config){
-            timeout = Config::instance()->get("GB28181", "Server", "timeout");
-        }, "GB28181", "Server", "timeout", "", "5000");
+        // static int timeout = Config::instance()->getAndListen([](const json &config){
+        //     timeout = Config::instance()->get("GB28181", "Server", "timeout");
+        // }, "GB28181", "Server", "timeout", "", "5000");
 
         auto push = make_shared<RtpClientPush>(appName, streamName, ssrc, socketType);
-        push->create("0.0.0.0", 0, ip + ":" + to_string(port));
-        push->start("0.0.0.0", 0, ip + ":" + to_string(port), timeout);
+        push->create("0.0.0.0", 0, "rtp://" + ip + ":" + to_string(port));
+        // push->start("0.0.0.0", 0, "rtp://" + ip + ":" + to_string(port), timeout);
 
         string key = ip + "_" + to_string(port) + "_" + to_string(ssrc);
         MediaClient::addMediaClient(key, push);
@@ -194,6 +195,40 @@ void RtpApi::createRtpSender(const HttpParser& parser, const UrlParser& urlParse
 
     value["code"] = "200";
     value["msg"] = "success";
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void RtpApi::startRtpSender(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+    value["code"] = "200";
+    value["msg"] = "success";
+
+    checkArgs(parser._body, {"ssrc", "port",  "ip"});
+
+    
+    int ssrc = toInt(parser._body["ssrc"]);
+    int port = toInt(parser._body["port"]);
+    string ip = parser._body["ip"];
+
+    static int timeout = Config::instance()->getAndListen([](const json &config){
+        timeout = Config::instance()->get("GB28181", "Server", "timeout");
+    }, "GB28181", "Server", "timeout", "", "5000");
+
+    string key = ip + "_" + to_string(port) + "_" + to_string(ssrc);
+    auto push = MediaClient::getMediaClient(key);
+
+    if (push) {
+        push->start("0.0.0.0", 0, "rtp://" + ip + ":" + to_string(port), timeout);
+    } else {
+        value["code"] = "404";
+        value["msg"] = "rtp push client is not exist";
+    }
+
     rsp.setContent(value.dump());
     rspFunc(rsp);
 }

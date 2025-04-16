@@ -49,8 +49,8 @@ void GB28181Api::createGB28181Receiver(const HttpParser& parser, const UrlParser
         }, "GB28181", "Server", "timeout");
 
         auto pull = make_shared<GB28181ClientPull>(appName, streamName, ssrc, socketType);
-        pull->create("0.0.0.0", 0, ip + ":" + to_string(port));
-        pull->start("0.0.0.0", 0, ip + ":" + to_string(port), timeout);
+        pull->create("0.0.0.0", 0, "rtp://" + ip + ":" + to_string(port));
+        pull->start("0.0.0.0", 0, "rtp://" + ip + ":" + to_string(port), timeout);
 
         string key = "/" + appName + "/" + streamName;
         MediaClient::addMediaClient(key, pull);
@@ -121,8 +121,8 @@ void GB28181Api::createGB28181Sender(const HttpParser& parser, const UrlParser& 
         }, "GB28181", "Server", "timeout");
 
         auto push = make_shared<GB28181ClientPush>(appName, streamName, ssrc, socketType);
-        push->create("0.0.0.0", 0, ip + ":" + to_string(port));
-        push->start("0.0.0.0", 0, ip + ":" + to_string(port), timeout);
+        push->create("0.0.0.0", 0, "rtp://" + ip + ":" + to_string(port));
+        push->start("0.0.0.0", 0, "rtp://" + ip + ":" + to_string(port), timeout);
 
         string key = ip + "_" + to_string(port) + "_" + to_string(ssrc);
         MediaClient::addMediaClient(key, push);
