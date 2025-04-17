@@ -30,3 +30,29 @@ float toFloat(const nlohmann::json& j)
     }
     return j;
 }
+
+int getInt(const nlohmann::json& j, const string& key, int defaultValue)
+{
+    if (j.find(key) == j.end()) {
+        return defaultValue;
+    }
+
+    auto v = j[key];
+    if (v.is_string()) {
+        return stoi(v.get<string>());
+    }
+    return v;
+}
+
+float getFloat(const nlohmann::json& j, const string& key, float defaultValue)
+{
+    if (j.find(key) == j.end()) {
+        return defaultValue;
+    }
+
+    auto v = j[key];
+    if (v.is_string()) {
+        return stof(v.get<string>());
+    }
+    return v;
+}

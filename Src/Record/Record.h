@@ -10,6 +10,16 @@
 
 using namespace std;
 
+class RecordTemplate
+{
+public:
+    using Ptr = shared_ptr<RecordTemplate>;
+
+    int segment_duration = 600; //单位毫秒，切片时长
+    int segment_count = 0; //限制切片数量
+    int duration = 0; //单位毫秒，限制录制时长
+};
+
 class Record : public enable_shared_from_this<Record>
 {
 public:

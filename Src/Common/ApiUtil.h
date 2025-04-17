@@ -31,4 +31,7 @@ int toInt(const nlohmann::json& j);
 
 float toFloat(const nlohmann::json& j);
 
+int getInt(const nlohmann::json& j, const string& key, int defaultValue = 0);
+float getFloat(const nlohmann::json& j, const string& key, float defaultValue = 0);
+
 #endif //ApiUtil_h

@@ -26,6 +26,11 @@ void RecordApi::startRecord(const HttpParser& parser, const UrlParser& urlParser
 {
     checkArgs(parser._body, {"appName", "streamName", "format"});
 
+    RecordTemplate::Ptr recordTemplate = make_shared<RecordTemplate>(); 
+    recordTemplate->duration = getInt(parser._body, "duration", 0);
+    recordTemplate->segment_duration = getInt(parser._body, "segment_duration", 0);
+    recordTemplate->segment_count = getInt(parser._body, "segment_count", 0);
+
     string format = parser._body["format"];
 
     UrlParser recordUrlParser;
@@ -39,7 +44,7 @@ void RecordApi::startRecord(const HttpParser& parser, const UrlParser& urlParser
         record = make_shared<RecordPs>(recordUrlParser);
     } else if (format == "mp4") {
         recordUrlParser.protocol_ = PROTOCOL_MP4;
-        record = make_shared<RecordMp4>(recordUrlParser);
+        record = make_shared<RecordMp4>(recordUrlParser, recordTemplate);
     }
     
     string taskId = randomStr(8);

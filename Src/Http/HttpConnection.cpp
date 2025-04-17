@@ -291,7 +291,7 @@ void HttpConnection::writeHttpResponse(HttpResponse& rsp) // 将要素按照Http
     }, "Http", "Server", "Server1", "keepaliveTime", "15");
 
     bool bClose = false;
-    if(_parser._mapHeaders["connection"] == "keep-alive" && rsp.getHeader("Connection") != "close"){
+    if(toLower(_parser._mapHeaders["connection"]) != "close" || rsp.getHeader("Connection") == "keep-alive"){
         logInfo << "CONNECTION IS keep-alive";
         rsp.setHeader("Connection","keep-alive");
 

@@ -139,6 +139,45 @@ void RtpApi::createRtpReceiver(const HttpParser& parser, const UrlParser& urlPar
     rspFunc(rsp);
 }
 
+void RtpApi::stopRtpReceiver(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    checkArgs(parser._body, {"active", "ssrc", "streamName", "appName"});
+
+    int active = toInt(parser._body["active"]);
+    int ssrc = toInt(parser._body["ssrc"]);
+    string streamName = parser._body["streamName"];
+    string appName = parser._body["appName"];
+
+    if (active) {
+        string key = "/" + appName + "/" + streamName;
+        MediaClient::delMediaClient(key);
+    } else {
+        string uri = "/" + appName + "/" + streamName;
+
+        int newServer = toInt(parser._body.value("newServer", "0"));
+        if (newServer) {
+            checkArgs(parser._body, {"socketType", "port"});
+            int port = toInt(parser._body["port"]);
+            int socketType = toInt(parser._body["socketType"]); //1:tcp,2:udp,3:both
+            RtpServer::instance()->stopByPort(port, 0, socketType);
+        } else {
+            value["ssrc"] = ssrc;
+
+            RtpManager::instance()->delContext(ssrc);
+        }
+    }
+
+    value["code"] = "200";
+    value["msg"] = "success";
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
 void RtpApi::createRtpSender(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc)
 {
@@ -233,15 +272,35 @@ void RtpApi::startRtpSender(const HttpParser& parser, const UrlParser& urlParser
     rspFunc(rsp);
 }
 
-void RtpApi::stopRtpReceiver(const HttpParser& parser, const UrlParser& urlParser, 
-                        const function<void(HttpResponse& rsp)>& rspFunc)
-{
-    
-}
-
 void RtpApi::stopRtpSender(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc)
 {
-    
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    checkArgs(parser._body, {"active", "ssrc", "port", "socketType", "streamName", "appName", "ip"});
+
+    int active = toInt(parser._body["active"]);
+    // logInfo << "json active: " << parser._body["active"];
+    // logInfo << "active: " << active;
+    if (active) {
+        int ssrc = toInt(parser._body["ssrc"]);
+        int port = toInt(parser._body["port"]);
+        string ip = parser._body["ip"];
+
+        string key = ip + "_" + to_string(port) + "_" + to_string(ssrc);
+        MediaClient::delMediaClient(key);
+    } else {
+        int port = toInt(parser._body["port"]);
+        int socketType = toInt(parser._body["socketType"]); //1:tcp,2:udp,3:both
+
+        RtpServer::instance()->stopSendByPort(port, socketType);
+    }
+
+    value["code"] = "200";
+    value["msg"] = "success";
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
 }
 

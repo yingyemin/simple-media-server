@@ -11,8 +11,9 @@
 
 using namespace std;
 
-RecordMp4::RecordMp4(const UrlParser& urlParser)
+RecordMp4::RecordMp4(const UrlParser& urlParser, const RecordTemplate::Ptr& recordTemplate)
     :_urlParser(urlParser)
+    ,_template(recordTemplate)
 {
 
 }
@@ -34,7 +35,11 @@ bool RecordMp4::start()
         rootPath = Config::instance()->get("Record", "rootPath");
     }, "Record", "rootPath");
 
-    auto abpath = File::absolutePath(_urlParser.path_, rootPath) + ".mp4";
+    auto now = time(nullptr);
+    auto nowTm = TimeClock::localtime(now);
+    auto abpath = File::absolutePath(_urlParser.path_, rootPath) + "/" 
+                    + to_string(nowTm.tm_year) + "/" + to_string(nowTm.tm_mon) 
+                    + "/" + to_string(nowTm.tm_mday) + "/" + to_string(time(nullptr)) + ".mp4";
     logInfo << "get record path: " << abpath;
     // if (!_file.open(abpath, "wb+")) {
     //     return false;
@@ -93,6 +98,7 @@ void RecordMp4::onPlayFrame(const FrameMediaSource::Ptr &frameSrc)
             _mp4Writer->addAudioTrack(trackIter.second);
         }
     }
+    _clock.start();
     weak_ptr<RecordMp4> wSelf = dynamic_pointer_cast<RecordMp4>(shared_from_this());
 
     if (!_playFrameReader) {
@@ -124,6 +130,8 @@ void RecordMp4::onPlayFrame(const FrameMediaSource::Ptr &frameSrc)
 				return;
 			}
 
+            self->tryNewSegmant(pack);
+
             // auto buffer = StreamBuffer::create();
             // buffer->assign(pack->data(), pack->size());
 
@@ -141,6 +149,61 @@ void RecordMp4::onPlayFrame(const FrameMediaSource::Ptr &frameSrc)
         });
         _source = frameSrc;
 	}
+}
+
+void RecordMp4::tryNewSegmant(const FrameBuffer::Ptr& frame)
+{
+    if (_template->duration > 0 && _recordDuration + _clock.startToNow() > _template->duration) {
+        stop();
+        return ;
+    }
+
+    if (frame->keyFrame() && _clock.startToNow() > _template->segment_duration) {
+        _recordDuration += _clock.startToNow();
+        if ((_template->segment_count > 0 && ++_recordCount > _template->segment_count) 
+                || _recordDuration + _clock.startToNow()) {
+            stop();
+            return ;
+        }
+
+        _mp4Writer->stop();
+
+        static string rootPath = Config::instance()->getAndListen([](const json &config){
+            rootPath = Config::instance()->get("Record", "rootPath");
+        }, "Record", "rootPath");
+
+        auto now = time(nullptr);
+        auto nowTm = TimeClock::localtime(now);
+        auto abpath = File::absolutePath(_urlParser.path_, rootPath) + "/" 
+                    + to_string(nowTm.tm_year) + "/" + to_string(nowTm.tm_mon) 
+                    + "/" + to_string(nowTm.tm_mday) + "/" + to_string(time(nullptr)) + ".mp4";
+        logInfo << "get record path: " << abpath;
+        // if (!_file.open(abpath, "wb+")) {
+        //     return false;
+        // }
+
+        _mp4Writer = make_shared<Mp4FileWriter>(0, abpath);
+        if (!_mp4Writer->open()) {
+            stop();
+            return ;
+        }
+        _mp4Writer->init();
+
+        auto frameSrc = _source.lock();
+        if (!frameSrc) {
+            stop();
+            return ;
+        }
+
+        auto trackInfos = frameSrc->getTrackInfo();
+        for (auto& trackIter : trackInfos) {
+            if (trackIter.second->trackType_ == "video") {
+                _mp4Writer->addVideoTrack(trackIter.second);
+            } else if (trackIter.second->trackType_ == "audio") {
+                _mp4Writer->addAudioTrack(trackIter.second);
+            }
+        }
+    }
 }
 
 void RecordMp4::stop()

@@ -12,6 +12,7 @@
 #include "Mp4/Mp4FileWriter.h"
 #include "EventPoller/EventLoop.h"
 #include "WorkPoller/WorkLoop.h"
+#include "Util/TimeClock.h"
 #include "Common/UrlParser.h"
 #include "Common/FrameMediaSource.h"
 #include "Record.h"
@@ -23,7 +24,7 @@ class RecordMp4 : public Record
 public:
     using Ptr = shared_ptr<RecordMp4>;
 
-    RecordMp4(const UrlParser& urlParser);
+    RecordMp4(const UrlParser& urlParser, const RecordTemplate::Ptr& recordTemplate);
     ~RecordMp4();
 
 public:
@@ -34,11 +35,16 @@ public:
 private:
     void onError(const string& err);
     void onPlayFrame(const FrameMediaSource::Ptr &frameSrc);
+    void tryNewSegmant(const FrameBuffer::Ptr& frame);
 
 private:
     bool _stop = false;
+    int _recordCount = 0;
+    uint64_t _recordDuration = 0;
     File _file;
     UrlParser _urlParser;
+    TimeClock _clock;
+    RecordTemplate::Ptr _template;
     Mp4FileWriter::Ptr _mp4Writer;
     EventLoop::Ptr _loop;
     WorkLoop::Ptr _workLoop;
