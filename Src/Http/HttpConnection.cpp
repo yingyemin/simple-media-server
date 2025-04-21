@@ -466,7 +466,7 @@ void HttpConnection::setFileRange(const string& rangeStr)
 {
     // Range:bytes=0-1024,2000-3000
     // 目前只支持单个range，示例是两个range
-    if (rangeStr.empty() || rangeStr == "-") {
+    if (rangeStr.empty() || rangeStr == "-" || rangeStr == "bytes=0-") {
         return ;
     }
 
@@ -480,6 +480,7 @@ void HttpConnection::setFileRange(const string& rangeStr)
             auto endStr = findSubStr(_rangeStr, "-", "");
             uint64_t fileSize = _httpFile->getFileSize();
             uint64_t startPos;
+            uint64_t endPos;
             uint64_t len;
 
             if (startStr.empty()) {
@@ -488,8 +489,8 @@ void HttpConnection::setFileRange(const string& rangeStr)
                     return ;
                 }
                 startPos = fileSize - len;
+                endPos = len;
             } else {
-                uint64_t endPos;
                 if (endStr.empty()) {
                     endPos = fileSize;
                 } else {
@@ -508,6 +509,8 @@ void HttpConnection::setFileRange(const string& rangeStr)
 
                 len = endPos - startPos + 1;
             }
+
+            _rangeStr = to_string(startPos) + "-" + to_string(endPos);
 
             _httpFile->setRange(startPos, len);
         }

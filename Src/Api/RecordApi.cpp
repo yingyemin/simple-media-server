@@ -18,6 +18,7 @@ extern unordered_map<string, function<void(const HttpParser& parser, const UrlPa
 void RecordApi::initApi()
 {
     g_mapApi.emplace("/api/v1/record/start", RecordApi::startRecord);
+    g_mapApi.emplace("/api/v1/record/list", RecordApi::listRecord);
     g_mapApi.emplace("/api/v1/record/stop", RecordApi::stopRecord);
 }
 
@@ -27,9 +28,12 @@ void RecordApi::startRecord(const HttpParser& parser, const UrlParser& urlParser
     checkArgs(parser._body, {"appName", "streamName", "format"});
 
     RecordTemplate::Ptr recordTemplate = make_shared<RecordTemplate>(); 
-    recordTemplate->duration = getInt(parser._body, "duration", 0);
-    recordTemplate->segment_duration = getInt(parser._body, "segment_duration", 0);
-    recordTemplate->segment_count = getInt(parser._body, "segment_count", 0);
+    if (parser._body.find("recordTemplate") != parser._body.end()) {
+        auto jsonTemplate = parser._body["recordTemplate"];
+        recordTemplate->duration = getInt(jsonTemplate, "duration", 0);
+        recordTemplate->segment_duration = getInt(jsonTemplate, "segmentDuration", 0);
+        recordTemplate->segment_count = getInt(jsonTemplate, "segmentCount", 0);
+    }
 
     string format = parser._body["format"];
 
@@ -48,6 +52,7 @@ void RecordApi::startRecord(const HttpParser& parser, const UrlParser& urlParser
     }
     
     string taskId = randomStr(8);
+    record->setTaskId(taskId);
     Record::addRecord(recordUrlParser.path_, taskId, record);
 
     record->setOnClose([recordUrlParser, taskId](){
@@ -72,11 +77,38 @@ void RecordApi::stopRecord(const HttpParser& parser, const UrlParser& urlParser,
     checkArgs(parser._body, {"appName", "streamName", "taskId"});
     string path = "/" + parser._body["appName"].get<string>() + "/" + parser._body["streamName"].get<string>();
     auto record = Record::getRecord(path, parser._body["taskId"]);
-    record->stop();
-
+    if (record) {
+        record->stop();
+    }
+    
     HttpResponse rsp;
     rsp._status = 200;
     json value;
+    value["code"] = "200";
+    value["msg"] = "success";
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void RecordApi::listRecord(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    int count = 0;
+    Record::for_each_record([&value, &count](const Record::Ptr& record){
+        json recordInfo; 
+        auto urlParser = record->getUrlParser();
+        recordInfo["path"] = urlParser.path_;
+        recordInfo["taskId"] = record->getTaskId();
+
+        value["records"].push_back(recordInfo);
+        ++count;
+    });
+
+    value["count"] = count;
     value["code"] = "200";
     value["msg"] = "success";
     rsp.setContent(value.dump());

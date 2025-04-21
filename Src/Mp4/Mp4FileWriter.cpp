@@ -41,7 +41,7 @@ size_t Mp4FileWriter::tell()
 
 bool Mp4FileWriter::open()
 {
-    if (_file.open(_filepath, "wb+")) {
+    if (!_file.open(_filepath, "wb+")) {
         logWarn << "open mp4 file failed: " << _filepath;
         return false;
     }

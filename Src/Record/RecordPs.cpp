@@ -12,9 +12,8 @@
 using namespace std;
 
 RecordPs::RecordPs(const UrlParser& urlParser)
-    :_urlParser(urlParser)
 {
-
+    _urlParser = urlParser;
 }
 
 RecordPs::~RecordPs()

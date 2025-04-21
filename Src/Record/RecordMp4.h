@@ -13,7 +13,6 @@
 #include "EventPoller/EventLoop.h"
 #include "WorkPoller/WorkLoop.h"
 #include "Util/TimeClock.h"
-#include "Common/UrlParser.h"
 #include "Common/FrameMediaSource.h"
 #include "Record.h"
 
@@ -35,14 +34,13 @@ public:
 private:
     void onError(const string& err);
     void onPlayFrame(const FrameMediaSource::Ptr &frameSrc);
-    void tryNewSegmant(const FrameBuffer::Ptr& frame);
+    void tryNewSegment(const FrameBuffer::Ptr& frame);
 
 private:
     bool _stop = false;
     int _recordCount = 0;
     uint64_t _recordDuration = 0;
     File _file;
-    UrlParser _urlParser;
     TimeClock _clock;
     RecordTemplate::Ptr _template;
     Mp4FileWriter::Ptr _mp4Writer;

@@ -37,7 +37,6 @@ private:
 
 private:
     File _file;
-    UrlParser _urlParser;
     EventLoop::Ptr _loop;
     WorkLoop::Ptr _workLoop;
     PsMediaSource::Wptr _source;

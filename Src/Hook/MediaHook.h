@@ -35,6 +35,7 @@ public:
 
     void onKeepAlive(const ServerInfo& info) override;
     void onRegisterServer(const RegisterServerInfo& info) override;
+    void onRecord(const OnRecordInfo& info) override;
 
 private:
     bool _enableHook = true;

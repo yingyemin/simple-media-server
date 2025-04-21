@@ -187,11 +187,14 @@ void MP4Muxer::addVideoTrack(const shared_ptr<TrackInfo>& trackInfo)
     auto video = track->stsd.current = make_shared<mov_sample_entry_t>();
     track->stsd.entries.push_back(video);
 
+	int height = 0, width = 0, fps = 0;
+	trackInfo->getWidthAndHeight(width, height, fps);
+
     video->data_reference_index = 1;
     video->object_type_indication = getVideoObject(trackInfo->codec_);;
     video->stream_type = MP4_STREAM_VISUAL;
-    video->u.visual.width = trackInfo->_width;
-    video->u.visual.height = trackInfo->_height;
+    video->u.visual.width = width;//trackInfo->_width;
+    video->u.visual.height = height;//trackInfo->_height;
     video->u.visual.depth = 0x0018;
     video->u.visual.frame_count = 1;
     video->u.visual.horizresolution = 0x00480000;
@@ -207,8 +210,8 @@ void MP4Muxer::addVideoTrack(const shared_ptr<TrackInfo>& trackInfo)
     track->tkhd.track_ID = _mvhd.next_track_ID;
     track->tkhd.creation_time = _mvhd.creation_time;
     track->tkhd.modification_time = _mvhd.modification_time;
-    track->tkhd.width = trackInfo->_width << 16;
-    track->tkhd.height = trackInfo->_height << 16;
+    track->tkhd.width = width << 16; //trackInfo->_width << 16;
+    track->tkhd.height = height << 16; //trackInfo->_height << 16;
     track->tkhd.volume = 0;
     track->tkhd.duration = 0; // placeholder
 
@@ -277,7 +280,7 @@ void MP4Muxer::inputFrame(const FrameBuffer::Ptr& frame, int trackIndex, bool ke
     if (INT64_MIN == _track->start_dts)
         _track->start_dts = sample->dts;
     _mdatSize += sample->bytes; // update media data size
-	logInfo << "_mdatSize: =========== " << _mdatSize;
+	logTrace << "_mdatSize: =========== " << _mdatSize;
     // return mov_buffer_error(&mov->io);
 }
 

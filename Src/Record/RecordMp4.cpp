@@ -4,18 +4,19 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
+#include <sys/stat.h>
 
 #include "WorkPoller/WorkLoopPool.h"
 #include "Common/Config.h"
 #include "RecordMp4.h"
+#include "Common/HookManager.h"
 
 using namespace std;
 
 RecordMp4::RecordMp4(const UrlParser& urlParser, const RecordTemplate::Ptr& recordTemplate)
-    :_urlParser(urlParser)
-    ,_template(recordTemplate)
+    :_template(recordTemplate)
 {
-
+    _urlParser = urlParser;
 }
 
 RecordMp4::~RecordMp4()
@@ -50,6 +51,19 @@ bool RecordMp4::start()
         return false;
     }
     _mp4Writer->init();
+
+    _recordInfo.uri = _urlParser.path_;
+    _recordInfo.status = "on";
+    _recordInfo.startTime = time(nullptr);
+    _recordInfo.filePath = abpath;
+    _recordInfo.fileName = _urlParser.path_ + "/" 
+                    + to_string(nowTm.tm_year) + "/" + to_string(nowTm.tm_mon) 
+                    + "/" + to_string(nowTm.tm_mday) + "/" + to_string(time(nullptr)) + ".mp4";
+
+    auto hook = HookManager::instance()->getHook("MediaHook");
+    // if (hook) {
+    //     hook->onRecord(_recordInfo);
+    // }
 
     weak_ptr<RecordMp4> wSelf = dynamic_pointer_cast<RecordMp4>(shared_from_this());
     MediaSource::getOrCreateAsync(_urlParser.path_, _urlParser.vhost_, _urlParser.protocol_, _urlParser.type_, 
@@ -130,29 +144,34 @@ void RecordMp4::onPlayFrame(const FrameMediaSource::Ptr &frameSrc)
 				return;
 			}
 
-            self->tryNewSegmant(pack);
-
             // auto buffer = StreamBuffer::create();
             // buffer->assign(pack->data(), pack->size());
 
-            // auto task = make_shared<WorkTask>();
-            // task->priority_ = 100;
-            // task->func_ = [wSelf, pack](){
-            //     auto self = wSelf.lock();
-            //     if (!self) {
-            //         return ;
-            //     }
-                logInfo << "pack->keyFrame(): " << pack->keyFrame();
+            auto task = make_shared<WorkTask>();
+            task->priority_ = 100;
+            task->func_ = [wSelf, pack](){
+                auto self = wSelf.lock();
+                if (!self) {
+                    return ;
+                }
+                self->tryNewSegment(pack);
+
+                logTrace << "pack->keyFrame(): " << pack->keyFrame();
                 self->_mp4Writer->inputFrame(pack, pack->getTrackIndex(), pack->keyFrame());
-            // };
-            // self->_workLoop->addOrderTask(task);
+            };
+            self->_workLoop->addOrderTask(task);
         });
         _source = frameSrc;
 	}
 }
 
-void RecordMp4::tryNewSegmant(const FrameBuffer::Ptr& frame)
+void RecordMp4::tryNewSegment(const FrameBuffer::Ptr& frame)
 {
+    logDebug << "_template->duration: " << _template->duration;
+    logDebug << "_recordDuration: " << _recordDuration;
+    logDebug << "_clock.startToNow(): " << _clock.startToNow();
+    logDebug << "_recordDuration: " << _recordDuration;
+    logDebug << "_template->segment_duration: " << _template->segment_duration;
     if (_template->duration > 0 && _recordDuration + _clock.startToNow() > _template->duration) {
         stop();
         return ;
@@ -160,13 +179,27 @@ void RecordMp4::tryNewSegmant(const FrameBuffer::Ptr& frame)
 
     if (frame->keyFrame() && _clock.startToNow() > _template->segment_duration) {
         _recordDuration += _clock.startToNow();
-        if ((_template->segment_count > 0 && ++_recordCount > _template->segment_count) 
-                || _recordDuration + _clock.startToNow()) {
+        if ((_template->segment_count > 0 && ++_recordCount >= _template->segment_count)) {
             stop();
             return ;
         }
 
+        _clock.update();
+
         _mp4Writer->stop();
+        // _recordInfo.status = "off";
+        _recordInfo.endTime = time(nullptr);
+        _recordInfo.duration = _recordInfo.endTime - _recordInfo.startTime;
+        struct stat statbuf;
+        if (stat(_recordInfo.filePath.data(), &statbuf) == 0) {
+            _recordInfo.fileSize = statbuf.st_size;
+        }
+        
+
+        auto hook = HookManager::instance()->getHook("MediaHook");
+        if (hook) {
+            hook->onRecord(_recordInfo);
+        }
 
         static string rootPath = Config::instance()->getAndListen([](const json &config){
             rootPath = Config::instance()->get("Record", "rootPath");
@@ -188,6 +221,19 @@ void RecordMp4::tryNewSegmant(const FrameBuffer::Ptr& frame)
             return ;
         }
         _mp4Writer->init();
+        OnRecordInfo info;
+        _recordInfo = info;
+        _recordInfo.uri = _urlParser.path_;
+        _recordInfo.status = "on";
+        _recordInfo.startTime = time(nullptr);
+        _recordInfo.filePath = abpath;
+        _recordInfo.fileName = _urlParser.path_ + "/" 
+                    + to_string(nowTm.tm_year) + "/" + to_string(nowTm.tm_mon) 
+                    + "/" + to_string(nowTm.tm_mday) + "/" + to_string(time(nullptr)) + ".mp4";
+
+        // if (hook) {
+        //     hook->onRecord(_recordInfo);
+        // }
 
         auto frameSrc = _source.lock();
         if (!frameSrc) {
@@ -209,9 +255,32 @@ void RecordMp4::tryNewSegmant(const FrameBuffer::Ptr& frame)
 void RecordMp4::stop()
 {
     auto self = dynamic_pointer_cast<RecordMp4>(shared_from_this());
-    _loop->async([self](){
+    // _loop->async([self](){
+    //     self->_mp4Writer->stop();
+    // }, true);
+
+    auto task = make_shared<WorkTask>();
+    task->priority_ = 100;
+    task->func_ = [self](){
+        // auto self = wSelf.lock();
+        // if (!self) {
+        //     return ;
+        // }
         self->_mp4Writer->stop();
-    }, true);
+        self->_recordInfo.endTime = time(nullptr);
+        self->_recordInfo.duration = self->_recordInfo.endTime - self->_recordInfo.startTime;
+        struct stat statbuf;
+        if (stat(self->_recordInfo.filePath.data(), &statbuf) == 0) {
+            self->_recordInfo.fileSize = statbuf.st_size;
+        }
+        
+
+        auto hook = HookManager::instance()->getHook("MediaHook");
+        if (hook) {
+            hook->onRecord(self->_recordInfo);
+        }
+    };
+    _workLoop->addOrderTask(task);
     
     if (_onClose) {
         _onClose();

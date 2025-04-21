@@ -124,6 +124,19 @@ public:
     uint16_t rtmpServerPort = 0;
 };
 
+class OnRecordInfo
+{
+public:
+    uint64_t startTime = 0;
+    uint64_t endTime = 0;
+    uint64_t fileSize = 0;
+    uint64_t duration = 0;
+    std::string filePath;
+    std::string fileName;
+    std::string uri;
+    std::string status;
+};
+
 class HookBase : public std::enable_shared_from_this<HookBase>
 {
 public:
@@ -139,6 +152,7 @@ public:
 
     virtual void onKeepAlive(const ServerInfo& info) = 0;
     virtual void onRegisterServer(const RegisterServerInfo& info) = 0;
+    virtual void onRecord(const OnRecordInfo& info) = 0;
 };
 
 class HookManager : public std::enable_shared_from_this<HookManager>

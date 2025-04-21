@@ -305,3 +305,41 @@ void MediaHook::onRegisterServer(const RegisterServerInfo& info)
         HookManager::instance()->reportByHttp(url, "POST", value.dump());
     }
 }
+
+void MediaHook::onRecord(const OnRecordInfo& info)
+{
+    static string localIp = Config::instance()->getAndListen([](const json& config){
+        localIp = Config::instance()->get("LocalIp");
+        logInfo << "Hook url: " << localIp;
+    }, "LocalIp");
+
+    static int port = Config::instance()->getAndListen([](const json& config){
+        port = Config::instance()->get("Http", "Api", "Api1", "port");
+        logInfo << "hook port: " << port;
+    }, "Http", "Api", "Api1", "port");
+
+    auto streamInfo = split(info.uri, "/");
+
+    json value;
+    value["serverId"] = localIp + ":" + to_string(port);
+    value["startTime"] = info.startTime;
+    value["endTime"] = info.endTime;
+    value["fileSize"] = info.fileSize;
+    value["duration"] = info.duration;
+    value["filePath"] = info.filePath;
+    value["fileName"] = info.fileName;
+    value["status"] = info.status;
+    value["app"] = streamInfo[0];
+    value["stream"] = streamInfo[1];
+
+    logInfo << "record info: " << value.dump();
+
+    if (_type == "http") {
+        static string url = Config::instance()->getAndListen([](const json& config){
+            url = Config::instance()->get("Hook", "Http", "onRecordInfo");
+            logInfo << "Hook url: " << url;
+        }, "Hook", "Http", "onRecordInfo");
+
+        HookManager::instance()->reportByHttp(url, "POST", value.dump());
+    }
+}
