@@ -62,7 +62,7 @@ void TcpConnection::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* add
     logTrace << "read a packet";
 }
 
-void TcpConnection::onError()
+void TcpConnection::onError(const std::string& errMsg)
 {
     logError << "get a error";
     close();

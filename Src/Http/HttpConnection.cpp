@@ -98,13 +98,13 @@ void HttpConnection::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* ad
     _parser.parse(buffer->data(), buffer->size());
 }
 
-void HttpConnection::onError()
+void HttpConnection::onError(const string& msg)
 {
     close();
-    logWarn << "get a error: ";
+    logWarn << "get a error: " << msg;
 }
 
-void HttpConnection::onError(const string& msg)
+void HttpConnection::onHttpError(const string& msg)
 {
     HttpResponse rsp;
     rsp._status = 400;
@@ -549,7 +549,11 @@ void HttpConnection::handleGet()
         httpServerPort = Config::instance()->get("Http", "Server", "Server1", "port");
     }, "Http", "Server", "Server1", "port");
 
-    if (_socket->getLocalPort() == httpServerPort) {
+    static int httpsServerPort = Config::instance()->getAndListen([](const json &config){
+        httpsServerPort = Config::instance()->get("Http", "Server", "Server1", "sslPort");
+    }, "Http", "Server", "Server1", "sslPort");
+
+    if (_socket->getLocalPort() == httpServerPort || _socket->getLocalPort() == httpsServerPort) {
         static int interval = Config::instance()->getAndListen([](const json &config){
             interval = Config::instance()->get("Http", "Server", "Server1", "interval");
             if (interval == 0) {
@@ -590,7 +594,7 @@ void HttpConnection::handleGet()
                     HttpResponse rsp;
                     rsp._status = 400;
                     json value;
-                    value["msg"] = "path is not exist: " + self->_urlParser.path_;
+                    value["msg"] = "auth error: " + self->_urlParser.path_;
                     rsp.setContent(value.dump());
                     self->writeHttpResponse(rsp);
 
@@ -863,7 +867,7 @@ void HttpConnection::handleHlsM3u8()
 
 		auto hlsSrc = dynamic_pointer_cast<HlsMediaSource>(src);
 		if (!hlsSrc) {
-			self->onError("hls source is not exist");
+			self->onHttpError("hls source is not exist");
             return ;
 		}
 
@@ -1014,7 +1018,7 @@ void HttpConnection::handleLLHlsM3u8()
 
 		auto hlsSrc = dynamic_pointer_cast<LLHlsMediaSource>(src);
 		if (!hlsSrc) {
-			self->onError("hls source is not exist");
+			self->onHttpError("hls source is not exist");
             return ;
 		}
 
@@ -1147,7 +1151,7 @@ void HttpConnection::handleTs()
 
 		auto tsSrc = dynamic_pointer_cast<TsMediaSource>(src);
 		if (!tsSrc) {
-			self->onError("hls source is not exist");
+			self->onHttpError("hls source is not exist");
             return ;
 		}
 
@@ -1205,7 +1209,7 @@ void HttpConnection::onPlayTs(const TsMediaSource::Ptr &tsSrc)
 				return;
 			}
 			// strong_self->shutdown(SockException(Err_shutdown, "rtsp ring buffer detached"));
-			strong_self->onError("ring buffer detach");
+			strong_self->onHttpError("ring buffer detach");
 		});
 		logTrace << "setReadCB =================";
 		_playTsReader->setReadCB([wSelf](const TsMediaSource::RingDataType &pack) {
@@ -1259,7 +1263,7 @@ void HttpConnection::handlePs()
 
 		auto psSrc = dynamic_pointer_cast<PsMediaSource>(src);
 		if (!psSrc) {
-			self->onError("hls source is not exist");
+			self->onHttpError("hls source is not exist");
             return ;
 		}
 
@@ -1317,7 +1321,7 @@ void HttpConnection::onPlayPs(const PsMediaSource::Ptr &psSrc)
 				return;
 			}
 			// strong_self->shutdown(SockException(Err_shutdown, "rtsp ring buffer detached"));
-			strong_self->onError("ring buffer detach");
+			strong_self->onHttpError("ring buffer detach");
 		});
 		logTrace << "setReadCB =================";
 		_playPsReader->setReadCB([wSelf](const PsMediaSource::RingDataType &pack) {
@@ -1372,7 +1376,7 @@ void HttpConnection::handleFmp4()
 
 		auto fmp4Src = dynamic_pointer_cast<Fmp4MediaSource>(src);
 		if (!fmp4Src) {
-			self->onError("fmp4 source is not exist");
+			self->onHttpError("fmp4 source is not exist");
             return ;
 		}
 
@@ -1433,7 +1437,7 @@ void HttpConnection::onPlayFmp4(const Fmp4MediaSource::Ptr &fmp4Src)
 				return;
 			}
 			// strong_self->shutdown(SockException(Err_shutdown, "rtsp ring buffer detached"));
-			strong_self->onError("ring buffer detach");
+			strong_self->onHttpError("ring buffer detach");
 		});
 		logTrace << "setReadCB =================";
 		_playFmp4Reader->setReadCB([wSelf](const Fmp4MediaSource::RingDataType &pack) {

@@ -126,7 +126,7 @@ void PsMediaSource::onReady()
 
         std::weak_ptr<PsMediaSource> weakSelf = std::static_pointer_cast<PsMediaSource>(shared_from_this());
         _psEncodeTrack->setOnPsFrame([weakSelf](const FrameBuffer::Ptr& rtp){
-            logInfo << "mux a ps packet";
+            logTrace << "mux a ps packet";
             auto strongSelf = weakSelf.lock();
             if (!strongSelf || !strongSelf->_ring) {
                 return;
@@ -283,7 +283,7 @@ void PsMediaSource::onFrame(const FrameBuffer::Ptr& frame)
         return ;
     }
 
-    logInfo << "on get a frame: index : " << frame->getTrackIndex();
+    logTrace << "on get a frame: index : " << frame->getTrackIndex();
     // auto it = _mapGB28181EncodeTrack.find(frame->getTrackIndex());
     if (!_psEncodeTrack) {
         return ;

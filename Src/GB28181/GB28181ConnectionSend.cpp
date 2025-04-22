@@ -213,9 +213,9 @@ void GB28181ConnectionSend::onRead(const StreamBuffer::Ptr& buffer, struct socka
     }
 }
 
-void GB28181ConnectionSend::onError()
+void GB28181ConnectionSend::onError(const string& msg)
 {
-    logWarn << "get a error: ";
+    logWarn << "get a error: " << msg;
     close();
 }
 

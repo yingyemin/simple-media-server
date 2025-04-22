@@ -139,12 +139,12 @@ void TcpServer::accept(int event, void* args)
                 session->onRecv(buffer, addr, len);
                 return 0;
             });
-            socket->setErrorCb([weakSession](){
+            socket->setErrorCb([weakSession](const std::string& errMsg){
                 auto session = weakSession.lock();
                 if (!session) {
                     return -1;
                 }
-                session->onError();
+                session->onError(errMsg);
                 return 0;
             });
             

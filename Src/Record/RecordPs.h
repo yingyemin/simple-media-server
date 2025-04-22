@@ -10,6 +10,7 @@
 
 #include "Net/Buffer.h"
 #include "Util/File.h"
+#include "Util/TimeClock.h"
 #include "EventPoller/EventLoop.h"
 #include "WorkPoller/WorkLoop.h"
 #include "Common/UrlParser.h"
@@ -23,7 +24,7 @@ class RecordPs : public Record
 public:
     using Ptr = shared_ptr<RecordPs>;
 
-    RecordPs(const UrlParser& urlParser);
+    RecordPs(const UrlParser& urlParser, const RecordTemplate::Ptr& recordTemplate);
     ~RecordPs();
 
 public:
@@ -34,9 +35,14 @@ public:
 private:
     void onError(const string& err);
     void onPlayPs(const PsMediaSource::Ptr &psSrc);
+    void tryNewSegment(const FrameBuffer::Ptr& frame);
 
 private:
-    File _file;
+    int _recordCount = 0;
+    uint64_t _recordDuration = 0;
+    TimeClock _clock;
+    std::shared_ptr<File> _file;
+    RecordTemplate::Ptr _template;
     EventLoop::Ptr _loop;
     WorkLoop::Ptr _workLoop;
     PsMediaSource::Wptr _source;

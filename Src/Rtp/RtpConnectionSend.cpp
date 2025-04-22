@@ -214,9 +214,9 @@ void RtpConnectionSend::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr*
     }
 }
 
-void RtpConnectionSend::onError()
+void RtpConnectionSend::onError(const string& msg)
 {
-    logWarn << "get a error: ";
+    logWarn << "get a error: " << msg;
     close();
 }
 

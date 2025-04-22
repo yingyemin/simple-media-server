@@ -433,7 +433,7 @@ int Socket::connect(const string& peerIp, int port, int timeout)
     if (errno == 115) {
         addToEpoll();
         weak_ptr<Socket> wSelf = shared_from_this();
-        _loop->addTimerTask(timeout * 1000, [wSelf](){
+        _loop->addTimerTask(timeout * 1000, [wSelf, peerIp, port](){
             // logInfo << "time task start";
             auto self = wSelf.lock();
             if (!self) {
@@ -443,7 +443,8 @@ int Socket::connect(const string& peerIp, int port, int timeout)
             if (self->_isConnected) {
                 return 0;
             }
-            self->onError(nullptr);
+
+            self->onError("connect timeout, peer ip: " + peerIp + ", port: " + to_string(port));
             return 0;
         }, [](bool success, const shared_ptr<TimerTask>& task){});
 
@@ -472,8 +473,8 @@ void Socket::handleEvent(int event, void* args)
         onWrite(args);
     } 
     if (event & EPOLLERR || event & EPOLLHUP) {
-        logInfo << "handle error";
-        onError(args);
+        // logInfo << "handle error";
+        onError(strerror(errno), args);
     }
 }
 
@@ -526,7 +527,7 @@ int Socket::onRead(void* args)
 
         if (nread == 0) {
             if (_type == 1) {
-                onError(nullptr);
+                onError("end of file");
             } else {
                 logInfo << "Recv eof on udp socket[" << _fd << "]";
             }
@@ -586,11 +587,11 @@ int Socket::onWrite(void* args)
     return 0;
 }
 
-int Socket::onError(void* args)
+int Socket::onError(const std::string& errMsg, void* args)
 {
-    logInfo << "get a socket err: " << strerror(errno);
+    // logInfo << "get a socket err: " << strerror(errno);
     weak_ptr<Socket> weakSelf = shared_from_this();
-    _loop->async([weakSelf](){
+    _loop->async([weakSelf, errMsg](){
         auto self = weakSelf.lock();
         if (!self) {
             return ;
@@ -598,7 +599,9 @@ int Socket::onError(void* args)
         self->_sendBuffer = nullptr;
         self->_readyBuffer.clear();
         // self->close();
-        self->_onError();
+        if (self->_onError) {
+            self->_onError(errMsg);
+        }
     }, true, false);
 
     return 0;

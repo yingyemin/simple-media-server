@@ -45,7 +45,7 @@ void RecordApi::startRecord(const HttpParser& parser, const UrlParser& urlParser
     Record::Ptr record;
     if (format == "ps") {
         recordUrlParser.protocol_ = PROTOCOL_PS;
-        record = make_shared<RecordPs>(recordUrlParser);
+        record = make_shared<RecordPs>(recordUrlParser, recordTemplate);
     } else if (format == "mp4") {
         recordUrlParser.protocol_ = PROTOCOL_MP4;
         record = make_shared<RecordMp4>(recordUrlParser, recordTemplate);

@@ -105,10 +105,10 @@ void RtmpConnection::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* ad
     }
 }
 
-void RtmpConnection::onError()
+void RtmpConnection::onError(const string& msg)
 {
     close();
-    logWarn << "get a error: ";
+    logWarn << "get a error: " << msg;
 }
 
 ssize_t RtmpConnection::send(Buffer::Ptr pkt)
@@ -232,7 +232,7 @@ bool RtmpConnection::handleInvoke(RtmpMessage& rtmp_msg)
                     }
 
                     if (!rsp.authResult) {
-                        self->onError();
+                        self->onError("publish auth failed");
                         return ;
                     }
 
@@ -295,7 +295,7 @@ bool RtmpConnection::handleInvoke(RtmpMessage& rtmp_msg)
                     }
 
                     if (!rsp.authResult) {
-                        self->onError();
+                        self->onError("play auth failed");
                         return ;
                     }
 
@@ -1021,7 +1021,7 @@ void RtmpConnection::responsePlay(const MediaSource::Ptr &src)
             ret.close_ = [wSelf](){
                 auto self = wSelf.lock();
                 if (self) {
-                    self->onError();
+                    self->onError("close by remote");
                 }
             };
             return ret;

@@ -30,8 +30,8 @@ public:
     int getTrackType() {return _trackType;}
     int getTrackIndex() {return _index;}
 
-    virtual bool keyFrame() const { return false; }
-    virtual bool metaFrame() const { return false; }
+    virtual bool keyFrame() const { return _isKeyframe; }
+    virtual bool metaFrame() const { return _isKeyframe; }
     virtual bool startFrame() const { return false; }
     virtual uint8_t getNalType() { return 0;}
     virtual void split(const function<void(const FrameBuffer::Ptr& frame)>& cb) {cb(shared_from_this());}

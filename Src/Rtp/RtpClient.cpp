@@ -95,11 +95,13 @@ bool RtpClient::start(const string& localIp, int localPort, const string& url, i
         return 0;
     });
 
-    _socket->setErrorCb([wSelf](){
+    _socket->setErrorCb([wSelf](const std::string& errMsg){
         auto self = wSelf.lock();
         if (self) {
             self->stop();
         }
+
+        logDebug << "RtpClient::onError " << errMsg;
     });
 
     return true;

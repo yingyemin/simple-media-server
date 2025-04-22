@@ -60,10 +60,10 @@ void Ehome2Connection::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* 
     _parser.parse(buffer->data(), buffer->size());
 }
 
-void Ehome2Connection::onError()
+void Ehome2Connection::onError(const string& msg)
 {
     close();
-    logWarn << "get a error: ";
+    logWarn << "get a error: " << msg;
 }
 
 ssize_t Ehome2Connection::send(Buffer::Ptr pkt)

@@ -260,6 +260,8 @@ void MP4Muxer::inputFrame(const FrameBuffer::Ptr& frame, int trackIndex, bool ke
     sample->pts = pts;
     sample->dts = dts;
 
+	logTrace << "sample->dts: " << sample->dts << ", tag: " << _track->tag;
+
     sample->offset = tell();
     _track->samples.push_back(sample);
 
@@ -974,6 +976,8 @@ uint32_t MP4Muxer::mov_build_stts(mov_track_t* track)
     for (i = 0; i < track->sample_count; i++)
     {
 		if (i < (track->sample_count - 1)) {
+			logDebug << "track->samples[i + 1]->dts: " << track->samples[i + 1]->dts;
+			logDebug << "track->samples[i]->dts: " << track->samples[i]->dts;
 			assert(track->samples[i + 1]->dts >= track->samples[i]->dts || i + 1 == track->sample_count);
 		}
         delta = (uint32_t)(i < (track->sample_count - 1) && track->samples[i + 1]->dts > track->samples[i]->dts ? track->samples[i + 1]->dts - track->samples[i]->dts : 1);

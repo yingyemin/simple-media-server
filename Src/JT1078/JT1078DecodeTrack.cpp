@@ -51,6 +51,9 @@ void JT1078DecodeTrack::onRtpPacket(const JT1078RtpPacket::Ptr& rtp)
             _trackInfo = TrackInfo::createTrackInfo(rtp->getCodecType());
             if (_trackInfo) {
                 onTrackInfo(_trackInfo);
+            } else {
+                logDebug << "创建TrackInfo失败";
+                return ;
             }
 
             int startSize = 0;
@@ -69,6 +72,9 @@ void JT1078DecodeTrack::onRtpPacket(const JT1078RtpPacket::Ptr& rtp)
             }
             if (_trackInfo) {
                 onTrackInfo(_trackInfo);
+            } else {
+                logDebug << "创建TrackInfo失败";
+                return ;
             }
 
             int startSize = 0;
@@ -264,6 +270,16 @@ void JT1078DecodeTrack::createFrame()
 
 void JT1078DecodeTrack::decodeRtp(const JT1078RtpPacket::Ptr& rtp)
 {
+    if (!rtp) {
+        logInfo << "rtp is empty";
+        return ;
+    }
+
+    if (!_trackInfo) {
+        logInfo << "_trackInfo is empty, codec: " << rtp->getCodecType();
+        return ;
+    }
+
     if (rtp->getTrackType() != "audio" && rtp->getTrackType() != "video") {
         logInfo << " get a JT1078_Passthrough packet";
         return ;

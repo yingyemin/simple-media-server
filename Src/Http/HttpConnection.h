@@ -39,7 +39,7 @@ public:
 public:
     // 继承自tcpseesion
     virtual void onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len) override;
-    void onError() override;
+    void onError(const string& msg) override;
     void onManager() override;
     void init() override;
     void close() override;
@@ -85,7 +85,7 @@ protected:
     void onPlayFmp4(const Fmp4MediaSource::Ptr &fmp4Src);
 #endif
 
-    void onError(const string& msg);
+    void onHttpError(const string& msg);
 
 protected:
     bool _isChunked = false;

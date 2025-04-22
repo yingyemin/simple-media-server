@@ -157,6 +157,7 @@ int PsMuxer::encode(const FrameBuffer::Ptr& frame)
 
         _psFrame->_buffer.append(pBuff, nSize);
         if (_onPsFrame) {
+            _psFrame->_isKeyframe = frame->metaFrame();
             _onPsFrame(_psFrame);
         }
 

@@ -84,7 +84,7 @@ void WebsocketConnection::onWebsocketFrame(const char* data, int len)
                 }
 
                 if (!rsp.authResult) {
-                    self->onError();
+                    self->onError("publish auth failed");
                     return ;
                 }
 

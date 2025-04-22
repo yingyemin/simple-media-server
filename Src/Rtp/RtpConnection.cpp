@@ -65,10 +65,10 @@ void RtpConnection::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* add
     _parser.parse(buffer->data(), buffer->size());
 }
 
-void RtpConnection::onError()
+void RtpConnection::onError(const std::string& errMsg)
 {
     close();
-    logWarn << "get a error: ";
+    logWarn << "get a error: " << errMsg;
 }
 
 ssize_t RtpConnection::send(Buffer::Ptr pkt)
@@ -85,7 +85,7 @@ void RtpConnection::onRtpPacket(const RtpPacket::Ptr& rtp)
 
     if (rtp->getHeader()->version != 2) {
         // rtp version必须是2.否则，可能是tcp流错位了，或者rtp包有问题
-        onError();
+        onError("rtp version must be 2");
         return ;
     }
 

@@ -27,7 +27,7 @@ public:
 public:
     virtual void onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len);
     virtual void onRecv(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len);
-    virtual void onError();
+    virtual void onError(const std::string& errMsg);
     virtual void onManager();
     virtual void init() {}
     virtual void close();

@@ -57,10 +57,9 @@ void WebrtcConnection::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* 
     _parser.parse(buffer->data(), buffer->size());
 }
 
-void WebrtcConnection::onError()
+void WebrtcConnection::onError(const string& msg)
 {
     close();
-    logWarn << "get a error: ";
 }
 
 ssize_t WebrtcConnection::send(Buffer::Ptr pkt)

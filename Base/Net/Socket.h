@@ -48,7 +48,7 @@ public:
     using Wptr = weak_ptr<Socket>;
     using onReadCb = function<int(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)>;
     using onWriteCb = function<void()>;
-    using onErrorCb = function<void()>;
+    using onErrorCb = function<void(const std::string& errMsg)>;
     Socket(const EventLoop::Ptr& loop);
     Socket(const EventLoop::Ptr& loop, int fd);
     ~Socket();
@@ -96,7 +96,7 @@ public:
 
     int onRead(void* args);
     int onWrite(void* args);
-    int onError(void* args);
+    int onError(const std::string& errMsg, void* args = nullptr);
     bool onGetBuffer();
     int close();
 

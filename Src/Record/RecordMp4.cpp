@@ -60,7 +60,7 @@ bool RecordMp4::start()
                     + to_string(nowTm.tm_year) + "/" + to_string(nowTm.tm_mon) 
                     + "/" + to_string(nowTm.tm_mday) + "/" + to_string(time(nullptr)) + ".mp4";
 
-    auto hook = HookManager::instance()->getHook("MediaHook");
+    // auto hook = HookManager::instance()->getHook("MediaHook");
     // if (hook) {
     //     hook->onRecord(_recordInfo);
     // }
@@ -177,7 +177,7 @@ void RecordMp4::tryNewSegment(const FrameBuffer::Ptr& frame)
         return ;
     }
 
-    if (frame->keyFrame() && _clock.startToNow() > _template->segment_duration) {
+    if ((frame->keyFrame() || frame->metaFrame()) && _clock.startToNow() > _template->segment_duration) {
         _recordDuration += _clock.startToNow();
         if ((_template->segment_count > 0 && ++_recordCount >= _template->segment_count)) {
             stop();

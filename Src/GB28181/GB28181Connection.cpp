@@ -61,10 +61,10 @@ void GB28181Connection::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr*
     _parser.parse(buffer->data(), buffer->size());
 }
 
-void GB28181Connection::onError()
+void GB28181Connection::onError(const string& msg)
 {
     close();
-    logWarn << "get a error: ; ssrc: " << _ssrc;
+    logWarn << "get a error: " << msg << "; ssrc: " << _ssrc;
 }
 
 ssize_t GB28181Connection::send(Buffer::Ptr pkt)
@@ -81,7 +81,7 @@ void GB28181Connection::onRtpPacket(const RtpPacket::Ptr& rtp)
 
     if (rtp->getHeader()->version != 2) {
         // rtp version必须是2.否则，可能是tcp流错位了，或者rtp包有问题
-        onError();
+        onError("rtp version is not 2");
         return ;
     }
 

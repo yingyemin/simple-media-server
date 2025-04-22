@@ -30,18 +30,18 @@ public:
     static void init();
 
 public:
-    bool start();
-    void stop();
-    void close();
+    virtual bool start();
+    virtual void stop();
+    virtual void close();
+    virtual void seek(uint64_t timeStamp) = 0;
+    virtual void pause(bool isPause) = 0;
+    virtual void scale(float scale) = 0;
     void setOnTrackInfo(const function<void(const TrackInfo::Ptr& trackInfo)>& cb);
     void setOnReady(const function<void()>& cb);
     void setOnFrame(const function<void(const FrameBuffer::Ptr& frame)>& cb);
     void setOnClose(const function<void()>& cb);
 
-private:
-    bool readMp4(const string& path);
-
-private:
+protected:
     uint64_t _lastFrameTime = 0;
     string _filePath;
     File _file;

@@ -88,13 +88,13 @@ int TcpClient::create(const string& localIp, int localPort)
         self->onRecv(buffer, addr, len);
         return 0;
     });
-    _socket->setErrorCb([wSelf](){
+    _socket->setErrorCb([wSelf](const std::string& errMsg){
         auto self = wSelf.lock();
         if (!self) {
             return -1;
         }
         
-        self->onError(strerror(errno));
+        self->onError(errMsg);
 
         return 0;
     });

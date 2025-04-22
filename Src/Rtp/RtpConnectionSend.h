@@ -28,7 +28,7 @@ public:
 public:
     // 继承自tcpseesion
     void onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len) override;
-    void onError() override;
+    void onError(const string& msg) override;
     void onManager() override;
     void init() override;
     void close() override;

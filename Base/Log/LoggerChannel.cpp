@@ -213,7 +213,7 @@ static string getLogFilePath(const string &dir, const string &prefixName, time_t
     //struct tm *tm = localtime(&second);
     auto tm = TimeClock::localtime(second);
     char buf[128];
-    snprintf(buf, sizeof(buf), "%s.%d-%02d-%02d_%02d.log", prefixName.c_str(), 1900 + tm.tm_year, 1 + tm.tm_mon, tm.tm_mday, index);
+    snprintf(buf, sizeof(buf), "%s.%d-%02d-%02d_%02d.log", prefixName.c_str(), tm.tm_year, tm.tm_mon, tm.tm_mday, index);
     
     return dir + buf;
 }

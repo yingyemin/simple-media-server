@@ -102,10 +102,10 @@ void JT1078Connection::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* 
     _parser.parse(buffer->data(), buffer->size());
 }
 
-void JT1078Connection::onError()
+void JT1078Connection::onError(const string& msg)
 {
     close();
-    logWarn << "get a error: ";
+    logWarn << "get a error: " << msg;
 }
 
 ssize_t JT1078Connection::send(Buffer::Ptr pkt)
@@ -148,7 +148,7 @@ void JT1078Connection::onRtpPacket(const JT1078RtpPacket::Ptr& buffer)
                 }
 
                 if (!rsp.authResult) {
-                    self->onError();
+                    self->onError("publish auth failed");
                     return ;
                 }
 

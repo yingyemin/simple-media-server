@@ -96,10 +96,10 @@ void RtspConnection::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* ad
     _parser.parse(buffer->data(), buffer->size());
 }
 
-void RtspConnection::onError()
+void RtspConnection::onError(const string& msg)
 {
     close();
-    logWarn << "get a error: ";
+    logWarn << "get a error: " << msg;
 }
 
 ssize_t RtspConnection::send(Buffer::Ptr pkt)
@@ -882,7 +882,7 @@ void RtspConnection::handlePlay()
             ret.close_ = [weak_self](){
                 auto self = weak_self.lock();
                 if (self) {
-                    self->onError();
+                    self->onError("close by remote");
                 }
             };
             ret.bitrate_ = self->_lastBitrate;
