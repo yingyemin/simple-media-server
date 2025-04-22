@@ -72,6 +72,7 @@ public:
 
 public:
     bool open(const string& filePath, const string& mode);
+    void close();
     int getFileSize();
     StreamBuffer::Ptr read(int size = 1024 * 1024);
     int read(char* data, int size = 1024 * 1024);

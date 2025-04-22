@@ -47,7 +47,7 @@ bool File::createDir(const char *file, unsigned int mod) {
             break;
         }
         if (access(dir.c_str(), 0) == -1) { //access函数是查看是不是存在
-            if (mkdir(dir.c_str(), mod) == -1) {  //如果不存在就用mkdir函数来创建
+            if (mkdir(dir.c_str(), 0777) == -1) {  //如果不存在就用mkdir函数来创建
                 return false;
             }
         }
@@ -278,10 +278,7 @@ File::File()
 
 File::~File()
 {
-    if (_fp) {
-        fclose(_fp);
-        _fp = nullptr;
-    }
+    close();
 }
 
 bool File::open(const string& filePath, const string& mode)
@@ -289,6 +286,8 @@ bool File::open(const string& filePath, const string& mode)
     if (_fp) {
         return true;
     }
+
+    createDir(filePath.c_str(), 0755);
 
     _filePath = filePath;
     _fp = fopen(_filePath.data(), mode.c_str());
@@ -299,6 +298,14 @@ bool File::open(const string& filePath, const string& mode)
     }
 
     return true;
+}
+
+void File::close()
+{
+    if (_fp) {
+        fclose(_fp);
+        _fp = nullptr;
+    }
 }
 
 StreamBuffer::Ptr File::read(int size)
