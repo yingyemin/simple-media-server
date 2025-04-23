@@ -25,7 +25,7 @@ JT1078DecodeTrack::JT1078DecodeTrack(int trackIndex)
 
 void JT1078DecodeTrack::onRtpPacket(const JT1078RtpPacket::Ptr& rtp)
 {
-    if (!_trackInfo) {
+    if (!_trackInfo && !_createInfoFailed) {
         if (rtp->getTrackType() == "video") {
             // if (rtp->getCodecType() == "h264") {
             //     auto trackInfo = H264Track::createTrack(_index, 96, 90000);
@@ -53,6 +53,7 @@ void JT1078DecodeTrack::onRtpPacket(const JT1078RtpPacket::Ptr& rtp)
                 onTrackInfo(_trackInfo);
             } else {
                 logDebug << "创建TrackInfo失败";
+                _createInfoFailed = true;
                 return ;
             }
 
@@ -74,6 +75,7 @@ void JT1078DecodeTrack::onRtpPacket(const JT1078RtpPacket::Ptr& rtp)
                 onTrackInfo(_trackInfo);
             } else {
                 logDebug << "创建TrackInfo失败";
+                _createInfoFailed = true;
                 return ;
             }
 
@@ -116,7 +118,7 @@ void JT1078DecodeTrack::onRtpPacket(const JT1078RtpPacket::Ptr& rtp)
         }
     }
 
-    if (_onRtpPacket) {
+    if (_onRtpPacket && _trackInfo) {
         _onRtpPacket(rtp, rtp->isStartGop());
     }
 }
@@ -271,12 +273,12 @@ void JT1078DecodeTrack::createFrame()
 void JT1078DecodeTrack::decodeRtp(const JT1078RtpPacket::Ptr& rtp)
 {
     if (!rtp) {
-        logInfo << "rtp is empty";
+        logDebug << "rtp is empty";
         return ;
     }
 
     if (!_trackInfo) {
-        logInfo << "_trackInfo is empty, codec: " << rtp->getCodecType();
+        logDebug << "_trackInfo is empty, codec: " << rtp->getCodecType();
         return ;
     }
 

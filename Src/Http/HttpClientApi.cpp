@@ -93,7 +93,7 @@ void HttpClientApi::reportByHttp(const string& url, const string&method, const s
         // logInfo << "method: " << parser._method;
         // logInfo << "_content: " << parser._content;
 
-        logInfo << "client: " << client << ", url: " << url << ", response: " << parser._content;
+        logDebug << "client: " << client << ", url: " << url << ", response: " << parser._content;
         if (parser._url != "200") {
             cb("http error", "");
         }
@@ -101,13 +101,13 @@ void HttpClientApi::reportByHttp(const string& url, const string&method, const s
             json value = json::parse(parser._content);
             cb("", value);
         } catch (exception& ex) {
-            logInfo << url << ", json parse failed: " << ex.what();
+            logDebug << url << ", json parse failed: " << ex.what();
             cb(ex.what(), nullptr);
         }
 
         const_cast<shared_ptr<HttpClientApi> &>(client).reset();
     });
-    logInfo << "connect to url: " << url << ", body: " << msg << ", client: " << client;
+    logDebug << "connect to url: " << url << ", body: " << msg << ", client: " << client;
     if (client->sendHeader(url, timeout) != 0) {
         cb("connect to url: " + url + " failed", nullptr);
     }

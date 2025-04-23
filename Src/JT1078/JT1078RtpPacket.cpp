@@ -65,7 +65,7 @@ string JT1078RtpPacket::getCodecType()
         _codec = "h265";
         break;
     default:
-        logInfo << "invalid payload type: " << (int)_header->pt;
+        logTrace << "invalid payload type: " << (int)_header->pt;
         break;
     }
 
@@ -96,7 +96,7 @@ JT1078_STREAM_TYPE JT1078RtpPacket::getStreamType()
         _streamType = JT1078_Passthrough;
         break;
     default:
-        printf("不支持的流类型\n");
+        logTrace << "不支持的流类型: " << (int)_header->dataType;
         break;
     }
 
@@ -135,7 +135,7 @@ JT1078_SUBMARK JT1078RtpPacket::getSubMark()
         _subMark = JT1078_Intermediate; 
         break;
     default:
-        printf("不支持的分包处理标识\n");
+        logTrace << "不支持的分包处理标识" << (int)_header->subPackageHandleMark;
     }
 
     return _subMark;

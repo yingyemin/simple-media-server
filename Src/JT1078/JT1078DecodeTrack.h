@@ -44,6 +44,7 @@ private:
     bool _lossRtp = false;
     bool _ready = false;
     bool _setAacCfg = false;
+    bool _createInfoFailed = false;
     int _index;
     int _type;
     uint16_t _lastSeq = 0;

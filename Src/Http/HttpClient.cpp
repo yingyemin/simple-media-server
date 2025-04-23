@@ -151,7 +151,7 @@ void HttpClient::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, 
 
 void HttpClient::onError(const string& err)
 {
-    logInfo << "HttpClient::onError " << err;
+    logDebug << "HttpClient::onError " << err;
     close();
 }
 
