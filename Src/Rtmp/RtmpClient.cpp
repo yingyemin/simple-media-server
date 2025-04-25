@@ -494,7 +494,8 @@ bool RtmpClient::handlePlay()
     rtmpSrc->setOrigin();
     rtmpSrc->setOriginSocket(_socket);
     rtmpSrc->setAction(false);
-    // weak_ptr<RtmpConnection> wSelf = dynamic_pointer_cast<RtmpConnection>(shared_from_this());
+    rtmpSrc->setOriginSocket(_socket);
+    weak_ptr<RtmpClient> wSelf = dynamic_pointer_cast<RtmpClient>(shared_from_this());
 
     _source = rtmpSrc; 
 
@@ -503,6 +504,14 @@ bool RtmpClient::handlePlay()
         rtmpSrc->addOnReady(iter.first, iter.second);
     }
     _mapOnReady.clear();
+
+    rtmpSrc->addOnDetach(this, [wSelf](){
+        auto self = wSelf.lock();
+        if (!self) {
+            return ;
+        }
+        self->close();
+    });
 
     return true;
 }

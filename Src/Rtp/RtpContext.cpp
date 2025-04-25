@@ -20,6 +20,10 @@ RtpContext::RtpContext(const EventLoop::Ptr& loop, const string& uri, const stri
     ,_type(type)
     ,_loop(loop)
 {
+    _payloadType = Config::instance()->get("Rtp", "Server", "Server1", "defaultPT");
+    if (_payloadType.empty()) {
+        _payloadType = "ps";
+    }
 }
 
 RtpContext::~RtpContext()

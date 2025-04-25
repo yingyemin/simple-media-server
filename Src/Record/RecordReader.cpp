@@ -9,11 +9,11 @@
 #include "Util/String.h"
 #include "WorkPoller/WorkLoopPool.h"
 #include "RecordReaderMp4.h"
+#include "RecordReaderPs.h"
 
 using namespace std;
 
 RecordReader::RecordReader(const string& path)
-    :_filePath(path)
 {
 
 }
@@ -27,9 +27,10 @@ void RecordReader::init()
 {
     RecordReaderBase::registerCreateFunc([](const string& path) -> RecordReaderBase::Ptr {
         string ext= path.substr(path.rfind('.') + 1);
+        ext = ext.substr(0, ext.find_first_of("/"));
 #ifdef ENABLE_MPEG
         if (!strcasecmp(ext.data(), "ps") || !strcasecmp(ext.data(), "mpeg")) {
-            return make_shared<RecordReaderMp4>(path);
+            return make_shared<RecordReaderPs>(path);
         }
 #endif
 #ifdef ENABLE_MP4

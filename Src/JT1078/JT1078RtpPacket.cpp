@@ -12,10 +12,16 @@
 
 using namespace std;
 
-JT1078RtpPacket::JT1078RtpPacket(const StreamBuffer::Ptr& buffer)
+JT1078RtpPacket::JT1078RtpPacket(const StreamBuffer::Ptr& buffer, JT1078_VERSION version)
+    :_version(version)
+    ,_buffer(buffer)
 {
-    _buffer = buffer;
-    _header = (JT1078RtpHeader*)(data());
+    // _buffer = buffer;
+    if (version == JT1078_2016) {
+        _header = (JT1078RtpHeader*)(data());
+    } else {
+        _header2019 = (JT1078RtpHeader2019*)(data());
+    }
 }
 
 char* JT1078RtpPacket::getPayload()
@@ -43,9 +49,18 @@ StreamBuffer::Ptr JT1078RtpPacket::buffer()
     return _buffer;
 }
 
+uint8_t JT1078RtpPacket::getPt() 
+{
+    if (_version == JT1078_2016) {
+        return _header->pt;
+    } else {
+        return _header2019->pt;
+    }
+}
+
 string JT1078RtpPacket::getCodecType()
 {
-    switch (_header->pt) {
+    switch (getPt()) {
     case 6:
         _codec = "g711a";
         break;
@@ -65,16 +80,25 @@ string JT1078RtpPacket::getCodecType()
         _codec = "h265";
         break;
     default:
-        logTrace << "invalid payload type: " << (int)_header->pt;
+        logTrace << "invalid payload type: " << (int)getPt();
         break;
     }
 
     return _codec;
 }
 
+uint8_t JT1078RtpPacket::getDataType()
+{
+    if (_version == JT1078_2016) {
+        return _header->dataType;
+    } else {
+        return _header2019->dataType;
+    }
+}
+
 JT1078_STREAM_TYPE JT1078RtpPacket::getStreamType()
 {
-    switch (_header->dataType)
+    switch (getDataType())
     {
     case 0x00://I
         _streamType = JT1078_VideoI;
@@ -96,7 +120,7 @@ JT1078_STREAM_TYPE JT1078RtpPacket::getStreamType()
         _streamType = JT1078_Passthrough;
         break;
     default:
-        logTrace << "不支持的流类型: " << (int)_header->dataType;
+        logTrace << "不支持的流类型: " << (int)getDataType();
         break;
     }
 
@@ -113,14 +137,50 @@ string JT1078RtpPacket::getTrackType()
     return _type;
 }
 
+uint16_t JT1078RtpPacket::getHeaderSeq()
+{
+    if (_version == JT1078_2016) {
+        return _header->seq;
+    } else {
+        return _header2019->seq;
+    }
+}
+
+int JT1078RtpPacket::getLogicNo()
+{
+    if (_version == JT1078_2016) {
+        return _header->logicChannelNumber;
+    } else {
+        return _header2019->logicChannelNumber;
+    }
+}
+
+uint8_t JT1078RtpPacket::getHeaderSubMark()
+{
+    if (_version == JT1078_2016) {
+        return _header->subPackageHandleMark;
+    } else {
+        return _header2019->subPackageHandleMark;
+    }
+}
+
+bool JT1078RtpPacket::getMark()
+{
+    if (_version == JT1078_2016) {
+        return _header->mark;
+    } else {
+        return _header2019->mark;
+    }
+}
+
 uint16_t JT1078RtpPacket::getSeq()
 {
-    return ntohs(_header->seq);
+    return ntohs(getHeaderSeq());
 }
 
 JT1078_SUBMARK JT1078RtpPacket::getSubMark()
 {
-    switch (_header->subPackageHandleMark)
+    switch (getHeaderSubMark())
     {
     case 0x00:
         _subMark = JT1078_Atomic; 
@@ -135,29 +195,54 @@ JT1078_SUBMARK JT1078RtpPacket::getSubMark()
         _subMark = JT1078_Intermediate; 
         break;
     default:
-        logTrace << "不支持的分包处理标识" << (int)_header->subPackageHandleMark;
+        logTrace << "不支持的分包处理标识" << (int)getHeaderSubMark();
     }
 
     return _subMark;
 }
 
+// string JT1078RtpPacket::getSimCode()
+// {
+//     string simCode;
+//     size_t pos = 0;
+//     uint8_t tmp = _header->simNo[pos];
+//     tmp = (tmp >> 4) * 10 + (tmp & 0x0f);
+    
+//     if (tmp / 10 == 0) {
+//         simCode.push_back(tmp % 10 + '0');
+//         ++pos;
+//     }
+//     for (; pos < 6; ++pos) {
+//         tmp = _header->simNo[pos];
+//         tmp = (tmp >> 4) * 10 + (tmp & 0x0f);
+
+//         simCode.push_back(tmp / 10 + '0');
+//         simCode.push_back(tmp % 10 + '0');
+//     }
+
+//     return simCode;
+// }
+
 string JT1078RtpPacket::getSimCode()
 {
     string simCode;
-    size_t pos = 0;
-    uint8_t tmp = _header->simNo[pos];
-    tmp = (tmp >> 4) * 10 + (tmp & 0x0f);
-    
-    if (tmp / 10 == 0) {
-        simCode.push_back(tmp % 10 + '0');
-        ++pos;
-    }
-    for (; pos < 6; ++pos) {
-        tmp = _header->simNo[pos];
-        tmp = (tmp >> 4) * 10 + (tmp & 0x0f);
+    uint8_t tmp;
+    if (_version == JT1078_2016) {
+        for (size_t pos = 0; pos < 6; ++pos) {
+            tmp = _header->simNo[pos];
+            tmp = (tmp >> 4) * 10 + (tmp & 0x0f);
 
-        simCode.push_back(tmp / 10 + '0');
-        simCode.push_back(tmp % 10 + '0');
+            simCode.push_back(tmp / 10 + '0');
+            simCode.push_back(tmp % 10 + '0');
+        }
+    } else {
+        for (size_t pos = 0; pos < 10; ++pos) {
+            tmp = _header2019->simNo[pos];
+            tmp = (tmp >> 4) * 10 + (tmp & 0x0f);
+
+            simCode.push_back(tmp / 10 + '0');
+            simCode.push_back(tmp % 10 + '0');
+        }
     }
 
     return simCode;
@@ -166,7 +251,11 @@ string JT1078RtpPacket::getSimCode()
 uint64_t JT1078RtpPacket::getTimestamp()
 {
     if (getStreamType() < 4) {
-        unsigned char* payload = (unsigned char*)_buffer->data() + 16;
+        int offset = 16;
+        if (_version == JT1078_2019) {
+            offset = 20;
+        }
+        unsigned char* payload = (unsigned char*)_buffer->data() + offset;
         uint64_t stamp = 0;
         for (uint8_t i = 0; i < 8; i++)
         {

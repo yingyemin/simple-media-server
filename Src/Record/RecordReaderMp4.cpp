@@ -12,10 +12,21 @@
 
 using namespace std;
 
+// 本地文件点播的url格式 rtmp://127.0.0.1/file/live/test.mp4/3
+// 录像回放的url格式 rtmp://127.0.0.1/record/live/test/{starttime}/{endtime}
+// 云端录像回放的url格式 rtmp://127.0.0.1/cloud/live/test/{starttime}/{endtime}，云端录像回放需要向管理服务拿一下云端地址
+// 目录点播 rtmp://127.0.0.1/dir/live/test/3
+
+// 一级路径 file/record/cloud/dir表示点播类型。
+// 最后一级 3，表示循环次数，0表示无限循环
+// 录像回放暂不设置循环参数
 RecordReaderMp4::RecordReaderMp4(const string& path)
     :RecordReader(path)
 {
-
+    auto tmpPath = path.substr(path.find_first_of("/", 1) + 1);
+    int pos = tmpPath.find_last_of("/");
+    _filePath = tmpPath.substr(0, pos);
+    _loopCount = stoi(tmpPath.substr(pos + 1));
 }
 
 RecordReaderMp4::~RecordReaderMp4()
@@ -79,10 +90,10 @@ bool RecordReaderMp4::start()
         if (!self) {
             return 0;
         }
-        logInfo << "start to read mp4";
+        logDebug << "start to read mp4";
 
         while (true) {
-            logInfo << "self->_frameList size: " << self->_frameList.size();
+            logDebug << "self->_frameList size: " << self->_frameList.size();
             if (!self->_frameList.empty()) {
                 if (self->_onFrame) {
                     auto frame = self->_frameList.front();

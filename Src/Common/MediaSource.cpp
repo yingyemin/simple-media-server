@@ -17,8 +17,7 @@ using namespace std;
 
 recursive_mutex MediaSource::_mtxTotalSource;
 unordered_map<string/*uri*/ , MediaSource::Ptr> MediaSource::_totalSource;
-MediaClient::Ptr MediaSource::_player;
-unordered_map<MediaClient*, MediaClient::Ptr> MediaSource::_mapPusher;
+unordered_map<MediaClient*, MediaClient::Ptr> MediaSource::_mapPlayer;
 
 mutex MediaSource::_mtxRegister;
 unordered_map<string/*uri_vhost_protocol_type*/ , vector<MediaSource::onReadyFunc>> MediaSource::_mapRegisterEvent;
@@ -195,9 +194,9 @@ void MediaSource::getOrCreateAsync(const string& uri, const string& vhost, const
     do {
         MediaSource::Ptr src;
         {
-            static int enableLoadFromFile = Config::instance()->getAndListen([](const json &config){
-                enableLoadFromFile = Config::instance()->get("Util", "enableLoadFromFile");
-            }, "Util", "enableLoadFromFile");
+            // static int enableLoadFromFile = Config::instance()->getAndListen([](const json &config){
+            //     enableLoadFromFile = Config::instance()->get("Util", "enableLoadFromFile");
+            // }, "Util", "enableLoadFromFile");
 
             static int waitStreamOnlineTimeMS = Config::instance()->getAndListen([](const json &config){
                 waitStreamOnlineTimeMS = Config::instance()->get("Util", "waitStreamOnlineTimeMS");
@@ -213,7 +212,7 @@ void MediaSource::getOrCreateAsync(const string& uri, const string& vhost, const
 
             lock_guard<recursive_mutex> lck(_mtxTotalSource);
             if (_totalSource.find(key) == _totalSource.end() || !_totalSource[key]) {
-                if (enableLoadFromFile) {
+                if (startWith(uri, "/file") || startWith(type, "/record")) {
                     logDebug << "load from file, uri: " << uri;
                     loadFromFile(uri, vhost, protocol, type, cb, create, connKey);
                     return ;
@@ -222,6 +221,44 @@ void MediaSource::getOrCreateAsync(const string& uri, const string& vhost, const
                     pullStreamFromOrigin(uri, vhost, protocol, type, cb, create, connKey);
                     return ;
                 } else {
+                    auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
+                    if (hook) {
+                        OnStreamNotFoundInfo info;
+                        info.uri = uri;
+                        hook->onStreamNotFound(info, [uri, vhost, protocol, type, cb, create, connKey](const OnStreamNotFoundResponse &rsp){
+                            auto tmpPlayer = MediaClient::getMediaClient(uri);
+                            if (tmpPlayer) {
+                                tmpPlayer->addOnReady(connKey, [uri, vhost, protocol, type, cb, create, connKey](){
+                                    MediaSource::getOrCreateAsync(uri, vhost, protocol, type, cb, create, connKey);
+                                });
+                                return ;
+                            }
+
+                            if (rsp.pullUrl.empty()) {
+                                return ;
+                            }
+
+                            UrlParser up;
+                            up.parse(rsp.pullUrl);
+                            auto player = MediaClient::createClient(up.protocol_, uri, MediaClientType_Pull);
+                            player->start("0.0.0.0", 0, rsp.pullUrl, 5);
+
+                            MediaClient::addMediaClient(uri, player);
+
+                            player->setOnClose([uri, player](){
+                                MediaClient::delMediaClient(uri);
+                                const_pointer_cast<MediaClient>(player) = nullptr;
+                            });
+
+                            // TODO 
+                            // player->addOnReady(connKey, [uri, vhost, protocol, type, cb, create, connKey](){
+                            //     MediaSource::getOrCreateAsync(uri, vhost, protocol, type, cb, create, connKey);
+                            // });
+                        });
+
+                        // return ;
+                    }
+
                     logDebug << "source is not ready yet, waitfor a while, uri: " << uri;;
                     string key = uri + "_" + vhost;// + "_" + protocol + "_" + type;
                     // logInfo << "get a key: " << key;
@@ -253,39 +290,6 @@ void MediaSource::getOrCreateAsync(const string& uri, const string& vhost, const
             logDebug << "getOrCreateAsync find the src, key: " << key;
             src = _totalSource[key];
         
-            // if (!src) {
-            //     if (enableLoadFromFile) {
-            //         loadFromFile(uri, vhost, protocol, type, cb, create, connKey);
-            //         return ;
-            //     } else if (mode == "edge") {
-            //         pullStreamFromOrigin(uri, vhost, protocol, type, cb, create, connKey);
-            //         return ;
-            //     } else {
-            //         string key = uri + "_" + vhost;// + "_" + protocol + "_" + type;
-            //         {
-            //             lock_guard<mutex> lckRegister(_mtxRegister);
-            //             _mapRegisterEvent[key].push_back([uri, vhost, protocol, type, cb, create, connKey, loop](){
-            //                 loop->async([uri, vhost, protocol, type, cb, create, connKey](){
-            //                     MediaSource::getOrCreateAsync(uri, vhost, protocol, type, cb, create, connKey);
-            //                 }, true);
-            //             });
-            //         }
-            //         loop->addTimerTask(waitStreamOnlineTimeMS, [key, cb](){
-            //             {
-            //                 lock_guard<mutex> lckRegister(_mtxRegister);
-            //                 if (_mapRegisterEvent.find(key) == _mapRegisterEvent.end()) {
-            //                     return 0;
-            //                 }
-            //                 _mapRegisterEvent.erase(key);
-            //             }
-            //             cb(nullptr);
-
-            //             return 0;
-            //         }, nullptr);
-
-            //         return ;
-            //     }
-            // }
             logTrace << "protocol: " << protocol;
             logTrace << "src->getProtocol(): " << src->getProtocol();
             logTrace << "type: " << type;
@@ -434,12 +438,12 @@ void MediaSource::loadFromFile(const string& uri, const string& vhost, const str
 {
     UrlParser parser;
     parser.protocol_ = PROTOCOL_FRAME;
-    parser.type_ = DEFAULT_TYPE;
-    parser.path_ = uri;
+    parser.type_ = type;
+    parser.path_ = uri + "-" + randomStr(5) + "-" + to_string(TimeClock::now());
     parser.vhost_ = vhost;
 
     FrameMediaSource::Ptr frameSource = make_shared<FrameMediaSource>(parser, EventLoop::getCurrentLoop());
-    _totalSource[uri + "_" + vhost] = frameSource;
+    _totalSource[parser.path_ + "_" + vhost] = frameSource;
 
     RecordReaderBase::Ptr reader = RecordReaderBase::createRecordReader(uri);
     if (!reader) {
@@ -449,14 +453,14 @@ void MediaSource::loadFromFile(const string& uri, const string& vhost, const str
     void* key = reader.get();
     weak_ptr<FrameMediaSource> wFrameSrc = frameSource;
     frameSource->setOrigin();
-    frameSource->addOnReady(key, [wFrameSrc, uri, vhost, protocol, type, cb, create, connKey](){
+    frameSource->addOnReady(key, [wFrameSrc, protocol, type, cb, create, connKey](){
         auto frameSrc = wFrameSrc.lock();
         if (!frameSrc) {
             return ;
         }
-        frameSrc->getLoop()->async([frameSrc, uri, vhost, protocol, type, cb, create, connKey](){
-            frameSrc->onReady();
-            MediaSource::getOrCreateAsync(uri, vhost, protocol, type, cb, create, connKey);
+        frameSrc->getLoop()->async([frameSrc, protocol, type, cb, create, connKey](){
+            // frameSrc->onReady();
+            frameSrc->getOrCreateAsync(protocol, type, cb, create, connKey);
         }, true);
     });
     reader->setOnFrame([wFrameSrc](const FrameBuffer::Ptr &frame){
@@ -560,18 +564,18 @@ void MediaSource::pullStreamFromOrigin(const string& uri, const string& vhost, c
         url += "?" + params;
     }
 
-    _player = MediaClient::createClient(pullProtocol, uri, MediaClientType_Pull);
-    _player->start("0.0.0.0", 0, url, 5);
+    auto player = MediaClient::createClient(pullProtocol, uri, MediaClientType_Pull);
+    player->start("0.0.0.0", 0, url, 5);
 
-    MediaClient::addMediaClient(uri, _player);
+    MediaClient::addMediaClient(uri, player);
 
-    _player->setOnClose([uri](){
+    player->setOnClose([uri, player](){
         MediaClient::delMediaClient(uri);
-        _player = nullptr;
+        const_pointer_cast<MediaClient>(player) = nullptr;
     });
 
     // TODO 
-    _player->addOnReady(connKey, [uri, vhost, protocol, type, cb, create, connKey](){
+    player->addOnReady(connKey, [uri, vhost, protocol, type, cb, create, connKey](){
         MediaSource::getOrCreateAsync(uri, vhost, protocol, type, cb, create, connKey);
     });
 }
@@ -884,7 +888,7 @@ void MediaSource::delOnDetach(void* key)
 void MediaSource::onReaderChanged(int size)
 {
     logDebug << "onReaderChanged: " << size << ", path: " << _urlParser.path_
-            << ", type: " << _urlParser.type_ << ", protocol: " << _urlParser.protocol_ << "ready: " << isReady();
+            << ", type: " << _urlParser.type_ << ", protocol: " << _urlParser.protocol_ << ", ready: " << isReady();
     if (!isReady()) {
         return ;
     }

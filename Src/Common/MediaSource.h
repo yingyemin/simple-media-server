@@ -156,8 +156,7 @@ protected:
 private:
     static recursive_mutex _mtxTotalSource;
     static unordered_map<string/*uri_vhost*/ , MediaSource::Ptr> _totalSource;
-    static MediaClient::Ptr _player;
-    static unordered_map<MediaClient*, MediaClient::Ptr> _mapPusher;
+    static unordered_map<MediaClient*, MediaClient::Ptr> _mapPlayer;
 
     static mutex _mtxRegister;
     static unordered_map<string/*uri_vhost_protocol_type*/ , vector<onReadyFunc>> _mapRegisterEvent;
@@ -172,6 +171,7 @@ private:
     shared_ptr<TimerTask> _task;
     mutex _mtxConnection;
     unordered_map<void*, int> _mapConnection;
+    unordered_map<MediaClient*, MediaClient::Ptr> _mapPusher;
 
     mutex _mtxOnReadyFunc;
     unordered_map<void*, onReadyFunc> _mapOnReadyFunc;

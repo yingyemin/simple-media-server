@@ -29,7 +29,7 @@ uint64_t MP4Demuxer::read64BE()
 
 uint32_t MP4Demuxer::read32BE()
 {
-	logInfo << "MP4Demuxer: " << this;
+	logTrace << "MP4Demuxer: " << this;
     char value[4] = {0};
     read(value, 4);
     return readUint32BE(value);
@@ -170,7 +170,7 @@ int MP4Demuxer::mov_reader_box(const struct mov_box_t* parent)
 
 	while (bytes + 8 < parent->size)
 	{
-		logInfo << "read box: " << this;
+		logDebug << "read box: " << this;
 		uint64_t n = 8;
 		box.size = read32BE();
 		box.type = read32BE();

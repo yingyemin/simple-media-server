@@ -1299,9 +1299,9 @@ void TsDemuxer::setOnDecode(const function<void(const FrameBuffer::Ptr& frame)> 
 void TsDemuxer::createTrackInfo(const string& codec, int type)
 {
     if (type == TsPidTypeVideo) {
-        _videoCodec = type;
+        _videoCodec = codec;
     } else if (type == TsPidTypeAudio) {
-        _audioCodec = type;
+        _audioCodec = codec;
     }
 
     addTrackInfo(TrackInfo::createTrackInfo(codec));

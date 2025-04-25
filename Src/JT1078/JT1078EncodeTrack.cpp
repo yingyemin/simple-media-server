@@ -107,7 +107,7 @@ void JT1078EncodeTrack::createSingleRtp(const FrameBuffer::Ptr& frame)
         dataType = JT1078_Audio;
     }
     StreamBuffer::Ptr buffer = make_shared<StreamBuffer>(len + 1);
-    auto rtp = make_shared<JT1078RtpPacket>(buffer);
+    auto rtp = make_shared<JT1078RtpPacket>(buffer, JT1078_2016);
     auto header = rtp->getHeader();
     rtp->type_ = _trackInfo->trackType_;
     rtp->trackIndex_ = _trackInfo->index_;
@@ -172,7 +172,7 @@ void JT1078EncodeTrack::createMultiRtp(const FrameBuffer::Ptr& frame)
         int rtpLen = length > 950 ? 950 : length;
 
         StreamBuffer::Ptr buffer = make_shared<StreamBuffer>(rtpLen + headerLen + 1);
-        auto rtp = make_shared<JT1078RtpPacket>(buffer);
+        auto rtp = make_shared<JT1078RtpPacket>(buffer, JT1078_2016);
         auto header = rtp->getHeader();
         rtp->type_ = _trackInfo->trackType_;
         rtp->trackIndex_ = _trackInfo->index_;

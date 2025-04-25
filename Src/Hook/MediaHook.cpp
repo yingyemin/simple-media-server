@@ -343,3 +343,33 @@ void MediaHook::onRecord(const OnRecordInfo& info)
         HookManager::instance()->reportByHttp(url, "POST", value.dump());
     }
 }
+
+void MediaHook::onStreamNotFound(const OnStreamNotFoundInfo& info, 
+                    const std::function<void(const OnStreamNotFoundResponse& rsp)>& cb)
+{
+    json value;
+    value["uri"] = info.uri;
+
+    logInfo << "onStreamNotFound info: " << value.dump();
+
+    if (_type == "http") {
+        static string url = Config::instance()->getAndListen([](const json& config){
+            url = Config::instance()->get("Hook", "Http", "onStreamNotFoundInfo");
+            logInfo << "Hook url: " << url;
+        }, "Hook", "Http", "onStreamNotFoundInfo");
+
+        HookManager::instance()->reportByHttp(url, "POST", value.dump(), [cb, url](const string& err, const json& res){
+            if (!err.empty()) {
+                logInfo << "Hook url: " << url << ", err: " << err;
+
+                OnStreamNotFoundResponse resp;
+                resp.pullUrl = "";
+                cb(resp);
+                return;
+            }
+
+            OnStreamNotFoundResponse resp;
+            resp.pullUrl = res.value("pullUrl", "");
+        });
+    }
+}

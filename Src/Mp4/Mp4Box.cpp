@@ -57,5 +57,5 @@ uint8_t mov_tag_to_object(uint32_t tag)
 
 mov_track_t::~mov_track_t()
 {
-	logInfo << "~mov_track_t(), handler_type: " << int64_t(handler_type);
+	logDebug << "~mov_track_t(), handler_type: " << int64_t(handler_type);
 }

@@ -1,5 +1,5 @@
 ﻿#include "GB28181Client.h"
-#include "Logger.h"
+#include "Log/Logger.h"
 #include "Common/Define.h"
 
 using namespace std;
@@ -93,7 +93,8 @@ bool GB28181Client::start(const string& localIp, int localPort, const string& ur
         return 0;
     });
 
-    _socket->setErrorCb([wSelf](){
+    _socket->setErrorCb([wSelf](const std::string& err){
+        logError << "gb28181 socket err: " << err;
         auto self = wSelf.lock();
         if (self) {
             self->stop();

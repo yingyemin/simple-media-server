@@ -37,7 +37,7 @@ private:
     string _vhost;
     string _protocol;
     string _type;
-    string _payloadType = "ps";
+    string _payloadType;
     TimeClock _timeClock;
     shared_ptr<sockaddr> _addr;
     EventLoop::Ptr _loop;

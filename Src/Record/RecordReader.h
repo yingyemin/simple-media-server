@@ -42,6 +42,7 @@ public:
     void setOnClose(const function<void()>& cb);
 
 protected:
+    int _loopCount = 1;
     uint64_t _lastFrameTime = 0;
     string _filePath;
     File _file;

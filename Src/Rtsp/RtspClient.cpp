@@ -361,6 +361,7 @@ void RtspClient::sendSetup()
             onError("describe failed");
             return ;
         }
+        weak_ptr<RtspClient> wSelf = dynamic_pointer_cast<RtspClient>(shared_from_this());
 
         if (_type == MediaClientType_Pull) {
             MediaSource::Ptr source;
@@ -389,6 +390,7 @@ void RtspClient::sendSetup()
                 rtspSource->setSdp(_parser._content);
                 rtspSource->setOrigin();
                 rtspSource->setAction(false);
+                rtspSource->setOriginSocket(_socket);
 
                 int trackIndex = 0;
                 for (auto& media : _sdpParser._vecSdpMedia) {
@@ -402,6 +404,20 @@ void RtspClient::sendSetup()
 
                 _source = rtspSource;
                 sendSetup(rtspSource);
+
+                lock_guard<mutex> lck(_mtx);
+                for (auto &iter : _mapOnReady) {
+                    rtspSource->addOnReady(iter.first, iter.second);
+                }
+                _mapOnReady.clear();
+
+                rtspSource->addOnDetach(this, [wSelf](){
+                    auto self = wSelf.lock();
+                    if (!self) {
+                        return ;
+                    }
+                    self->close();
+                });
 
                 return ;
             }
@@ -426,6 +442,7 @@ void RtspClient::sendSetup()
             rtspSource->setSdp(_parser._content);
             rtspSource->setOrigin();
             rtspSource->setAction(false);
+            rtspSource->setOriginSocket(_socket);
 
             int trackIndex = 0;
             for (auto& media : _sdpParser._vecSdpMedia) {
@@ -439,7 +456,7 @@ void RtspClient::sendSetup()
                 rtspSource->addTrack(track);
                 rtspSource->addControl2Index(media->control_, track->getTrackIndex());
             }
-            rtspSource->onReady();
+            // rtspSource->onReady();
 
             _source = rtspSource;
             sendSetup(rtspSource);
@@ -449,6 +466,14 @@ void RtspClient::sendSetup()
                 rtspSource->addOnReady(iter.first, iter.second);
             }
             _mapOnReady.clear();
+            
+            rtspSource->addOnDetach(this, [wSelf](){
+                auto self = wSelf.lock();
+                if (!self) {
+                    return ;
+                }
+                self->close();
+            });
         } else {
             sendSetup(_source.lock());
         }

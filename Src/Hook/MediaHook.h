@@ -36,6 +36,8 @@ public:
     void onKeepAlive(const ServerInfo& info) override;
     void onRegisterServer(const RegisterServerInfo& info) override;
     void onRecord(const OnRecordInfo& info) override;
+    void onStreamNotFound(const OnStreamNotFoundInfo& info, 
+                    const std::function<void(const OnStreamNotFoundResponse& rsp)>& cb) override;
 
 private:
     bool _enableHook = true;

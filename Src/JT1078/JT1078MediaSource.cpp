@@ -55,9 +55,9 @@ void JT1078MediaSource::addTrack(const JT1078DecodeTrack::Ptr& track)
             strongSelf->_start = start;
         }
         logTrace << "on rtp seq: " << rtp->getSeq() << ", time stamp: " << rtp->getTimestamp()
-                 << ", mark: " << (int)rtp->getHeader()->mark;
+                 << ", mark: " << (int)rtp->getMark();
         strongSelf->_ring->addBytes(rtp->size());
-        if (rtp->getHeader()->mark || rtp->getTimestamp() != strongSelf->_lastStamp || strongSelf->_cache->size() > 300) {
+        if (rtp->getMark() || rtp->getTimestamp() != strongSelf->_lastStamp || strongSelf->_cache->size() > 300) {
             strongSelf->_cache->emplace_back(std::move(rtp));
             // logInfo << "write cache size: " << strongSelf->_cache->size();
             strongSelf->_ring->write(strongSelf->_cache, strongSelf->_start);
@@ -196,7 +196,7 @@ void JT1078MediaSource::addTrack(const shared_ptr<TrackInfo>& track)
             if (!strongSelf) {
                 return;
             }
-            if (rtp->getHeader()->mark) {
+            if (rtp->getMark()) {
                 strongSelf->_cache->emplace_back(std::move(rtp));
                 strongSelf->_ring->write(strongSelf->_cache);
                 strongSelf->_cache = std::make_shared<list<JT1078RtpPacket::Ptr>>();

@@ -137,6 +137,19 @@ public:
     std::string status;
 };
 
+class OnStreamNotFoundInfo
+{
+public:
+    std::string uri;
+};
+
+class OnStreamNotFoundResponse
+{
+public:
+    std::string uri;
+    std::string pullUrl;
+};
+
 class HookBase : public std::enable_shared_from_this<HookBase>
 {
 public:
@@ -153,6 +166,7 @@ public:
     virtual void onKeepAlive(const ServerInfo& info) = 0;
     virtual void onRegisterServer(const RegisterServerInfo& info) = 0;
     virtual void onRecord(const OnRecordInfo& info) = 0;
+    virtual void onStreamNotFound(const OnStreamNotFoundInfo& info, const std::function<void(const OnStreamNotFoundResponse& rsp)>& cb) = 0;
 };
 
 class HookManager : public std::enable_shared_from_this<HookManager>
