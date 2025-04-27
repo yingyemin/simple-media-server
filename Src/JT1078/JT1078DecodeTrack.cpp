@@ -65,11 +65,11 @@ void JT1078DecodeTrack::onRtpPacket(const JT1078RtpPacket::Ptr& rtp)
             _frame = FrameBuffer::createFrame(rtp->getCodecType(), startSize, VideoTrackType, 0);
         } else if (rtp->getTrackType() == "audio") {
             logDebug << "rtp->getCodecType() : " << rtp->getCodecType() << ", rtp->getCodecType() != adpcma = " << (rtp->getCodecType() != "adpcma");
-            if (rtp->getCodecType() != "adpcma") {
+            if (rtp->getCodecType() != "adpcma" && rtp->getCodecType() != "g726") {
                 _trackInfo = TrackInfo::createTrackInfo(rtp->getCodecType());
             } else {
                 _trackInfo = TrackInfo::createTrackInfo("g711a");
-                _originAudioCodec = "adpcma";
+                _originAudioCodec = rtp->getCodecType();
             }
             if (_trackInfo) {
                 onTrackInfo(_trackInfo);
@@ -245,6 +245,52 @@ void JT1078DecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
         delete[] pcm;
         delete[] pcmdata;
 
+        return ;
+    } else if (_originAudioCodec == "g726") {
+        int rateBits = 16;
+        int bitrate = 0;
+        uint64_t size = frame->size();
+        uint64_t pcmSize;
+        switch (rateBits) {
+        case 16:
+            bitrate = 8000 * 2;
+            pcmSize = (2 * size * 120 + 30) / 30;
+            break;
+        case 24:
+            bitrate = 8000 * 3;
+            pcmSize = (2 * size * 80 + 30) / 30;
+            break;
+        case 32:
+            bitrate = 8000 * 4;
+            pcmSize = (2 * size * 60 + 30) / 30;
+            break;
+        case 40:
+            bitrate = 8000 * 5;
+            pcmSize = (2 * size * 40 + 30) / 30;
+            break;
+        default:
+            break;
+        }
+        g726_init(&_state726, bitrate);
+        uint8_t* pcmdata = new uint8_t[pcmSize];
+
+        int result = g726_decode(&_state726, (short*)pcmdata, (const unsigned char*)frame->data(), size);
+        auto newFrame = FrameBuffer::createFrame("g711a", 0, frame->_index, 0);
+        // auto pcmFrame = make_shared<FrameBuffer>();
+        // pcmFrame->_buffer.assign((char*)pcmdata, size * 4);
+        
+        newFrame->_buffer.resize(result);
+        _g711aEncode.pcm_2_alaw((const int16_t *)pcmdata, (uint8_t *)newFrame->data(), result);
+
+        newFrame->_dts = frame->_pts;
+        newFrame->_index = _trackInfo->index_;
+        newFrame->_codec = _trackInfo->codec_;
+        newFrame->_trackType = AudioTrackType;
+        if (_onFrame) {
+            _onFrame(newFrame);
+        }
+
+        delete[] pcmdata;
         return ;
     }
 

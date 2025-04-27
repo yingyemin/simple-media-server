@@ -293,6 +293,7 @@ void MediaHook::onRegisterServer(const RegisterServerInfo& info)
     value["httpServerPort"] = info.httpServerPort;
     value["rtmpServerPort"] = info.rtmpServerPort;
     value["rtspServerPort"] = info.rtspServerPort;
+    value["jt1078Port"] = info.jt1078ServerPort;
 
     logInfo << "server info: " << value.dump();
 
@@ -358,7 +359,7 @@ void MediaHook::onStreamNotFound(const OnStreamNotFoundInfo& info,
             logInfo << "Hook url: " << url;
         }, "Hook", "Http", "onStreamNotFoundInfo");
 
-        HookManager::instance()->reportByHttp(url, "POST", value.dump(), [cb, url](const string& err, const json& res){
+        HookManager::instance()->reportByHttp(url, "POST", value.dump(), [cb](const string& err, const json& res){
             if (!err.empty()) {
                 logInfo << "Hook url: " << url << ", err: " << err;
 

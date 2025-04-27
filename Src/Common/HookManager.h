@@ -122,6 +122,7 @@ public:
     uint16_t httpServerPort = 0;
     uint16_t rtspServerPort = 0;
     uint16_t rtmpServerPort = 0;
+    uint16_t jt1078ServerPort = 0;
 };
 
 class OnRecordInfo

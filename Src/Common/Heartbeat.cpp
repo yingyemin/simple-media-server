@@ -97,6 +97,7 @@ void Heartbeat::registerServer()
     info.httpServerPort = Config::instance()->get("Http", "Server", "Server1", "port");
     info.rtmpServerPort = Config::instance()->get("Rtmp", "Server", "Server1", "port");
     info.rtspServerPort = Config::instance()->get("Rtsp", "Server", "Server1", "port");
+    info.jt1078ServerPort = Config::instance()->get("JT1078", "Server", "Server1", "port");
 
     auto hook = HookManager::instance()->getHook(MEDIA_HOOK);
     if (hook) {

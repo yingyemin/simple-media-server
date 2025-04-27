@@ -67,6 +67,9 @@ string JT1078RtpPacket::getCodecType()
     case 7:
         _codec = "g711u";
         break;
+    case 8:
+        _codec = "g726";
+        break;
     case 19:
         _codec = "aac";
         break;

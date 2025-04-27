@@ -7,6 +7,7 @@
 #include "JT1078RtpPacket.h"
 #include "PcmTranscode/AdpcmaTranscode.h"
 #include "PcmTranscode/G711Transcode.h"
+#include "PcmTranscode/G726Transcode.h"
 
 #include <unordered_map>
 
@@ -50,6 +51,7 @@ private:
     uint16_t _lastSeq = 0;
     string _originAudioCodec;
     adpcm_state _state;
+    g726_state_t _state726;
     G711Transcode _g711aEncode;
     FrameBuffer::Ptr _frame;
     shared_ptr<TrackInfo> _trackInfo;
