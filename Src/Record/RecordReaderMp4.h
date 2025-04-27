@@ -1,7 +1,10 @@
 ﻿#ifndef RecordReaderMp4_H
 #define RecordReaderMp4_H
 
+#ifdef ENABLE_MP4
+
 #include "RecordReader.h"
+#include "Mp4/Mp4FileReader.h"
 
 using namespace std;
 
@@ -18,9 +21,16 @@ public:
     void stop() override;
     void close() override;
     
-    void seek(uint64_t timeStamp) override {};
-    void pause(bool isPause) override {};
-    void scale(float scale) override {};
+    void seek(uint64_t timeStamp) override;
+    void pause(bool isPause) override;
+    void scale(float scale) override;
+
+private:
+    bool initMp4();
+
+private:
+    Mp4FileReader::Ptr _mp4Reader;
 };
 
+#endif
 #endif //RecordReaderMp4_H

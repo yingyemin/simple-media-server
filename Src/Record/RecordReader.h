@@ -42,8 +42,12 @@ public:
     void setOnClose(const function<void()>& cb);
 
 protected:
+    bool _isPause = false;
     int _loopCount = 1;
+    int _curLoopCount = 0;
+    float _scale = 1;
     uint64_t _lastFrameTime = 0;
+    uint64_t _baseDts = 0;
     string _filePath;
     File _file;
     EventLoop::Ptr _loop;

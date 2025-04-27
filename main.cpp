@@ -163,7 +163,7 @@ int main(int argc, char** argv)
         Logger::instance()->addChannel(std::make_shared<ConsoleChannel>("ConsoleChannel", LTrace));
     }
 
-    string prefixname = Config::instance()->get("Log", "prefixname");
+    string prefixname = Config::instance()->get("Log", "prefixname", "", "", "SimpleMediaServer");
     auto fileChannel = std::make_shared<FileChannel>("FileChannel", Path::exeDir() + "log/", prefixname, LTrace);
 
     //日志最多保存天数

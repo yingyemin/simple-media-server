@@ -1,4 +1,6 @@
-﻿#include <cstdlib>
+﻿#ifdef ENABLE_MP4
+
+#include <cstdlib>
 #include <string>
 #include <algorithm>
 #include <cctype>
@@ -7,7 +9,6 @@
 #include "RecordReaderMp4.h"
 #include "Logger.h"
 #include "Util/String.h"
-#include "Mp4/Mp4FileReader.h"
 #include "WorkPoller/WorkLoopPool.h"
 
 using namespace std;
@@ -33,20 +34,17 @@ RecordReaderMp4::~RecordReaderMp4()
 {
 }
 
-bool RecordReaderMp4::start()
+bool RecordReaderMp4::initMp4()
 {
-    RecordReader::start();
-
     weak_ptr<RecordReaderMp4> wSelf = dynamic_pointer_cast<RecordReaderMp4>(shared_from_this());
     static string rootPath = Config::instance()->getAndListen([](const json &config){
         rootPath = Config::instance()->get("Record", "rootPath");
     }, "Record", "rootPath");
 
-    string ext= _filePath.substr(_filePath.rfind('.') + 1);
     auto abpath = File::absolutePath(_filePath, rootPath);
 
-    auto demuxer = make_shared<Mp4FileReader>(abpath);
-    demuxer->setOnFrame([wSelf](const FrameBuffer::Ptr &frame){
+    _mp4Reader = make_shared<Mp4FileReader>(abpath);
+    _mp4Reader->setOnFrame([wSelf](const FrameBuffer::Ptr &frame){
         auto self = wSelf.lock();
         if (!self) {
             return ;
@@ -55,7 +53,7 @@ bool RecordReaderMp4::start()
         // self->_onFrame(frame);
         // self->_lastFrameTime = frame->dts();
     });
-    demuxer->setOnReady([wSelf](){
+    _mp4Reader->setOnReady([wSelf](){
         auto self = wSelf.lock();
         if (!self) {
             return ;
@@ -64,7 +62,7 @@ bool RecordReaderMp4::start()
             self->_onReady();
         }
     });
-    demuxer->setOnTrackInfo([wSelf](const TrackInfo::Ptr &trackInfo){
+    _mp4Reader->setOnTrackInfo([wSelf](const TrackInfo::Ptr &trackInfo){
         auto self = wSelf.lock();
         if (!self) {
             return ;
@@ -74,22 +72,36 @@ bool RecordReaderMp4::start()
         }
     });
 
-    if (!demuxer->open()) {
+    if (!_mp4Reader->open()) {
         return false;
     }
-    if (!demuxer->init()) {
-        return false;
-    }
-
-    if (demuxer->mov_reader_getinfo() < 0) {
+    if (!_mp4Reader->init()) {
         return false;
     }
 
-    _loop->addTimerTask(40, [wSelf, demuxer](){
+    if (_mp4Reader->mov_reader_getinfo() < 0) {
+        return false;
+    }
+
+    return true;
+}
+
+bool RecordReaderMp4::start()
+{
+    RecordReader::start();
+    initMp4();
+
+    weak_ptr<RecordReaderMp4> wSelf = dynamic_pointer_cast<RecordReaderMp4>(shared_from_this());
+    _loop->addTimerTask(40, [wSelf](){
         auto self = wSelf.lock();
         if (!self) {
             return 0;
         }
+
+        if (self->_isPause) {
+            return 40;
+        }
+
         logDebug << "start to read mp4";
 
         while (true) {
@@ -109,16 +121,20 @@ bool RecordReaderMp4::start()
             }
             auto task = make_shared<WorkTask>();
             task->priority_ = 100;
-            task->func_ = [wSelf, demuxer](){
+            task->func_ = [wSelf](){
                 auto self = wSelf.lock();
                 if (!self) {
                     return ;
                 }
             //     logInfo << "read mp4";
-                if (!demuxer->mov_reader_read2()) {
-                    logInfo << "mov_reader_read2 failed, stop";
-                    self->stop();
-                    return ;
+                if (!self->_mp4Reader->mov_reader_read2()) {
+                    if (++self->_curLoopCount >= self->_loopCount) {
+                        logInfo << "mov_reader_read2 failed, stop";
+                        self->stop();
+                    } else {
+                        logInfo << "mov_reader_read2 failed, start another loop";
+                        self->initMp4();
+                    }
                 }
             };
             self->_workLoop->addOrderTask(task);
@@ -127,11 +143,12 @@ bool RecordReaderMp4::start()
         }
 
         auto now = self->_clock.startToNow();
+        auto dtsDiff = (self->_lastFrameTime - self->_baseDts) / self->_scale;
 
-        if (self->_lastFrameTime <= now) {
+        if (dtsDiff <= now) {
             return 1;
         } else {
-            return int(self->_lastFrameTime - now);
+            return int(dtsDiff - now);
         }
     }, nullptr);
 
@@ -149,3 +166,36 @@ void RecordReaderMp4::close()
     RecordReader::close();
 }
 
+void RecordReaderMp4::seek(uint64_t timeStamp)
+{
+    weak_ptr<RecordReaderMp4> wSelf = dynamic_pointer_cast<RecordReaderMp4>(shared_from_this());
+    auto task = make_shared<WorkTask>();
+    task->priority_ = 100;
+    task->func_ = [wSelf, timeStamp](){
+        auto self = wSelf.lock();
+        if (!self) {
+            return ;
+        }
+    //     logInfo << "read mp4";
+        if (!self->_mp4Reader->mov_reader_seek((int64_t*)&timeStamp)) {
+            logInfo << "mov_reader_seek failed, stop";
+            self->stop();
+            return ;
+        }
+    };
+    _workLoop->addOrderTask(task);
+}
+
+void RecordReaderMp4::pause(bool isPause)
+{
+    _isPause = isPause;
+}
+
+void RecordReaderMp4::scale(float scale)
+{
+    _scale = scale;
+    _clock.update();
+    _baseDts = _lastFrameTime;
+}
+
+#endif
