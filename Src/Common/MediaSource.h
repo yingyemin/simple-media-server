@@ -126,6 +126,7 @@ public:
     uint64_t getCreateTime() { return _createTime; }
 
     bool isReady() {return _hasReady;}
+    RecordReaderBase::Ptr getReader();
 
 protected:
     bool _origin = false;

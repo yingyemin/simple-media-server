@@ -1111,4 +1111,19 @@ void MediaSource::addConnection(void* key)
     lock_guard<mutex> lck(_mtxConnection);
     _mapConnection[key] = 1;
 }
+
+RecordReaderBase::Ptr MediaSource::getReader()
+{
+    if (_origin) {
+        return _recordReader;
+    } else {
+        auto originSrc = _originSrc.lock();
+        if (originSrc) {
+            return originSrc->getReader();
+        }
+    }
+
+    return nullptr;
+}
+
 ////////////////////////

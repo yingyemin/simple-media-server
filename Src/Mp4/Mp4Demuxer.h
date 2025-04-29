@@ -39,6 +39,7 @@ public:
     int mov_reader_read(void* buffer, size_t bytes);
     int mov_reader_read2();
     int mov_reader_seek(int64_t* timestamp);
+    uint64_t mov_reader_getduration();
 
 protected:
     int mov_index_build(mov_track_t* track);
@@ -53,7 +54,6 @@ protected:
     int mov_read_default(const struct mov_box_t* box);
     void mov_reader_destroy();
     mov_track_t* mov_reader_next();
-    uint64_t mov_reader_getduration();
     int mov_stss_seek(mov_track_t* track, int64_t *timestamp);
     int mov_sample_seek(mov_track_t* track, int64_t timestamp);
     int mov_read_av1c(const struct mov_box_t* box);

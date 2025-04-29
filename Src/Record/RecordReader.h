@@ -33,9 +33,10 @@ public:
     virtual bool start();
     virtual void stop();
     virtual void close();
-    virtual void seek(uint64_t timeStamp) = 0;
-    virtual void pause(bool isPause) = 0;
-    virtual void scale(float scale) = 0;
+    virtual void seek(uint64_t timeStamp) {};
+    virtual void pause(bool isPause) {};
+    virtual void scale(float scale) {};
+    virtual uint64_t getDuration() {return 0;}
     void setOnTrackInfo(const function<void(const TrackInfo::Ptr& trackInfo)>& cb);
     void setOnReady(const function<void()>& cb);
     void setOnFrame(const function<void(const FrameBuffer::Ptr& frame)>& cb);

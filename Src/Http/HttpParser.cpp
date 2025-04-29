@@ -41,7 +41,9 @@ void HttpParser::parse(const char *data, size_t len)
     if (_stage == 3) {
         if (_contentLen == -1 || len < _contentLen) {
             // 数据还是不够
-            _contentLen -= len;
+            if (_contentLen > 0) {
+                _contentLen -= len;
+            }
             logTrace << "on http body" << ", url: " << _url;
             onHttpBody(data, len);
             _remainData.clear();
@@ -89,6 +91,10 @@ void HttpParser::parse(const char *data, size_t len)
             data += 2;
             if (_contentLen > 0 || _contentLen == -1) {
                 onHttpRequest();
+                logTrace << "_stage: " << _stage;
+                if (_stage == 1) {
+                    continue;
+                }
                 _stage = 3;
             } else {
                 // 读完了头，且没有content。重新解析新的包
@@ -145,8 +151,10 @@ void HttpParser::parse(const char *data, size_t len)
             // logInfo << "leftSize: " << leftSize;
             // logInfo << "_contentLen: " << _contentLen;
             if (_contentLen == -1 || leftSize < _contentLen) {
-                // logInfo << "on http body";
-                _contentLen -= leftSize;
+                logTrace << "on http body";
+                if (_contentLen > 0) {
+                    _contentLen -= leftSize;
+                }
                 onHttpBody(data, leftSize);
                 data = end;
                 break;
@@ -171,6 +179,8 @@ void HttpParser::parse(const char *data, size_t len)
         logTrace << "don't have remain data" << ", url: " << _url;
         _remainData.clear();
     }
+
+    logTrace << "_stage: " << _stage << ", url: " << _url; 
 }
 
 void HttpParser::setOnHttpRequest(const function<void()>& cb)
@@ -204,8 +214,8 @@ void HttpParser::onHttpBody(const char* data, int len)
 void HttpParser::clear()
 {
     // logTrace << "HttpParser::clear() : " << this;
-    // _contentLen = -1;
-    // _stage = 1;
+    _contentLen = -1;
+    _stage = 1;
     _content = "";
     // _method = "";
     // _url = "";

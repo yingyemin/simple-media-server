@@ -30,7 +30,7 @@ void Mp4FileReader::write(const char* data, int size)
 
 void Mp4FileReader::read(char* data, int size)
 {
-    logDebug << "Mp4FileReader: " << this;
+    // logDebug << "Mp4FileReader: " << this;
     _file.read(data, size);
 }
 

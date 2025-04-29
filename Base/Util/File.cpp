@@ -353,7 +353,7 @@ int File::read(char* data, int size)
     }
 
     int readBytes = fread(data, 1, size, _fp);
-    logInfo << "read size: " << readBytes;
+    // logTrace << "read size: " << readBytes;
     if (readBytes == 0) {
         return readBytes;
     }

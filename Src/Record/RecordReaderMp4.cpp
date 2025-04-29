@@ -32,6 +32,7 @@ RecordReaderMp4::RecordReaderMp4(const string& path)
 
 RecordReaderMp4::~RecordReaderMp4()
 {
+    logDebug << "~RecordReaderMp4(): " << _filePath;
 }
 
 bool RecordReaderMp4::initMp4()
@@ -67,6 +68,7 @@ bool RecordReaderMp4::initMp4()
         if (!self) {
             return ;
         }
+        trackInfo->duration_ = self->getDuration();
         if (self->_onTrackInfo) {
             self->_onTrackInfo(trackInfo);
         }
@@ -143,6 +145,13 @@ bool RecordReaderMp4::start()
         }
 
         auto now = self->_clock.startToNow();
+        if (self->_lastFrameTime < self->_baseDts || self->_lastFrameTime > self->_baseDts + 500) {
+            self->_baseDts = self->_lastFrameTime;
+            self->_clock.update();
+
+            return 10;
+        }
+
         auto dtsDiff = (self->_lastFrameTime - self->_baseDts) / self->_scale;
 
         if (dtsDiff <= now) {
@@ -177,8 +186,8 @@ void RecordReaderMp4::seek(uint64_t timeStamp)
             return ;
         }
     //     logInfo << "read mp4";
-        if (!self->_mp4Reader->mov_reader_seek((int64_t*)&timeStamp)) {
-            logInfo << "mov_reader_seek failed, stop";
+        if (self->_mp4Reader->mov_reader_seek((int64_t*)&timeStamp) < 0) {
+            logInfo << "mov_reader_seek to " << timeStamp << " failed, stop";
             self->stop();
             return ;
         }
@@ -196,6 +205,15 @@ void RecordReaderMp4::scale(float scale)
     _scale = scale;
     _clock.update();
     _baseDts = _lastFrameTime;
+}
+
+uint64_t RecordReaderMp4::getDuration()
+{
+    if (_mp4Reader) {
+        return _mp4Reader->mov_reader_getduration();
+    }
+
+    return 0;
 }
 
 #endif

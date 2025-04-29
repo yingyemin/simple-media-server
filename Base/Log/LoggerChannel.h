@@ -130,8 +130,7 @@ private:
     //最多默认保持100个日志切片文件
     size_t _log_max_count = 100;
     time_t _last_check_time = 0;
-    //size_t _index = 0;
-    size_t _index_vssstringstream =0;
+    size_t _index = 0;
 };
 
 class SysLogChannel : public LogChannel {

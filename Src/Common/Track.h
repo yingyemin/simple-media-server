@@ -92,6 +92,7 @@ public:
     uint8_t _dependent_slice_segments_enabled_flag = 0;
     uint8_t _num_extra_slice_header_bits = 0;
     uint32_t _PicSizeInCtbsY = 0;
+    uint64_t duration_ = 0;
     string trackType_;
     string codec_;
     UrlParser _parser;

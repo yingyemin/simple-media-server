@@ -780,22 +780,29 @@ void RtspConnection::handlePlay()
     
     it = _parser._mapHeaders.find("range");
     string range;
+    string startTime;
+    string endTime;
     if (it != _parser._mapHeaders.end()) {
         range = it->second;
         auto mapRange = split(range, "npt=", "-");
-        auto startTime = mapRange.begin()->first;
-        auto endTime = mapRange.begin()->second;
+        startTime = mapRange.begin()->first;
+        endTime = mapRange.begin()->second;
 
         if (startTime == "now" || startTime == "") {
             ;
         } else {
-            // _source->seek(stof(startTime));
+            auto rtspSrc = _source.lock();
+            auto reader = rtspSrc->getReader();
+            if (reader) {
+                reader->seek(stoi(startTime) * 1000);
+            }
         }
     }
 
     // auto tracks = rtspSrc->getTrack();
     string rtpInfo;
     string controlUrl;
+    uint64_t duration = 0;
     for (auto& media : _sdpParser._vecSdpMedia) {
         if (media->control_.find("://") != string::npos) {
             controlUrl = media->control_;
@@ -809,6 +816,8 @@ void RtspConnection::handlePlay()
             sendBadRequst("track is empty, server invalid");
             return ;
         }
+        auto trackInfo = track->getTrackInfo();
+        duration = trackInfo->duration_;
         rtpInfo += "url=" + controlUrl + ";" +
                    "seq=" + to_string(track->getSeq() + 1) + ";" +
                    "rtptime=" + to_string(track->getTimestamp()) + ",";
@@ -818,11 +827,17 @@ void RtspConnection::handlePlay()
     // 恢复播放
     // _source->pause();
 
+    if (endTime.empty()) {
+        range = "npt=" + startTime + "-" + to_string(duration / 1000.0);
+    } else {
+        range = "npt=" + startTime + "-" + endTime;
+    }
+
     std::stringstream ss;
     ss << "RTSP/1.0 200 OK\r\n"
        << "CSeq: " << _parser._mapHeaders["cseq"] << "\r\n"
        << "Session: " << _sessionId << "\r\n"
-       << "Range: " << (range.empty() ? "npt=0.000000-" : range) << "\r\n"
+       << "Range: " << range << "\r\n"
        << "RTP-Info: " << rtpInfo << "\r\n"
        << "\r\n";
 

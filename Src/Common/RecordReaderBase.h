@@ -32,6 +32,10 @@ public:
     virtual void setOnReady(const function<void()>& cb) {}
     virtual void setOnFrame(const function<void(const FrameBuffer::Ptr& frame)>& cb) {}
     virtual void setOnClose(const function<void()>& cb) {}
+    
+    virtual void seek(uint64_t timeStamp) {};
+    virtual void pause(bool isPause) {};
+    virtual void scale(float scale) {};
 
     static void registerCreateFunc(const function<RecordReaderBase::Ptr(const string& path)>& func);
     static RecordReaderBase::Ptr createRecordReader(const string& path);

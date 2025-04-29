@@ -296,7 +296,7 @@ void HttpConnection::writeHttpResponse(HttpResponse& rsp) // 将要素按照Http
         rsp.setHeader("Connection","keep-alive");
 
         string keepAliveString = "timeout=";
-        keepAliveString += keepaliveTime;
+        keepAliveString += to_string(keepaliveTime);
         keepAliveString += ", max=100";
         rsp.setHeader("Keep-Alive", std::move(keepAliveString));
     }
@@ -668,6 +668,7 @@ void HttpConnection::handleGet()
                 }
                 sendFile();
                 logTrace << "send a file: " << _httpFile->getFilePath();
+                logTrace <<"_parser _stage: " << _parser.getStage();
             } else if (_httpFile->isDir()) {
                 auto indexStr = _httpFile->getIndex();
 
@@ -686,6 +687,7 @@ void HttpConnection::handleGet()
                 value["msg"] = "path is not exist: " + _urlParser.path_;
                 rsp.setContent(value.dump());
                 writeHttpResponse(rsp);
+                logTrace <<"_parser _stage: " << _parser.getStage();
             }
         }
 

@@ -87,8 +87,8 @@ std::string LogChannel::printTime(const timeval &tv)
     auto tm = TimeClock::localtime(tv.tv_sec);
     char buf[128];
     snprintf(buf, sizeof(buf), "%d-%02d-%02d %02d:%02d:%02d.%03d",
-             1900 + tm.tm_year,
-             1 + tm.tm_mon,
+             tm.tm_year,
+             tm.tm_mon,
              tm.tm_mday,
              tm.tm_hour,
              tm.tm_min,
@@ -184,8 +184,18 @@ size_t FileChannelBase::size() {
 
 ///////////////////FileChannel///////////////////
 
+struct tm getLocalTime(time_t sec) {
+    struct tm tm;
+#ifdef _WIN32
+    localtime_s(&tm, &sec);
+#else
+    localtime_r(&sec, &tm);
+#endif //_WIN32
+    return tm;
+}
+
 static const auto s_second_per_day = 24 * 60 * 60;
-static long s_gmtoff = TimeClock::localtime(time(NULL)).tm_gmtoff;
+static long s_gmtoff = getLocalTime(time(NULL)).tm_gmtoff;
 
 //根据日志文件名返回GMT UNIX时间戳
 static time_t getLogFileTime(const string &full_path){
@@ -252,19 +262,13 @@ FileChannel::FileChannel(const string &name, const string& dir, const string &pr
             int tm_year;  // years since 1900
             //今天第几个文件
             
-            uint32_t index_vss;
-            int count_vss = sscanf(name1, "SimpleMediaServer.%d-%02d-%02d_%d.log", &tm_year, &tm_mon, &tm_mday, &index_vss);
-            if (count_vss == 4) {
-                _index_vssstringstream = index_vss >= _index_vssstringstream ? index_vss : _index_vssstringstream;
+            uint32_t index;
+            int count = sscanf(name1, (_prefixName + ".%d-%02d-%02d_%d.log").c_str(), &tm_year, &tm_mon, &tm_mday, &index);
+            if (count == 4) {
+                _index = index >= _index ? index : _index;
             }
-            //InfoL<<"count_ss: "<<count_ss<<"; count_rs:"<<count_rs<<"; count_pl:"<<count_pl<<"; count_ce:"<<count_ce<<"; count_vss:"<<count_vss<<endl;
         }
     }
-    //InfoL<<"_index_StreamStatus:"<<_index_StreamStatus<<endl;
-    //InfoL<<"_index_RecordStatus:"<<_index_RecordStatus<<endl;
-    //InfoL<<"_index_Player:"<<_index_Player<<endl;
-    //InfoL<<"_index_Ceph:"<<_index_Ceph<<endl;
-    //InfoL<<"_index_vssstringstream:"<< _index_vssstringstream<<endl;
 }
 
 void FileChannel::write(const Logger::Ptr &logger, const LogContext::Ptr &ctx) {
@@ -276,7 +280,7 @@ void FileChannel::write(const Logger::Ptr &logger, const LogContext::Ptr &ctx) {
         if (_last_day != -1) {
             //重置日志index
             //_index = 0;
-            _index_vssstringstream=0;
+            _index=0;
         }
         //这条日志是新的一天，记录这一天
         _last_day = day;
@@ -306,7 +310,7 @@ void FileChannel::clean() {
         //InfoL<<"delete file:"<<"file day :  "<<day<<"; today : "<<today<<"; max day: "<<_log_max_day<<endl;
         if (today < day + _log_max_day) {
             //这个日志文件距今不超过_log_max_day天
-            if(startWith(log_name, "SimpleMediaServer")){
+            if(startWith(log_name, _prefixName)){
                 count++;
             }
             ++it;
@@ -318,14 +322,14 @@ void FileChannel::clean() {
         }
     }
 
-    //只删除vss-streamingserver.log文件
+    //只删除sms log文件
     for (auto it = _log_file_map.begin();it != _log_file_map.end();) {
         auto log_name = getFileName(it->data());
         if(count > _log_max_count){
-            bool is_vss = startWith(log_name,"SimpleMediaServer");
-            if(!is_vss || *it == path()){
+            bool is = startWith(log_name,_prefixName);
+            if(!is || *it == path()){
                 ++it;
-            }else if(is_vss && *it == path()){
+            }else if(is && *it == path()){
                 ++it;
                 count--;
             }else{
@@ -350,11 +354,10 @@ void FileChannel::checkSize(time_t second, const LogContext::Ptr &ctx) {
 }
 
 void FileChannel::changeFile(time_t second, const LogContext::Ptr &ctx) {
-    size_t index = _index_vssstringstream;
-    _index_vssstringstream++;
+    size_t index = _index;
+    _index;
 
     auto log_file = getLogFilePath(_dir, _prefixName, second, ctx->_level,index);
-    //_index_vssstringstream=_index_vssstringstream+1;
     //记录所有的日志文件，以便后续删除老的日志
     _log_file_map.emplace(log_file);
     //打开新的日志文件

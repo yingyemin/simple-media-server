@@ -29,7 +29,7 @@ uint64_t MP4Demuxer::read64BE()
 
 uint32_t MP4Demuxer::read32BE()
 {
-	logTrace << "MP4Demuxer: " << this;
+	// logTrace << "MP4Demuxer: " << this;
     char value[4] = {0};
     read(value, 4);
     return readUint32BE(value);
