@@ -54,6 +54,7 @@ protected:
     EventLoop::Ptr _loop;
     WorkLoop::Ptr _workLoop;
     TimeClock _clock;
+    mutex _mtxFrameList;
     list<FrameBuffer::Ptr> _frameList;
     function<void(const TrackInfo::Ptr& trackInfo)> _onTrackInfo;
     function<void()> _onReady;

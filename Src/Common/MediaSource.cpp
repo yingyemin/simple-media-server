@@ -439,7 +439,7 @@ void MediaSource::loadFromFile(const string& uri, const string& vhost, const str
     UrlParser parser;
     parser.protocol_ = PROTOCOL_FRAME;
     parser.type_ = type;
-    parser.path_ = uri + "-" + randomStr(5) + "-" + to_string(TimeClock::now());
+    parser.path_ = uri;// + "-" + randomStr(5) + "-" + to_string(TimeClock::now());
     parser.vhost_ = vhost;
 
     FrameMediaSource::Ptr frameSource = make_shared<FrameMediaSource>(parser, EventLoop::getCurrentLoop());

@@ -56,6 +56,7 @@ public:
 public:
     uint64_t  parsePsTimestamp(const uint8_t* p);
     virtual int onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32_t ssrc, bool live = false);
+    virtual int seek(char* ps_data, int ps_size, uint32_t timestamp, uint32_t ssrc, bool live = false);
 
     void setOnDecode(const function<void(const FrameBuffer::Ptr& frame)> cb);
     void onDecode(const FrameBuffer::Ptr& data, int index, uint64_t pts, uint64_t dts);

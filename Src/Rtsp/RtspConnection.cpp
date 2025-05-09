@@ -776,6 +776,11 @@ void RtspConnection::handlePlay()
     if (it != _parser._mapHeaders.end()) {
         float scale = stof(it->second);
         // _source->scale();
+        auto reader = rtspSrc->getReader();
+        if (reader) {
+            reader->scale(scale);
+            logDebug << "rtsp scale: " << scale;
+        }
     }
     
     it = _parser._mapHeaders.find("range");
@@ -791,10 +796,10 @@ void RtspConnection::handlePlay()
         if (startTime == "now" || startTime == "") {
             ;
         } else {
-            auto rtspSrc = _source.lock();
             auto reader = rtspSrc->getReader();
-            if (reader) {
-                reader->seek(stoi(startTime) * 1000);
+            float startStamp = stof(startTime);
+            if (reader && (_playReader || startStamp > 0)) {
+                reader->seek(startStamp * 1000);
             }
         }
     }
@@ -817,7 +822,7 @@ void RtspConnection::handlePlay()
             return ;
         }
         auto trackInfo = track->getTrackInfo();
-        duration = trackInfo->duration_;
+        // duration = trackInfo->duration_;
         rtpInfo += "url=" + controlUrl + ";" +
                    "seq=" + to_string(track->getSeq() + 1) + ";" +
                    "rtptime=" + to_string(track->getTimestamp()) + ",";
@@ -828,6 +833,10 @@ void RtspConnection::handlePlay()
     // _source->pause();
 
     if (endTime.empty()) {
+        auto reader = rtspSrc->getReader();
+        if (reader) {
+            duration = reader->getDuration();
+        }
         range = "npt=" + startTime + "-" + to_string(duration / 1000.0);
     } else {
         range = "npt=" + startTime + "-" + endTime;

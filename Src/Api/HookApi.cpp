@@ -4,6 +4,7 @@
 #include "Logger.h"
 #include "Common/Config.h"
 #include "Common/ApiUtil.h"
+#include "Util/String.h"
 
 using namespace std;
 
@@ -68,12 +69,18 @@ void HookApi::onNonePlayer(const HttpParser& parser, const UrlParser& urlParser,
         nonePlayerWaitTime = Config::instance()->get("Util", "nonePlayerWaitTime");
     }, "Util", "nonePlayerWaitTime");
 
+    int stop = stopNonePlayerStream;
+    std::string uri = parser._body.value("uri", "");
+    if (startWith(uri, "/file/")) {
+        stop = 1;
+    }
+
     HttpResponse rsp;
     rsp._status = 200;
     json value;
     value["code"] = "200";
     value["msg"] = "success";
-    value["stop"] = stopNonePlayerStream;
+    value["stop"] = stop;
     value["delay"] = nonePlayerWaitTime;
     rsp.setContent(value.dump());
     rspFunc(rsp);

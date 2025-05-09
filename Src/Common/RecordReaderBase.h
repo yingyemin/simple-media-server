@@ -36,6 +36,7 @@ public:
     virtual void seek(uint64_t timeStamp) {};
     virtual void pause(bool isPause) {};
     virtual void scale(float scale) {};
+    virtual uint64_t getDuration() {return 0;};
 
     static void registerCreateFunc(const function<RecordReaderBase::Ptr(const string& path)>& func);
     static RecordReaderBase::Ptr createRecordReader(const string& path);

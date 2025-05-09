@@ -28,6 +28,7 @@ public:
     void onRtpPacket(const RtpPacket::Ptr& packet, bool start);
 
 private:
+    bool _first = true;
     uint64_t _lastPts = 0;
     uint16_t _lastSeq = 0;
     shared_ptr<TrackInfo> _trackInfo;

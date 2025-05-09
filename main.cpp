@@ -69,6 +69,7 @@
 #include "Api/RtpApi.h"
 #include "Api/WebsocketApi.h"
 #include "Api/SrtApi.h"
+#include "Api/VodApi.h"
 #endif
 
 #include "Codec/AacTrack.h"
@@ -253,6 +254,7 @@ int main(int argc, char** argv)
 #ifdef ENABLE_SRT
     SrtApi::initApi();
 #endif
+    VodApi::initApi();
 #endif
 
     AacTrack::registerTrackInfo();

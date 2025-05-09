@@ -97,24 +97,36 @@ void WebrtcApi::rtcPublish(const HttpParser& parser, const UrlParser& urlParser,
 
     string appName;
     string streamName;
+    string preferVideoCodec;
+    string preferAudioCodec;
     string sdp;
     int enableDtls = 0;
     if (isWhip) {
         enableDtls = true;
         appName = urlParser.vecParam_.at("appName");
         streamName = urlParser.vecParam_.at("streamName");
+        preferVideoCodec = urlParser.vecParam_.at("preferVideoCodec");
+        preferAudioCodec = urlParser.vecParam_.at("preferAudioCodec");
         sdp = parser._content;
     } else {
         checkArgs(parser._body, {"appName", "streamName", "sdp"});
 
         appName = parser._body["appName"];
         streamName = parser._body["streamName"];
-        enableDtls = toInt(parser._body.value("enableDtls", "0"));
+        preferVideoCodec = parser._body.value("preferVideoCodec", "");
+        preferAudioCodec = parser._body.value("preferAudioCodec", "");
+        enableDtls = toInt(parser._body.value("enableDtls", "1"));
         sdp = parser._body["sdp"];
     }
 
     auto context = make_shared<WebrtcContext>();
-    context->setDtls(1);
+    context->setDtls(enableDtls);
+    if (!preferVideoCodec.empty()) {
+        context->setPreferVideoCodec(preferVideoCodec);
+    }
+    if (!preferAudioCodec.empty()) {
+        context->setPreferAudioCodec(preferAudioCodec);
+    }
     context->initPublisher(appName, streamName, sdp);
 
     WebrtcContextManager::instance()->addContext(context->getUsername(), context);

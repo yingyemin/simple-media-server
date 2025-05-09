@@ -188,6 +188,8 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
 
 	while(incomplete_len >= sizeof(PsPacketStartCode))
     {
+        logTrace << "front 4 byte: " << (int)(uint8_t)next_ps_pack[0] << " " << (int)(uint8_t)next_ps_pack[1] 
+                 << " " << (int)(uint8_t)next_ps_pack[2] << " " << (int)(uint8_t)next_ps_pack[3];
     	if (next_ps_pack
 			&& next_ps_pack[0] == (char)0x00
 			&& next_ps_pack[1] == (char)0x00
@@ -708,7 +710,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
             //     next_ps_pack[0]&0xFF, next_ps_pack[1]&0xFF, next_ps_pack[2]&0xFF, next_ps_pack[3]&0xFF);
             // break;
 
-            logInfo << "invalid ps packet, find next ps packet";
+            logDebug << "invalid ps packet, find next ps packet";
 
             if (live) {
                 _remainBuffer.clear();
@@ -741,6 +743,287 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
     // }
   
     return 0;
+}
+
+int PsDemuxer::seek(char* ps_data, int ps_size, uint32_t timestamp, uint32_t ssrc, bool live)
+{
+    int err = 0;
+    int complete_len = 0;
+    int incomplete_len = ps_size;
+    char *next_ps_pack = ps_data;
+
+    if (!_remainBuffer.empty()) {
+        _remainBuffer.append(ps_data, ps_size);
+        incomplete_len = _remainBuffer.size();
+        next_ps_pack = _remainBuffer.data();
+        ps_size = incomplete_len;
+    }
+
+    if (!next_ps_pack || incomplete_len == 0) {
+        return -1;
+    }
+    // logInfo << "incomplete_len: " << incomplete_len;
+    char* end = next_ps_pack + incomplete_len;
+
+    uint64_t audio_pts = 0;
+    uint64_t video_pts = 0;
+    int pse_index = 0;
+
+	while(incomplete_len >= sizeof(PsPacketStartCode))
+    {
+        logTrace << "front 4 byte: " << (int)(uint8_t)next_ps_pack[0] << " " << (int)(uint8_t)next_ps_pack[1] 
+                 << " " << (int)(uint8_t)next_ps_pack[2] << " " << (int)(uint8_t)next_ps_pack[3];
+    	if (next_ps_pack
+			&& next_ps_pack[0] == (char)0x00
+			&& next_ps_pack[1] == (char)0x00
+			&& next_ps_pack[2] == (char)0x01
+			&& next_ps_pack[3] == (char)0xBA)
+		{
+            //ps header 
+            logTrace << "get a ps ba";
+            if (incomplete_len < sizeof(PsPacketHeader)) {
+                _remainBuffer.assign(next_ps_pack, incomplete_len);
+                logInfo << "_remainBuffer size: " << _remainBuffer.size();
+                return -1;
+            }
+            PsPacketHeader *head = (PsPacketHeader *)next_ps_pack;
+            uint8_t stuffingLength = head->stuffingLength & 0x07;
+
+            // logInfo << "incomplete_len: " << incomplete_len;
+            // logInfo << "end - next_ps_pack: " << (end - next_ps_pack);
+            // logInfo << "need_len: " << (sizeof(PsPacketHeader) + stuffingLength);
+            if (incomplete_len < sizeof(PsPacketHeader) + stuffingLength) {
+                _remainBuffer.assign(next_ps_pack, incomplete_len);
+                logInfo << "_remainBuffer size: " << _remainBuffer.size();
+                return -1;
+            }
+            _newPs = true;
+        
+            next_ps_pack = next_ps_pack + sizeof(PsPacketHeader) + stuffingLength;
+            complete_len = complete_len + sizeof(PsPacketHeader) + stuffingLength;
+            incomplete_len = ps_size - complete_len;
+        }
+        else if(next_ps_pack
+			&& next_ps_pack[0] == (char)0x00
+			&& next_ps_pack[1] == (char)0x00
+			&& next_ps_pack[2] == (char)0x01
+			&& next_ps_pack[3] == (char)0xBB)
+        {
+            logTrace << "get a ps bb";
+            //ps system header 
+            if (incomplete_len < sizeof(PsPacketBBHeader)) {
+                _remainBuffer.assign(next_ps_pack, incomplete_len);
+                logInfo << "_remainBuffer size: " << _remainBuffer.size();
+                return -1;
+            }
+            PsPacketBBHeader *bbhead=(PsPacketBBHeader *)(next_ps_pack);
+            int bbheaderlen = htons(bbhead->length);
+
+            if (incomplete_len < sizeof(PsPacketBBHeader) + bbheaderlen) {
+                _remainBuffer.assign(next_ps_pack, incomplete_len);
+                logInfo << "_remainBuffer size: " << _remainBuffer.size();
+                return -1;
+            }
+            next_ps_pack = next_ps_pack + sizeof(PsPacketBBHeader) + bbheaderlen;
+            complete_len = complete_len + sizeof(PsPacketBBHeader) + bbheaderlen;
+            incomplete_len = ps_size - complete_len;
+
+            // first_keyframe_flag = true;
+        }
+        else if(next_ps_pack
+			&& next_ps_pack[0] == (char)0x00
+			&& next_ps_pack[1] == (char)0x00
+			&& next_ps_pack[2] == (char)0x01
+			&& next_ps_pack[3] == (char)0xBC)
+        {
+            //program stream map 
+            logTrace << "get a ps bc";
+            
+            if (incomplete_len < sizeof(PsMapPacket)) {
+                _remainBuffer.assign(next_ps_pack, incomplete_len);
+                logInfo << "_remainBuffer size: " << _remainBuffer.size();
+                return -1;
+            }
+
+		    PsMapPacket* psmap_pack = (PsMapPacket*)next_ps_pack;
+            int psmLength = htons(psmap_pack->length);
+
+            if (incomplete_len < sizeof(PsPacketBBHeader) + psmLength) {
+                _remainBuffer.assign(next_ps_pack, incomplete_len);
+                logInfo << "_remainBuffer size: " << _remainBuffer.size();
+                return -1;
+            }
+          
+            next_ps_pack = next_ps_pack + psmLength + sizeof(PsMapPacket);
+            complete_len = complete_len + psmLength + sizeof(PsMapPacket);
+            incomplete_len = ps_size - complete_len;    
+        }
+        else if(next_ps_pack
+			&& next_ps_pack[0] == (char)0x00
+			&& next_ps_pack[1] == (char)0x00
+			&& next_ps_pack[2] == (char)0x01
+			&& (next_ps_pack[3] == (char)_video_es_id || next_ps_pack[3] == (char)0xE2))
+        {
+            if (next_ps_pack[3] == (char)0xE2 && (int)_video_es_id == 0 && _videoCodec == "unknown") {
+                // 兼容ffmpeg生成的ps流
+                _videoCodec = "h264";
+                auto trackInfo = H264Track::createTrack(VideoTrackType, 96, 90000);
+                addTrackInfo(trackInfo);
+                // _firstVps = false;
+            }
+            // _hasVideo = true;
+            if (!_videoFrame) {
+                _videoFrame = createFrame(VideoTrackType);
+            }
+            //pse video stream
+            if (incomplete_len < sizeof(PsePacket)) {
+                _remainBuffer.assign(next_ps_pack, incomplete_len);
+                logInfo << "_remainBuffer size: " << _remainBuffer.size();
+                return -1;
+            }
+            logTrace << "get a ps video frame";
+
+            PsePacket* pse_pack = (PsePacket*)next_ps_pack;
+
+            int packlength = htons(pse_pack->length);
+            int payloadlen = packlength - 2 - 1 - pse_pack->stuffingLength;
+            if (payloadlen <= 0) {
+                logInfo << "payloadlen <= 0";
+                return -1;
+            }
+
+            // logInfo << "incomplete_len: " << incomplete_len;
+            // logInfo << "end - next_ps_pack: " << (end - next_ps_pack);
+            // logInfo << "need_len: " << (sizeof(PsePacket) + pse_pack->stuffingLength + payloadlen);
+            if (incomplete_len < sizeof(PsePacket) + pse_pack->stuffingLength + payloadlen) {
+                _remainBuffer.assign(next_ps_pack, incomplete_len);
+                logInfo << "_remainBuffer size: " << _remainBuffer.size();
+                return -1;
+            }
+
+            unsigned char pts_dts_flags = (pse_pack->info[1] & 0xF0) >> 6;
+            //in a frame of data, pts is obtained from the first PSE packet
+            if (/*pse_index == 0 && */pts_dts_flags > 0) {
+				video_pts = parsePsTimestamp((unsigned char*)next_ps_pack + 9);
+                // srs_info("gb28181: ps stream video ts=%u pkt_ts=%u", video_pts, timestamp);
+                if (pts_dts_flags == 3) {
+                    auto dts = parsePsTimestamp((unsigned char*)next_ps_pack + 14);
+                    // logInfo << "get a video dts: " << dts << endl;
+                }
+			}
+
+            if (video_pts / 90 > timestamp) {
+                _remainBuffer.assign(next_ps_pack, incomplete_len);
+                logInfo << "seek sucess";
+                return 0;
+            }
+         
+            next_ps_pack = next_ps_pack + 9 + pse_pack->stuffingLength;
+            complete_len = complete_len + 9 + pse_pack->stuffingLength;            
+
+            next_ps_pack = next_ps_pack + payloadlen;
+            complete_len = complete_len + payloadlen;
+            incomplete_len = ps_size - complete_len;
+        }
+     	else if (next_ps_pack
+			&& next_ps_pack[0] == (char)0x00
+			&& next_ps_pack[1] == (char)0x00
+			&& next_ps_pack[2] == (char)0x01
+			&& next_ps_pack[3] == (char)0xBD)
+        {
+            //private stream 
+            if (incomplete_len < sizeof(PsePacket)) {
+                _remainBuffer.assign(next_ps_pack, incomplete_len);
+                logInfo << "_remainBuffer size: " << _remainBuffer.size();
+                return -1;
+            }
+
+			PsePacket* pse_pack = (PsePacket*)next_ps_pack;
+			
+            int packlength = htons(pse_pack->length);
+			int payload_len = packlength - 2 - 1 - pse_pack->stuffingLength;
+
+            // logInfo << "incomplete_len: " << incomplete_len;
+            // logInfo << "need_len: " << (sizeof(PsePacket) + pse_pack->stuffingLength + payload_len);
+            if (incomplete_len < sizeof(PsePacket) + pse_pack->stuffingLength + payload_len) {
+                _remainBuffer.assign(next_ps_pack, incomplete_len);
+                logInfo << "_remainBuffer size: " << _remainBuffer.size();
+                return -1;
+            }
+            
+			next_ps_pack = next_ps_pack + payload_len + 9 + pse_pack->stuffingLength;
+            complete_len = complete_len + (payload_len + 9 + pse_pack->stuffingLength);
+            incomplete_len = ps_size - complete_len;
+		}
+		else if (next_ps_pack
+			&& next_ps_pack[0] == (char)0x00
+			&& next_ps_pack[1] == (char)0x00
+			&& next_ps_pack[2] == (char)0x01
+			&& next_ps_pack[3] == (char)_audio_es_id)
+        {
+            // _hasAudio = true;
+            //audio stream
+            if (incomplete_len < sizeof(PsePacket)) {
+                _remainBuffer.assign(next_ps_pack, incomplete_len);
+                logInfo << "_remainBuffer size: " << _remainBuffer.size();
+                return -1;
+            }
+            logTrace << "get a ps audio frame";
+
+            FrameBuffer::Ptr audio_stream = createFrame(AudioTrackType);
+            PsePacket* pse_pack = (PsePacket*)next_ps_pack;
+
+			int packlength = htons(pse_pack->length);
+			int payload_len = packlength - 2 - 1 - pse_pack->stuffingLength;
+
+            if (payload_len <= 0) {
+                return -1;
+            }
+
+            // logInfo << "incomplete_len: " << incomplete_len;
+            // logInfo << "payload_len: " << payload_len;
+            // logInfo << "packlength: " << packlength;
+            // logInfo << "sizeof(PsePacket): " << sizeof(PsePacket);
+            // logInfo << "end - next_ps_pack: " << (end - next_ps_pack);
+            // logInfo << "need_len: " << (sizeof(PsePacket) + pse_pack->stuffingLength + payload_len);
+            if (incomplete_len < sizeof(PsePacket) + pse_pack->stuffingLength + payload_len) {
+                _remainBuffer.assign(next_ps_pack, incomplete_len);
+                logInfo << "_remainBuffer size: " << _remainBuffer.size();
+                return -1;
+            }
+
+            
+
+            next_ps_pack = next_ps_pack + 9 + pse_pack->stuffingLength;
+            
+            
+			next_ps_pack = next_ps_pack + payload_len;
+            complete_len = complete_len + (payload_len + 9 + pse_pack->stuffingLength);
+            incomplete_len = ps_size - complete_len;
+		}
+        else
+        {
+            logDebug << "invalid ps packet, find next ps packet";
+
+            if (live) {
+                _remainBuffer.clear();
+                return 0;
+            }
+
+            next_ps_pack = next_ps_pack + 1;
+            complete_len = complete_len + 1;
+            incomplete_len = ps_size - complete_len;
+        }
+    }
+
+    if (end - next_ps_pack > 0) {
+        logInfo << "remain size: " << incomplete_len << "|" << (end - next_ps_pack);
+        _remainBuffer.assign(next_ps_pack, end - next_ps_pack);
+    } else if (!_remainBuffer.empty()){
+        _remainBuffer.clear();
+    }
+  
+    return -1;
 }
 
 FrameBuffer::Ptr PsDemuxer::createFrame(int index)

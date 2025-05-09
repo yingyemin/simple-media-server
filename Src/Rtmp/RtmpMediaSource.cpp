@@ -366,8 +366,8 @@ void RtmpMediaSource::onFrame(const FrameBuffer::Ptr& frame)
     if (!frame) {
         return ;
     }
-    // logInfo << "on get a frame: index : " << frame->getTrackIndex()
-    //           << ", codec: " << frame->codec() << ", nalu type: " << frame->getNalType();
+    logTrace << "on get a frame: index : " << frame->getTrackIndex()
+              << ", codec: " << frame->codec() << ", nalu type: " << (int)frame->getNalType();
     auto it = _mapRtmpEncodeTrack.find(frame->getTrackType());
     if (it == _mapRtmpEncodeTrack.end()) {
         return ;

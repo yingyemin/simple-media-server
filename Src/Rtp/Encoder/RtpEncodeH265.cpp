@@ -28,17 +28,28 @@ RtpEncodeH265::RtpEncodeH265(const shared_ptr<TrackInfo>& trackInfo)
 
 void RtpEncodeH265::encode(const FrameBuffer::Ptr& frame)
 {
+    if (_first && _lastPts == frame->dts()) {
+        _lastPts += 1;
+        _first = false;
+    }
+
     auto size = frame->size();
     if (size > _maxRtpSize)  {
         encodeFuA(frame);
     } else {
         encodeSingle(frame);
     }
+
+    if (_enableFastPts) {
+        _lastPts = frame->dts() * _ptsScale;
+    } else {
+        _lastPts = frame->dts();
+    }
 }
 
 void RtpEncodeH265::encodeFuA(const FrameBuffer::Ptr& frame) {
     auto size = frame->size() - frame->startSize();
-    auto pts = frame->pts();
+    auto pts = _enableFastPts ? frame->dts() * _ptsScale : frame->dts();
     bool first = true;
     auto frameData = frame->data() + frame->startSize();
     auto fuIndicator = frameData[1];
@@ -69,7 +80,7 @@ void RtpEncodeH265::encodeFuA(const FrameBuffer::Ptr& frame) {
     }
 
     if (size > 0) { //end
-        RtpPacket::Ptr rtp = RtpPacket::create(_trackInfo, size + 3 + 12, pts, _ssrc, _lastSeq++, pts != _lastPts);
+        RtpPacket::Ptr rtp = RtpPacket::create(_trackInfo, size + 3 + 12, pts, _ssrc, _lastSeq++, true/*pts != _lastPts*/);
         fu_flags->end_bit = 1;
         fu_flags->start_bit = 0;
         auto payload = rtp->getPayload();
@@ -85,9 +96,14 @@ void RtpEncodeH265::encodeFuA(const FrameBuffer::Ptr& frame) {
 void RtpEncodeH265::encodeSingle(const FrameBuffer::Ptr& frame) {
     auto size = frame->size() - frame->startSize();
     auto frameData = frame->data() + frame->startSize();
-    auto pts = frame->pts();
+    auto pts = _enableFastPts ? frame->dts() * _ptsScale : frame->dts();
 
-    RtpPacket::Ptr rtp = RtpPacket::create(_trackInfo, size + 12, pts, _ssrc, _lastSeq++, pts != _lastPts);
+    RtpPacket::Ptr rtp;
+    if (frame->metaFrame()) {
+        rtp = RtpPacket::create(_trackInfo, size + 12, pts, _ssrc, _lastSeq++, false/*pts != _lastPts*/);
+    } else {
+        rtp = RtpPacket::create(_trackInfo, size + 12, pts, _ssrc, _lastSeq++, pts != _lastPts);
+    }
     auto payload = rtp->getPayload();
     memcpy(payload, (uint8_t *) frameData, size);
 

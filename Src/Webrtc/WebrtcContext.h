@@ -34,6 +34,8 @@ public:
     void onRtpPacket(const Socket::Ptr& socket, const RtpPacket::Ptr& rtp, struct sockaddr* addr, int len);
     bool isAlive();
     void setDtls(int dtls) {_enbaleDtls = dtls;}
+    void setPreferVideoCodec(const std::string& preferVideoCodec) {_preferVideoCodec = preferVideoCodec;}
+    void setPreferAudioCodec(const std::string& preferAudioCodec) {_preferAudioCodec = preferAudioCodec;}
     void setParams(const string& params) {_params = params;}
     string getUsername() {return _username;}
     void onStunPacket(const Socket::Ptr& socket, const WebrtcStun& stunReq, struct sockaddr* addr, int len);
@@ -87,6 +89,9 @@ private:
 
     WebrtcPtInfo::Ptr _videoRtxPtInfo;
     WebrtcPtInfo::Ptr _audioRtxPtInfo;
+
+    std::string _preferVideoCodec = "h264";
+    std::string _preferAudioCodec = "g711a";
 
     uint64_t _sendRtpPack_10s;
     uint64_t _sendRtcpNackPack_10s;

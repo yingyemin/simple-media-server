@@ -1049,8 +1049,8 @@ void RtmpConnection::responsePlay(const MediaSource::Ptr &src)
                 self->_totalSendBytes += pkt->length;
                 self->_intervalSendBytes += pkt->length;
 
-                // logInfo << "send rtmp msg,time: " << pkt->abs_timestamp << ", type: " << (int)(pkt->type_id)
-                //             << ", length: " << pkt->length;
+                logTrace << "send rtmp msg,time: " << pkt->abs_timestamp << ", type: " << (int)(pkt->type_id)
+                            << ", length: " << pkt->length;
                 self->sendRtmpChunks(pkt->csid, *pkt);
                 
                 if (self->_addMute) {

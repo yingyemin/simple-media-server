@@ -169,8 +169,8 @@ void WebrtcContext::initPublisher(const string& appName, const string& streamNam
     shared_ptr<TrackInfo> videoInfo = make_shared<H264Track>();
     shared_ptr<TrackInfo> audioInfo = make_shared<TrackInfo>();
     
-    videoInfo->codec_ = "h264";
-    audioInfo->codec_ = "opus";
+    videoInfo->codec_ = _preferVideoCodec;
+    audioInfo->codec_ = _preferAudioCodec;
 
     _remoteSdp = make_shared<WebrtcSdp>();
     _remoteSdp->parse(sdp);
@@ -331,8 +331,14 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
                             remotePtInfo = ptIter.second;
                             break;
                         }
-                    } else if (videoInfo->codec_ == "av1") {
+                    } else if (strcasecmp(videoInfo->codec_.data(), "av1") == 0) {
                         if (ptIter.second->fmtp_.find("profile=0") != string::npos) {
+                            remotePtInfo = ptIter.second;
+                        } else if (!remotePtInfo) {
+                            remotePtInfo = ptIter.second;
+                        }
+                    } else if (strcasecmp(videoInfo->codec_.data(), "h265") == 0) {
+                        if (ptIter.second->fmtp_.find("profile-id=2") != string::npos) {
                             remotePtInfo = ptIter.second;
                         } else if (!remotePtInfo) {
                             remotePtInfo = ptIter.second;
