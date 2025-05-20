@@ -123,7 +123,11 @@ int RtspRtpTransport::sendRtpPacket(const RtpPacket::Ptr &packet, bool flag)
                     // if (++i == len) {
                     //     _socket->send(packet->buffer(), 1);
                     // } else {
-                        _socket->send(packet->buffer(), 1);
+                        if (_tcpSend) {
+                            _tcpSend(packet->buffer(), flag);
+                        } else {
+                            _socket->send(packet->buffer(), flag);
+                        }
                         bytes += packet->size();
                         if (_rtcp) {
                             _rtcp->onSendRtp(packet);

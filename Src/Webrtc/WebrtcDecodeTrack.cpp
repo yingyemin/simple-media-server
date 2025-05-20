@@ -152,6 +152,7 @@ void WebrtcDecodeTrack::onRtpPacket(const RtpPacket::Ptr& rtp)
     // _ring->write(rtp, true);
 
     rtp->trackIndex_ = _index;
+    rtp->type_ = _type == VideoTrackType ? "video" : "audio";
     if (_onRtpPacket) {
         _onRtpPacket(rtp);
     }

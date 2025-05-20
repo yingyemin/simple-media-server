@@ -135,6 +135,9 @@ void RtpDecodeVp8::decode(const RtpPacket::Ptr& rtp)
         // No actual payload
         return ;
     }
+    
+    rtp->samplerate_ = _trackInfo->samplerate_;
+
     auto ptr = rtp->getPayload();
     auto stamp = rtp->getStampMS();
     auto seq = rtp->getSeq();

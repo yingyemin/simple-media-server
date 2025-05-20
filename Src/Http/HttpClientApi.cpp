@@ -24,6 +24,33 @@ void HttpClientApi::onHttpRequest()
         //后续没content，本次http请求结束
         HttpClient::close();
     }
+
+    if (_parser._mapHeaders["transfer-encoding"] == "chunked") {
+        weak_ptr<HttpClientApi> wSelf = dynamic_pointer_cast<HttpClientApi>(shared_from_this());
+        _chunkedParser = make_shared<HttpChunkedParser>();
+        _chunkedParser->setOnHttpBody([wSelf](const char *data, int len){
+            auto self = wSelf.lock();
+            if (!self) {
+                return ;
+            }
+
+            if (len == 0 && self->_parser._contentLen == 0) {
+                self->HttpClient::close();
+                self->onHttpResponce();
+            }else if (self->_parser._contentLen == 0) {
+                self->_parser._content.append(data, len);
+                self->HttpClient::close();
+                self->onHttpResponce();
+            // } else if (_parser._contentLen < len) {
+            //     logInfo << "recv body len(" << len << ") is bigger than conten-length(" << _parser._contentLen << ")";
+            //     _parser._content.append(data, _parser._contentLen);
+            //     HttpClient::close();
+            //     onHttpResponce();
+            } else {
+                self->_parser._content.append(data, len);
+            }
+        });
+    }
 }
 
 void HttpClientApi::onConnect()
@@ -33,6 +60,11 @@ void HttpClientApi::onConnect()
 }
 
 void HttpClientApi::onRecvContent(const char *data, uint64_t len) {
+    if (_chunkedParser) {
+        _chunkedParser->parse(data, len);
+        return ;
+    }
+
     if (len == 0 && _parser._contentLen == 0) {
         HttpClient::close();
         onHttpResponce();

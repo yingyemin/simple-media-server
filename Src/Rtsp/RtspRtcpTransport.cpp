@@ -122,8 +122,14 @@ void RtspRtcpTransport::sendRtcpPacket()
     auto buffer = StreamBuffer::create();
     if (_transType == Transport_TCP) {
         buffer->assign((char*)rtcp_buf, rtcpLen);
+        if (_tcpSend) {
+            _tcpSend(buffer, true);
+        } else {
+            _socket->send(buffer, true);
+        }
     } else {
         buffer->assign((char*)(rtcp_buf + 4), rtcpLen - 4);
+        _socket->send(buffer, true);
     }
-    _socket->send(buffer, true);
+    
 }

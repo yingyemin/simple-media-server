@@ -303,10 +303,10 @@ int main(int argc, char** argv)
         if (port) {
             RtspServer::instance()->start(ip, port, count);
         }
-        // logInfo << "start rtsps server, sslPort: " << sslPort;
-        // if (sslPort) {
-        //     RtspServer::instance()->start(ip, sslPort, count);
-        // }
+        logInfo << "start rtsps server, sslPort: " << sslPort;
+        if (sslPort) {
+            RtspServer::instance()->start(ip, sslPort, count, true);
+        }
     }
 #endif
 
@@ -467,9 +467,9 @@ int main(int argc, char** argv)
         if (port) {
             JT1078Server::instance()->start(ip, port, count, isTalk);
         }
-        // logInfo << "start rtsps server, sslPort: " << sslPort;
+        // logInfo << "start 1078 server, sslPort: " << sslPort;
         // if (sslPort) {
-        //     RtspServer::instance()->start(ip, sslPort, count);
+        //     JT1078Server::instance()->start(ip, sslPort, count, true);
         // }
     }
 #endif

@@ -26,7 +26,8 @@ public:
     void onRtcpPacket(const StreamBuffer::Ptr& buffer);
     void sendRtcpPacket();
     void bindPeerAddr(struct sockaddr* addr);
-    Socket::Ptr getSocket() {return _socket;}
+    Socket::Ptr getSocket() {return _socket;}    
+    void setOnTcpSend(const function<void(const Buffer::Ptr& pkt, int flag)>& func) {_tcpSend = func;}
 
 private:
     int _transType; //tcp or udp
@@ -39,6 +40,7 @@ private:
     RtpSort::Ptr _sort;
     Socket::Ptr _socket;
     RtspTrack::Ptr _track;
+    function<void(const Buffer::Ptr& pkt, int flag)> _tcpSend;
 };
 
 

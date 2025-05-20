@@ -21,14 +21,14 @@ RtspServer::Ptr& RtspServer::instance()
     return instance;
 }
 
-void RtspServer::start(const string& ip, int port, int count)
+void RtspServer::start(const string& ip, int port, int count, bool enableSsl)
 {
     RtspServer::Wptr wSelf = shared_from_this();
-    EventLoopPool::instance()->for_each_loop([ip, port, wSelf](const EventLoop::Ptr& loop){
+    EventLoopPool::instance()->for_each_loop([ip, port, enableSsl, wSelf](const EventLoop::Ptr& loop){
         auto self = wSelf.lock();
         TcpServer::Ptr server = make_shared<TcpServer>(loop, ip.data(), port, 0, 0);
-        server->setOnCreateSession([](const EventLoop::Ptr& loop, const Socket::Ptr& socket) -> RtspConnection::Ptr {
-            return make_shared<RtspConnection>(loop, socket);
+        server->setOnCreateSession([enableSsl](const EventLoop::Ptr& loop, const Socket::Ptr& socket) -> RtspConnection::Ptr {
+            return make_shared<RtspConnection>(loop, socket, enableSsl);
         });
         server->start(Socket::getNetType(ip));
         lock_guard<mutex> lck(self->_mtx);

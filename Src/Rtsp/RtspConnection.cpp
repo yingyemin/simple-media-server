@@ -15,8 +15,8 @@
 
 using namespace std;
 
-RtspConnection::RtspConnection(const EventLoop::Ptr& loop, const Socket::Ptr& socket)
-    :TcpConnection(loop, socket)
+RtspConnection::RtspConnection(const EventLoop::Ptr& loop, const Socket::Ptr& socket, bool enableSsl)
+    :TcpConnection(loop, socket, enableSsl)
     ,_loop(loop)
     ,_socket(socket)
 {
@@ -653,6 +653,12 @@ void RtspConnection::handleSetup()
         auto rtpTrans = make_shared<RtspRtpTransport>(Transport_TCP, TransportData_Media, track, _socket);
         auto rtcpTrans = make_shared<RtspRtcpTransport>(Transport_TCP, TransportData_Data, track, _socket);
         rtpTrans->setRtcp(rtcpTrans);
+        rtpTrans->setOnTcpSend([this](const Buffer::Ptr& pkt, int flag) {
+            send(pkt);
+        });
+        rtcpTrans->setOnTcpSend([this](const Buffer::Ptr& pkt, int flag) {
+            send(pkt);
+        });
 
         auto vecTrans = split(_parser._mapHeaders["transport"], ";", "=");
         int interleavedRtp = 0; 

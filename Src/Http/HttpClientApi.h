@@ -4,6 +4,7 @@
 #include "HttpParser.h"
 #include "Common/UrlParser.h"
 #include "HttpClient.h"
+#include "Http/HttpChunkedParser.h"
 
 #include <string>
 #include <memory>
@@ -32,6 +33,7 @@ public:
 
 private:
     EventLoop::Ptr _loop;
+    HttpChunkedParser::Ptr _chunkedParser;
     function<void(const HttpParser& parser)> _onHttpResponce;
 };
 

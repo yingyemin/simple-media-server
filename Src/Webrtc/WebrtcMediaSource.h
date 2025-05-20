@@ -46,6 +46,7 @@ private:
     bool _probeFinish = false;
     bool _start = false;
     int _ringSize = 512;
+    uint64_t _lastRtpStmp = 0;
     
     int _channels = 0;
     uint32_t _frameDur = 20; // ms

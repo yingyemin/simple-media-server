@@ -23,7 +23,7 @@ public:
     using Ptr = shared_ptr<RtspConnection>;
     using Wptr = weak_ptr<RtspConnection>;
 
-    RtspConnection(const EventLoop::Ptr& loop, const Socket::Ptr& socket);
+    RtspConnection(const EventLoop::Ptr& loop, const Socket::Ptr& socket, bool enableSsl = false);
     ~RtspConnection();
 
 public:
