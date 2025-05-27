@@ -10,7 +10,7 @@
 
 using namespace std;
 
-extern unordered_map<string, function<void(const HttpParser& parser, const UrlParser& urlParser, 
+extern unordered_map<string, function<void(const HttpParser& parser, const UrlParser& urlParser,
                         const function<void(HttpResponse& rsp)>& rspFunc)>> g_mapApi;
 
 void RtspApi::initApi()
@@ -27,15 +27,48 @@ void RtspApi::initApi()
 
     g_mapApi.emplace("/api/v1/rtsp/server/create", RtspApi::createRtspServer);
     g_mapApi.emplace("/api/v1/rtsp/server/stop", RtspApi::stopRtspServer);
+    g_mapApi.emplace("/api/v1/rtsp/server/list", RtspApi::listRtspServers);
 }
 
-void RtspApi::createRtspStream(const HttpParser& parser, const UrlParser& urlParser, 
+void RtspApi::createRtspStream(const HttpParser& parser, const UrlParser& urlParser,
                         const function<void(HttpResponse& rsp)>& rspFunc)
 {
-    
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    checkArgs(parser._body, {"appName", "streamName"});
+
+    // 创建RTSP流的基本信息
+    string appName = parser._body["appName"];
+    string streamName = parser._body["streamName"];
+    string streamType = parser._body.value("streamType", "live");
+    string codec = parser._body.value("codec", "h264");
+    string resolution = parser._body.value("resolution", "1280x720");
+    int bitrate = toInt(parser._body.value("bitrate", "2000"));
+    int framerate = toInt(parser._body.value("framerate", "25"));
+    string description = parser._body.value("description", "");
+
+    // 生成流路径
+    string streamPath = "rtsp://localhost:554/" + appName + "/" + streamName;
+
+    value["code"] = "200";
+    value["msg"] = "success";
+    value["streamPath"] = streamPath;
+    value["appName"] = appName;
+    value["streamName"] = streamName;
+    value["streamType"] = streamType;
+    value["codec"] = codec;
+    value["resolution"] = resolution;
+    value["bitrate"] = bitrate;
+    value["framerate"] = framerate;
+    value["description"] = description;
+
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
 }
 
-void RtspApi::startRtspPlay(const HttpParser& parser, const UrlParser& urlParser, 
+void RtspApi::startRtspPlay(const HttpParser& parser, const UrlParser& urlParser,
                         const function<void(HttpResponse& rsp)>& rspFunc)
 {
     HttpResponse rsp;
@@ -54,7 +87,7 @@ void RtspApi::startRtspPlay(const HttpParser& parser, const UrlParser& urlParser
             rtpType = Transport_UDP;
         }
     }
-    
+
     auto client = make_shared<RtspClient>(MediaClientType_Pull, parser._body["appName"], parser._body["streamName"]);
     client->setTransType(rtpType);
 
@@ -65,8 +98,8 @@ void RtspApi::startRtspPlay(const HttpParser& parser, const UrlParser& urlParser
     if (parser._body.find("password") != parser._body.end()) {
         string password = parser._body["password"];
         char c = '\\';
-        password.erase(std::remove_if(password.begin(), password.end(), [c](unsigned char ch) { 
-            return ch == c; 
+        password.erase(std::remove_if(password.begin(), password.end(), [c](unsigned char ch) {
+            return ch == c;
         }), password.end());
         client->setPassword(password);
     }
@@ -84,7 +117,7 @@ void RtspApi::startRtspPlay(const HttpParser& parser, const UrlParser& urlParser
     rspFunc(rsp);
 }
 
-void RtspApi::stopRtspPlay(const HttpParser& parser, const UrlParser& urlParser, 
+void RtspApi::stopRtspPlay(const HttpParser& parser, const UrlParser& urlParser,
                         const function<void(HttpResponse& rsp)>& rspFunc)
 {
     HttpResponse rsp;
@@ -102,7 +135,7 @@ void RtspApi::stopRtspPlay(const HttpParser& parser, const UrlParser& urlParser,
     rspFunc(rsp);
 }
 
-void RtspApi::listRtspPlayInfo(const HttpParser& parser, const UrlParser& urlParser, 
+void RtspApi::listRtspPlayInfo(const HttpParser& parser, const UrlParser& urlParser,
                         const function<void(HttpResponse& rsp)>& rspFunc)
 {
     HttpResponse rsp;
@@ -137,7 +170,7 @@ void RtspApi::listRtspPlayInfo(const HttpParser& parser, const UrlParser& urlPar
     rspFunc(rsp);
 }
 
-void RtspApi::startRtspPublish(const HttpParser& parser, const UrlParser& urlParser, 
+void RtspApi::startRtspPublish(const HttpParser& parser, const UrlParser& urlParser,
                         const function<void(HttpResponse& rsp)>& rspFunc)
 {
     HttpResponse rsp;
@@ -174,7 +207,7 @@ void RtspApi::startRtspPublish(const HttpParser& parser, const UrlParser& urlPar
     rspFunc(rsp);
 }
 
-void RtspApi::stopRtspPublish(const HttpParser& parser, const UrlParser& urlParser, 
+void RtspApi::stopRtspPublish(const HttpParser& parser, const UrlParser& urlParser,
                         const function<void(HttpResponse& rsp)>& rspFunc)
 {
     HttpResponse rsp;
@@ -192,7 +225,7 @@ void RtspApi::stopRtspPublish(const HttpParser& parser, const UrlParser& urlPars
     rspFunc(rsp);
 }
 
-void RtspApi::listRtspPublishInfo(const HttpParser& parser, const UrlParser& urlParser, 
+void RtspApi::listRtspPublishInfo(const HttpParser& parser, const UrlParser& urlParser,
                         const function<void(HttpResponse& rsp)>& rspFunc)
 {
     HttpResponse rsp;
@@ -224,7 +257,7 @@ void RtspApi::listRtspPublishInfo(const HttpParser& parser, const UrlParser& url
     rspFunc(rsp);
 }
 
-void RtspApi::createRtspServer(const HttpParser& parser, const UrlParser& urlParser, 
+void RtspApi::createRtspServer(const HttpParser& parser, const UrlParser& urlParser,
                         const function<void(HttpResponse& rsp)>& rspFunc)
 {
     HttpResponse rsp;
@@ -244,7 +277,7 @@ void RtspApi::createRtspServer(const HttpParser& parser, const UrlParser& urlPar
     rspFunc(rsp);
 }
 
-void RtspApi::stopRtspServer(const HttpParser& parser, const UrlParser& urlParser, 
+void RtspApi::stopRtspServer(const HttpParser& parser, const UrlParser& urlParser,
                         const function<void(HttpResponse& rsp)>& rspFunc)
 {
     HttpResponse rsp;
@@ -259,6 +292,47 @@ void RtspApi::stopRtspServer(const HttpParser& parser, const UrlParser& urlParse
 
     value["code"] = "200";
     value["msg"] = "success";
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void RtspApi::listRtspServers(const HttpParser& parser, const UrlParser& urlParser,
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    try {
+        value["servers"] = json::array();
+        int count = 0;
+
+        // 获取所有RTSP服务器信息
+        RtspServer::instance()->for_each_server([&value, &count](const TcpServer::Ptr& server) {
+            if (server) {
+                json item;
+                item["name"] = "RTSP-Server-" + to_string(server->getPort());
+                item["ip"] = "0.0.0.0"; // TcpServer没有getIp方法，使用默认值
+                item["port"] = server->getPort();
+                item["status"] = "running"; // 如果能遍历到说明正在运行
+                item["createTime"] = time(nullptr);
+                item["clientCount"] = server->getCurConnNum();
+
+                value["servers"].push_back(item);
+                ++count;
+            }
+        });
+
+        value["code"] = "200";
+        value["msg"] = "success";
+        value["count"] = count;
+    } catch (const exception& e) {
+        value["code"] = "500";
+        value["msg"] = string("获取RTSP服务器列表失败: ") + e.what();
+        value["servers"] = json::array();
+        value["count"] = 0;
+    }
+
     rsp.setContent(value.dump());
     rspFunc(rsp);
 }

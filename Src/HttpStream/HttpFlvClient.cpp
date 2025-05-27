@@ -137,6 +137,12 @@ void HttpFlvClient::pause()
 
 }
 
+void HttpFlvClient::getProtocolAndType(string& protocol, MediaClientType& type)
+{
+    protocol = "flv";
+    type = _type;
+}
+
 void HttpFlvClient::onHttpRequest()
 {
     // if(_parser._contentLen == 0){
@@ -305,7 +311,7 @@ void HttpFlvClient::handleVideo(const char* data, int len)
 
     // }
 
-    
+
 
     // FILE* fp = fopen("testrtmp.rtmp", "ab+");
     // fwrite(msg->payload.get(), msg->length, 1, fp);
@@ -356,7 +362,7 @@ void HttpFlvClient::handleAudio(const char* data, int len)
 
     auto msg = make_shared<RtmpMessage>();
     msg->payload = make_shared<StreamBuffer>(length + 1);
-    
+
     memcpy(msg->payload.get(), payload, length);
 
     msg->abs_timestamp = timestamp;

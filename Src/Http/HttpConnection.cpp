@@ -20,7 +20,7 @@
 
 using namespace std;
 
-unordered_map<string, function<void(const HttpParser& parser, const UrlParser& urlParser, 
+unordered_map<string, function<void(const HttpParser& parser, const UrlParser& urlParser,
                         const function<void(HttpResponse& rsp)>& rspFunc)>> g_mapApi;
 
 HttpConnection::HttpConnection(const EventLoop::Ptr& loop, const Socket::Ptr& socket, bool enbaleSsl)
@@ -130,7 +130,7 @@ ssize_t HttpConnection::send(Buffer::Ptr pkt)
         sizeBuffer->append("\r\n");
         TcpConnection::send(sizeBuffer);
         TcpConnection::send(pkt);
-        
+
         auto lfcf = make_shared<StringBuffer>();
         lfcf->assign("\r\n");
         TcpConnection::send(lfcf);
@@ -158,7 +158,7 @@ ssize_t HttpConnection::send(Buffer::Ptr pkt)
         //     _websocket.encodePayload(frame, pkt);
         // }
     }
-    
+
     return TcpConnection::send(pkt);
 }
 
@@ -169,7 +169,7 @@ void HttpConnection::onHttpRequest()
 
         _parser._url = "http://" + _socket->getLocalIp() + ":" + to_string(_socket->getLocalPort())
                         + _parser._url;
-        
+
         logDebug << "_parser._url: " << _parser._url;
         UrlParser tmp;
         _urlParser = tmp;
@@ -244,7 +244,7 @@ void HttpConnection::onHttpRequest()
                 value["msg"] = "unsupport method: " + method;
                 rsp.setContent(value.dump());
                 writeHttpResponse(rsp);
-            }                   
+            }
         }
     } catch (exception& ex) {
         HttpResponse rsp;
@@ -254,7 +254,7 @@ void HttpConnection::onHttpRequest()
     }
 }
 
-void HttpConnection::apiRoute(const HttpParser& parser, const UrlParser& urlParser, 
+void HttpConnection::apiRoute(const HttpParser& parser, const UrlParser& urlParser,
                         const function<void(HttpResponse& rsp)>& rspFunc)
 {
     string msg = "unknwon api";
@@ -266,20 +266,33 @@ void HttpConnection::apiRoute(const HttpParser& parser, const UrlParser& urlPars
         }
     } catch (ApiException& ex) {
         logInfo << urlParser.path_ << " error: " << ex.what();
-        msg = ex.what();
+
+        HttpResponse rsp;
+        rsp._status = ex.getHttpStatus();
+        json value;
+        value["msg"] = ex.getErrorMessage();
+        value["code"] = ErrorCodeHelper::getErrorCodeString(ex.getErrorCode());
+        value["timestamp"] = time(nullptr);
+        rsp.setContent(value.dump());
+        rsp.setHeader("Content-Type", "application/json; charset=utf-8");
+        rspFunc(rsp);
+        return;
     } catch (exception& ex) {
         logInfo << urlParser.path_ << " error: " << ex.what();
         msg = ex.what();
     } catch (...) {
         logInfo << urlParser.path_ << " error";
+        msg = "未知错误";
     }
 
     HttpResponse rsp;
-    rsp._status = 400;
+    rsp._status = 500;
     json value;
     value["msg"] = msg;
-    value["code"] = 400;
+    value["code"] = ErrorCodeHelper::getErrorCodeString(ApiErrorCode::INTERNAL_ERROR);
+    value["timestamp"] = time(nullptr);
     rsp.setContent(value.dump());
+    rsp.setHeader("Content-Type", "application/json; charset=utf-8");
     rspFunc(rsp);
 }
 
@@ -337,7 +350,7 @@ void HttpConnection::writeHttpResponse(HttpResponse& rsp) // 将要素按照Http
             rsp.setHeader("Sec-WebSocket-Version", _parser._mapHeaders["sec-websocket-version"]);
         }
     }
-    
+
     // 将rsp完善，按照http协议格式进行组织
     std::stringstream rsp_str;
     rsp_str << _parser._version << " " << std::to_string(rsp._status) << " " << HttpUtil::getStatusDesc(rsp._status) << "\r\n";
@@ -384,7 +397,7 @@ void HttpConnection::sendFile() // 将要素按照HttpResponse协议进行组织
     else{
         rsp.setHeader("Connection","close");
     }
-    
+
     if(rsp._redirectFlag) {
         rsp.setHeader("Location",rsp._redirectUrl);
     }
@@ -421,7 +434,7 @@ void HttpConnection::sendFile() // 将要素按照HttpResponse协议进行组织
             rsp.setHeader("Content-Range", "bytes " + _rangeStr + "/" + to_string(_httpFile->getFileSize()));
         }
     }
-    
+
     // 将rsp完善，按照http协议格式进行组织
     std::stringstream rsp_str;
     rsp_str << _parser._version << " " << std::to_string(rsp._status) << " " << HttpUtil::getStatusDesc(rsp._status) << "\r\n";
@@ -449,7 +462,7 @@ void HttpConnection::sendFile() // 将要素按照HttpResponse协议进行组织
         self->send(buffer);
         return true;
     });
-    
+
     // 发送Header
     auto buffer = StreamBuffer::create();
     buffer->assign(rsp_str.str().c_str(),rsp_str.str().size());
@@ -564,7 +577,7 @@ void HttpConnection::handleGet()
         if (interval == 0) {
             interval = 5000;
         }
-        
+
         _loop->addTimerTask(interval, [wSelf](){
             auto self = wSelf.lock();
             if (!self) {
@@ -746,7 +759,7 @@ void HttpConnection::handleFlvStream()
         auto buffer = make_shared<StreamBuffer>(data, len);
         self->send(buffer);
     });
-    
+
     flvMux->setOnWrite([wSelf](const StreamBuffer::Ptr& buffer){
         auto self = wSelf.lock();
         if (!self) {
@@ -834,7 +847,7 @@ void HttpConnection::handleHlsM3u8()
     if (_urlParser.vecParam_.find("uid") != _urlParser.vecParam_.end()) {
         string path = _urlParser.path_;
         trimBack(path, ".m3u8");
-        
+
         string strM3u8;
         auto uid = stoi(_urlParser.vecParam_["uid"]);
         string streamKey = path + "_" + _urlParser.vhost_ + "_" + _urlParser.type_;
@@ -859,7 +872,7 @@ void HttpConnection::handleHlsM3u8()
 
     _mimeType = HttpUtil::getMimeType(_urlParser.path_);
 	_urlParser.path_ = trimBack(_urlParser.path_, ".m3u8");
-    MediaSource::getOrCreateAsync(_urlParser.path_, _urlParser.vhost_, _urlParser.protocol_, _urlParser.type_, 
+    MediaSource::getOrCreateAsync(_urlParser.path_, _urlParser.vhost_, _urlParser.protocol_, _urlParser.type_,
     [wSelf](const MediaSource::Ptr &src){
         logTrace << "get a src";
         auto self = wSelf.lock();
@@ -883,7 +896,7 @@ void HttpConnection::handleHlsM3u8()
 
 			self->onPlayHls(hlsSrc);
 		}, true);
-    }, 
+    },
     [wSelf]() -> MediaSource::Ptr {
         auto self = wSelf.lock();
         if (!self) {
@@ -982,7 +995,7 @@ void HttpConnection::handleHlsTs()
 
 void HttpConnection::handleLLHlsM3u8()
 {
-#ifdef ENABLE_HLS 
+#ifdef ENABLE_HLS
     weak_ptr<HttpConnection> wSelf = dynamic_pointer_cast<HttpConnection>(shared_from_this());
 
     if (_urlParser.vecParam_.find("uid") != _urlParser.vecParam_.end()) {
@@ -1010,7 +1023,7 @@ void HttpConnection::handleLLHlsM3u8()
 
     _mimeType = HttpUtil::getMimeType(_urlParser.path_);
 	_urlParser.path_ = trimBack(_urlParser.path_, ".ll.m3u8");
-    MediaSource::getOrCreateAsync(_urlParser.path_, _urlParser.vhost_, _urlParser.protocol_, _urlParser.type_, 
+    MediaSource::getOrCreateAsync(_urlParser.path_, _urlParser.vhost_, _urlParser.protocol_, _urlParser.type_,
     [wSelf](const MediaSource::Ptr &src){
         logTrace << "get a src";
         auto self = wSelf.lock();
@@ -1034,7 +1047,7 @@ void HttpConnection::handleLLHlsM3u8()
 
 			self->onPlayLLHls(hlsSrc);
 		}, true);
-    }, 
+    },
     [wSelf]() -> MediaSource::Ptr {
         auto self = wSelf.lock();
         if (!self) {
@@ -1143,7 +1156,7 @@ void HttpConnection::handleTs()
     _urlParser.path_ = trimBack(_urlParser.path_, ".ts");
 
     weak_ptr<HttpConnection> wSelf = dynamic_pointer_cast<HttpConnection>(shared_from_this());
-    MediaSource::getOrCreateAsync(_urlParser.path_, _urlParser.vhost_, PROTOCOL_TS, _urlParser.type_, 
+    MediaSource::getOrCreateAsync(_urlParser.path_, _urlParser.vhost_, PROTOCOL_TS, _urlParser.type_,
     [wSelf](const MediaSource::Ptr &src){
         logTrace << "get a src";
         auto self = wSelf.lock();
@@ -1167,7 +1180,7 @@ void HttpConnection::handleTs()
 
 			self->onPlayTs(tsSrc);
 		}, true);
-    }, 
+    },
     [wSelf]() -> MediaSource::Ptr {
         auto self = wSelf.lock();
         if (!self) {
@@ -1240,7 +1253,7 @@ void HttpConnection::onPlayTs(const TsMediaSource::Ptr &tsSrc)
             tsSrc->delConnection(this);
         };
 	}
-} 
+}
 #endif
 
 void HttpConnection::handlePs()
@@ -1255,7 +1268,7 @@ void HttpConnection::handlePs()
     _urlParser.path_ = trimBack(_urlParser.path_, ".ps");
 
     weak_ptr<HttpConnection> wSelf = dynamic_pointer_cast<HttpConnection>(shared_from_this());
-    MediaSource::getOrCreateAsync(_urlParser.path_, _urlParser.vhost_, PROTOCOL_PS, _urlParser.type_, 
+    MediaSource::getOrCreateAsync(_urlParser.path_, _urlParser.vhost_, PROTOCOL_PS, _urlParser.type_,
     [wSelf](const MediaSource::Ptr &src){
         logTrace << "get a src";
         auto self = wSelf.lock();
@@ -1279,7 +1292,7 @@ void HttpConnection::handlePs()
 
 			self->onPlayPs(psSrc);
 		}, true);
-    }, 
+    },
     [wSelf]() -> MediaSource::Ptr {
         auto self = wSelf.lock();
         if (!self) {
@@ -1353,7 +1366,7 @@ void HttpConnection::onPlayPs(const PsMediaSource::Ptr &psSrc)
             psSrc->delConnection(this);
         };
 	}
-} 
+}
 #endif
 
 void HttpConnection::handleFmp4()
@@ -1368,7 +1381,7 @@ void HttpConnection::handleFmp4()
     _urlParser.path_ = trimBack(_urlParser.path_, ".mp4");
 
     weak_ptr<HttpConnection> wSelf = dynamic_pointer_cast<HttpConnection>(shared_from_this());
-    MediaSource::getOrCreateAsync(_urlParser.path_, _urlParser.vhost_, PROTOCOL_HTTP_FMP4, _urlParser.type_, 
+    MediaSource::getOrCreateAsync(_urlParser.path_, _urlParser.vhost_, PROTOCOL_HTTP_FMP4, _urlParser.type_,
     [wSelf](const MediaSource::Ptr &src){
         logTrace << "get a src";
         auto self = wSelf.lock();
@@ -1392,7 +1405,7 @@ void HttpConnection::handleFmp4()
 
 			self->onPlayFmp4(fmp4Src);
 		}, true);
-    }, 
+    },
     [wSelf]() -> MediaSource::Ptr {
         auto self = wSelf.lock();
         if (!self) {
@@ -1469,5 +1482,5 @@ void HttpConnection::onPlayFmp4(const Fmp4MediaSource::Ptr &fmp4Src)
             fmp4Src->delConnection(this);
         };
 	}
-} 
+}
 #endif

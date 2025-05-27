@@ -75,7 +75,7 @@ void RtmpClient::init()
 //     if (it != _mapRtmpClient.end()) {
 //         return it->second;
 //     }
-    
+
 //     return nullptr;
 // }
 
@@ -123,7 +123,7 @@ bool RtmpClient::start(const string& localIp, int localPort, const string& url, 
             self->send(buffer);
         }
     });
-    
+
     _handshake->setOnRtmpChunk([wSelf](const StreamBuffer::Ptr &buffer){
         auto self = wSelf.lock();
         if (self) {
@@ -143,7 +143,7 @@ bool RtmpClient::start(const string& localIp, int localPort, const string& url, 
     _peerUrlParser.port_ = _peerUrlParser.port_ == 0 ? 1935 : _peerUrlParser.port_;
     if (TcpClient::connect(_peerUrlParser.host_, _peerUrlParser.port_, timeout) < 0) {
         close();
-        logInfo << "TcpClient::connect, ip: " << _peerUrlParser.host_ << ", peerPort: " 
+        logInfo << "TcpClient::connect, ip: " << _peerUrlParser.host_ << ", peerPort: "
                 << _peerUrlParser.port_ << ", failed: " << strerror(errno);
         return false;
     }
@@ -159,6 +159,12 @@ void RtmpClient::stop()
 void RtmpClient::pause()
 {
     sendPause();
+}
+
+void RtmpClient::getProtocolAndType(string& protocol, MediaClientType& type)
+{
+    protocol = _localUrlParser.protocol_;
+    type = _type;
 }
 
 void RtmpClient::onConnect()
@@ -236,7 +242,7 @@ void RtmpClient::sendConnect()
 {
     logInfo << "RtmpClient::sendConnect()";
 
-    AmfObjects objects;    
+    AmfObjects objects;
     _amfEncoder.reset();
     _amfEncoder.encodeString("connect", 7);
     _amfEncoder.encodeNumber(++_sendInvokerId);
@@ -256,7 +262,7 @@ void RtmpClient::sendConnect()
 
 void RtmpClient::sendCreateStream()
 {
-    AmfObjects objects;    
+    AmfObjects objects;
     _amfEncoder.reset();
     _amfEncoder.encodeString("createStream", 12);
     _amfEncoder.encodeNumber(++_sendInvokerId);
@@ -270,7 +276,7 @@ void RtmpClient::sendCreateStream()
 
 void RtmpClient::sendPlayOrPublish()
 {
-    AmfObjects objects; 
+    AmfObjects objects;
     if (_type == MediaClientType_Pull) {
         _amfEncoder.reset();
         _amfEncoder.encodeString("play", 4);
@@ -295,7 +301,7 @@ void RtmpClient::sendPlayOrPublish()
 
 void RtmpClient::sendDeleteStream()
 {
-    
+
 }
 
 void RtmpClient::sendPause()
@@ -309,9 +315,9 @@ void RtmpClient::onRtmpChunk(RtmpMessage msg)
         return ;
     }
 
-    bool ret = true;  
+    bool ret = true;
     switch(msg.type_id)
-    {        
+    {
         case RTMP_VIDEO:
             ret = handleVideo(msg);
             break;
@@ -329,8 +335,8 @@ void RtmpClient::onRtmpChunk(RtmpMessage msg)
         case RTMP_FLEX_MESSAGE:
             logInfo << "unsupported rtmp flex message";
 			ret = false;
-            break;            
-        case RTMP_SET_CHUNK_SIZE:           
+            break;
+        case RTMP_SET_CHUNK_SIZE:
 			_chunk.setInChunkSize(readUint32BE(msg.payload->data()));
             break;
 		case RTMP_BANDWIDTH_SIZE:
@@ -338,9 +344,9 @@ void RtmpClient::onRtmpChunk(RtmpMessage msg)
         case RTMP_FLASH_VIDEO:
             logInfo << "unsupported rtmp flash video";
 			ret = false;
-            break;    
+            break;
         case RTMP_ACK:
-            break;            
+            break;
         case RTMP_ACK_SIZE:
             break;
         case RTMP_USER_EVENT:
@@ -354,29 +360,29 @@ void RtmpClient::onRtmpChunk(RtmpMessage msg)
 	if (!ret) {
 		logInfo << "msg.type_id: " << msg.type_id;
 	}
-		
+
     return ;
 }
 
 bool RtmpClient::handleResponse(RtmpMessage& rtmp_msg)
-{   
+{
     bool ret  = true;
     _amfDecoder.reset();
-  
+
 	int bytes_used = _amfDecoder.decode((const char *)rtmp_msg.payload->data(), rtmp_msg.length, 1);
 	if (bytes_used < 0) {
 		return false;
 	}
 
     std::string method = _amfDecoder.getString();
-    
+
     logInfo << "method: " << method;
     // logInfo << "rtmp_msg.stream_id: " << rtmp_msg.stream_id;
     logInfo << "rtmp_msg.length: " << rtmp_msg.length;
     logInfo << bytes_used << "method: " << bytes_used;
-    
+
     bytes_used += _amfDecoder.decode(rtmp_msg.payload->data()+bytes_used, rtmp_msg.length-bytes_used, 1);
-    
+
     if (method == "_error" || method == "_result") {
         handleCmdResult(bytes_used, rtmp_msg);
     } else if (method == "onStatus") {
@@ -497,7 +503,7 @@ bool RtmpClient::handlePlay()
     rtmpSrc->setOriginSocket(_socket);
     weak_ptr<RtmpClient> wSelf = dynamic_pointer_cast<RtmpClient>(shared_from_this());
 
-    _source = rtmpSrc; 
+    _source = rtmpSrc;
 
     lock_guard<mutex> lck(_mtx);
     for (auto &iter : _mapOnReady) {
@@ -584,7 +590,7 @@ bool RtmpClient::handleVideo(RtmpMessage& rtmp_msg)
 
     // }
 
-    
+
 
     // FILE* fp = fopen("testrtmp.rtmp", "ab+");
     // fwrite(msg->payload.get(), msg->length, 1, fp);
@@ -702,7 +708,7 @@ bool RtmpClient::sendMetaData(AmfObjects meta_data)
 		return false;
 	}
 
-    _amfEncoder.reset(); 
+    _amfEncoder.reset();
     _amfEncoder.encodeString("onMetaData", 10);
     _amfEncoder.encodeECMA(meta_data);
 
@@ -711,7 +717,7 @@ bool RtmpClient::sendMetaData(AmfObjects meta_data)
     rtmp_msg.timestamp = 0;
     rtmp_msg.stream_id = RTMP_StreamID_CONTROL;
     rtmp_msg.payload = _amfEncoder.data();
-    rtmp_msg.length = _amfEncoder.size(); 
+    rtmp_msg.length = _amfEncoder.size();
     sendRtmpChunks(RTMP_CHUNK_DATA_ID, rtmp_msg);
 
     return true;
@@ -721,7 +727,7 @@ bool RtmpClient::handlePublish()
 {
     weak_ptr<RtmpClient> wSelf = static_pointer_cast<RtmpClient>(shared_from_this());
 
-    MediaSource::getOrCreateAsync(_localUrlParser.path_, _localUrlParser.vhost_, _localUrlParser.protocol_, _localUrlParser.type_, 
+    MediaSource::getOrCreateAsync(_localUrlParser.path_, _localUrlParser.vhost_, _localUrlParser.protocol_, _localUrlParser.type_,
     [wSelf](const MediaSource::Ptr &src){
         logInfo << "get a src";
         auto self = wSelf.lock();
@@ -742,7 +748,7 @@ bool RtmpClient::handlePublish()
 
             self->onPublish(src);
         }, true);
-    }, 
+    },
     [wSelf]() -> MediaSource::Ptr {
         auto self = wSelf.lock();
         if (!self) {
@@ -824,13 +830,13 @@ bool RtmpClient::sendInvokeMessage(uint32_t csid, const StreamBuffer::Ptr& paylo
     rtmp_msg.timestamp = 0;
     rtmp_msg.stream_id = _streamId;
     rtmp_msg.payload = payload;
-    rtmp_msg.length = payload_size; 
-    sendRtmpChunks(csid, rtmp_msg);  
+    rtmp_msg.length = payload_size;
+    sendRtmpChunks(csid, rtmp_msg);
     return true;
 }
 
 void RtmpClient::sendRtmpChunks(uint32_t csid, RtmpMessage& rtmp_msg)
-{    
+{
     _chunk.createChunk(csid, rtmp_msg);
 }
 

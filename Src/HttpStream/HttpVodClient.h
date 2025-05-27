@@ -25,6 +25,7 @@ public:
     void stop() override;
     void pause() override;
     void setOnClose(const function<void()>& cb) override;
+    void getProtocolAndType(string& protocol, MediaClientType& type) override;
 
 public:
     void onError(const string& err);
@@ -54,7 +55,7 @@ protected:
     TimeClock _clock;
     MediaClientType _type;
     UrlParser _localUrlParser;
-    
+
     HttpDownload::Ptr _downloader;
     EventLoop::Ptr _loop;
     Socket::Ptr _socket;

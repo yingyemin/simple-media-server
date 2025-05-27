@@ -93,7 +93,7 @@ bool HlsClientContext::start(const string& localIp, int localPort, const string&
             return 0;
         }
 
-        // TODO 
+        // TODO
         // 1.检查ts队列，是否有ts要解析
         // 2.检查帧列表，队列较小时，下载ts解析（队列小于下一个要播的ts时长时，下载？或者取10秒和下一个ts时长的较大值）
 
@@ -266,6 +266,12 @@ void HlsClientContext::setOnClose(const function<void()>& cb)
     _onClose = cb;
 }
 
+void HlsClientContext::getProtocolAndType(string& protocol, MediaClientType& type)
+{
+    protocol = "hls";
+    type = _type;
+}
+
 string HlsClientContext::getM3u8()
 {
     logInfo << "get M3u8: " << _m3u8;
@@ -283,9 +289,9 @@ string HlsClientContext::getM3u8()
             << ", _m3u8: " << _m3u8
             << ", http pos: " << httppos
             << ", https pos: " << httpspos;
-            
+
     weak_ptr<HlsClientContext> wSelf = shared_from_this();
-    
+
     _hlsClient = make_shared<HttpHlsClient>();
     _hlsClient->start(_localIp, _localPort, _m3u8, _timeout);
     _hlsClient->setOnHttpResponce([wSelf](const HttpParser &parser){

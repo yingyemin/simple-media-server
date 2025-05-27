@@ -74,6 +74,7 @@ void WebrtcClient::init()
 bool WebrtcClient::start(const string& localIp, int localPort, const string& url, int timeout)
 {
 #ifdef ENABLE_HTTP
+    _sourceUrl = url;
     _dtlsSession.reset(new DtlsSession("client"));
 	if (!_dtlsSession->init(WebrtcContext::getDtlsCertificate())) {
 		logError << "dtls session init failed";
@@ -95,7 +96,7 @@ bool WebrtcClient::start(const string& localIp, int localPort, const string& url
         if(!self){
             return;
         }
-        
+
         self->onRtcPacket(data + 2, len - 2);
     });
 
@@ -164,6 +165,12 @@ void WebrtcClient::addOnReady(void* key, const function<void()>& onReady)
     _mapOnReady.emplace(key, onReady);
 }
 
+void WebrtcClient::getProtocolAndType(string& protocol, MediaClientType& type)
+{
+    protocol = _urlParser.protocol_;
+    type = _request == "pull" ? MediaClientType_Pull : MediaClientType_Push;
+}
+
 void WebrtcClient::close()
 {
     if (_onClose) {
@@ -199,7 +206,7 @@ void WebrtcClient::initPuller()
     // _urlParser.vhost_ = DEFAULT_VHOST;
     // _urlParser.protocol_ = PROTOCOL_WEBRTC;
     // _urlParser.type_ = DEFAULT_TYPE;
-    auto source = MediaSource::getOrCreate(_urlParser.path_, _urlParser.vhost_, _urlParser.protocol_, _urlParser.type_, 
+    auto source = MediaSource::getOrCreate(_urlParser.path_, _urlParser.vhost_, _urlParser.protocol_, _urlParser.type_,
     [this](){
         return make_shared<WebrtcMediaSource>(_urlParser, _loop);
     });
@@ -290,7 +297,7 @@ void WebrtcClient::initLocalSdpTitle(stringstream& ss, int trackNum)
     for (int i = 0; i < trackNum; ++i) {
         groupAttr += " " + to_string(i);
     }
-    
+
     ss << "v=0\r\n"
        << "o=SimpleMediaServer 3259346588694 2 IN IP4 127.0.0.1\r\n"
        << "s=play_connection\r\n"
@@ -439,7 +446,7 @@ void WebrtcClient::initPullerLocalSdpMedia(stringstream& ss)
     string cname = "sms-cname";
     int audiossrc = 10000;
     int videossrc = 20000;
-  
+
     ss << "m=audio 9 UDP/TLS/RTP/SAVPF 8 111 0 97\r\n"
         << "c=IN IP4 0.0.0.0\r\n"
         << "a=rtcp:9 IN IP4 0.0.0.0\r\n"
@@ -531,7 +538,7 @@ void WebrtcClient::setRemoteSdp(const string& sdp)
 {
     _remoteSdp = make_shared<WebrtcSdp>();
     _remoteSdp->parse(sdp);
-    
+
     auto rtcSrc = _source.lock();
     if (!rtcSrc && _request == "pull") {
         logError << "source is empty, path: " << _urlParser.path_;
@@ -844,7 +851,7 @@ void WebrtcClient::onRtpPacket(const RtpPacket::Ptr& rtp)
         char plaintext[1500];
         int nb_plaintext = rtp->size();
         auto data = rtp->data();
-        if (0 != _srtpSession->unprotectRtp(data, plaintext, nb_plaintext)) 
+        if (0 != _srtpSession->unprotectRtp(data, plaintext, nb_plaintext))
             return ;
 
         auto rtpbuffer = StreamBuffer::create();
@@ -866,7 +873,7 @@ void WebrtcClient::onRtpPacket(const RtpPacket::Ptr& rtp)
 
 void WebrtcClient::startPlay()
 {
-    
+
     // if (_enableSrtp && !_srtpSession) {
 	// 	_srtpSession.reset(new SrtpSession());
 	// 	std::string recv_key, send_key;
@@ -887,7 +894,7 @@ void WebrtcClient::startPlay()
     // _urlParser.protocol_ = PROTOCOL_WEBRTC;
     // _urlParser.type_ = DEFAULT_TYPE;
 
-    MediaSource::getOrCreateAsync(_urlParser.path_, _urlParser.vhost_, _urlParser.protocol_, _urlParser.type_, 
+    MediaSource::getOrCreateAsync(_urlParser.path_, _urlParser.vhost_, _urlParser.protocol_, _urlParser.type_,
     [wSelf](const MediaSource::Ptr &src){
         auto self = wSelf.lock();
         if (!self) {
@@ -902,7 +909,7 @@ void WebrtcClient::startPlay()
 
             self->startPlay(src);
         }, true);
-    }, 
+    },
     [wSelf]() -> MediaSource::Ptr {
         auto self = wSelf.lock();
         if (!self) {
@@ -948,7 +955,7 @@ void WebrtcClient::startPlay(const MediaSource::Ptr &src)
             if (!self/* || pack->empty()*/) {
                 return;
             }
-            
+
             self->sendRtpPacket(pack);
         });
 
@@ -1002,7 +1009,7 @@ void WebrtcClient::sendMedia(const RtpPacket::Ptr& rtp)
 	// auto _video_payload_type = sdp_video_pt == 0 ? 106 : sdp_video_pt;
 	data[1] = (data[1] & 0x80) | (rtp->type_ == "audio" ? _audioPtInfo->payloadType_ : _videoPtInfo->payloadType_);
 	uint32_t ssrc = htonl(rtp->type_ == "audio" ? 10000 : 20000);
-	memcpy(data + 8, &ssrc, sizeof(ssrc));	
+	memcpy(data + 8, &ssrc, sizeof(ssrc));
 
     // FILE* fp = fopen("test.rtp", "ab+");
 	// fwrite(data, nb_cipher, 1, fp);

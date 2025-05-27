@@ -47,6 +47,10 @@ public:
     void pause() override;
     void setOnClose(const function<void()>& cb) override;
     void addOnReady(void* key, const function<void()>& onReady) override;
+    void getProtocolAndType(string& protocol, MediaClientType& type) override;
+
+    string getPath() {return _localUrlParser.path_;}
+    string getSourceUrl() {return _url;}
 
     // static void addRtmpClient(const string& key, const RtmpClient::Ptr& client);
     // static void delRtmpClient(const string& key);
@@ -110,7 +114,7 @@ private:
     AmfEncoder _amfEncoder;
     AmfObjects _metaData;
     RtmpChunk _chunk;
-    
+
     UrlParser _localUrlParser;
     UrlParser _peerUrlParser;
 
