@@ -390,15 +390,15 @@ bool ConfigTemplateApi::validateTemplateRequest(const json& requestData, string&
 // ConfigTemplateApi 实现
 void ConfigTemplateApi::initApi()
 {
-    g_mapApi.emplace("/api/v1/templates", ConfigTemplateApi::listTemplates);
+    // g_mapApi.emplace("/api/v1/templates", ConfigTemplateApi::listTemplates);
     g_mapApi.emplace("/api/v1/templates/create", ConfigTemplateApi::createTemplate);
     g_mapApi.emplace("/api/v1/templates/get", ConfigTemplateApi::getTemplate);
     g_mapApi.emplace("/api/v1/templates/update", ConfigTemplateApi::updateTemplate);
-    g_mapApi.emplace("/api/v1/templates/delete", ConfigTemplateApi::deleteTemplate);
-    g_mapApi.emplace("/api/v1/templates/apply", ConfigTemplateApi::applyTemplate);
-    g_mapApi.emplace("/api/v1/templates/export", ConfigTemplateApi::exportTemplate);
-    g_mapApi.emplace("/api/v1/templates/import", ConfigTemplateApi::importTemplate);
-    g_mapApi.emplace("/api/v1/templates/defaults", ConfigTemplateApi::getDefaultTemplates);
+    // g_mapApi.emplace("/api/v1/templates/delete", ConfigTemplateApi::deleteTemplate);
+    // g_mapApi.emplace("/api/v1/templates/apply", ConfigTemplateApi::applyTemplate);
+    // g_mapApi.emplace("/api/v1/templates/export", ConfigTemplateApi::exportTemplate);
+    // g_mapApi.emplace("/api/v1/templates/import", ConfigTemplateApi::importTemplate);
+    // g_mapApi.emplace("/api/v1/templates/defaults", ConfigTemplateApi::getDefaultTemplates);
 
     // 加载默认模板
     ConfigTemplateManager::instance().loadDefaultTemplates();
