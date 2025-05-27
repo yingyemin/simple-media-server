@@ -18,7 +18,7 @@
             <el-icon><Monitor /></el-icon>
             <span>仪表盘</span>
           </el-menu-item>
-          
+
           <el-sub-menu index="config">
             <template #title>
               <el-icon><Setting /></el-icon>
@@ -49,7 +49,9 @@
             <el-menu-item index="/protocols/webrtc">WebRTC</el-menu-item>
             <el-menu-item index="/protocols/srt">SRT</el-menu-item>
             <el-menu-item index="/protocols/gb28181">GB28181</el-menu-item>
+            <el-menu-item index="/protocols/gb28181-sip">GB28181 SIP</el-menu-item>
             <el-menu-item index="/protocols/jt1078">JT1078</el-menu-item>
+            <el-menu-item index="/protocols/httpstream">HTTP流媒体</el-menu-item>
           </el-sub-menu>
 
           <el-sub-menu index="record">

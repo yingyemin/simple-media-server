@@ -34,6 +34,7 @@ public:
     void stop() override;
     void pause() override;
     void setOnClose(const function<void()>& cb) override;
+    void getProtocolAndType(string& protocol, MediaClientType& type) override;
 
 public:
     void onHttpResponce();
@@ -50,12 +51,12 @@ private:
     MediaClientType _type;
     UrlParser _localUrlParser;
     FlvDemuxer _demuxer;
-    
+
     int _avcHeaderSize = 0;
     StreamBuffer::Ptr _avcHeader;
     int _aacHeaderSize = 0;
     StreamBuffer::Ptr _aacHeader;
-    
+
     EventLoop::Ptr _loop;
     Socket::Ptr _socket;
     RtmpMediaSource::Wptr _source;

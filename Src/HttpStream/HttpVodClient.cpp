@@ -152,6 +152,12 @@ void HttpVodClient::setOnClose(const function<void()>& cb)
     _onClose = cb;
 }
 
+void HttpVodClient::getProtocolAndType(string& protocol, MediaClientType& type)
+{
+    protocol = "ps";
+    type = _type;
+}
+
 void HttpVodClient::onFrame(const FrameBuffer::Ptr& frame)
 {
     _frameList.emplace_back(frame);

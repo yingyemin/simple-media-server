@@ -139,7 +139,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { LineChart } from 'echarts/charts'
@@ -150,6 +150,7 @@ import {
 } from 'echarts/components'
 import VChart from 'vue-echarts'
 import { serverAPI } from '@/api'
+import { useRealtime } from '@/composables/useRealtime'
 
 use([
   CanvasRenderer,
@@ -158,6 +159,14 @@ use([
   TooltipComponent,
   GridComponent
 ])
+
+// 使用实时数据管理
+const { realtimeStore, getUpdateMode, refreshData } = useRealtime({
+  enableWebSocket: true,
+  enablePolling: true,
+  pollingInterval: 5000, // ServerMonitor需要更频繁的更新
+  autoConnect: true
+})
 
 const serverInfo = ref({
   version: '',
@@ -170,12 +179,17 @@ const serverInfo = ref({
   connectionCount: 0
 })
 
-const stats = ref({
-  activeStreams: 0,
-  onlineClients: 0,
-  totalBandwidth: 0,
-  totalTraffic: 0
-})
+// 使用computed从realtime store获取统计数据
+const stats = computed(() => ({
+  activeStreams: realtimeStore.serverStats.activeStreams,
+  onlineClients: realtimeStore.serverStats.onlineClients,
+  totalBandwidth: realtimeStore.serverStats.totalBandwidth,
+  totalTraffic: realtimeStore.serverStats.totalBandwidth * 3600 // 估算每小时流量
+}))
+
+// 连接状态
+const connectionStatus = computed(() => realtimeStore.connectionStatus)
+const updateMode = ref('none')
 
 const protocolStats = ref([])
 const serviceStatus = ref([])
@@ -271,31 +285,55 @@ const refreshStats = async () => {
 }
 
 const refreshCharts = () => {
-  const now = new Date()
-  const times = []
-  const cpuData = []
-  const memoryData = []
-  const inTraffic = []
-  const outTraffic = []
-  
-  for (let i = 9; i >= 0; i--) {
-    const time = new Date(now.getTime() - i * 60 * 1000)
-    times.push(time.getHours() + ':' + time.getMinutes().toString().padStart(2, '0'))
-    cpuData.push(Math.floor(Math.random() * 100))
-    memoryData.push(Math.floor(Math.random() * 100))
-    inTraffic.push(Math.floor(Math.random() * 1000))
-    outTraffic.push(Math.floor(Math.random() * 1000))
+  // 使用实时历史数据
+  const cpuHistory = realtimeStore.getCpuHistory(10)
+  const memoryHistory = realtimeStore.getMemoryHistory(10)
+  const bandwidthHistory = realtimeStore.getBandwidthHistory(10)
+
+  if (cpuHistory.timestamps.length > 0) {
+    // 使用真实的历史数据
+    const times = cpuHistory.timestamps.map(time =>
+      time.getHours().toString().padStart(2, '0') + ':' +
+      time.getMinutes().toString().padStart(2, '0')
+    )
+
+    cpuChartOption.value.xAxis.data = times
+    cpuChartOption.value.series[0].data = cpuHistory.values
+
+    memoryChartOption.value.xAxis.data = times
+    memoryChartOption.value.series[0].data = memoryHistory.values
+
+    networkChartOption.value.xAxis.data = times
+    networkChartOption.value.series[0].data = bandwidthHistory.values.map(v => v / 1024 / 1024) // 转换为Mbps
+    networkChartOption.value.series[1].data = bandwidthHistory.values.map(v => v / 1024 / 1024 * 0.8) // 模拟出流量
+  } else {
+    // 如果没有历史数据，使用模拟数据
+    const now = new Date()
+    const times = []
+    const cpuData = []
+    const memoryData = []
+    const inTraffic = []
+    const outTraffic = []
+
+    for (let i = 9; i >= 0; i--) {
+      const time = new Date(now.getTime() - i * 60 * 1000)
+      times.push(time.getHours() + ':' + time.getMinutes().toString().padStart(2, '0'))
+      cpuData.push(Math.floor(Math.random() * 100))
+      memoryData.push(Math.floor(Math.random() * 100))
+      inTraffic.push(Math.floor(Math.random() * 1000))
+      outTraffic.push(Math.floor(Math.random() * 1000))
+    }
+
+    cpuChartOption.value.xAxis.data = times
+    cpuChartOption.value.series[0].data = cpuData
+
+    memoryChartOption.value.xAxis.data = times
+    memoryChartOption.value.series[0].data = memoryData
+
+    networkChartOption.value.xAxis.data = times
+    networkChartOption.value.series[0].data = inTraffic
+    networkChartOption.value.series[1].data = outTraffic
   }
-  
-  cpuChartOption.value.xAxis.data = times
-  cpuChartOption.value.series[0].data = cpuData
-  
-  memoryChartOption.value.xAxis.data = times
-  memoryChartOption.value.series[0].data = memoryData
-  
-  networkChartOption.value.xAxis.data = times
-  networkChartOption.value.series[0].data = inTraffic
-  networkChartOption.value.series[1].data = outTraffic
 }
 
 const loadProtocolStats = () => {
@@ -317,27 +355,28 @@ const loadServiceStatus = () => {
   ]
 }
 
-const refreshAllData = () => {
+const refreshAllData = async () => {
   refreshServerInfo()
-  refreshStats()
   refreshCharts()
   loadProtocolStats()
   loadServiceStatus()
+  // 手动触发实时数据刷新
+  await refreshData()
 }
+
+// 监听实时数据变化，自动更新图表
+watch(() => realtimeStore.serverStats, () => {
+  refreshCharts()
+  updateMode.value = getUpdateMode()
+}, { deep: true })
 
 onMounted(() => {
   refreshAllData()
-  
-  // 设置定时刷新
-  refreshTimer = setInterval(() => {
-    refreshAllData()
-  }, 5000) // 5秒刷新一次
+  updateMode.value = getUpdateMode()
 })
 
 onUnmounted(() => {
-  if (refreshTimer) {
-    clearInterval(refreshTimer)
-  }
+  // 实时数据管理会自动清理，无需手动清理定时器
 })
 </script>
 

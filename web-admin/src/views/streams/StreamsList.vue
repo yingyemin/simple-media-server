@@ -5,6 +5,14 @@
         <div class="card-header">
           <span>流列表管理</span>
           <div>
+            <el-button
+              type="warning"
+              :disabled="selectedStreams.length === 0"
+              @click="showBatchOperations"
+            >
+              <el-icon><Operation /></el-icon>
+              批量操作 ({{ selectedStreams.length }})
+            </el-button>
             <el-button @click="refreshStreams" :loading="loading">
               <el-icon><Refresh /></el-icon>
               刷新
@@ -160,7 +168,7 @@
         <el-descriptions-item label="码率">{{ formatBitrate(currentStream.bitrate) }}</el-descriptions-item>
         <el-descriptions-item label="创建时间">{{ formatTime(currentStream.createTime) }}</el-descriptions-item>
       </el-descriptions>
-      
+
       <div v-if="currentStream.muxer && currentStream.muxer.length > 0" style="margin-top: 20px;">
         <h4>多路复用器信息</h4>
         <el-table :data="currentStream.muxer" style="width: 100%">
@@ -232,22 +240,45 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- 批量操作组件 -->
+    <BatchOperations
+      v-model="batchOperationsVisible"
+      type="stream"
+      :targets="selectedStreamPaths"
+      @success="onBatchOperationSuccess"
+      @error="onBatchOperationError"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { streamAPI, rtspAPI, rtmpAPI, webrtcAPI, srtAPI } from '@/api'
+import { useRealtime } from '@/composables/useRealtime'
+import BatchOperations from '@/components/BatchOperations.vue'
+
+// 使用实时数据管理
+const { realtimeStore, getUpdateMode, refreshData } = useRealtime({
+  enableWebSocket: true,
+  enablePolling: true,
+  pollingInterval: 10000, // StreamsList 10秒轮询间隔
+  autoConnect: true
+})
 
 // 响应式数据
 const loading = ref(false)
 const clientLoading = ref(false)
 const creating = ref(false)
-const streams = ref([])
 const streamClients = ref([])
 const selectedStreams = ref([])
 const currentStream = ref(null)
+
+// 使用computed从realtime store获取流列表
+const streams = computed(() => realtimeStore.streamList)
+const connectionStatus = computed(() => realtimeStore.connectionStatus)
+const updateMode = ref('none')
 
 // 搜索和过滤
 const searchText = ref('')
@@ -264,6 +295,7 @@ const totalStreams = ref(0)
 const detailDialogVisible = ref(false)
 const clientDialogVisible = ref(false)
 const createDialogVisible = ref(false)
+const batchOperationsVisible = ref(false)
 
 // 创建流表单
 const createForm = ref({
@@ -278,11 +310,11 @@ let refreshTimer = null
 
 // 计算属性
 const filteredStreams = computed(() => {
-  let result = streams.value
+  let result = streams.value || []
 
   // 搜索过滤
   if (searchText.value) {
-    result = result.filter(stream => 
+    result = result.filter(stream =>
       stream.path.toLowerCase().includes(searchText.value.toLowerCase())
     )
   }
@@ -307,20 +339,27 @@ const filteredStreams = computed(() => {
   }
 
   totalStreams.value = result.length
-  
+
   // 分页
   const start = (currentPage.value - 1) * pageSize.value
   const end = start + pageSize.value
   return result.slice(start, end)
 })
 
+// 选中的流路径列表（用于批量操作）
+const selectedStreamPaths = computed(() => {
+  return selectedStreams.value.map(stream => stream.path)
+})
+
 // 方法
 const refreshStreams = async () => {
   loading.value = true
   try {
-    const data = await streamAPI.getSourceList()
-    streams.value = data.sources || []
-    totalStreams.value = data.count || 0
+    // 手动触发实时数据刷新
+    await refreshData()
+    // 如果需要，也可以调用API获取最新数据
+    // const data = await streamAPI.getSourceList()
+    // realtimeStore.updateStreamList(data.sources || [])
   } catch (error) {
     ElMessage.error('获取流列表失败: ' + error.message)
   } finally {
@@ -374,7 +413,7 @@ const showClientList = async (stream) => {
   currentStream.value = stream
   clientLoading.value = true
   clientDialogVisible.value = true
-  
+
   try {
     const data = await streamAPI.getClientList({ path: stream.path })
     streamClients.value = data.client || []
@@ -396,7 +435,7 @@ const closeStream = async (stream) => {
         type: 'warning',
       }
     )
-    
+
     await streamAPI.closeSource({ path: stream.path })
     ElMessage.success('流关闭成功')
     refreshStreams()
@@ -409,9 +448,9 @@ const closeStream = async (stream) => {
 
 const closeClient = async (client) => {
   try {
-    await streamAPI.closeClient({ 
-      ip: client.ip, 
-      port: client.port 
+    await streamAPI.closeClient({
+      ip: client.ip,
+      port: client.port
     })
     ElMessage.success('客户端断开成功')
     showClientList(currentStream.value)
@@ -431,11 +470,11 @@ const batchCloseStreams = async () => {
         type: 'warning',
       }
     )
-    
+
     for (const stream of selectedStreams.value) {
       await streamAPI.closeSource({ path: stream.path })
     }
-    
+
     ElMessage.success('批量关闭成功')
     selectedStreams.value = []
     refreshStreams()
@@ -462,7 +501,7 @@ const createStream = async () => {
     ElMessage.error('请填写完整信息')
     return
   }
-  
+
   creating.value = true
   try {
     const data = {
@@ -470,7 +509,7 @@ const createStream = async () => {
       appName: form.appName,
       streamName: form.streamName
     }
-    
+
     switch (form.protocol) {
       case 'rtsp':
         await rtspAPI.startPlay(data)
@@ -485,7 +524,7 @@ const createStream = async () => {
         await srtAPI.startPull(data)
         break
     }
-    
+
     ElMessage.success('流创建成功')
     createDialogVisible.value = false
     refreshStreams()
@@ -517,19 +556,38 @@ const handleCurrentChange = (page) => {
   currentPage.value = page
 }
 
+// 批量操作相关方法
+const showBatchOperations = () => {
+  if (selectedStreams.value.length === 0) {
+    ElMessage.warning('请先选择要操作的流')
+    return
+  }
+  batchOperationsVisible.value = true
+}
+
+const onBatchOperationSuccess = (result) => {
+  ElMessage.success(`批量操作完成，成功处理 ${result.successCount} 个流`)
+  selectedStreams.value = []
+  refreshStreams()
+}
+
+const onBatchOperationError = (error) => {
+  console.error('批量操作失败:', error)
+  refreshStreams()
+}
+
+// 监听实时数据变化
+watch(() => realtimeStore.streamList, () => {
+  updateMode.value = getUpdateMode()
+}, { deep: true })
+
 onMounted(() => {
   refreshStreams()
-  
-  // 设置定时刷新
-  refreshTimer = setInterval(() => {
-    refreshStreams()
-  }, 10000) // 10秒刷新一次
+  updateMode.value = getUpdateMode()
 })
 
 onUnmounted(() => {
-  if (refreshTimer) {
-    clearInterval(refreshTimer)
-  }
+  // 实时数据管理会自动清理，无需手动清理定时器
 })
 </script>
 

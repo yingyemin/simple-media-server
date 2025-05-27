@@ -24,14 +24,74 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   response => {
     const { data } = response
-    if (data.code && data.code !== '200') {
-      ElMessage.error(data.msg || '请求失败')
-      return Promise.reject(new Error(data.msg || '请求失败'))
+    // 支持新的错误码格式（数字）和旧的格式（字符串）
+    const code = data.code
+    const isSuccess = code === '200' || code === 200 || code === '成功'
+
+    if (code && !isSuccess) {
+      const errorMsg = data.msg || '请求失败'
+
+      // 根据错误码类型显示不同的错误信息
+      if (code >= 600 && code < 700) {
+        // 业务错误，显示详细信息
+        ElMessage.error(`参数错误: ${errorMsg}`)
+      } else if (code >= 700 && code < 800) {
+        // 媒体流错误
+        ElMessage.error(`流媒体错误: ${errorMsg}`)
+      } else if (code >= 800 && code < 900) {
+        // 服务器错误
+        ElMessage.error(`服务器错误: ${errorMsg}`)
+      } else if (code >= 900 && code < 1000) {
+        // 协议错误
+        ElMessage.error(`协议错误: ${errorMsg}`)
+      } else {
+        // 其他错误
+        ElMessage.error(errorMsg)
+      }
+
+      return Promise.reject(new Error(errorMsg))
     }
     return data
   },
   error => {
-    ElMessage.error(error.message || '网络错误')
+    let errorMsg = '网络错误'
+
+    if (error.response) {
+      const { status, data } = error.response
+      if (data && data.msg) {
+        errorMsg = data.msg
+      } else {
+        switch (status) {
+          case 400:
+            errorMsg = '请求参数错误'
+            break
+          case 401:
+            errorMsg = '未授权访问'
+            break
+          case 403:
+            errorMsg = '禁止访问'
+            break
+          case 404:
+            errorMsg = '请求的资源不存在'
+            break
+          case 500:
+            errorMsg = '服务器内部错误'
+            break
+          case 502:
+            errorMsg = '网关错误'
+            break
+          case 503:
+            errorMsg = '服务不可用'
+            break
+          default:
+            errorMsg = `请求失败 (${status})`
+        }
+      }
+    } else if (error.request) {
+      errorMsg = '网络连接失败'
+    }
+
+    ElMessage.error(errorMsg)
     return Promise.reject(error)
   }
 )
@@ -182,6 +242,74 @@ export const vodAPI = {
   stop: (data) => api.post('/vod/stop', data),
   // 控制点播
   control: (data) => api.post('/vod/control', data)
+}
+
+// HTTP流媒体API
+export const httpStreamAPI = {
+  // FLV播放相关
+  startFlvPlay: (data) => api.post('/http/flv/play/start', data),
+  stopFlvPlay: (data) => api.post('/http/flv/play/stop', data),
+  getFlvPlayList: () => api.get('/http/flv/play/list'),
+
+  // HLS播放相关
+  startHlsPlay: (data) => api.post('/http/hls/play/start', data),
+  stopHlsPlay: (data) => api.post('/http/hls/play/stop', data),
+  getHlsPlayList: () => api.get('/http/hls/play/list'),
+
+  // PS点播相关
+  startPsVodPlay: (data) => api.post('/http/ps/vod/play/start', data),
+  stopPsVodPlay: (data) => api.post('/http/ps/vod/play/stop', data),
+  getPsVodPlayList: () => api.get('/http/ps/vod/play/list')
+}
+
+// RTSP服务器管理API
+export const rtspServerAPI = {
+  createServer: (data) => api.post('/rtsp/server/create', data),
+  stopServer: (data) => api.post('/rtsp/server/stop', data),
+  getServerList: () => api.get('/rtsp/server/list')
+}
+
+// RTMP流创建API
+export const rtmpStreamAPI = {
+  createStream: (data) => api.post('/rtmp/create', data)
+}
+
+// WebRTC WHEP/WHIP API
+export const webrtcWhepWhipAPI = {
+  whep: (data) => {
+    const params = new URLSearchParams({
+      appName: data.appName,
+      streamName: data.streamName
+    })
+    return api.post(`/rtc/whep?${params}`, data.sdp, {
+      headers: {
+        'Content-Type': 'application/sdp'
+      }
+    })
+  },
+  whip: (data) => {
+    const params = new URLSearchParams({
+      appName: data.appName,
+      streamName: data.streamName
+    })
+    return api.post(`/rtc/whip?${params}`, data.sdp, {
+      headers: {
+        'Content-Type': 'application/sdp'
+      }
+    })
+  }
+}
+
+// GB28181 SIP API
+export const gb28181SipAPI = {
+  catalog: (data) => api.post('/catalog', data),
+  invite: (data) => api.post('/invite', data),
+  // 获取邀请会话列表
+  getInviteSessions: () => api.get('/invite/sessions'),
+  // 停止邀请
+  stopInvite: (data) => api.post('/invite/stop', data),
+  // 删除邀请
+  deleteInvite: (data) => api.post('/invite/delete', data)
 }
 
 export default api

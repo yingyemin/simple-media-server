@@ -39,6 +39,11 @@ public:
     void pause() override;
     void setOnClose(const function<void()>& cb) override;
     void addOnReady(void* key, const function<void()>& onReady) override;
+    void getProtocolAndType(string& protocol, MediaClientType& type) override;
+
+public:
+    string getPath() {return _urlParser.path_;}
+    string getSourceUrl() {return _sourceUrl;}
 
 public:
     void close();
@@ -76,6 +81,7 @@ private:
     string _iceUfrag;
     string _icePwd;
     string _username;
+    string _sourceUrl;
     UrlParser _urlParser;
     UrlParser _peerUrlParser;
     WebrtcParser _parser;

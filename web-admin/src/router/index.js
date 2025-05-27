@@ -81,10 +81,22 @@ const routes = [
     meta: { title: 'GB28181管理' }
   },
   {
+    path: '/protocols/gb28181-sip',
+    name: 'Gb28181SipManagement',
+    component: () => import('@/views/protocols/Gb28181SipManagement.vue'),
+    meta: { title: 'GB28181 SIP管理' }
+  },
+  {
     path: '/protocols/jt1078',
     name: 'Jt1078Management',
     component: () => import('@/views/protocols/Jt1078Management.vue'),
     meta: { title: 'JT1078管理' }
+  },
+  {
+    path: '/protocols/httpstream',
+    name: 'HttpStreamManagement',
+    component: () => import('@/views/protocols/HttpStreamManagement.vue'),
+    meta: { title: 'HTTP流媒体管理' }
   },
   // 录制点播
   {

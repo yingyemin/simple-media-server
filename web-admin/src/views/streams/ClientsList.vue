@@ -43,12 +43,24 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { streamAPI } from '@/api'
+import { useRealtime } from '@/composables/useRealtime'
+
+// 使用实时数据管理
+const { realtimeStore, getUpdateMode, refreshData } = useRealtime({
+  enableWebSocket: true,
+  enablePolling: true,
+  pollingInterval: 15000, // ClientsList 15秒轮询间隔
+  autoConnect: true
+})
 
 const loading = ref(false)
-const clients = ref([])
+// 使用computed从realtime store获取客户端列表
+const clients = computed(() => realtimeStore.clientList)
+const connectionStatus = computed(() => realtimeStore.connectionStatus)
+const updateMode = ref('none')
 
 const formatBitrate = (bitrate) => {
   if (!bitrate) return '0 bps'
@@ -65,26 +77,11 @@ const formatTime = (timestamp) => {
 const refreshClients = async () => {
   loading.value = true
   try {
-    // 模拟获取客户端列表
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    clients.value = [
-      {
-        ip: '192.168.1.100',
-        port: 12345,
-        protocol: 'rtsp',
-        stream: '/live/stream1',
-        bitrate: 1024000,
-        connectTime: Date.now() - 300000
-      },
-      {
-        ip: '192.168.1.101',
-        port: 12346,
-        protocol: 'rtmp',
-        stream: '/live/stream2',
-        bitrate: 2048000,
-        connectTime: Date.now() - 600000
-      }
-    ]
+    // 手动触发实时数据刷新
+    await refreshData()
+    // 如果需要，也可以调用API获取最新数据
+    // const data = await streamAPI.getClientList()
+    // realtimeStore.updateClientList(data.clients || [])
   } catch (error) {
     ElMessage.error('获取客户端列表失败: ' + error.message)
   } finally {
@@ -103,7 +100,7 @@ const disconnectClient = async (client) => {
         type: 'warning',
       }
     )
-    
+
     await streamAPI.closeClient({ ip: client.ip, port: client.port })
     ElMessage.success('客户端断开成功')
     refreshClients()
@@ -114,8 +111,14 @@ const disconnectClient = async (client) => {
   }
 }
 
+// 监听实时数据变化
+watch(() => realtimeStore.clientList, () => {
+  updateMode.value = getUpdateMode()
+}, { deep: true })
+
 onMounted(() => {
   refreshClients()
+  updateMode.value = getUpdateMode()
 })
 </script>
 

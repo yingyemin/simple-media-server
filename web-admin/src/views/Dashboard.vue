@@ -1,5 +1,25 @@
 <template>
   <div class="dashboard">
+    <!-- 连接状态指示器 -->
+    <el-alert
+      v-if="connectionStatus === 'disconnected'"
+      title="实时连接已断开"
+      type="warning"
+      :description="`当前使用${updateMode === 'polling' ? '轮询模式' : '离线模式'}更新数据`"
+      show-icon
+      :closable="false"
+      style="margin-bottom: 20px;"
+    />
+    <el-alert
+      v-else-if="connectionStatus === 'connected'"
+      title="实时连接正常"
+      type="success"
+      description="数据将实时更新"
+      show-icon
+      :closable="false"
+      style="margin-bottom: 20px;"
+    />
+
     <!-- 统计卡片 -->
     <el-row :gutter="20" class="stats-row">
       <el-col :span="6">
@@ -133,7 +153,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { LineChart, PieChart } from 'echarts/charts'
@@ -145,6 +165,8 @@ import {
 } from 'echarts/components'
 import VChart from 'vue-echarts'
 import { serverAPI, streamAPI } from '@/api'
+import { useRealtime } from '@/composables/useRealtime'
+import { useRealtimeStore } from '@/stores/realtime'
 
 use([
   CanvasRenderer,
@@ -156,13 +178,21 @@ use([
   GridComponent
 ])
 
-// 响应式数据
-const serverStats = ref({
-  streamCount: 0,
-  clientCount: 0,
-  bandwidth: 0,
-  uptime: 0
+// 使用实时数据管理
+const { realtimeStore, getUpdateMode, refreshData } = useRealtime({
+  enableWebSocket: true,
+  enablePolling: true,
+  pollingInterval: 30000,
+  autoConnect: true
 })
+
+// 响应式数据 - 现在从realtime store获取
+const serverStats = computed(() => ({
+  streamCount: realtimeStore.serverStats.activeStreams,
+  clientCount: realtimeStore.serverStats.onlineClients,
+  bandwidth: realtimeStore.serverStats.totalBandwidth,
+  uptime: realtimeStore.serverStats.uptime
+}))
 
 const serverInfo = ref({
   version: '',
@@ -173,7 +203,11 @@ const serverInfo = ref({
   diskUsage: 0
 })
 
-const recentStreams = ref([])
+const recentStreams = computed(() => realtimeStore.streamList.slice(0, 10))
+
+// 连接状态指示
+const connectionStatus = computed(() => realtimeStore.connectionStatus)
+const updateMode = ref('none')
 
 // 图表配置
 const trafficChartOption = ref({
@@ -258,7 +292,7 @@ const loadServerInfo = async () => {
       serverAPI.getVersion(),
       serverAPI.getServerInfo()
     ])
-    
+
     serverInfo.value = {
       version: versionData.version,
       ...serverData
@@ -272,7 +306,7 @@ const loadStreamStats = async () => {
   try {
     const data = await streamAPI.getSourceList()
     serverStats.value.streamCount = data.count || 0
-    
+
     // 更新最近活动流
     if (data.sources) {
       recentStreams.value = data.sources.slice(0, 10).map(stream => ({
@@ -282,7 +316,7 @@ const loadStreamStats = async () => {
         status: stream.playerCount > 0 ? 'active' : 'inactive'
       }))
     }
-    
+
     // 更新协议分布图表
     updateProtocolChart(data.sources || [])
   } catch (error) {
@@ -290,37 +324,45 @@ const loadStreamStats = async () => {
   }
 }
 
-const updateProtocolChart = (sources) => {
-  const protocolCount = {}
-  sources.forEach(source => {
-    const protocol = source.protocol || 'unknown'
-    protocolCount[protocol] = (protocolCount[protocol] || 0) + 1
-  })
-  
-  protocolChartOption.value.series[0].data = Object.entries(protocolCount).map(([name, value]) => ({
+const updateProtocolChart = () => {
+  const distribution = realtimeStore.getProtocolDistribution()
+  protocolChartOption.value.series[0].data = Object.entries(distribution).map(([name, value]) => ({
     name,
     value
   }))
 }
 
 const refreshTrafficChart = () => {
-  // 模拟流量数据
-  const now = new Date()
-  const times = []
-  const values = []
-  
-  for (let i = 23; i >= 0; i--) {
-    const time = new Date(now.getTime() - i * 60 * 60 * 1000)
-    times.push(time.getHours() + ':00')
-    values.push(Math.random() * 100)
+  // 使用实时历史数据
+  const bandwidthHistory = realtimeStore.getBandwidthHistory(24)
+
+  if (bandwidthHistory.timestamps.length > 0) {
+    trafficChartOption.value.xAxis.data = bandwidthHistory.timestamps.map(time =>
+      time.getHours().toString().padStart(2, '0') + ':' +
+      time.getMinutes().toString().padStart(2, '0')
+    )
+    trafficChartOption.value.series[0].data = bandwidthHistory.values.map(value =>
+      (value / 1024 / 1024).toFixed(2) // 转换为Mbps
+    )
+  } else {
+    // 如果没有历史数据，使用模拟数据
+    const now = new Date()
+    const times = []
+    const values = []
+
+    for (let i = 23; i >= 0; i--) {
+      const time = new Date(now.getTime() - i * 60 * 60 * 1000)
+      times.push(time.getHours() + ':00')
+      values.push(Math.random() * 100)
+    }
+
+    trafficChartOption.value.xAxis.data = times
+    trafficChartOption.value.series[0].data = values
   }
-  
-  trafficChartOption.value.xAxis.data = times
-  trafficChartOption.value.series[0].data = values
 }
 
 const refreshProtocolChart = () => {
-  loadStreamStats()
+  updateProtocolChart()
 }
 
 const refreshServerInfo = () => {
@@ -328,28 +370,34 @@ const refreshServerInfo = () => {
 }
 
 const refreshRecentStreams = () => {
-  loadStreamStats()
+  // 数据现在从realtime store获取，无需手动刷新
 }
 
-const refreshAllData = () => {
+const refreshAllData = async () => {
   loadServerInfo()
-  loadStreamStats()
   refreshTrafficChart()
+  updateProtocolChart()
+  // 手动触发实时数据刷新
+  await refreshData()
 }
+
+// 监听实时数据变化，自动更新图表
+watch(() => realtimeStore.streamList, () => {
+  updateProtocolChart()
+}, { deep: true })
+
+watch(() => realtimeStore.serverStats, () => {
+  refreshTrafficChart()
+  updateMode.value = getUpdateMode()
+}, { deep: true })
 
 onMounted(() => {
   refreshAllData()
-  
-  // 设置定时刷新
-  refreshTimer = setInterval(() => {
-    refreshAllData()
-  }, 30000) // 30秒刷新一次
+  updateMode.value = getUpdateMode()
 })
 
 onUnmounted(() => {
-  if (refreshTimer) {
-    clearInterval(refreshTimer)
-  }
+  // 实时数据管理会自动清理，无需手动清理定时器
 })
 </script>
 

@@ -29,6 +29,7 @@ public:
     void stop() override;
     void pause() override;
     void setOnClose(const function<void()>& cb) override;
+    void getProtocolAndType(string& protocol, MediaClientType& type) override;
 
 private:
     string getM3u8();
@@ -51,7 +52,7 @@ private:
     uint64_t _lastPlayStamp = 0;
 
     string _m3u8;
-    
+
     TsDemuxer _tsDemuxer;
     TimeClock _playClock;
     TimeClock _aliveClock;

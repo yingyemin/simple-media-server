@@ -13,7 +13,7 @@
 
 using namespace std;
 
-extern unordered_map<string, function<void(const HttpParser& parser, const UrlParser& urlParser, 
+extern unordered_map<string, function<void(const HttpParser& parser, const UrlParser& urlParser,
                         const function<void(HttpResponse& rsp)>& rspFunc)>> g_mapApi;
 
 void WebrtcApi::initApi()
@@ -34,7 +34,7 @@ void WebrtcApi::initApi()
     g_mapApi.emplace("/api/v1/rtc/push/list", WebrtcApi::listRtcPush);
 }
 
-void WebrtcApi::rtcPlay(const HttpParser& parser, const UrlParser& urlParser, 
+void WebrtcApi::rtcPlay(const HttpParser& parser, const UrlParser& urlParser,
                         const function<void(HttpResponse& rsp)>& rspFunc)
 {
     bool isWhep = false;
@@ -87,7 +87,7 @@ void WebrtcApi::rtcPlay(const HttpParser& parser, const UrlParser& urlParser,
     }
 }
 
-void WebrtcApi::rtcPublish(const HttpParser& parser, const UrlParser& urlParser, 
+void WebrtcApi::rtcPublish(const HttpParser& parser, const UrlParser& urlParser,
                         const function<void(HttpResponse& rsp)>& rspFunc)
 {
     bool isWhip = false;
@@ -154,7 +154,7 @@ void WebrtcApi::rtcPublish(const HttpParser& parser, const UrlParser& urlParser,
     }
 }
 
-void WebrtcApi::startRtcPull(const HttpParser& parser, const UrlParser& urlParser, 
+void WebrtcApi::startRtcPull(const HttpParser& parser, const UrlParser& urlParser,
              const function<void(HttpResponse& rsp)>& rspFunc)
 {
     HttpResponse rsp;
@@ -168,7 +168,7 @@ void WebrtcApi::startRtcPull(const HttpParser& parser, const UrlParser& urlParse
     static int timeout = Config::instance()->getAndListen([](const json &config){
         timeout = Config::instance()->get("Webrtc", "Server", "Server1", "timeout");
     }, "Webrtc", "Server", "Server1", "timeout");
-    
+
     auto client = make_shared<WebrtcClient>(MediaClientType_Pull, parser._body["appName"], parser._body["streamName"]);
     client->start("0.0.0.0", 0, apiUrl, timeout);
 
@@ -186,7 +186,7 @@ void WebrtcApi::startRtcPull(const HttpParser& parser, const UrlParser& urlParse
     rspFunc(rsp);
 }
 
-void WebrtcApi::stopRtcPull(const HttpParser& parser, const UrlParser& urlParser, 
+void WebrtcApi::stopRtcPull(const HttpParser& parser, const UrlParser& urlParser,
              const function<void(HttpResponse& rsp)>& rspFunc)
 {
     HttpResponse rsp;
@@ -204,42 +204,42 @@ void WebrtcApi::stopRtcPull(const HttpParser& parser, const UrlParser& urlParser
     rspFunc(rsp);
 }
 
-void WebrtcApi::listRtcPull(const HttpParser& parser, const UrlParser& urlParser, 
+void WebrtcApi::listRtcPull(const HttpParser& parser, const UrlParser& urlParser,
              const function<void(HttpResponse& rsp)>& rspFunc)
 {
-    // HttpResponse rsp;
-    // rsp._status = 200;
-    // json value;
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
 
-    // int count = 0;
-    // auto allClients = MediaClient::getAllMediaClient();
-    // for (auto& pr : allClients) {
-    //     string protocol;
-    //     MediaClientType type;
-    //     pr.second->getProtocolAndType(protocol, type);
+    int count = 0;
+    auto allClients = MediaClient::getAllMediaClient();
+    for (auto& pr : allClients) {
+        string protocol;
+        MediaClientType type;
+        pr.second->getProtocolAndType(protocol, type);
 
-    //     if (protocol == "webrtc" && type == MediaClientType_Pull) {
-    //         auto webrtcClient = dynamic_pointer_cast<WebrtcClient>(pr.second);
-    //         if (!webrtcClient) {
-    //             continue ;
-    //         }
-    //         json item;
-    //         item["path"] = webrtcClient->getPath();
-    //         item["url"] = webrtcClient->getSourceUrl();
+        if (protocol == "webrtc" && type == MediaClientType_Pull) {
+            auto webrtcClient = dynamic_pointer_cast<WebrtcClient>(pr.second);
+            if (!webrtcClient) {
+                continue ;
+            }
+            json item;
+            item["path"] = webrtcClient->getPath();
+            item["url"] = webrtcClient->getSourceUrl();
 
-    //         value["clients"].push_back(item);
-    //         ++count;
-    //     }
-    // }
+            value["clients"].push_back(item);
+            ++count;
+        }
+    }
 
-    // value["code"] = "200";
-    // value["msg"] = "success";
-    // value["count"] = count;
-    // rsp.setContent(value.dump());
-    // rspFunc(rsp);
+    value["code"] = "200";
+    value["msg"] = "success";
+    value["count"] = count;
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
 }
 
-void WebrtcApi::startRtcPush(const HttpParser& parser, const UrlParser& urlParser, 
+void WebrtcApi::startRtcPush(const HttpParser& parser, const UrlParser& urlParser,
              const function<void(HttpResponse& rsp)>& rspFunc)
 {
     HttpResponse rsp;
@@ -270,7 +270,7 @@ void WebrtcApi::startRtcPush(const HttpParser& parser, const UrlParser& urlParse
     rspFunc(rsp);
 }
 
-void WebrtcApi::stopRtcPush(const HttpParser& parser, const UrlParser& urlParser, 
+void WebrtcApi::stopRtcPush(const HttpParser& parser, const UrlParser& urlParser,
              const function<void(HttpResponse& rsp)>& rspFunc)
 {
     HttpResponse rsp;
@@ -288,36 +288,39 @@ void WebrtcApi::stopRtcPush(const HttpParser& parser, const UrlParser& urlParser
     rspFunc(rsp);
 }
 
-void WebrtcApi::listRtcPush(const HttpParser& parser, const UrlParser& urlParser, 
+void WebrtcApi::listRtcPush(const HttpParser& parser, const UrlParser& urlParser,
              const function<void(HttpResponse& rsp)>& rspFunc)
 {
-    // HttpResponse rsp;
-    // rsp._status = 200;
-    // json value;
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
 
-    // auto allClients = MediaClient::getAllMediaClient();
-    // for (auto& pr : allClients) {
-    //     string protocol;
-    //     MediaClientType type;
-    //     pr.second->getProtocolAndType(protocol, type);
+    int count = 0;
+    auto allClients = MediaClient::getAllMediaClient();
+    for (auto& pr : allClients) {
+        string protocol;
+        MediaClientType type;
+        pr.second->getProtocolAndType(protocol, type);
 
-    //     if (protocol == "rtsp" && type == MediaClientType_Push) {
-    //         auto webrtcClient = dynamic_pointer_cast<WebrtcClient>(pr.second);
-    //         if (!webrtcClient) {
-    //             continue ;
-    //         }
-    //         json item;
-    //         item["path"] = webrtcClient->getPath();
-    //         item["url"] = webrtcClient->getSourceUrl();
+        if (protocol == "webrtc" && type == MediaClientType_Push) {
+            auto webrtcClient = dynamic_pointer_cast<WebrtcClient>(pr.second);
+            if (!webrtcClient) {
+                continue ;
+            }
+            json item;
+            item["path"] = webrtcClient->getPath();
+            item["url"] = webrtcClient->getSourceUrl();
 
-    //         value["clients"].push_back(item);
-    //     }
-    // }
+            value["clients"].push_back(item);
+            ++count;
+        }
+    }
 
-    // value["code"] = "200";
-    // value["msg"] = "success";
-    // rsp.setContent(value.dump());
-    // rspFunc(rsp);
+    value["code"] = "200";
+    value["msg"] = "success";
+    value["count"] = count;
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
 }
 
 #endif

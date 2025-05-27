@@ -111,12 +111,12 @@
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="connections" label="连接数" width="100" />
+            <el-table-column prop="clientCount" label="连接数" width="100" />
             <el-table-column label="操作" width="200">
               <template #default="scope">
-                <el-button 
-                  :type="scope.row.status === 'running' ? 'warning' : 'success'" 
-                  size="small" 
+                <el-button
+                  :type="scope.row.status === 'running' ? 'warning' : 'success'"
+                  size="small"
                   @click="toggleServer(scope.row)"
                 >
                   {{ scope.row.status === 'running' ? '停止' : '启动' }}
@@ -237,7 +237,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { rtspAPI } from '@/api'
+import { rtspAPI, rtspServerAPI } from '@/api'
 
 const activeTab = ref('pull')
 const pullLoading = ref(false)
@@ -316,8 +316,11 @@ const loadPushStreams = async () => {
 const loadRtspServers = async () => {
   serverLoading.value = true
   try {
-    // 模拟获取RTSP服务器列表
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    const data = await rtspServerAPI.getServerList()
+    rtspServers.value = data.servers || []
+  } catch (error) {
+    ElMessage.error('获取服务器列表失败: ' + error.message)
+    // 降级处理：使用模拟数据
     rtspServers.value = [
       {
         name: 'RTSP Server 1',
@@ -325,11 +328,9 @@ const loadRtspServers = async () => {
         port: 554,
         sslPort: 1554,
         status: 'running',
-        connections: 5
+        clientCount: 0
       }
     ]
-  } catch (error) {
-    ElMessage.error('获取服务器列表失败: ' + error.message)
   } finally {
     serverLoading.value = false
   }
@@ -377,7 +378,7 @@ const createPull = async () => {
     ElMessage.error('请填写完整信息')
     return
   }
-  
+
   creating.value = true
   try {
     await rtspAPI.startPlay({
@@ -401,7 +402,7 @@ const createPush = async () => {
     ElMessage.error('请填写完整信息')
     return
   }
-  
+
   creating.value = true
   try {
     await rtspAPI.startPublish({
@@ -421,15 +422,18 @@ const createPush = async () => {
 
 const createServer = async () => {
   const form = serverForm.value
-  if (!form.name || !form.ip || !form.port) {
-    ElMessage.error('请填写完整信息')
+  if (!form.ip || !form.port) {
+    ElMessage.error('请填写IP和端口信息')
     return
   }
-  
+
   creating.value = true
   try {
-    // 模拟创建服务器
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await rtspServerAPI.createServer({
+      ip: form.ip,
+      port: form.port,
+      count: form.threads || 0
+    })
     ElMessage.success('服务器创建成功')
     serverDialogVisible.value = false
     loadRtspServers()
@@ -467,7 +471,7 @@ const deletePull = async (stream) => {
       cancelButtonText: '取消',
       type: 'warning',
     })
-    
+
     await rtspAPI.stopPlay({ path: stream.path })
     ElMessage.success('拉流删除成功')
     loadPullStreams()
@@ -485,7 +489,7 @@ const deletePush = async (stream) => {
       cancelButtonText: '取消',
       type: 'warning',
     })
-    
+
     await rtspAPI.stopPublish({ url: stream.url })
     ElMessage.success('推流删除成功')
     loadPushStreams()
@@ -498,10 +502,23 @@ const deletePush = async (stream) => {
 
 const toggleServer = async (server) => {
   try {
-    // 模拟启动/停止服务器
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    server.status = server.status === 'running' ? 'stopped' : 'running'
-    ElMessage.success(`服务器${server.status === 'running' ? '启动' : '停止'}成功`)
+    if (server.status === 'running') {
+      await rtspServerAPI.stopServer({
+        port: server.port,
+        count: 0
+      })
+      server.status = 'stopped'
+      ElMessage.success('服务器停止成功')
+    } else {
+      await rtspServerAPI.createServer({
+        ip: server.ip,
+        port: server.port,
+        count: 0
+      })
+      server.status = 'running'
+      ElMessage.success('服务器启动成功')
+    }
+    loadRtspServers() // 重新加载服务器列表
   } catch (error) {
     ElMessage.error('操作失败: ' + error.message)
   }
@@ -514,9 +531,11 @@ const deleteServer = async (server) => {
       cancelButtonText: '取消',
       type: 'warning',
     })
-    
-    // 模拟删除服务器
-    await new Promise(resolve => setTimeout(resolve, 1000))
+
+    await rtspServerAPI.stopServer({
+      port: server.port,
+      count: 0
+    })
     ElMessage.success('服务器删除成功')
     loadRtspServers()
   } catch (error) {
