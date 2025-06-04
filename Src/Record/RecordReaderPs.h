@@ -24,6 +24,7 @@ public:
     void scale(float scale) override;
     uint64_t getDuration() override;
 
+    void initPs();
     void getDurationFromFile();
 
 private:

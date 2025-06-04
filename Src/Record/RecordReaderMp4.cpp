@@ -77,6 +77,7 @@ bool RecordReaderMp4::initMp4()
             return ;
         }
         trackInfo->duration_ = self->getDuration();
+        logInfo << "mp4 reader add track";
         if (self->_onTrackInfo) {
             self->_onTrackInfo(trackInfo);
         }
@@ -99,7 +100,9 @@ bool RecordReaderMp4::initMp4()
 bool RecordReaderMp4::start()
 {
     RecordReader::start();
-    initMp4();
+    if (!_mp4Reader) {
+        initMp4();
+    }
 
     weak_ptr<RecordReaderMp4> wSelf = dynamic_pointer_cast<RecordReaderMp4>(shared_from_this());
     _loop->addTimerTask(40, [wSelf](){
@@ -149,6 +152,7 @@ bool RecordReaderMp4::start()
                     self->_lastFrameTime = frame->dts();
                     frame->_dts /= self->_scale;
                     frame->_pts /= self->_scale;
+                    logInfo << "on frame from mp4";
                     self->_onFrame(frame);
                 }
             } else {
@@ -300,11 +304,11 @@ void RecordReaderMp4::scale(float scale)
 
 uint64_t RecordReaderMp4::getDuration()
 {
-    if (_mp4Reader) {
-        return _mp4Reader->mov_reader_getduration();
+    if (!_mp4Reader) {
+        initMp4();
     }
 
-    return 0;
+    return _mp4Reader->mov_reader_getduration();
 }
 
 #endif

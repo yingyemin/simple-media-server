@@ -41,58 +41,16 @@ RecordReaderPs::~RecordReaderPs()
 
 bool RecordReaderPs::start()
 {
+    logInfo << "start ps reader";
+
     RecordReader::start();
-
-    weak_ptr<RecordReaderPs> wSelf = dynamic_pointer_cast<RecordReaderPs>(shared_from_this());
-    static string rootPath = Config::instance()->getAndListen([](const json &config){
-        rootPath = Config::instance()->get("Record", "rootPath");
-    }, "Record", "rootPath");
-
-    string ext= _filePath.substr(_filePath.rfind('.') + 1);
-    auto abpath = File::absolutePath(_filePath, rootPath);
-
-    if (!_file.open(abpath, "rb+")) {
-        return false;
+    if (!_demuxer) {
+        initPs();
     }
-    _demuxer = make_shared<PsDemuxer>();
-    _demuxer->setOnDecode([wSelf](const FrameBuffer::Ptr &frame){
-        auto self = wSelf.lock();
-        if (!self) {
-            return ;
-        }
-
-        if (self->_state == 1) {
-            self->_firstDts = frame->dts();
-            return ;
-        } else if (self->_state == 2) {
-            self->_duration = frame->dts() - self->_firstDts;
-            return ;
-        }
-        lock_guard<mutex> lck(self->_mtxFrameList);
-        self->_frameList.push_back(frame);
-    });
-    _demuxer->setOnReady([wSelf](){
-        auto self = wSelf.lock();
-        if (!self) {
-            return ;
-        }
-        if (self->_onReady) {
-            self->_onReady();
-        }
-    });
-    _demuxer->setOnTrackInfo([wSelf](const TrackInfo::Ptr &trackInfo){
-        auto self = wSelf.lock();
-        if (!self) {
-            return ;
-        }
-        trackInfo->duration_ = self->getDuration();
-        if (self->_onTrackInfo) {
-            self->_onTrackInfo(trackInfo);
-        }
-    });
 
     getDurationFromFile();
 
+    weak_ptr<RecordReaderPs> wSelf = dynamic_pointer_cast<RecordReaderPs>(shared_from_this());
     _loop->addTimerTask(40, [wSelf](){
         auto self = wSelf.lock();
         if (!self) {
@@ -169,45 +127,6 @@ bool RecordReaderPs::start()
         }
 
         return sleepTime > 0 ? sleepTime : 1;
-
-        // while (true) {
-        //     logInfo << "self->_frameList size: " << self->_frameList.size();
-        //     if (!self->_frameList.empty()) {
-        //         if (self->_onFrame) {
-        //             auto frame = self->_frameList.front();
-        //             self->_frameList.pop_front();
-        //             self->_onFrame(frame);
-        //             self->_lastFrameTime = frame->dts();
-        //         }
-        //         break;
-        //     }
-        //     auto task = make_shared<WorkTask>();
-        //     task->priority_ = 100;
-        //     task->func_ = [wSelf, demuxer](){
-        //         auto self = wSelf.lock();
-        //         if (!self) {
-        //             return ;
-        //         }
-        //         auto buffer = self->_file.read();
-        //         if (!buffer) {
-        //             self->close();
-        //             return ;
-        //         }
-        //         logInfo << "start on ps stream";
-        //         demuxer->onPsStream(buffer->data(), buffer->size(), 0, 0);
-        //     };
-        //     self->_workLoop->addOrderTask(task);
-
-        //     return 40;
-        // }
-
-        // auto now = self->_clock.startToNow();
-
-        // if (self->_lastFrameTime <= now) {
-        //     return 1;
-        // } else {
-        //     return int(self->_lastFrameTime - now);
-        // }
     }, nullptr);
 
     return true;
@@ -273,7 +192,66 @@ void RecordReaderPs::scale(float scale)
 
 uint64_t RecordReaderPs::getDuration()
 {
+    logInfo << "get duration";
+    if (_duration == 0) {
+        if (!_demuxer) {
+            initPs();
+        }
+        getDurationFromFile();
+    }
     return _duration;
+}
+
+void RecordReaderPs::initPs()
+{
+    weak_ptr<RecordReaderPs> wSelf = dynamic_pointer_cast<RecordReaderPs>(shared_from_this());
+    static string rootPath = Config::instance()->getAndListen([](const json &config){
+        rootPath = Config::instance()->get("Record", "rootPath");
+    }, "Record", "rootPath");
+
+    string ext= _filePath.substr(_filePath.rfind('.') + 1);
+    auto abpath = File::absolutePath(_filePath, rootPath);
+
+    if (!_file.open(abpath, "rb+")) {
+        return ;
+    }
+    _demuxer = make_shared<PsDemuxer>();
+    _demuxer->setOnDecode([wSelf](const FrameBuffer::Ptr &frame){
+        auto self = wSelf.lock();
+        if (!self) {
+            return ;
+        }
+
+        if (self->_state == 1) {
+            self->_firstDts = frame->dts();
+            return ;
+        } else if (self->_state == 2) {
+            self->_duration = frame->dts() - self->_firstDts;
+            return ;
+        }
+        lock_guard<mutex> lck(self->_mtxFrameList);
+        self->_frameList.push_back(frame);
+    });
+    _demuxer->setOnReady([wSelf](){
+        auto self = wSelf.lock();
+        if (!self) {
+            return ;
+        }
+        if (self->_onReady) {
+            self->_onReady();
+        }
+    });
+    _demuxer->setOnTrackInfo([wSelf](const TrackInfo::Ptr &trackInfo){
+        auto self = wSelf.lock();
+        if (!self) {
+            return ;
+        }
+        
+        trackInfo->duration_ = self->_duration;
+        if (self->_onTrackInfo) {
+            self->_onTrackInfo(trackInfo);
+        }
+    });
 }
 
 void RecordReaderPs::getDurationFromFile()
@@ -284,7 +262,7 @@ void RecordReaderPs::getDurationFromFile()
         close();
         return ;
     }
-    logInfo << "start seek ps stream";
+    logInfo << "seek ps stream start";
     _demuxer->onPsStream(buffer->data(), buffer->size(), 0, 0);
     _demuxer->clear();
 
@@ -296,7 +274,7 @@ void RecordReaderPs::getDurationFromFile()
             close();
             return ;
         }
-        logInfo << "start seek ps stream";
+        logInfo << "seek ps stream end";
         _demuxer->onPsStream(buffer->data(), buffer->size(), 0, 0);
     }
 

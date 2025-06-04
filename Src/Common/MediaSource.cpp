@@ -212,7 +212,8 @@ void MediaSource::getOrCreateAsync(const string& uri, const string& vhost, const
 
             lock_guard<recursive_mutex> lck(_mtxTotalSource);
             if (_totalSource.find(key) == _totalSource.end() || !_totalSource[key]) {
-                if (startWith(uri, "/file") || startWith(type, "/record")) {
+                if (startWith(uri, "/file") || startWith(uri, "/record") || startWith(uri, "/dir")
+                        || startWith(uri, "/cloud")) {
                     logDebug << "load from file, uri: " << uri;
                     loadFromFile(uri, vhost, protocol, type, cb, create, connKey);
                     return ;

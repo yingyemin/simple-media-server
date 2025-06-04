@@ -50,6 +50,8 @@ protected:
     uint64_t _lastFrameTime = 0;
     uint64_t _baseDts = 0;
     string _filePath;
+    string _recordType;
+    string _vodId;
     File _file;
     EventLoop::Ptr _loop;
     WorkLoop::Ptr _workLoop;

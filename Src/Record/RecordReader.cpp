@@ -10,6 +10,7 @@
 #include "WorkPoller/WorkLoopPool.h"
 #include "RecordReaderMp4.h"
 #include "RecordReaderPs.h"
+#include "RecordReaderDir.h"
 
 using namespace std;
 
@@ -26,6 +27,10 @@ RecordReader::~RecordReader()
 void RecordReader::init()
 {
     RecordReaderBase::registerCreateFunc([](const string& path) -> RecordReaderBase::Ptr {
+        if (startWith(path, "/dir")) {
+            return make_shared<RecordReaderDir>(path);
+        }
+        
         string ext= path.substr(path.rfind('.') + 1);
         ext = ext.substr(0, ext.find_first_of("/"));
 #ifdef ENABLE_MPEG

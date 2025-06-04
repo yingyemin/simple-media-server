@@ -16,11 +16,14 @@ void RtspSdpParser::parse(const string& sdp)
     _title = make_shared<SdpTitle>();
     shared_ptr<SdpMedia> media;
 
-    auto sdpLine = split(sdp, "\r\n");
+    auto sdpLine = split(sdp, "\n");
     for (int i = 0; i < sdpLine.size(); ++i) {
         auto &line = sdpLine[i];
         if (line.size() < 2 || line[1] != '=') {
             continue;
+        }
+        if (line[line.size() - 1] == '\r') {
+            line = line.substr(0, line.size() - 1);
         }
         auto key = line[0];
         // auto value = line.substr(2);
