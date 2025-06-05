@@ -1,0 +1,35 @@
+﻿#ifndef RecordReaderDir_H
+#define RecordReaderDir_H
+
+#include "RecordReader.h"
+
+using namespace std;
+
+class RecordReaderDir : public RecordReader
+{
+public:
+    using Ptr = shared_ptr<RecordReaderDir>;
+
+    RecordReaderDir(const string& path);
+    ~RecordReaderDir();
+
+public:
+    bool start() override;
+    void stop() override;
+    void close() override;
+    
+    void seek(uint64_t timeStamp) override;
+    void pause(bool isPause) override;
+    void scale(float scale) override;
+    uint64_t getDuration() override;
+
+private:
+    bool _isReading = false;
+    int _state = 0; // 1 : get first stamp; 2: get last stamp
+    uint64_t _firstDts = 0;
+    uint64_t _duration = 0;
+    RecordReader::Ptr _reader;
+    vector<RecordReader::Ptr> _vecDemuxer;
+};
+
+#endif //RecordReaderDir_H
