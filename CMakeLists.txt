@@ -261,3 +261,6 @@ if (ENABLE_PROJECT_GB2818SIP)
     add_executable(SimpleSipServer gb28181Sip.cpp)
     target_link_libraries(SimpleSipServer gb28181Sip src base ssl crypto dl pthread)
 endif ()
+
+# 将配置文件拷贝到目标目录
+file(COPY ${PROJECT_SOURCE_DIR}/conf/server.json DESTINATION ${CMAKE_BINARY_DIR})
