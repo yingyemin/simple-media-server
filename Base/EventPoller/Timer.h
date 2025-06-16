@@ -11,6 +11,8 @@ using namespace std;
 class TimerTask
 {
 public:
+    using Ptr = std::shared_ptr<TimerTask>;
+    
     TimerTask();
     ~TimerTask();
 

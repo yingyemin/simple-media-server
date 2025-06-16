@@ -16,6 +16,8 @@ public:
     static string exeDir();
     static string exeName();
 
+    static string getFileName(const std::string& path);
+
 private:
 };
 

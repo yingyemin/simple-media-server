@@ -327,8 +327,8 @@ StreamBuffer::Ptr File::read(int size)
     buffer->setCapacity(size + 1);
 
     int readBytes = fread(buffer->data(), 1, size, _fp);
-    logTrace << "cur pos: " << tell();
-    logTrace << "read size: " << readBytes;
+    logDebug << "cur pos: " << tell();
+    logDebug << "read size: " << readBytes;
     if (readBytes == 0) {
         return nullptr;
     }
