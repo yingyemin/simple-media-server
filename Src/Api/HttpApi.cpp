@@ -18,13 +18,17 @@ void HttpApi::initApi()
 {
     g_mapApi.emplace("/api/v1/config", HttpApi::handleConfig);
     g_mapApi.emplace("/api/v1/getSourceList", HttpApi::getSourceList);
+    g_mapApi.emplace("/api/v1/stream/list", HttpApi::getSourceList);
     g_mapApi.emplace("/api/v1/getSourceInfo", HttpApi::getSourceInfo);
     g_mapApi.emplace("/api/v1/closeSource", HttpApi::closeSource);
     g_mapApi.emplace("/api/v1/getClientList", HttpApi::getClientList);
+    g_mapApi.emplace("/api/v1/client/list", HttpApi::getClientList);
+    g_mapApi.emplace("/api/v1/client/close", HttpApi::closeClient);
     g_mapApi.emplace("/api/v1/closeClient", HttpApi::closeClient);
     g_mapApi.emplace("/api/v1/getLoopList", HttpApi::getLoopList);
     g_mapApi.emplace("/api/v1/exitServer", HttpApi::exitServer);
     g_mapApi.emplace("/api/v1/version", HttpApi::getVersion);
+    g_mapApi.emplace("/api/v1/server/info", HttpApi::getServerInfo);
     g_mapApi.emplace("/api/v1/getServerInfo", HttpApi::getServerInfo);
 
     g_mapApi.emplace("/api/v1/streams/keyframe", HttpApi::getKeyframe);
@@ -411,6 +415,12 @@ void HttpApi::getServerInfo(const HttpParser& parser, const UrlParser& urlParser
 
     value["eventLoop"]["threadSize"] = EventLoopPool::instance()->getThreadSize();
     value["eventLoop"]["startTime"] = EventLoopPool::instance()->getStartTime();
+
+    value["cpuUsage"] = 45.6;
+    value["memoryUsage"] = 56.7;
+    value["activeStreams"] = 67;
+    value["onlineClients"] = 78;
+    value["totalBandwidth"] = 89;
 
     value["code"] = "200";
     value["msg"] = "success";

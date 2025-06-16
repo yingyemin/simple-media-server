@@ -760,6 +760,8 @@ void MediaSource::onFrame(const FrameBuffer::Ptr& frame)
         return ;
     }
 
+    logTrace << "frame type:" << (int_fast16_t)frame->getNalType() << " track type:" << frame->getTrackType();
+
     weak_ptr<MediaSource> wSelf = shared_from_this();
     if (frame->_trackType == VideoTrackType) {
         if (_videoReady) {
@@ -770,6 +772,7 @@ void MediaSource::onFrame(const FrameBuffer::Ptr& frame)
 
         auto iter = _mapTrackInfo.find(frame->_index);
         if (iter == _mapTrackInfo.end()) {
+            logInfo << "video track not found:" << frame->_index;
             return ;
         }
 

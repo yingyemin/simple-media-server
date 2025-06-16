@@ -119,7 +119,7 @@ export const streamAPI = {
 
 export const serverAPI = {
   // 获取服务器信息
-  getServerInfo: () => api.get('/getServerInfo'),
+  getServerInfo: () => api.get('/server/info'),
   // 获取版本信息
   getVersion: () => api.get('/version'),
   // 获取事件循环列表
@@ -241,7 +241,9 @@ export const vodAPI = {
   // 停止点播
   stop: (data) => api.post('/vod/stop', data),
   // 控制点播
-  control: (data) => api.post('/vod/control', data)
+  control: (data) => api.post('/vod/control', data),
+  // 获取录制列表
+  getVodStatusAndProgress: (data) => api.get('/record/query', data)
 }
 
 // HTTP流媒体API

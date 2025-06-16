@@ -6,6 +6,10 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRealtimeStore } from '@/stores/realtime'
 import websocketService from '@/services/websocket'
+// 引入 API 服务
+import serverAPI from '@/services/serverAPI'
+import streamAPI from '@/services/streamAPI'
+import clientAPI from '@/services/clientAPI'
 
 export function useRealtime(options = {}) {
   const {
@@ -123,8 +127,7 @@ export function useRealtime(options = {}) {
    */
   const pollData = async () => {
     try {
-      // 这里应该调用实际的API来获取数据
-      // 由于我们还没有实现具体的API调用，这里使用模拟数据
+      // 调用实际的API来获取数据
       await pollServerStats()
       await pollStreamList()
       await pollClientList()
@@ -144,12 +147,9 @@ export function useRealtime(options = {}) {
    */
   const pollServerStats = async () => {
     try {
-      // TODO: 调用实际的API
-      // const response = await serverAPI.getServerInfo()
-      // realtimeStore.updateServerStats(response.data)
-      
-      // 模拟数据
-      realtimeStore.simulateDataUpdate()
+      // 调用实际的API
+      const response = await serverAPI.getServerInfo()
+      realtimeStore.updateServerStats(response.data)
     } catch (error) {
       console.error('Failed to poll server stats:', error)
       throw error
@@ -161,36 +161,10 @@ export function useRealtime(options = {}) {
    */
   const pollStreamList = async () => {
     try {
-      // TODO: 调用实际的API
-      // const response = await streamAPI.getStreamList()
-      // realtimeStore.updateStreamList(response.data)
-      
-      // 模拟数据
-      const mockStreams = [
-        {
-          path: '/live/stream1',
-          protocol: 'rtmp',
-          type: 'live',
-          vhost: 'default',
-          playerCount: Math.floor(Math.random() * 10),
-          bitrate: Math.random() * 2000,
-          createTime: Date.now() - Math.random() * 3600000,
-          status: 1,
-          bytes: Math.floor(Math.random() * 1000000)
-        },
-        {
-          path: '/live/stream2',
-          protocol: 'rtsp',
-          type: 'live',
-          vhost: 'default',
-          playerCount: Math.floor(Math.random() * 5),
-          bitrate: Math.random() * 1500,
-          createTime: Date.now() - Math.random() * 7200000,
-          status: 1,
-          bytes: Math.floor(Math.random() * 800000)
-        }
-      ]
-      realtimeStore.updateStreamList(mockStreams)
+      // 调用实际的API
+      const response = await streamAPI.getStreamList()
+      console.log('pollStreamList', response.data)
+      realtimeStore.updateStreamList(response.data.sources)
     } catch (error) {
       console.error('Failed to poll stream list:', error)
       throw error
@@ -202,34 +176,9 @@ export function useRealtime(options = {}) {
    */
   const pollClientList = async () => {
     try {
-      // TODO: 调用实际的API
-      // const response = await clientAPI.getClientList()
-      // realtimeStore.updateClientList(response.data)
-      
-      // 模拟数据
-      const mockClients = [
-        {
-          key: 'client1',
-          protocol: 'rtmp',
-          type: 'pull',
-          ip: '192.168.1.100',
-          port: 1935,
-          stream: '/live/stream1',
-          bitrate: Math.random() * 1000,
-          connectTime: Date.now() - Math.random() * 1800000
-        },
-        {
-          key: 'client2',
-          protocol: 'rtsp',
-          type: 'pull',
-          ip: '192.168.1.101',
-          port: 554,
-          stream: '/live/stream2',
-          bitrate: Math.random() * 800,
-          connectTime: Date.now() - Math.random() * 3600000
-        }
-      ]
-      realtimeStore.updateClientList(mockClients)
+      // 调用实际的API
+      const response = await clientAPI.getClientList()
+      realtimeStore.updateClientList(response.data)
     } catch (error) {
       console.error('Failed to poll client list:', error)
       throw error

@@ -37,6 +37,7 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
     }
 
     if (_origin && !isReady()) {
+        logTrace << "add to mediasource onframe";
         MediaSource::onFrame(frame);
         return ;
     }
@@ -61,7 +62,8 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
     // }
 
     if (!_origin)
-        logTrace << "before adjust frame pts: " << frame->_pts << ", frame dts: " << frame->_dts << ", type: " << frame->_trackType
+        logTrace << "before adjust frame pts: " << frame->_pts << ", frame dts: " << frame->_dts 
+                << ", type: " << frame->_trackType << ", index: " << frame->_index
                 << ", size: " << frame->size() << ", path: " << _urlParser.path_ << ", this: " << this;
     // for (auto& sink : _mapSink) {
         // logInfo << "on frame to sink";

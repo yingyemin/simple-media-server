@@ -773,6 +773,7 @@ int PsDemuxer::seek(char* ps_data, int ps_size, uint32_t timestamp, uint32_t ssr
     {
         logTrace << "front 4 byte: " << (int)(uint8_t)next_ps_pack[0] << " " << (int)(uint8_t)next_ps_pack[1] 
                  << " " << (int)(uint8_t)next_ps_pack[2] << " " << (int)(uint8_t)next_ps_pack[3];
+        logTrace << "incomplete_len: " << incomplete_len;
     	if (next_ps_pack
 			&& next_ps_pack[0] == (char)0x00
 			&& next_ps_pack[1] == (char)0x00

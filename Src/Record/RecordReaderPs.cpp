@@ -42,13 +42,16 @@ RecordReaderPs::~RecordReaderPs()
 bool RecordReaderPs::start()
 {
     logInfo << "start ps reader";
+    _clock.update();
 
     RecordReader::start();
     if (!_demuxer) {
         initPs();
     }
 
-    getDurationFromFile();
+    if (!_duration) {
+        getDurationFromFile();
+    }
 
     weak_ptr<RecordReaderPs> wSelf = dynamic_pointer_cast<RecordReaderPs>(shared_from_this());
     _loop->addTimerTask(40, [wSelf](){
@@ -64,10 +67,10 @@ bool RecordReaderPs::start()
         auto now = self->_clock.startToNow();
         int sleepTime = 40;
 
-        logDebug << "start to read ps";
+        logTrace << "start to read ps";
         lock_guard<mutex> lck(self->_mtxFrameList);
 
-        logDebug << "self->_frameList size: " << self->_frameList.size();
+        logTrace << "self->_frameList size: " << self->_frameList.size();
         while (!self->_frameList.empty()) {
             if (self->_isPause) {
                 return 40;
@@ -81,7 +84,8 @@ bool RecordReaderPs::start()
             //     return 1;
             // }
             logTrace << "frame->dts(): " << frame->dts() << ", self->_baseDts: " << self->_baseDts
-                     << ", now: " << now;
+                     << ", now: " << now << ", type: " << frame->getTrackType() 
+                     << ", index: " << frame->getTrackIndex();
             uint64_t dtsDiff = 0;
             if (frame->dts() < self->_baseDts) {
                 self->_frameList.pop_front();
@@ -112,13 +116,27 @@ bool RecordReaderPs::start()
                     if (!self) {
                         return ;
                     }
-                    auto buffer = self->_file.read();
-                    if (!buffer) {
-                        self->close();
+                    auto reader = self->_demuxer;
+                    if (!reader) {
                         return ;
                     }
-                    logInfo << "start on ps stream";
-                    self->_demuxer->onPsStream(buffer->data(), buffer->size(), 0, 0);
+
+                    reader->onPsStream(nullptr, 0, 0, 0);
+
+                    auto buffer = self->_file.read();
+                    if (!buffer) {
+                        // self->close();
+                        if (++self->_curLoopCount >= self->_loopCount) {
+                            logInfo << "ps file read failed, stop";
+                            self->_finish = true;
+                            return ;
+                        } else {
+                            logInfo << "ps file read, start another loop";
+                            self->_file.seek(0);
+                        }
+                    }
+                    logDebug << "start on ps stream";
+                    reader->onPsStream(buffer->data(), buffer->size(), 0, 0);
                     self->_isReading = false;
                 };
                 self->_workLoop->addOrderTask(task);
@@ -126,12 +144,29 @@ bool RecordReaderPs::start()
             // }
         }
 
+        if (self->_finish && self->_frameList.empty()) {
+            self->stop();
+            return 0;
+        }
+
         return sleepTime > 0 ? sleepTime : 1;
-    }, nullptr);
+    }, [wSelf](bool success, const TimerTask::Ptr& task){
+        auto self = wSelf.lock();
+        if (self) {
+            self->_timerTask = task;
+        }
+    });
 
     return true;
 }
 
+void RecordReaderPs::release()
+{
+    _timerTask->quit = true;
+    _demuxer->clear();
+    _file.seek(0);
+    _baseDts = 0;
+}
 
 void RecordReaderPs::stop()
 {
@@ -145,6 +180,10 @@ void RecordReaderPs::close()
 
 void RecordReaderPs::seek(uint64_t timeStamp)
 {
+    logInfo << "seek ps: " << timeStamp;
+    logInfo << "_firstDts: " << _firstDts;
+    timeStamp += _firstDts;
+
     weak_ptr<RecordReaderPs> wSelf = dynamic_pointer_cast<RecordReaderPs>(shared_from_this());
     auto task = make_shared<WorkTask>();
     task->priority_ = 100;
@@ -169,11 +208,12 @@ void RecordReaderPs::seek(uint64_t timeStamp)
                 self->close();
                 return ;
             }
-            logInfo << "start seek ps stream";
+            logDebug << "start seek ps stream";
             if (self->_demuxer->seek(buffer->data(), buffer->size(), timeStamp, 0) == 0) {
                 break;
             }
         }
+        logDebug << "seek ps stream success";
     };
     _workLoop->addOrderTask(task);
 }
@@ -215,6 +255,8 @@ void RecordReaderPs::initPs()
     if (!_file.open(abpath, "rb+")) {
         return ;
     }
+    _file.seek(0);
+
     _demuxer = make_shared<PsDemuxer>();
     _demuxer->setOnDecode([wSelf](const FrameBuffer::Ptr &frame){
         auto self = wSelf.lock();
@@ -224,6 +266,8 @@ void RecordReaderPs::initPs()
 
         if (self->_state == 1) {
             self->_firstDts = frame->dts();
+            self->_state = 3;
+            logDebug << "self->_firstDts: " << self->_firstDts;
             return ;
         } else if (self->_state == 2) {
             self->_duration = frame->dts() - self->_firstDts;

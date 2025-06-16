@@ -69,10 +69,12 @@ bool RecordReaderDir::start()
         }
 
         reader->setOnFrame([wSelf](const FrameBuffer::Ptr &frame){
-            logInfo << "on frame vod dir";
+            // logInfo << "on frame vod dir";
+            FrameBuffer::Ptr frameOut = frame;
+            frameOut->_index = frameOut->_trackType;
             auto self = wSelf.lock();
             if (self && self->_onFrame) {
-                self->_onFrame(frame);
+                self->_onFrame(frameOut);
             }
         });
 
@@ -81,6 +83,8 @@ bool RecordReaderDir::start()
             reader->setOnTrackInfo([wSelf](const TrackInfo::Ptr &trackInfo){
                 auto self = wSelf.lock();
                 if (self && self->_onTrackInfo) {
+                    TrackInfo::Ptr trackInfoOut = trackInfo;
+                    trackInfoOut->index_ = trackInfoOut->trackType_ == "video" ? VideoTrackType : AudioTrackType;
                     self->_onTrackInfo(trackInfo);
                 }
             });
@@ -88,9 +92,33 @@ bool RecordReaderDir::start()
 
         reader->setOnClose([wSelf](){
             auto self = wSelf.lock();
-            if (self && self->_onClose) {
-                self->_onClose();
+            if (!self) {
+                return ;
             }
+            self->_loop->async([wSelf](){
+                auto self = wSelf.lock();
+                if (!self) {
+                    return ;
+                }
+                logInfo << "reader dir on close";
+                logInfo << "self->_dirIndex: " << self->_dirIndex << ", self->_vecDemuxer.size()" << self->_vecDemuxer.size();
+
+                if (self->_dirIndex >= self->_vecDemuxer.size()) {
+                    logInfo << "self->_dirIndex: " << self->_dirIndex << ", self->_loopCount: " << self->_loopCount;
+                    if (++self->_dirLoopCount < self->_loopCount) {
+                        self->_dirIndex = 0;
+                        self->_reader = self->_vecDemuxer[self->_dirIndex++];
+                        self->_reader->start();
+
+                        return ;
+                    } else if (self->_onClose) {
+                        self->_onClose();
+                    }
+                } else {
+                    self->_reader = self->_vecDemuxer[self->_dirIndex++];
+                    self->_reader->start();
+                }
+            }, true);
         });
 
         _vecDemuxer.emplace_back(reader);
@@ -99,7 +127,12 @@ bool RecordReaderDir::start()
         return true;
     });
 
-    _reader = *(_vecDemuxer.begin());
+    if (_vecDemuxer.size() == 0) {
+        logWarn << "_vecDemuxer is empty";
+        return false;
+    }
+
+    _reader = _vecDemuxer[_dirIndex++];
     if (!_reader) {
         logWarn << "reader is empty";
         return false;
@@ -122,19 +155,26 @@ void RecordReaderDir::close()
 
 void RecordReaderDir::seek(uint64_t timeStamp)
 {
+    logDebug << "seek dir reader";
+    int index = 0;
     for (auto &reader : _vecDemuxer) {
         auto duration = reader->getDuration();
         if (timeStamp < duration) {
             if (_reader != reader) {
+                logInfo << "release reader";
+                _reader->release();
                 _reader = reader;
                 _reader->start();
             }
             reader->seek(timeStamp);
             break;
         }
+        ++index;
 
         timeStamp -= duration;
     }
+
+    _dirIndex = index + 1;
 }
 
 void RecordReaderDir::pause(bool isPause)

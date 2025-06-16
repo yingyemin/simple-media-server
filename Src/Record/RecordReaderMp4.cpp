@@ -99,6 +99,9 @@ bool RecordReaderMp4::initMp4()
 
 bool RecordReaderMp4::start()
 {
+    logInfo << " start reader mp4";
+    _clock.update();
+
     RecordReader::start();
     if (!_mp4Reader) {
         initMp4();
@@ -127,7 +130,7 @@ bool RecordReaderMp4::start()
         logDebug << "start to read mp4";
         lock_guard<mutex> lck(self->_mtxFrameList);
 
-        logDebug << "self->_frameList size: " << self->_frameList.size();
+        logTrace << "self->_frameList size: " << self->_frameList.size();
         while (!self->_frameList.empty()) {
             if (self->_isPause) {
                 return 40;
@@ -152,8 +155,10 @@ bool RecordReaderMp4::start()
                     self->_lastFrameTime = frame->dts();
                     frame->_dts /= self->_scale;
                     frame->_pts /= self->_scale;
-                    logInfo << "on frame from mp4";
+                    logDebug << "on frame from mp4";
                     self->_onFrame(frame);
+                } else {
+                    return 0;
                 }
             } else {
                 // sleepTime = int(dtsDiff - now);
@@ -162,7 +167,7 @@ bool RecordReaderMp4::start()
         }
 
         logDebug << "self->_frameList size: " << self->_frameList.size();
-        if (self->_frameList.size() < 25) {
+        if (self->_frameList.size() < 25 && !self->_finish) {
             for (int i = 0; i < 25; ++i) {
                 auto task = make_shared<WorkTask>();
                 task->priority_ = 100;
@@ -171,11 +176,16 @@ bool RecordReaderMp4::start()
                     if (!self) {
                         return ;
                     }
+
+                    auto reader = self->_mp4Reader;
+                    if (!reader) {
+                        return ;
+                    }
                 //     logInfo << "read mp4";
-                    if (!self->_mp4Reader->mov_reader_read2()) {
+                    if (!reader->mov_reader_read2()) {
                         if (++self->_curLoopCount >= self->_loopCount) {
                             logInfo << "mov_reader_read2 failed, stop";
-                            self->stop();
+                            self->_finish = true;
                         } else {
                             logInfo << "mov_reader_read2 failed, start another loop";
                             self->initMp4();
@@ -186,73 +196,30 @@ bool RecordReaderMp4::start()
             }
         }
 
+        if (self->_finish && self->_frameList.empty()) {
+            self->stop();
+            return 0;
+        }
+
         return sleepTime > 0 ? sleepTime : 1;
-
-    //     bool hasFrame = false;
-    //     if (!self->_frameList.empty()) {
-    //         if (self->_onFrame) {
-    //             auto frame = self->_frameList.front();
-    //             self->_frameList.pop_front();
-    //             self->_onFrame(frame);
-    //             self->_lastFrameTime = frame->dts();
-    //             hasFrame = true;
-
-    //             // FILE* fp = fopen("testvodmp4.h264", "ab+");
-    //             // fwrite(frame->data(), 1, frame->size(), fp);
-    //             // fclose(fp);
-    //         }
-    //     }
-
-    //     if (self->_frameList.size() < 25) {
-    //         for (int i = 0; i < 25; ++i) {
-    //             auto task = make_shared<WorkTask>();
-    //             task->priority_ = 100;
-    //             task->func_ = [wSelf](){
-    //                 auto self = wSelf.lock();
-    //                 if (!self) {
-    //                     return ;
-    //                 }
-    //             //     logInfo << "read mp4";
-    //                 if (!self->_mp4Reader->mov_reader_read2()) {
-    //                     if (++self->_curLoopCount >= self->_loopCount) {
-    //                         logInfo << "mov_reader_read2 failed, stop";
-    //                         self->stop();
-    //                     } else {
-    //                         logInfo << "mov_reader_read2 failed, start another loop";
-    //                         self->initMp4();
-    //                     }
-    //                 }
-    //             };
-    //             self->_workLoop->addOrderTask(task);
-    //         }
-
-    //         if (!hasFrame) {
-    //             return 1;
-    //         }
-    //     }
-
-    //     auto now = self->_clock.startToNow();
-    //     if (self->_lastFrameTime < self->_baseDts/* || self->_lastFrameTime > self->_baseDts + 500*/) {
-    //         self->_baseDts = self->_lastFrameTime;
-    //         self->_clock.update();
-
-    //         return 1;
-    //     }
-
-    //     auto dtsDiff = (self->_lastFrameTime - self->_baseDts) / self->_scale;
-
-    //     logInfo << "dtsDiff: " << dtsDiff;
-
-    //     if (dtsDiff <= now) {
-    //         return 1;
-    //     } else {
-    //         return int(dtsDiff - now);
-    //     }
-    }, nullptr);
+    }, [wSelf](bool success, const TimerTask::Ptr& task){
+        auto self = wSelf.lock();
+        if (self) {
+            self->_timerTask = task;
+        }
+    });
 
     return true;
 }
 
+void RecordReaderMp4::release()
+{
+    logInfo << "RecordReaderMp4::release()";
+
+    _timerTask->quit = true;
+    _mp4Reader = nullptr;
+    _baseDts = 0;
+}
 
 void RecordReaderMp4::stop()
 {
@@ -266,6 +233,7 @@ void RecordReaderMp4::close()
 
 void RecordReaderMp4::seek(uint64_t timeStamp)
 {
+    timeStamp += _mp4Reader->getFirstDts();
     weak_ptr<RecordReaderMp4> wSelf = dynamic_pointer_cast<RecordReaderMp4>(shared_from_this());
     auto task = make_shared<WorkTask>();
     task->priority_ = 100;

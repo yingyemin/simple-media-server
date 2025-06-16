@@ -212,7 +212,7 @@ private:
 private:
     std::mutex _mtx_map;
     std::atomic_int _total_count { 0 };
-    std::atomic_int _total_bytes { 0 };
+    std::atomic_uint64_t _total_bytes { 0 };
     typename DataQueStorageT::Ptr _storage;
     std::unordered_map<void*, onWriteFunc> _on_write_map;
     onReaderChanged _on_reader_changed;

@@ -20,6 +20,7 @@ void RecordApi::initApi()
     g_mapApi.emplace("/api/v1/record/start", RecordApi::startRecord);
     g_mapApi.emplace("/api/v1/record/list", RecordApi::listRecord);
     g_mapApi.emplace("/api/v1/record/stop", RecordApi::stopRecord);
+    g_mapApi.emplace("/api/v1/record/query", RecordApi::queryRecord);
 }
 
 void RecordApi::startRecord(const HttpParser& parser, const UrlParser& urlParser, 
@@ -31,7 +32,7 @@ void RecordApi::startRecord(const HttpParser& parser, const UrlParser& urlParser
     if (parser._body.find("recordTemplate") != parser._body.end()) {
         auto jsonTemplate = parser._body["recordTemplate"];
         recordTemplate->duration = getInt(jsonTemplate, "duration", 0);
-        recordTemplate->segment_duration = getInt(jsonTemplate, "segmentDuration", 0);
+        recordTemplate->segment_duration = getInt(jsonTemplate, "segmentDuration", 5000);
         recordTemplate->segment_count = getInt(jsonTemplate, "segmentCount", 0);
     }
 
@@ -109,6 +110,27 @@ void RecordApi::listRecord(const HttpParser& parser, const UrlParser& urlParser,
     });
 
     value["count"] = count;
+    value["code"] = "200";
+    value["msg"] = "success";
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void RecordApi::queryRecord(const HttpParser& parser, const UrlParser& urlParser, 
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    int count = 0;
+
+    // auto record = Record::getRecord(urlParser.path_, parser._body["taskId"]);
+    // value["path"] = record->getUrlParser().path_;
+    // value["taskId"] = record->getTaskId();
+    value["status"] = "playing";
+    value["progress"] = 50;
+
     value["code"] = "200";
     value["msg"] = "success";
     rsp.setContent(value.dump());

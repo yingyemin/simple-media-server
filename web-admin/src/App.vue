@@ -4,7 +4,7 @@
       <!-- 侧边栏 -->
       <el-aside width="250px" class="sidebar">
         <div class="logo">
-          <h2>MediaServer</h2>
+          <h2>SimpleMediaServer</h2>
         </div>
         <el-menu
           :default-active="$route.path"

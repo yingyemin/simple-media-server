@@ -165,6 +165,30 @@ const controlForm = ref({
 
 let refreshTimer = null
 
+/**
+ * 刷新单个点播的状态和进度
+ * @param {object} vod - 点播对象
+ */
+const refreshSingleVodStatusAndProgress = async (vod) => {
+  try {
+    const { status, progress } = await vodAPI.getVodStatusAndProgress(vod.uri)
+    // 更新状态和进度
+    vod.status = status
+    vod.progress = progress
+  } catch (error) {
+    ElMessage.error('刷新点播状态和进度失败: ' + error.message)
+  }
+}
+
+/**
+ * 刷新所有点播的状态和进度
+ */
+const refreshAllVodStatusAndProgress = async () => {
+  for (const vod of vodSessions.value) {
+    await refreshSingleVodStatusAndProgress(vod)
+  }
+}
+
 const formatDuration = (seconds) => {
   if (!seconds) return '00:00'
   const hours = Math.floor(seconds / 3600)
@@ -353,9 +377,9 @@ const applyControl = async () => {
 onMounted(() => {
   loadVodSessions()
   
-  // 设置定时刷新
+  // 设置定时刷新，只更新状态和进度
   refreshTimer = setInterval(() => {
-    loadVodSessions()
+    refreshAllVodStatusAndProgress()
   }, 2000) // 2秒刷新一次
 })
 

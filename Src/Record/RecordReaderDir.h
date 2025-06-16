@@ -26,6 +26,8 @@ public:
 private:
     bool _isReading = false;
     int _state = 0; // 1 : get first stamp; 2: get last stamp
+    int _dirIndex = 0;
+    int _dirLoopCount = 0;
     uint64_t _firstDts = 0;
     uint64_t _duration = 0;
     RecordReader::Ptr _reader;

@@ -98,6 +98,15 @@ bool MP4Demuxer::init()
 	return true;
 }
 
+uint64_t MP4Demuxer::getFirstDts()
+{
+	if (_tracks.size() > 0) {
+		return _tracks[0]->samples[0]->dts * 1000 / _tracks[0]->mdhd.timescale;
+	}
+
+	return 0;
+}
+
 int MP4Demuxer::mov_reader_box(const struct mov_box_t* parent)
 {
     static struct mov_parse_t s_mov_parse_table[] = {

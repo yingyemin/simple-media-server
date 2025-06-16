@@ -34,6 +34,7 @@ public:
 
 public:
     bool init();
+    uint64_t getFirstDts();
     int mov_reader_box(const struct mov_box_t* parent);
     int mov_reader_getinfo();
     int mov_reader_read(void* buffer, size_t bytes);

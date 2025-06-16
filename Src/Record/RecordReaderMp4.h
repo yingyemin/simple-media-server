@@ -20,6 +20,7 @@ public:
     bool start() override;
     void stop() override;
     void close() override;
+    void release() override;
     
     void seek(uint64_t timeStamp) override;
     void pause(bool isPause) override;
@@ -30,7 +31,9 @@ private:
     bool initMp4();
 
 private:
+    bool _finish = false;
     Mp4FileReader::Ptr _mp4Reader;
+    TimerTask::Ptr _timerTask;
 };
 
 #endif

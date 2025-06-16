@@ -36,6 +36,7 @@ public:
     virtual void seek(uint64_t timeStamp) {};
     virtual void pause(bool isPause) {};
     virtual void scale(float scale) {};
+    virtual void release() {};
     virtual uint64_t getDuration() {return 0;}
     void setOnTrackInfo(const function<void(const TrackInfo::Ptr& trackInfo)>& cb);
     void setOnReady(const function<void()>& cb);
@@ -49,6 +50,7 @@ protected:
     float _scale = 1;
     uint64_t _lastFrameTime = 0;
     uint64_t _baseDts = 0;
+    uint64_t _playDuration = 0;
     string _filePath;
     string _recordType;
     string _vodId;
