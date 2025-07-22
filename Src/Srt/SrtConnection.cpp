@@ -17,6 +17,8 @@ using namespace std;
 static unordered_map<string, string> parseSid(char *sid, int len)
 {
     string strSid = UrlParser::urlDecode(string(sid, len));
+    logTrace << "srt streamid: " << strSid;
+    
     if (strSid.find("#!::") != string::npos) {
         strSid = strSid.substr(4);
         auto vecParam = split(strSid, ",", "=");

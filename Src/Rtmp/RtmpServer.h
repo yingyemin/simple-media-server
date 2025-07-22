@@ -27,6 +27,7 @@ public:
     // 比如想动态换一个监听端口，或者动态加一个监听端口
     void start(const string& ip, int port, int count);
     void stopByPort(int port, int count);
+    void stopListenByPort(int port, int count);
 
     // 后面考虑增加IP参数
     // void stopByIp(int port, int count);
@@ -39,6 +40,7 @@ private:
     mutex _mtx;
     // int : port
     unordered_map<int, vector<TcpServer::Ptr>> _tcpServers;
+    unordered_map<int, vector<TcpServer::Ptr>> _delServers;
 };
 
 #endif //RtmpServer_h

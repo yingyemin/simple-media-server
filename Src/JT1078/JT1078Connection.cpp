@@ -133,7 +133,7 @@ void JT1078Connection::onRtpPacket(const JT1078RtpPacket::Ptr& buffer)
             info.uri = "/" + jt1078Info.appName + "/" + jt1078Info.streamName;
             _timeout = jt1078Info.timeout;
         } else {
-            info.uri = "/" + _app + "/" + buffer->getSimCode() + "_" + to_string(buffer->getLogicNo());
+            info.uri = "/" + _app + "/" + key;
         }
 
         info.vhost = DEFAULT_VHOST;

@@ -3,6 +3,7 @@
 
 #include "Common/Frame.h"
 #include "Mpeg/TsMuxer.h"
+#include "Mp4/Fmp4Muxer.h"
 #include "Util/TimeClock.h"
 #include "EventPoller/Timer.h"
 #include "Common/UrlParser.h"
@@ -35,7 +36,7 @@ public:
 	void stop() {_muxer = false;}
 	void release();
 	void onFrame(const FrameBuffer::Ptr& frame);
-	void onTsPacket(const StreamBuffer::Ptr &pkt, int pts, int dts, bool keyframe);
+	void onTsPacket(const Buffer::Ptr &pkt, int pts, int dts, bool keyframe);
 	void addTrackInfo(const shared_ptr<TrackInfo>& track);
 	void onManager();
 	void onNoPLayer();
@@ -64,6 +65,8 @@ private:
 	TimeClock _playClick;
 	shared_ptr<TimerTask> _timeTask;
 	TsMuxer::Ptr _tsMuxer;
+	Fmp4Muxer::Ptr _fmp4Muxer;
+	Buffer::Ptr _fmp4Header;
 	FrameBuffer::Ptr _tsBuffer;
 	mutex _tsMtx;
 	map<string, FrameBuffer::Ptr> _mapTs;

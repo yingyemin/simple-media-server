@@ -26,6 +26,11 @@ Ehome5Connection::~Ehome5Connection()
     // if (!_ssrc.empty()) {
     //     RtpManager::instance()->delContext(_ssrc);
     // }
+    auto psSrc = _source.lock();
+    if (psSrc) {
+        psSrc->release();
+        psSrc->delConnection(this);
+    }
 }
 
 void Ehome5Connection::init()
@@ -86,8 +91,45 @@ void Ehome5Connection::onEhomePacket(const char* data, int len)
 
     auto buffer = StreamBuffer::create();
     buffer->assign(data + 4, len - 4);
-    RtpPacket::Ptr rtp = make_shared<RtpPacket>(buffer, 0);
+
+    if (_payloadType == "ps") {
+        auto frameBuffer = make_shared<FrameBuffer>();
+        frameBuffer->_buffer.assign(data + 4, len - 4);
+
+        auto psSource = _source.lock();
+        if (!psSource) {
+            _localUrlParser.path_ = "/live/" + _ssrc;
+            _localUrlParser.vhost_ = DEFAULT_VHOST;
+            _localUrlParser.protocol_ = PROTOCOL_EHOME5;
+            _localUrlParser.type_ = DEFAULT_TYPE;
+            auto source = MediaSource::getOrCreate(_localUrlParser.path_, _localUrlParser.vhost_
+                            , _localUrlParser.protocol_, _localUrlParser.type_
+                            , [this]() {
+                                return make_shared<PsMediaSource>(_localUrlParser, _loop);
+                            });
+
+            if (!source) {
+                logWarn << "another stream is exist with the same uri";
+                return ;
+            }
+            logInfo << "create a TsMediaSource";
+            psSource = dynamic_pointer_cast<PsMediaSource>(source);
+            psSource->setOrigin();
+            psSource->setOriginSocket(_socket);
+            psSource->setAction(true);
+
+            auto psDemuxer = make_shared<PsDemuxer>();
+
+            psSource->addTrack(psDemuxer);
+            _source = psSource;
+        }
+
+        psSource->inputPs(frameBuffer);
+
+        return ;
+    }
     
+    RtpPacket::Ptr rtp = make_shared<RtpPacket>(buffer, 0);
     if (!_context)
     {
         string uri = "/live/" + _ssrc;

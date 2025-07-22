@@ -235,6 +235,7 @@ void JT1078DecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
         _g711aEncode.pcm_2_alaw((const int16_t *)pcmdata, (uint8_t *)newFrame->data(), size * 2);
 
         newFrame->_dts = frame->_pts;
+        newFrame->_pts = frame->_pts;
         newFrame->_index = _trackInfo->index_;
         newFrame->_codec = _trackInfo->codec_;
         newFrame->_trackType = _trackInfo->trackType_ == "video" ? VideoTrackType : AudioTrackType;
@@ -283,6 +284,7 @@ void JT1078DecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
         _g711aEncode.pcm_2_alaw((const int16_t *)pcmdata, (uint8_t *)newFrame->data(), result);
 
         newFrame->_dts = frame->_pts;
+        newFrame->_pts = frame->_pts;
         newFrame->_index = _trackInfo->index_;
         newFrame->_codec = _trackInfo->codec_;
         newFrame->_trackType = AudioTrackType;
@@ -339,7 +341,8 @@ void JT1078DecodeTrack::decodeRtp(const JT1078RtpPacket::Ptr& rtp)
     // FILE* fp = fopen(name.c_str(), "ab+");
 
     logTrace << "stream path: " << _trackInfo->_parser.path_ << ", rtp->getSeq(): " << rtp->getSeq() << ", rtp->getTimestamp(): " << rtp->getTimestamp() 
-            << ", codec : " << _trackInfo->codec_ << ", rtp subMark: " << (int)subMark;
+            << ", codec : " << rtp->getCodecType() << ", rtp subMark: " << (int)subMark
+            << "channel No: " << rtp->getLogicNo();
     
     switch (subMark) {
     case JT1078_Atomic:

@@ -7,6 +7,7 @@
 #include "Common/Config.h"
 #include "Util/String.h"
 #include "Rtmp/RtmpClient.h"
+#include "Rtmp/RtmpServer.h"
 
 using namespace std;
 
@@ -23,6 +24,11 @@ void RtmpApi::initApi()
     g_mapApi.emplace("/api/v1/rtmp/publish/start", RtmpApi::startRtmpPublish);
     g_mapApi.emplace("/api/v1/rtmp/publish/stop", RtmpApi::stopRtmpPublish);
     g_mapApi.emplace("/api/v1/rtmp/publish/list", RtmpApi::listRtmpPublishInfo);
+
+    g_mapApi.emplace("/api/v1/rtmp/server/create", RtmpApi::createRtmpServer);
+    g_mapApi.emplace("/api/v1/rtmp/server/stop", RtmpApi::stopRtmpServer);
+    g_mapApi.emplace("/api/v1/rtmp/server/list", RtmpApi::listRtmpServers);
+    g_mapApi.emplace("/api/v1/rtmp/server/stopListen", RtmpApi::stopListenRtmpServer);
 }
 
 void RtmpApi::createRtmpStream(const HttpParser& parser, const UrlParser& urlParser,
@@ -138,7 +144,6 @@ void RtmpApi::startRtmpPlay(const HttpParser& parser, const UrlParser& urlParser
     }, "Rtmp", "Server", "Server1", "timeout");
 
     auto client = make_shared<RtmpClient>(MediaClientType_Pull, parser._body["appName"], parser._body["streamName"]);
-    client->start("0.0.0.0", 0, parser._body["url"], timeout);
 
     // stringstream key;
     string key = "/" + parser._body["appName"].get<string>() + "/" + parser._body["streamName"].get<string>();
@@ -147,6 +152,8 @@ void RtmpApi::startRtmpPlay(const HttpParser& parser, const UrlParser& urlParser
     client->setOnClose([key](){
         MediaClient::delMediaClient(key);
     });
+
+    client->start("0.0.0.0", 0, parser._body["url"], timeout);
 
     value["code"] = "200";
     value["msg"] = "success";
@@ -285,6 +292,105 @@ void RtmpApi::listRtmpPublishInfo(const HttpParser& parser, const UrlParser& url
     value["code"] = "200";
     value["msg"] = "success";
     value["count"] = count;
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void RtmpApi::createRtmpServer(const HttpParser& parser, const UrlParser& urlParser,
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    checkArgs(parser._body, {"port"});
+    string ip = parser._body.value("ip", "0.0.0.0");
+    int port = toInt(parser._body["port"]);
+    int count = toInt(parser._body.value("count", "0"));
+
+    RtmpServer::instance()->start(ip, port, count);
+
+    value["code"] = "200";
+    value["msg"] = "success";
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void RtmpApi::stopRtmpServer(const HttpParser& parser, const UrlParser& urlParser,
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    checkArgs(parser._body, {"port"});
+    int port = toInt(parser._body["port"]);
+    int count = toInt(parser._body.value("count", "0"));
+
+    RtmpServer::instance()->stopByPort(port, count);
+
+    value["code"] = "200";
+    value["msg"] = "success";
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void RtmpApi::listRtmpServers(const HttpParser& parser, const UrlParser& urlParser,
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    try {
+        value["servers"] = json::array();
+        int count = 0;
+
+        // 获取所有RTMP服务器信息
+        RtmpServer::instance()->for_each_server([&value, &count](const TcpServer::Ptr& server) {
+            if (server) {
+                json item;
+                item["name"] = "RTMP-Server-" + to_string(server->getPort());
+                item["ip"] = "0.0.0.0"; // TcpServer没有getIp方法，使用默认值
+                item["port"] = server->getPort();
+                item["status"] = "running"; // 如果能遍历到说明正在运行
+                item["createTime"] = time(nullptr);
+                item["clientCount"] = server->getCurConnNum();
+
+                value["servers"].push_back(item);
+                ++count;
+            }
+        });
+
+        value["code"] = "200";
+        value["msg"] = "success";
+        value["count"] = count;
+    } catch (const exception& e) {
+        value["code"] = "500";
+        value["msg"] = string("获取RTMP服务器列表失败: ") + e.what();
+        value["servers"] = json::array();
+        value["count"] = 0;
+    }
+
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void RtmpApi::stopListenRtmpServer(const HttpParser& parser, const UrlParser& urlParser,
+                        const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    checkArgs(parser._body, {"port"});
+    int port = toInt(parser._body["port"]);
+    int count = toInt(parser._body.value("count", "0"));
+
+    RtmpServer::instance()->stopListenByPort(port, count);
+
+    value["code"] = "200";
+    value["msg"] = "success";
     rsp.setContent(value.dump());
     rspFunc(rsp);
 }

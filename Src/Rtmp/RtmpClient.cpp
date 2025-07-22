@@ -3,6 +3,7 @@
 #include "Common/Define.h"
 #include "Util/String.h"
 #include "Common/HookManager.h"
+#include "Common/Config.h"
 
 // mutex RtmpClient::_mapMtx;
 // unordered_map<string, RtmpClient::Ptr> RtmpClient::_mapRtmpClient;
@@ -79,12 +80,20 @@ void RtmpClient::init()
 //     return nullptr;
 // }
 
+void RtmpClient::getProtocolAndType(string& protocol, MediaClientType& type)
+{
+    protocol = _localUrlParser.protocol_;
+    type = _type;
+}
+
 bool RtmpClient::start(const string& localIp, int localPort, const string& url, int timeout)
 {
     if (localIp.empty() || url.empty()) {
         return false;
     }
-    _url = url;
+
+    MediaClient::start(localIp, localPort, url, timeout);
+    
     _peerUrlParser.parse(url);
 
     _tcUrl = "rtmp://" + _peerUrlParser.host_;
@@ -161,26 +170,39 @@ void RtmpClient::pause()
     sendPause();
 }
 
-void RtmpClient::getProtocolAndType(string& protocol, MediaClientType& type)
-{
-    protocol = _localUrlParser.protocol_;
-    type = _type;
-}
-
 void RtmpClient::onConnect()
 {
     _socket = TcpClient::getSocket();
     if (!_socket) {
+        close();
         return ;
     }
     _loop = _socket->getLoop();
     _chunk.setSocket(_socket);
     sendC0C1();
     _state = RTMP_SEND_C2;
+    _readClock.update();
+    _rtmpClock.update();
+
+    weak_ptr<RtmpClient> wSelf = dynamic_pointer_cast<RtmpClient>(shared_from_this());
+    static int timeout = Config::instance()->getAndListen([](const json &config){
+        timeout = Config::instance()->get("Rtmp", "Server", "Server1", "connectTime", "5000");
+    }, "Rtmp", "Server", "Server1", "connectTime", "5000");
+    _loop->addTimerTask(timeout, [wSelf](){
+        auto self = wSelf.lock();
+        if (!self) {
+            return 0;
+        }
+
+        self->onManager();
+
+        return timeout;
+    }, nullptr);
 }
 
 void RtmpClient::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)
 {
+    _readClock.update();
     // logInfo << "get buffer size: " << buffer->size();
     if (!_handshake) {
         return ;
@@ -205,8 +227,31 @@ void RtmpClient::onError(const string& err)
     close();
 }
 
+void RtmpClient::onManager()
+{
+    static int timeout = Config::instance()->getAndListen([](const json &config){
+        timeout = Config::instance()->get("Rtmp", "Server", "Server1", "timeout", "5000");
+    }, "Rtmp", "Server", "Server1", "timeout", "5000");
+
+    if (_readClock.startToNow() > timeout) {
+        logWarn << "onManager, timeout: " << timeout << ", readClock: " << _readClock.startToNow();
+        close();
+    }
+
+    if (_rtmpClock.startToNow() > timeout) {
+        logWarn << "onManager, timeout: " << timeout << ", _rtmpClock: " << _rtmpClock.startToNow();
+        close();
+    }
+}
+
 void RtmpClient::close()
 {
+    if (_retryCount > 0) {
+        _retryCount--;
+        start(MediaClient::_localIp, MediaClient::_localPort, _url, _timeout);
+        return;
+    }
+
     if (_onClose) {
         _onClose();
     }
@@ -315,7 +360,9 @@ void RtmpClient::onRtmpChunk(RtmpMessage msg)
         return ;
     }
 
-    bool ret = true;
+    _rtmpClock.update();
+
+    bool ret = true;  
     switch(msg.type_id)
     {
         case RTMP_VIDEO:
@@ -353,12 +400,12 @@ void RtmpClient::onRtmpChunk(RtmpMessage msg)
             // handleUserEvent(msg);
             break;
         default:
-            logInfo << "unkonw message type: " << msg.type_id;
+            logInfo << "unkonw message type: " << (int)msg.type_id;
             break;
     }
 
 	if (!ret) {
-		logInfo << "msg.type_id: " << msg.type_id;
+		logInfo << "msg.type_id: " << (int)msg.type_id;
 	}
 
     return ;
@@ -440,18 +487,28 @@ void RtmpClient::handleCmdOnStatus(int bytes_used, RtmpMessage& rtmp_msg)
 
             auto code = _amfDecoder.getObject("code").amfString_;
             auto level = _amfDecoder.getObject("level").amfString_;
-            if (/*code != "NetStream.Play.Start" || */level != "status") {
-                logWarn << "result error, code: " << code << ", level: " << level;
-                onError("play failed");
-                return ;
+            // if (/*code != "NetStream.Play.Start" || */level != "status") {
+            //     logWarn << "result error, code: " << code << ", level: " << level;
+            //     onError("play failed");
+            //     return ;
+            // }
+
+            // if (code != "NetStream.Play.Start") {
+            //     logInfo << "code is: " << code;
+            //     return ;
+            // }
+
+            if (code == "NetStream.Play.Start" && level == "status") {
+                if (_source.lock()) {
+                    return ;
+                }
+
+                handlePlay();
+            } else {
+                logInfo << "code is: " << code << ", level is: " << level;
             }
 
-            if (code != "NetStream.Play.Start") {
-                logInfo << "code is: " << code;
-                return ;
-            }
-
-            handlePlay();
+            // handlePlay();
         }
     } else if (_type == MediaClientType_Push) {
         if (_state == RTMP_FINISH_PLAY_PUBLISH) {
@@ -480,6 +537,10 @@ void RtmpClient::handleCmdOnStatus(int bytes_used, RtmpMessage& rtmp_msg)
 
 bool RtmpClient::handlePlay()
 {
+    if (_source.lock()) {
+        return true;
+    }
+
     logInfo << "play: " << _localUrlParser.path_;
 
     auto source = MediaSource::getOrCreate(_localUrlParser.path_, DEFAULT_VHOST
@@ -500,7 +561,7 @@ bool RtmpClient::handlePlay()
     rtmpSrc->setOrigin();
     rtmpSrc->setOriginSocket(_socket);
     rtmpSrc->setAction(false);
-    rtmpSrc->setOriginSocket(_socket);
+    // rtmpSrc->setOriginSocket(_socket);
     weak_ptr<RtmpClient> wSelf = dynamic_pointer_cast<RtmpClient>(shared_from_this());
 
     _source = rtmpSrc;
@@ -725,6 +786,10 @@ bool RtmpClient::sendMetaData(AmfObjects meta_data)
 
 bool RtmpClient::handlePublish()
 {
+    if (_source.lock()) {
+        return true;
+    }
+
     weak_ptr<RtmpClient> wSelf = static_pointer_cast<RtmpClient>(shared_from_this());
 
     MediaSource::getOrCreateAsync(_localUrlParser.path_, _localUrlParser.vhost_, _localUrlParser.protocol_, _localUrlParser.type_,

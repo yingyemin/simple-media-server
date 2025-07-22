@@ -594,7 +594,7 @@ void H265Track::onFrame(const FrameBuffer::Ptr& frame)
 {
 	if (_sps && _pps && _vps) {
 		_hasReady = true;
-		return ;
+		// return ;
 	}
 
 	if (!frame || frame->size() < 5) {

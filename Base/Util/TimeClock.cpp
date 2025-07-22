@@ -47,6 +47,14 @@ uint64_t TimeClock::now()
     return static_cast<uint64_t>(millis);
 }
 
+uint64_t TimeClock::nowMicro()
+{
+    auto now = std::chrono::system_clock::now();
+    auto duration = now.time_since_epoch();
+    auto micros = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
+    return static_cast<uint64_t>(micros);
+}
+
 struct tm TimeClock::localtime(time_t t, time_t tz, int dst)
 {
     const time_t secs_min = 60;

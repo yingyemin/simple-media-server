@@ -11,6 +11,7 @@
 #include "Rtp/RtpPacket.h"
 #include "Ehome5Parser.h"
 #include "Rtp/RtpContext.h"
+#include "Mpeg/PsMediaSource.h"
 
 
 using namespace std;
@@ -51,8 +52,11 @@ private:
     std::string _audioCodec;
     std::string _payloadType = "ps";
 
+    UrlParser _localUrlParser;
+
     Ehome5Parser _parser;
     RtpContext::Ptr _context;
+    PsMediaSource::Wptr _source;
     EventLoop::Ptr _loop;
     Socket::Ptr _socket;
 };

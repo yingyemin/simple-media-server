@@ -628,6 +628,8 @@ void HttpConnection::handleGet()
                     } else {
                         self->handleTs();
                     }
+                } else if (endWith(self->_urlParser.path_, ".m4s")) {
+                    self->handleHlsTs();
                 } else if (endWith(self->_urlParser.path_, ".ps")) {
                     self->handlePs();
                 } else if (endWith(self->_urlParser.path_, ".mp4")) {
@@ -653,6 +655,8 @@ void HttpConnection::handleGet()
                 } else {
                     handleTs();
                 }
+            } else if (endWith(_urlParser.path_, ".m4s")) {
+                handleHlsTs();
             } else if (endWith(_urlParser.path_, ".ps")) {
                 handlePs();
             } else if (endWith(_urlParser.path_, ".mp4")) {
@@ -960,7 +964,7 @@ void HttpConnection::handleHlsTs()
     auto pos = _urlParser.path_.find_last_of("_");
     auto path = _urlParser.path_.substr(0, pos);
 
-    auto hlsMuxer = HlsManager::instance()->getMuxer(path + "_" + DEFAULT_VHOST + "_" + DEFAULT_TYPE);
+    auto hlsMuxer = HlsManager::instance()->getMuxer(path + "_" + _urlParser.vhost_ + "_" + _urlParser.type_);
     string tsString;
     if (hlsMuxer) {
         auto tsBuffer = hlsMuxer->getTsBuffer(_urlParser.path_);
@@ -974,7 +978,10 @@ void HttpConnection::handleHlsTs()
             // fclose(fp);
         } else {
             logWarn << "ts is empty: " << _urlParser.path_;
+            tsString = "ts is empty";
         }
+    } else {
+        tsString = "get hls muxer failed";
     }
 
     HttpResponse rsp;

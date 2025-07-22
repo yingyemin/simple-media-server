@@ -22,7 +22,7 @@ void JT1078Api::initApi()
     g_mapApi.emplace("/api/v1/jt1078/server/open", JT1078Api::openServer);
     g_mapApi.emplace("/api/v1/jt1078/server/close", JT1078Api::closeServer);
     g_mapApi.emplace("/api/v1/jt1078/talk/start", JT1078Api::startTalk);
-    g_mapApi.emplace("/api/v1/jt1078/delete", JT1078Api::deleteTalkInfo);
+    g_mapApi.emplace("/api/v1/jt1078/talk/delete", JT1078Api::deleteTalkInfo);
     g_mapApi.emplace("/api/v1/jt1078/talk/stop", JT1078Api::stopTalk);
     g_mapApi.emplace("/api/v1/jt1078/send/start", JT1078Api::startSend);
     g_mapApi.emplace("/api/v1/jt1078/send/stop", JT1078Api::stopSend);

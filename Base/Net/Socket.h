@@ -117,6 +117,8 @@ public:
     void setOnGetRecvBuffer(const function<StreamBuffer::Ptr()>& cb) {_onGetRecvBuffer = cb;}
     StreamBuffer::Ptr onGetRecvBuffer();
 
+    static std::pair<std::string, uint16_t> getIpAndPort(const struct sockaddr_storage *addr);
+
 private:
     bool _isClient = false;
     bool _isConnected = false;

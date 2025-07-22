@@ -34,6 +34,10 @@
 #include "Srt/SrtServer.h"
 #endif
 
+#ifdef ENABLE_SRTCUSTOM
+#include "SrtCustom/SrtServer.h"
+#endif
+
 #ifdef ENABLE_JT1078
 #include "JT1078/JT1078Server.h"
 #endif
@@ -52,6 +56,10 @@
 
 #ifdef ENABLE_RECORD
 #include "Record/RecordReader.h"
+#endif
+
+#if defined(ENABLE_JT808)
+#include "JT808/JT808Server.h"
 #endif
 
 #ifdef ENABLE_API
@@ -73,6 +81,8 @@
 #include "Api/ConfigTemplateApi.h"
 #include "Api/SrtApi.h"
 #include "Api/VodApi.h"
+#include "Api/Ehome2Api.h"
+#include "Api/JT808Api.h"
 #endif
 
 #include "Codec/AacTrack.h"
@@ -260,6 +270,13 @@ int main(int argc, char** argv)
 #ifdef ENABLE_SRT
     SrtApi::initApi();
 #endif
+#ifdef ENABLE_EHOME2
+    Ehome2Api::initApi();
+#endif
+#ifdef ENABLE_JT808
+    JT808Api::initApi();
+#endif
+
     VodApi::initApi();
 #endif
 
@@ -607,6 +624,49 @@ int main(int argc, char** argv)
         // if (sslPort) {
         //     RtspServer::instance()->start(ip, sslPort, count);
         // }
+    }
+#endif
+
+#ifdef ENABLE_SRTCUSTOM
+    auto srtCustomConfigVec = configJson["SrtCustom"]["Server"];
+    for (auto server : srtCustomConfigVec.items()) {
+        string serverId = server.key();
+        auto srtCustomConfig = server.value();
+
+        if (!srtCustomConfig.is_object()) {
+            continue;
+        }
+
+        const string ip = srtCustomConfig["ip"];
+        int port = srtCustomConfig["port"];
+        int count = srtCustomConfig["threads"];
+
+        logInfo << "start srt custom server, port: " << port;
+        if (port) {
+            SrtCustomServer::instance()->start(ip, port, count, 3);
+            // RtcServer::Instance().Start(EventLoopPool::instance()->getLoopByCircle(), port, "0.0.0.0");
+        }
+    }
+#endif
+
+#if defined(ENABLE_JT808)
+    auto jt808ConfigVec = configJson["JT808"]["Server"];
+    for (auto server : jt808ConfigVec.items()) {
+        string serverId = server.key();
+        auto jt808Config = server.value();
+
+        if (!jt808Config.is_object()) {
+            continue;
+        }
+
+        const string ip = jt808Config["ip"];
+        int port = jt808Config["port"];
+        int count = jt808Config["threads"];
+
+        logInfo << "start jt808 server, port: " << port;
+        if (port) {
+            JT808Server::instance()->start(ip, port, count);
+        }
     }
 #endif
 

@@ -43,19 +43,42 @@ void HlsMuxer::start()
 	HlsManager::instance()->addMuxer(_parse.path_ + "_" + _parse.vhost_ + "_" + _parse.type_, shared_from_this());
 
 	weak_ptr<HlsMuxer> wSelf = shared_from_this();
-	_tsMuxer = make_shared<TsMuxer>();
-	_tsMuxer->setOnTsPacket([wSelf](const StreamBuffer::Ptr &pkt, int pts, int dts, bool keyframe){
-		auto self = wSelf.lock();
-		if (self) {
-			self->onTsPacket(pkt, pts, dts, keyframe);
+	if (_parse.type_ == "fmp4") {
+		_fmp4Muxer = make_shared<Fmp4Muxer>(MOV_FLAG_SEGMENT);
+		_fmp4Muxer->init();
+		for (auto& track : _mapTrackInfo) {
+			if (track.second->trackType_ == "video") {
+				_fmp4Muxer->addVideoTrack(track.second);
+			} else if (track.second->trackType_ == "audio") {
+				_fmp4Muxer->addAudioTrack(track.second);
+			}
 		}
-	});
+		_fmp4Muxer->fmp4_writer_init_segment();
+        _fmp4Muxer->fmp4_writer_save_segment();
+        _fmp4Header = _fmp4Muxer->getFmp4Header();
+		_fmp4Muxer->setOnFmp4Segment([wSelf](const Buffer::Ptr& pkt, bool keyframe){
+            auto self = wSelf.lock();
+			if (self) {
+				self->onTsPacket(pkt, 0, 0, keyframe);
+			}
+        });
 
-	for (auto& track : _mapTrackInfo) {
-		_tsMuxer->addTrackInfo(track.second);
+		_fmp4Muxer->startEncode();
+	} else {
+		_tsMuxer = make_shared<TsMuxer>();
+		_tsMuxer->setOnTsPacket([wSelf](const StreamBuffer::Ptr &pkt, int pts, int dts, bool keyframe){
+			auto self = wSelf.lock();
+			if (self) {
+				self->onTsPacket(pkt, pts, dts, keyframe);
+			}
+		});
+
+		for (auto& track : _mapTrackInfo) {
+			_tsMuxer->addTrackInfo(track.second);
+		}
+
+		_tsMuxer->startEncode();
 	}
-
-	_tsMuxer->startEncode();
 	_muxer = true;
 
 	static int intervel = Config::instance()->getAndListen([](const json &config){
@@ -102,6 +125,7 @@ void HlsMuxer::onFrame(const FrameBuffer::Ptr& frame)
 {
 	if (!_muxer) {
 		_tsMuxer = nullptr;
+		_fmp4Muxer = nullptr;
 		return ;
 	}
 	if (_tsMuxer) {
@@ -146,10 +170,12 @@ void HlsMuxer::onFrame(const FrameBuffer::Ptr& frame)
 		if (_hasKeyframe) {
 			_tsMuxer->onFrame(frame);
 		}
+	} else if (_fmp4Muxer) {
+		_fmp4Muxer->inputFrame_l(frame->getTrackIndex(), frame->data() + frame->startSize(), frame->size() - frame->startSize(), frame->pts(), frame->dts(), frame->keyFrame(), 0);
 	}
 }
 
-void HlsMuxer::onTsPacket(const StreamBuffer::Ptr &pkt, int pts, int dts, bool keyframe)
+void HlsMuxer::onTsPacket(const Buffer::Ptr &pkt, int pts, int dts, bool keyframe)
 {
 	if (_first) {
 		_tsClick.update();
@@ -192,6 +218,9 @@ void HlsMuxer::onTsPacket(const StreamBuffer::Ptr &pkt, int pts, int dts, bool k
 		_tsClick.update();
 	}
 
+	if (_tsBuffer->size() == 0 && _fmp4Header) {
+		_tsBuffer->_buffer.append(_fmp4Header->data(), _fmp4Header->size());
+	}
 	_tsBuffer->_buffer.append(pkt->data(), pkt->size());
 	_lastPts = pts;
 }
@@ -211,13 +240,21 @@ void HlsMuxer::updateM3u8()
 		tsNum = 5;
 	}
 
-	string key = to_string(time(NULL)) + ".ts";
+	string suff = _parse.type_ == "fmp4" ? ".m4s" : ".ts";
+
+	string key = to_string(time(NULL)) + suff;
 	string mkey = _parse.path_ + "_hls-" + key;
 	stringstream ss;
 	int maxDuration = 0;
 	{
 		lock_guard<mutex> lck(_tsMtx);
 		_mapTs.emplace(mkey, _tsBuffer);
+
+		string name = "." + mkey;
+		auto fp = fopen(name.data(), "wb");
+		fwrite(_tsBuffer->data(), _tsBuffer->size(), 1, fp);
+		fclose(fp);
+		
 		logDebug << "add ts: " << mkey;
 		while (_mapTs.size() > tsNum) {
 			logDebug << "erase ts : " << _mapTs.begin()->first;
@@ -232,7 +269,13 @@ void HlsMuxer::updateM3u8()
 			}
 			auto pos = ts.first.find_last_of("/");
 			ss << "#EXTINF:" << ts.second->dts() / 1000.0 << "\n"
-			   << ts.first.substr(pos + 1) + "\n";
+			   << ts.first.substr(pos + 1) << "?uid=" << _parse.vecParam_["uid"];
+
+			if (_parse.type_ == "fmp4") {
+				ss << "&type=fmp4";
+			}
+
+			ss << "\n";
 		}
 
 	}
@@ -246,7 +289,7 @@ void HlsMuxer::updateM3u8()
 	_tsBuffer = make_shared<FrameBuffer>();
 	
 	ssHeader << "#EXTM3U\n"
-	   << "#EXT-X-VERSION:3\n"
+	   << "#EXT-X-VERSION:7\n"
        << "#EXT-X-ALLOW-CACHE:NO\n"
 	   << "#EXT-X-TARGETDURATION:" << 2 /*maxDuration / 1000.0*/ << "\n"
 	   << "#EXT-X-MEDIA-SEQUENCE:" << _firstTsSeq << "\n";
@@ -288,6 +331,9 @@ string HlsMuxer::getM3u8(void* key)
 		// lock_guard<mutex> lck(_tsMtx);
 		auto pos = _parse.path_.find_last_of("/");
 		ss << _parse.path_.substr(pos + 1) << ".m3u8?uid=" << uid;
+		if (_parse.type_ == "fmp4") {
+			ss << "&type=fmp4";
+		}
 	}
 
 	return ss.str();

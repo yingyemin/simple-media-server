@@ -96,6 +96,7 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
             //     del = false;
             // }
 
+            _mapTrackInfo[frame->_index]->onFrame(frame);
             if (frame->startFrame()) {
                 ++_frameCount;
                 keyframe = true;

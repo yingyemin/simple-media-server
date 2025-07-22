@@ -85,7 +85,6 @@ private:
     TransportType _rtpType = Transport_TCP;
     RtspState _state = RTSP_SEND_OPTION;
     MediaClientType _type;
-    string _url;
     string _sessionId;
     UrlParser _localUrlParser;
     UrlParser _peerUrlParser;

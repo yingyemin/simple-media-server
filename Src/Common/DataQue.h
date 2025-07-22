@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2016 The ZLToolKit project authors. All Rights Reserved.
  *
  * This file is part of ZLToolKit(https://github.com/ZLMediaKit/ZLToolKit).
@@ -616,6 +616,9 @@ int DataQue<T>::getOnWriteSize()
 template <typename T>
 void DataQue<T>::delOnWrite(void* key)
 {
+    if (_on_write_map.find(key) == _on_write_map.end()) {
+        return;
+    }
     _on_write_map.erase(key);
     onSizeChanged(nullptr, 1, false);
 } 

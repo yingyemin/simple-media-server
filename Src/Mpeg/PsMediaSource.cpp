@@ -239,7 +239,7 @@ void PsMediaSource::addSink(const MediaSource::Ptr &src)
         src->onReady();
     }
     if (_mapSink.size() == 1 && _status == SourceStatus::AVAILABLE) {
-        lock_guard<mutex> lck(_mtxTrack);
+        // lock_guard<mutex> lck(_mtxTrack);
         startDecode();
         // _ring->addOnWrite(this, [this](RingDataType in, bool is_key){
         //     auto rtpList = *(in.get());

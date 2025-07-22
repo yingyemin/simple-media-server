@@ -15,11 +15,13 @@ option(ENABLE_PROJECT_TRANSCODEAUDIO "Enable test transcodeAudio" false)
 
 #模块设置
 option(ENABLE_SRT "Enable srt" true)
+option(ENABLE_SRTCUSTOM "Enable srt custom" true)
 option(ENABLE_HTTP "Enable http and httpstream" true)
 option(ENABLE_RTSP "Enable rtsp and rtp and mpeg and rtcp" true)
 option(ENABLE_GB28181 "Enable gb28181 and rtp and mpeg and rtcp" true)
 option(ENABLE_RTMP "Enable rtmp" true)
 option(ENABLE_JT1078 "Enable jt1078" true)
+option(ENABLE_JT808 "Enable jt808" true)
 option(ENABLE_HLS "Enable hls and http" true)
 option(ENABLE_API "Enable api and http" true)
 option(ENABLE_HOOK "Enable hook" true)
@@ -134,6 +136,11 @@ if (ENABLE_JT1078)
     add_definitions(-DENABLE_JT1078)
 endif ()
 
+###JT808########
+if (ENABLE_JT808)
+    add_definitions(-DENABLE_JT808)
+endif ()
+
 ###Flv########
 if (ENABLE_FLV)
     add_definitions(-DENABLE_FLV)
@@ -163,6 +170,11 @@ endif ()
 ###HTTP and HttpStream########
 if (ENABLE_HTTP)
     add_definitions(-DENABLE_HTTP)
+endif ()
+
+###SRT Custom########
+if (ENABLE_SRTCUSTOM)
+    add_definitions(-DENABLE_SRTCUSTOM)
 endif ()
 
 if (ENABLE_ASAN)
@@ -261,6 +273,3 @@ if (ENABLE_PROJECT_GB2818SIP)
     add_executable(SimpleSipServer gb28181Sip.cpp)
     target_link_libraries(SimpleSipServer gb28181Sip src base ssl crypto dl pthread)
 endif ()
-
-# 将配置文件拷贝到目标目录
-file(COPY ${PROJECT_SOURCE_DIR}/conf/server.json DESTINATION ${CMAKE_BINARY_DIR})

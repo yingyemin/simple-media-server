@@ -46,6 +46,49 @@ void RtmpServer::stopByPort(int port, int count)
     _tcpServers.erase(port);
 }
 
+void RtmpServer::stopListenByPort(int port, int count)
+{
+    lock_guard<mutex> lck(_mtx);
+    auto iter = _tcpServers.find(port);
+    if (iter == _tcpServers.end()) {
+        return ;
+    }
+    for (auto& server : iter->second) {
+        server->stop();
+    }
+    _delServers[port] = iter->second;
+    _tcpServers.erase(port);
+
+    auto loop = EventLoop::getCurrentLoop();
+    weak_ptr<RtmpServer> wSelf = shared_from_this();
+    loop->addTimerTask(2000, [wSelf, port](){
+        auto self = wSelf.lock();
+        if (!self) {
+            return 0;
+        }
+        
+        lock_guard<mutex> lck(self->_mtx);
+        if (self->_delServers.find(port) == self->_delServers.end()) {
+            return 0;
+        }
+
+        for (auto it = self->_delServers[port].begin(); it != self->_delServers[port].end();) {
+            if ((*it)->getCurConnNum() == 0) {
+                it =self->_delServers[port].erase(it);
+            } else {
+                ++it;
+            }
+        }
+
+        if (self->_delServers[port].empty()) {
+            self->_delServers.erase(port);
+            return 0;
+        }
+        
+        return 2000;
+    }, nullptr);
+}
+
 void RtmpServer::for_each_server(const function<void(const TcpServer::Ptr &)> &cb)
 {
     if (!cb) {

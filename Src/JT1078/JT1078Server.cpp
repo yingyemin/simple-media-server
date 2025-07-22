@@ -130,7 +130,7 @@ void JT1078Server::start(const string& ip, int port, int count, bool isTalk)
                 }
 
                 if (server->getLastAcceptTime() == 0) {
-                    self->stopByPort(server->getPort(), count);
+                    self->delServer(server);
                     // self->_portManager.put(server->getPort());
                 }
 
@@ -157,6 +157,26 @@ void JT1078Server::stopByPort(int port, int count)
     }
     
     _serverInfo.erase(port);
+}
+
+void JT1078Server::delServer(const TcpServer::Ptr& server)
+{
+    lock_guard<mutex> lck(_mtx);
+    auto iter = _tcpServers.find(server->getPort());
+    if (iter == _tcpServers.end()) {
+        return;
+    }
+    
+    for (auto serverIt = iter->second.begin(); serverIt != iter->second.end(); ++serverIt) {
+        if (*serverIt == server) {
+            iter->second.erase(serverIt);
+            break;
+        }
+    }
+
+    if (iter->second.empty()) {
+        _tcpServers.erase(iter);
+    }
 }
 
 void JT1078Server::for_each_server(const function<void(const TcpServer::Ptr &)> &cb)

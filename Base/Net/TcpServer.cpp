@@ -55,6 +55,19 @@ void TcpServer::start(NetType type)
     }, nullptr);
 }
 
+void TcpServer::stop()
+{
+    weak_ptr<TcpServer> wServer = shared_from_this();
+    _loop->async([wServer](){
+        auto server = wServer.lock();
+        if (server && server->_socket) {
+            server->_loop->delEvent(server->_socket->getFd(), nullptr);
+            server->_socket->close();
+            server->_socket = nullptr;
+        }
+    }, true);
+}
+
 void TcpServer::accept(int event, void* args)
 {
     int connFd = -1;

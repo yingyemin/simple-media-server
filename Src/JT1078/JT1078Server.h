@@ -39,6 +39,7 @@ public:
     // 比如想动态换一个监听端口，或者动态加一个监听端口
     void start(const string& ip, int port, int count, bool isTalk = false);
     void stopByPort(int port, int count);
+    void delServer(const TcpServer::Ptr& server);
 
     // 后面考虑增加IP参数
     // void stopByIp(int port, int count);

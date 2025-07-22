@@ -19,7 +19,14 @@ class MediaClient
 {
 public:
     using Ptr = shared_ptr<MediaClient>;
-    virtual bool start(const string& localIp, int localPort, const string& url, int timeout) {return false;}
+    virtual bool start(const string& localIp, int localPort, const string& url, int timeout)
+    {
+        _localIp = localIp;
+        _localPort = localPort;
+        _timeout = timeout;
+        _url = url;
+        return false;
+    }
     virtual void stop() {}
     virtual void pause() {}
     virtual void setOnClose(const function<void()>& cb) {}
@@ -27,6 +34,7 @@ public:
     virtual void setTransType(int type) {}
 
     virtual void getProtocolAndType(string& protocol, MediaClientType& type) {}
+    virtual void setRetryCount(int count) {_retryCount = count;}
 
 public:
     static void addMediaClient(const string& key, const MediaClient::Ptr& client);
@@ -37,6 +45,13 @@ public:
     static void for_each_mediaClieant(const function<void(const MediaClient::Ptr& client)>& func);
 
     static void registerCreateClient(const string& protocol, const function<MediaClient::Ptr(MediaClientType type, const string& appName, const string& streamName)>& cb);
+
+protected:
+    int _retryCount = 0;
+    int _localPort;
+    int _timeout = 0;
+    string _localIp;
+    string _url;
 
 private:
     static mutex _mapMtx;

@@ -26,6 +26,8 @@ HlsMediaSource::~HlsMediaSource()
 void HlsMediaSource::onReady()
 {
     // MediaSource::onReady();
+    
+    _hlsMuxer->start();
 }
 
 int HlsMediaSource::playerCount()
@@ -71,8 +73,6 @@ void HlsMediaSource::addTrack(const shared_ptr<TrackInfo>& track)
         }
         self->delConnection(key);
     });
-
-    _hlsMuxer->start();
 }
 
 

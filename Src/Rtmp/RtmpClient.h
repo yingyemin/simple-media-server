@@ -9,6 +9,7 @@
 #include "RtmpChunk.h"
 #include "RtmpHandshake.h"
 #include "Common/MediaClient.h"
+#include "Util/TimeClock.h"
 
 #include <string>
 #include <unordered_map>
@@ -40,6 +41,11 @@ public:
 public:
     static void init();
 
+    string getPath() {return _localUrlParser.path_;}
+    string getSourceUrl() {return _url;}
+    // void getProtocolAndType(string& protocol, MediaClientType& type);
+    void onManager();
+
 public:
     // override MediaClient
     bool start(const string& localIp, int localPort, const string& url, int timeout) override;
@@ -49,8 +55,8 @@ public:
     void addOnReady(void* key, const function<void()>& onReady) override;
     void getProtocolAndType(string& protocol, MediaClientType& type) override;
 
-    string getPath() {return _localUrlParser.path_;}
-    string getSourceUrl() {return _url;}
+    // string getPath() {return _localUrlParser.path_;}
+    // string getSourceUrl() {return _url;}
 
     // static void addRtmpClient(const string& key, const RtmpClient::Ptr& client);
     // static void delRtmpClient(const string& key);
@@ -58,10 +64,10 @@ public:
 
 protected:
     // override TcpClient
-    void onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len);
-    void onError(const string& err);
-    void close();
-    void onConnect();
+    void onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len) override;
+    void onError(const string& err) override;
+    void close() override;
+    void onConnect() override;
 
 protected:
     void sendC0C1();
@@ -106,7 +112,6 @@ private:
     string _localAppName;
     string _localStreamName;
 
-    string _url;
     string _tcUrl;
     string _peerAppName;
     string _peerStreamName;
@@ -117,6 +122,9 @@ private:
 
     UrlParser _localUrlParser;
     UrlParser _peerUrlParser;
+
+    TimeClock _readClock;
+    TimeClock _rtmpClock;
 
     RtmpDecodeTrack::Ptr _rtmpVideoDecodeTrack;
     RtmpDecodeTrack::Ptr _rtmpAudioDecodeTrack;

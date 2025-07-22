@@ -34,6 +34,15 @@ public:
                         const function<void(HttpResponse& rsp)>& rspFunc);
     static void listRtmpPublishInfo(const HttpParser& parser, const UrlParser& urlParser, 
                         const function<void(HttpResponse& rsp)>& rspFunc);
+
+    static void createRtmpServer(const HttpParser& parser, const UrlParser& urlParser,
+                        const function<void(HttpResponse& rsp)>& rspFunc);
+    static void stopRtmpServer(const HttpParser& parser, const UrlParser& urlParser,
+                        const function<void(HttpResponse& rsp)>& rspFunc);
+    static void listRtmpServers(const HttpParser& parser, const UrlParser& urlParser,
+                        const function<void(HttpResponse& rsp)>& rspFunc);
+    static void stopListenRtmpServer(const HttpParser& parser, const UrlParser& urlParser,
+                        const function<void(HttpResponse& rsp)>& rspFunc);
 };
 
 #endif

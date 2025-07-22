@@ -20,6 +20,7 @@ public:
 
 public:
     static uint64_t now();
+    static uint64_t nowMicro();
     static struct tm localtime(time_t t, time_t tz = 0, int dst = 0);
     static string getFmtTime(const char *fmt, time_t time = 0);
 

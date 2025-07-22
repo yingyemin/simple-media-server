@@ -54,9 +54,16 @@ void Ehome2Parser::parse(const char *data, size_t len)
         uint16_t payloadSize = (((uint8_t *)data)[_offset - 2] << 8) | ((uint8_t *)data)[_offset - 1];
         // logInfo << "payloadSize: " << payloadSize << ", len: " << len << ", used : " << (data - start);
         if (len >= payloadSize + _offset) {
-            memmove((char *) data + 1, data, 16);
-            data += 1;
-            payloadSize -= 1;
+            int moveOffset = 1;
+            // 0x0d atomic packet
+            uint8_t flag = data[17];
+            if (data[16] == 0x1c && 
+                (flag == 0x80/*first packet*/ || flag == 0x00/*middle*/ || flag == 0x40/*last*/)) {
+                moveOffset = 2;
+            }
+            memmove((char *) data + moveOffset, data, 16);
+            data += moveOffset;
+            payloadSize -= moveOffset;
             onRtpPacket(data, payloadSize + _offset);
             // static int i = 0;
             // string name = "test" + to_string(i++);

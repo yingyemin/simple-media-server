@@ -187,6 +187,22 @@ else()
     message(STATUS "not add jt1078 moudle")
 endif ()
 
+###JT808########
+if (ENABLE_JT808)
+    message(STATUS "add jt808 moudle")
+    project(jt808)
+    add_definitions(-DENABLE_JT808)
+    aux_source_directory("JT808" SRC_JT808)
+    aux_source_directory("JT808/JT1078Body" SRC_JT808)
+    aux_source_directory("JT808/JT808Body" SRC_JT808)
+    add_library(jt808 STATIC 
+        ${SRC_JT808}
+    )
+    list(INSERT LINK_LIB_LIST 0 jt808)
+else()
+    message(STATUS "not add jt808 moudle")
+endif ()
+
 ###Flv########
 if (ENABLE_FLV)
     message(STATUS "add flv moudle")
@@ -213,6 +229,20 @@ if (ENABLE_SRT)
     list(INSERT LINK_LIB_LIST 0 srtapp)
 else()
     message(STATUS "not add srt moudle")
+endif ()
+
+###SRT Custom########
+if (ENABLE_SRTCUSTOM)
+    message(STATUS "add srt custom moudle")
+    project(srtcustom)
+    add_definitions(-DENABLE_SRTCUSTOM)
+    aux_source_directory("SrtCustom" SRC_SrtCustom)
+    add_library(srtcustom STATIC 
+        ${SRC_SrtCustom}
+    )
+    list(INSERT LINK_LIB_LIST 0 srtcustom)
+else()
+    message(STATUS "not add srt custom moudle")
 endif ()
 
 

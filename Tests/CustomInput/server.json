@@ -1,0 +1,253 @@
+{
+    "LocalIp" : "172.24.6.9",
+    "Ssl" : {
+        "key" : "./sms.com.key",
+        "cert" : "./sms.com.crt"
+    },
+    "Log" : { 
+        "logLevel" : 0,
+        "console" : 1,
+        "maxDay" : 7,
+        "maxSize" : 1024,
+        "maxCount" : 100
+    },
+    "EventLoopPool" : {
+        "size" : 0
+    },
+    "Util" : {
+        #无人观看是否停流
+        "stopNonePlayerStream" : false,
+        #无人观看后，多长时间关流
+        "nonePlayerWaitTime" : 5000,
+        #找不到流时，是否找本地文件进行点播
+        "enableLoadFromFile" : false,
+        # 心跳时间，单位ms
+        "heartbeatTime" : 10000,
+        # 流的心跳时间，上报流量等信息，单位ms
+        "streamHeartbeatTime": 10000,
+        # 第一个track ready后，等待多久进行第一次检查，单位ms
+        "firstTrackWaitTime" : 500,
+        # 第一次检查后，发现有其他的track，但是该track还没有ready，等待多久进行第二次检查，单位ms
+        "sencondTrackWaitTime" : 5000
+    },
+    "Hook" : {
+        "Type" : "http",
+        "EnableHook" : false,
+        "Http" : {
+            "timeout" : 10,
+            "onStreamStatus" : "http://127.0.0.1/api/v1/onStreamStatus",
+            "onStreamHeartbeat" : "http://127.0.0.1/api/v1/onStreamHeartbeat",
+            "onRecordInfo" : "http://127.0.0.1/api/v1/down/stream/onRecordInfo",
+            "onNonePlayer" : "http://127.0.0.1/api/v1/onNonePlayer",
+            "onKeepAlive" : "http://127.0.0.1/api/v1/onKeepAlive",
+            "onRegisterServer" : "http://127.0.0.1/api/v1/onRegisterServer",
+            "onPublish" : "http://127.0.0.1/api/v1/onPublish",
+            "onPlay" : "http://127.0.0.1/api/v1/onPlay"
+        },
+        "Kafka" : {
+            "endpoint" : "127.0.0.1:9092",
+            "broker" : "streamStatus"
+        }
+    },
+    "Record" : {
+        "rootPath" : "./"
+    },
+    "Cdn" : {
+        "mode" : "forward1",
+        "endpoint" : "122.51.204.244:1935",
+        "protocol" : "rtmp",
+        # 格式：key1=value1&key2=value2
+        "params" : ""
+    },
+    "Rtp" : {
+        "maxRtpSize" : 1400,
+        # rtsp tcp模式下使用巨帧会提升性能
+        "hugeRtpSize" : 60000,
+        "Server" : {
+            # 单位 ms
+            "timeout" : 5000,
+            "Server1" : {
+                "ip" : "0.0.0.0",
+                "port" : 11000,
+                "threads" : 1,
+                "sockType" : 3,
+                "udpPortMax" : 15000,
+                "udpPortMin" : 11000
+            }
+        }
+    },
+    "Rtsp" : {
+        "Server" : {
+            "Server1" : {
+                "ip" : "::",
+                "port" : 554,
+                "sslPort" : 1554,
+                "timeout" : 5000,
+                "threads" : 1,
+                "udpPortMin" : 10000,
+                "udpPortMax" : 20000,
+                "rtspAuth" : false
+            }
+        }
+    },
+    "Http" : {
+        "Api" : {
+            "Api1" : {
+                "ip" : "0.0.0.0",
+                "port" : 80,
+                "sslPort" : 443,
+                "timeout" : 5000,
+                "threads" : 1
+            }
+        },
+        "Server" : {
+            "Server1" : {
+                "rootPath" : "./",
+                "ip" : "0.0.0.0",
+                "port" : 8080,
+                "sslPort" : 18080,
+                "timeout" : 5000,
+                "threads" : 1,
+                "enableViewDir" : true
+            }
+        }
+    },
+    "Websocket" : {
+        "Server" : {
+            "Server1" : {
+                "ip" : "0.0.0.0",
+                "port" : 1080,
+                "sslPort" : 1443,
+                "timeout" : 5000,
+                "threads" : 1
+            }
+        }
+    },
+    "GB28181" : {
+        "Server" : {
+            "timeout" : 5000,
+            "Server1" : {
+                "ip" : "0.0.0.0",
+                "port" : 6000,
+                "threads" : 1,
+                "sockType" : 3,
+                "udpPortMax" : 10000,
+                "udpPortMin" : 6000
+            }
+        }
+    },
+    "Ehome2" : {
+        "Server" : {
+            "timeout" : 5000,
+            "Server1" : {
+                "ip" : "0.0.0.0",
+                "port" : 16000,
+                "threads" : 1,
+                "sockType" : 3,
+                "udpPortMax" : 20000,
+                "udpPortMin" : 16000
+            }
+        }
+    },
+    "Ehome5" : {
+        "Server" : {
+            "timeout" : 5000,
+            "Server1" : {
+                "ip" : "0.0.0.0",
+                "port" : 26000,
+                "threads" : 1,
+                "sockType" : 3,
+                "udpPortMax" : 30000,
+                "udpPortMin" : 26000
+            }
+        }
+    },
+    "JT1078" : {
+        "Server" : {
+            "timeout" : 5000,
+            "portMax" : 20000,
+            "portMin" : 16000,
+            "Server1" : {
+                "ip" : "0.0.0.0",
+                "port" : 17000,
+                "threads" : 1,
+                "sockType" : 3
+            },
+            "Talk" : {
+                "ip" : "0.0.0.0",
+                "port" : 17100,
+                "threads" : 1,
+                "isTalk" : 1
+            }
+        }
+    },
+    "Rtmp" : {
+        "Server" : {
+            "Server1" : {
+                "ip" : "0.0.0.0",
+                "port" : 1935,
+                "sslPort" : 11935,
+                "timeout" : 5000,
+                "threads" : 1,
+                "enableAddMute" : false
+            }
+        }
+    },
+    "Webrtc" : {
+        "Server" : {
+            "timeout" : 5000,
+            "Server1" : {
+                "timeout" : 5000,
+                "ip" : "0.0.0.0",
+                "candidateIp" : "192.168.0.104",
+                "port" : 7000,
+                "threads" : 1,
+                "sockType" : 3,
+                "enableTcp" : false,
+                "enableNack" : true,
+                "enableTwcc" : false,
+                "enableRtx" : true,
+                "enableRed" : false,
+                "enableUlpfec" : false,
+                "udpPortMax" : 10000,
+                "udpPortMin" : 6000,
+                "lossIntervel" : 0,
+                "debugIp" : "127.0.0.1",
+                "debugPort" : 7100,
+                "debugRtp" : 0
+            }
+        }
+    },
+    "Srt" : {
+        "Server" : {
+            "timeout" : 5000,
+            "Server1" : {
+                "ip" : "0.0.0.0",
+                "port" : 6666,
+                "threads" : 2,
+                "udpPortMax" : 10000,
+                "udpPortMin" : 6000
+            }
+        }
+    },
+    "SrtCustom" : {
+        "Server" : {
+            "timeout" : 5000,
+            "Server1" : {
+                "ip" : "0.0.0.0",
+                "port" : 6688,
+                "threads" : 2,
+                "udpPortMax" : 10000,
+                "udpPortMin" : 6000
+            }
+        }
+    },
+    "Hls" : {
+        "Server" : {
+            "duration" : 5000,
+            "segNum" : 5,
+            "playTimeout" : 60,
+            "force" : false
+        }
+    }
+}

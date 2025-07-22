@@ -230,7 +230,7 @@ void H264Track::onFrame(const FrameBuffer::Ptr& frame)
 {
 	if (_sps && _pps) {
 		_hasReady = true;
-		return ;
+		// return ;
 	}
 
 	if (!frame || frame->size() < 5) {

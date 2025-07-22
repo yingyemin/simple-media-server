@@ -69,7 +69,7 @@ bool RtspClient::start(const string& localIp, int localPort, const string& url, 
         return false;
     }
 
-    _url = url;
+    MediaClient::start(localIp, localPort, url, timeout);
 
     weak_ptr<RtspClient> wSelf = static_pointer_cast<RtspClient>(shared_from_this());
     _parser.setOnRtspPacket([wSelf](){
@@ -161,6 +161,12 @@ void RtspClient::onError(const string& err)
 
 void RtspClient::close()
 {
+    if (_retryCount > 0) {
+        _retryCount--;
+        start(MediaClient::_localIp, MediaClient::_localPort, _url, _timeout);
+        return ;
+    }
+    
     if (_onClose) {
         _onClose();
     }
@@ -334,7 +340,7 @@ void RtspClient::sendDescribeWithAuthInfo()
     ss << "DESCRIBE " << _url << " RTSP/1.0" << CRLF
        << "CSeq: " << ++_seq << CRLF
        << "Authorization: Digest username=\"" << username << "\"" << ", realm=\"" << realm << "\", nonce=\""
-            << nonce << "\", uri=\"" << _url << "\", response=\"" << encRes << CRLF
+            << nonce << "\", uri=\"" << _url << "\", response=\"" << encRes << "\"" << CRLF
        << "User-Agent: " << "SMS v0.1" << CRLF
        << "Accept: application/sdp" << CRLF
        << CRLF;
@@ -500,8 +506,15 @@ void RtspClient::sendSetup(const RtspMediaSource::Ptr& rtspSrc)
     auto media = _sdpParser._vecSdpMedia[_setupIndex];
     int trackIndex = rtspSrc->getIndexByControl(media->control_);
 
+    string url;
+    if (startWith(media->control_, "rtsp://")) {
+        url = media->control_;
+    } else {
+        url = _url + "/" + media->control_;
+    }
+
     stringstream ss;
-    ss << "SETUP " << _url << "/" << media->control_ << " RTSP/1.0" << CRLF
+    ss << "SETUP " << url << " RTSP/1.0" << CRLF
        << "CSeq: " << ++_seq << CRLF
        << "User-Agent: " << "SMS v0.1" << CRLF;
     

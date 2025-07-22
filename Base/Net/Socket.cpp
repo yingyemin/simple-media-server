@@ -954,6 +954,32 @@ sockaddr_in6* Socket::getPeerAddr6()
     return &_peerAddr6;
 }
 
+
+// 辅助函数，从 sockaddr_storage 中获取 IP 地址和端口号
+std::pair<std::string, uint16_t> Socket::getIpAndPort(const struct sockaddr_storage *addr)
+{
+    std::string ip;
+    uint16_t port = 0;
+
+    if (addr->ss_family == AF_INET) {
+        // IPv4 处理
+        struct sockaddr_in *ipv4 = reinterpret_cast<struct sockaddr_in*>(const_cast<struct sockaddr_storage*>(addr));
+        char ipStr[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &(ipv4->sin_addr), ipStr, INET_ADDRSTRLEN);
+        ip = ipStr;
+        port = ntohs(ipv4->sin_port);
+    } else if (addr->ss_family == AF_INET6) {
+        // IPv6 处理
+        struct sockaddr_in6 *ipv6 = reinterpret_cast<struct sockaddr_in6*>(const_cast<struct sockaddr_storage*>(addr));
+        char ipStr[INET6_ADDRSTRLEN];
+        inet_ntop(AF_INET6, &(ipv6->sin6_addr), ipStr, INET6_ADDRSTRLEN);
+        ip = ipStr;
+        port = ntohs(ipv6->sin6_port);
+    }
+
+    return {ip, port};
+}
+
 int Socket::getSocketType()
 {
     int protocol;

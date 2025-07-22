@@ -200,7 +200,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
             logTrace << "get a ps ba";
             if (incomplete_len < sizeof(PsPacketHeader)) {
                 _remainBuffer.assign(next_ps_pack, incomplete_len);
-                logInfo << "_remainBuffer size: " << _remainBuffer.size();
+                logDebug << "_remainBuffer size: " << _remainBuffer.size();
                 return -1;
             }
             PsPacketHeader *head = (PsPacketHeader *)next_ps_pack;
@@ -211,7 +211,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
             // logInfo << "need_len: " << (sizeof(PsPacketHeader) + stuffingLength);
             if (incomplete_len < sizeof(PsPacketHeader) + stuffingLength) {
                 _remainBuffer.assign(next_ps_pack, incomplete_len);
-                logInfo << "_remainBuffer size: " << _remainBuffer.size();
+                logDebug << "_remainBuffer size: " << _remainBuffer.size();
                 return -1;
             }
             _newPs = true;
@@ -230,7 +230,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
             //ps system header 
             if (incomplete_len < sizeof(PsPacketBBHeader)) {
                 _remainBuffer.assign(next_ps_pack, incomplete_len);
-                logInfo << "_remainBuffer size: " << _remainBuffer.size();
+                logDebug << "_remainBuffer size: " << _remainBuffer.size();
                 return -1;
             }
             PsPacketBBHeader *bbhead=(PsPacketBBHeader *)(next_ps_pack);
@@ -238,7 +238,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
 
             if (incomplete_len < sizeof(PsPacketBBHeader) + bbheaderlen) {
                 _remainBuffer.assign(next_ps_pack, incomplete_len);
-                logInfo << "_remainBuffer size: " << _remainBuffer.size();
+                logDebug << "_remainBuffer size: " << _remainBuffer.size();
                 return -1;
             }
             next_ps_pack = next_ps_pack + sizeof(PsPacketBBHeader) + bbheaderlen;
@@ -258,7 +258,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
             
             if (incomplete_len < sizeof(PsMapPacket)) {
                 _remainBuffer.assign(next_ps_pack, incomplete_len);
-                logInfo << "_remainBuffer size: " << _remainBuffer.size();
+                logDebug << "_remainBuffer size: " << _remainBuffer.size();
                 return -1;
             }
 
@@ -267,7 +267,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
 
             if (incomplete_len < sizeof(PsPacketBBHeader) + psmLength) {
                 _remainBuffer.assign(next_ps_pack, incomplete_len);
-                logInfo << "_remainBuffer size: " << _remainBuffer.size();
+                logDebug << "_remainBuffer size: " << _remainBuffer.size();
                 return -1;
             }
           
@@ -447,7 +447,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
             //pse video stream
             if (incomplete_len < sizeof(PsePacket)) {
                 _remainBuffer.assign(next_ps_pack, incomplete_len);
-                logInfo << "_remainBuffer size: " << _remainBuffer.size();
+                logDebug << "_remainBuffer size: " << _remainBuffer.size();
                 return -1;
             }
             logTrace << "get a ps video frame";
@@ -466,7 +466,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
             // logInfo << "need_len: " << (sizeof(PsePacket) + pse_pack->stuffingLength + payloadlen);
             if (incomplete_len < sizeof(PsePacket) + pse_pack->stuffingLength + payloadlen) {
                 _remainBuffer.assign(next_ps_pack, incomplete_len);
-                logInfo << "_remainBuffer size: " << _remainBuffer.size();
+                logDebug << "_remainBuffer size: " << _remainBuffer.size();
                 return -1;
             }
 
@@ -538,7 +538,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
             //private stream 
             if (incomplete_len < sizeof(PsePacket)) {
                 _remainBuffer.assign(next_ps_pack, incomplete_len);
-                logInfo << "_remainBuffer size: " << _remainBuffer.size();
+                logDebug << "_remainBuffer size: " << _remainBuffer.size();
                 return -1;
             }
 
@@ -551,7 +551,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
             // logInfo << "need_len: " << (sizeof(PsePacket) + pse_pack->stuffingLength + payload_len);
             if (incomplete_len < sizeof(PsePacket) + pse_pack->stuffingLength + payload_len) {
                 _remainBuffer.assign(next_ps_pack, incomplete_len);
-                logInfo << "_remainBuffer size: " << _remainBuffer.size();
+                logDebug << "_remainBuffer size: " << _remainBuffer.size();
                 return -1;
             }
             
@@ -569,7 +569,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
             //audio stream
             if (incomplete_len < sizeof(PsePacket)) {
                 _remainBuffer.assign(next_ps_pack, incomplete_len);
-                logInfo << "_remainBuffer size: " << _remainBuffer.size();
+                logDebug << "_remainBuffer size: " << _remainBuffer.size();
                 return -1;
             }
             logTrace << "get a ps audio frame";
@@ -592,7 +592,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
             // logInfo << "need_len: " << (sizeof(PsePacket) + pse_pack->stuffingLength + payload_len);
             if (incomplete_len < sizeof(PsePacket) + pse_pack->stuffingLength + payload_len) {
                 _remainBuffer.assign(next_ps_pack, incomplete_len);
-                logInfo << "_remainBuffer size: " << _remainBuffer.size();
+                logDebug << "_remainBuffer size: " << _remainBuffer.size();
                 return -1;
             }
 
@@ -606,7 +606,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
                 // srs_info("gb28181: ps stream video ts=%u pkt_ts=%u", audio_pts, timestamp);
                 if (pts_dts_flags == 3) {
                     auto dts = parsePsTimestamp((unsigned char*)next_ps_pack + 14);
-                    logInfo << "get a audio dts: " << dts << endl;
+                    logDebug << "get a audio dts: " << dts << endl;
                 }
          	}
 
