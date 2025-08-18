@@ -439,7 +439,7 @@ void MediaSource::loadFromFile(const string& uri, const string& vhost, const str
 {
     UrlParser parser;
     parser.protocol_ = PROTOCOL_FRAME;
-    parser.type_ = type;
+    parser.type_ = "file";
     parser.path_ = uri;// + "-" + randomStr(5) + "-" + to_string(TimeClock::now());
     parser.vhost_ = vhost;
 
@@ -760,7 +760,14 @@ void MediaSource::onFrame(const FrameBuffer::Ptr& frame)
         return ;
     }
 
-    logTrace << "frame type:" << (int_fast16_t)frame->getNalType() << " track type:" << frame->getTrackType();
+    if (!_hasReady) {
+        _frameList.push_back(frame);
+        if (_frameList.size() > 100) {
+            _frameList.clear();
+        }
+    }
+
+    logTrace << "frame type:" << (int)frame->getNalType() << " track type:" << frame->getTrackType();
 
     weak_ptr<MediaSource> wSelf = shared_from_this();
     if (frame->_trackType == VideoTrackType) {
@@ -1048,6 +1055,13 @@ void MediaSource::onReady()
                 return 5000;
             }, nullptr);
         }
+    }
+
+    if (_frameList.size() > 0) {
+        for (auto frame : _frameList) {
+            onFrame(frame);
+        }
+        _frameList.clear();
     }
 }
 

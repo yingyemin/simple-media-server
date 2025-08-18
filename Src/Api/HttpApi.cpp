@@ -6,7 +6,7 @@
 #include "Util/Thread.h"
 #include "EventPoller/EventLoopPool.h"
 #include "Common/Define.h"
-#include "Common/ApiUtil.h"
+#include "Http/ApiUtil.h"
 #include "Util/TimeClock.h"
 
 using namespace std;
@@ -94,6 +94,7 @@ void HttpApi::getSourceList(const HttpParser& parser, const UrlParser& urlParser
         
         item["playerCount"] = source->playerCount();
         item["bytes"] = source->getBytes();
+        item["bitrate"] = source->getBitrate();
         item["createTime"] = source->getCreateTime();
         item["status"] = source->isReady() ? "ready" : "unready";
         item["onlineDuration"] = TimeClock::now() - source->getCreateTime();
@@ -293,9 +294,16 @@ void HttpApi::getClientList(const HttpParser& parser, const UrlParser& urlParser
     json value;
 
     json body = parser._body;
-    checkArgs(body, {"path", "protocol"});
+    checkArgs(body, {"path"});
 
-    auto source = MediaSource::get(body["path"], body.value("vhost", DEFAULT_VHOST), body["protocol"], DEFAULT_TYPE);
+    string protocol = body.value("protocol", "");
+    MediaSource::Ptr source;
+    if (protocol.empty()) {
+        source = MediaSource::get(body["path"], body.value("vhost", DEFAULT_VHOST));
+    } else {
+        source = MediaSource::get(body["path"], body.value("vhost", DEFAULT_VHOST), protocol, DEFAULT_TYPE);
+    }
+
     if (source) {
         value["path"] = source->getPath();
         value["type"] = source->getType();
@@ -308,18 +316,62 @@ void HttpApi::getClientList(const HttpParser& parser, const UrlParser& urlParser
         value["code"] = "200";
         value["msg"] = "success";
 
-        source->getClientList([value, rsp, rspFunc](const list<ClientInfo> &list){
+        auto rspPtr = make_shared<asyncResponseFunc>();
+        auto mtx = make_shared<mutex>();
+        rspPtr->setResponse(value);
+        rspPtr->setCallback([rspFunc](int status, const nlohmann::json& response){
+            HttpResponse rsp;
+            rsp._status = status;
+            rsp.setContent(response.dump());
+            rspFunc(rsp);
+        });
+
+        source->getClientList([rspPtr, mtx](const list<ClientInfo> &list){
             for (auto& data : list) {
                 json client;
                 client["ip"] = data.ip_;
                 client["port"] = data.port_;
+                client["protocol"] = data.protocol_;
                 client["bitrate"] = data.bitrate_;
+                client["connectTime"] = data.createTime_ * 1000;
 
-                const_cast<json &>(value)["client"].push_back(client);
+                lock_guard<mutex> lck(*mtx);
+                auto value = rspPtr->getResponse();
+                value["client"].push_back(client);
+                rspPtr->setResponse(value);
             }
-            const_cast<HttpResponse &>(rsp).setContent(value.dump());
-            rspFunc(const_cast<HttpResponse &>(rsp));
+            logInfo << "value: " << rspPtr->getResponse().dump();
         });
+
+        if (protocol.empty()) {
+            auto muxSources = source->getMuxerSource();
+            for (auto& mIt : muxSources) {
+                auto tSource = mIt.second;
+                for (auto& tIt: tSource) {
+                    auto mSource = tIt.second.lock();
+                    if (!mSource) {
+                        continue;
+                    }
+                    logInfo << "mSource->getProtocol(): " << mSource->getProtocol();
+                    mSource->getClientList([rspPtr, mtx](const list<ClientInfo> &list){
+                        for (auto& data : list) {
+                            json client;
+                            client["ip"] = data.ip_;
+                            client["port"] = data.port_;
+                            client["protocol"] = data.protocol_;
+                            client["bitrate"] = data.bitrate_;
+                            client["connectTime"] = data.createTime_ * 1000;
+
+                            lock_guard<mutex> lck(*mtx);
+                            auto value = rspPtr->getResponse();
+                            value["client"].push_back(client);
+                            rspPtr->setResponse(value);
+                        }
+                        logInfo << "value: " << rspPtr->getResponse().dump();
+                    });
+                }
+            }
+        }
 
         return ;
     } else {
@@ -416,11 +468,21 @@ void HttpApi::getServerInfo(const HttpParser& parser, const UrlParser& urlParser
     value["eventLoop"]["threadSize"] = EventLoopPool::instance()->getThreadSize();
     value["eventLoop"]["startTime"] = EventLoopPool::instance()->getStartTime();
 
-    value["cpuUsage"] = 45.6;
-    value["memoryUsage"] = 56.7;
-    value["activeStreams"] = 67;
-    value["onlineClients"] = 78;
-    value["totalBandwidth"] = 89;
+    auto totalSource = MediaSource::getAllSource();
+    int clients = 0;
+    uint64_t downTotalBitrate = 0;
+    uint64_t upTotalBytes = 0;
+    for (auto source : totalSource) {
+        clients += source.second->totalPlayerCount();
+        upTotalBytes += source.second->getBitrate();
+        downTotalBitrate += source.second->getBitrate() * source.second->totalPlayerCount();
+    }
+    value["cpuUsage"] = 0;
+    value["memoryUsage"] = 0;
+    value["activeStreams"] = totalSource.size();
+    value["onlineClients"] = clients;
+    value["totalBandwidth"] = upTotalBytes;
+    value["uptime"] = time(nullptr) - EventLoopPool::instance()->getStartTime();
 
     value["code"] = "200";
     value["msg"] = "success";

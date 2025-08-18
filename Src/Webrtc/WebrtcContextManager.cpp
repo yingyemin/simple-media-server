@@ -7,10 +7,10 @@
 
 using namespace std;
 
-static thread_local unordered_map<uint64_t, WebrtcContext::Wptr> _mapContextPerThread;
+static thread_local unordered_map<std::string, WebrtcContext::Wptr> _mapContextPerThread;
 
-uint64_t sockAddrHash(struct sockaddr_in* saddr) {
-	return ntohl(saddr->sin_addr.s_addr) << 32 + ntohs(saddr->sin_port);
+std::string sockAddrHash(struct sockaddr_in* saddr) {
+    return std::to_string(ntohl(saddr->sin_addr.s_addr)) + std::to_string(ntohs(saddr->sin_port));
 }
 
 WebrtcContextManager::WebrtcContextManager()
@@ -75,10 +75,10 @@ void WebrtcContextManager::onUdpPacket(const Socket::Ptr& socket, const StreamBu
 
 void WebrtcContextManager::onDtlsPacket(const Socket::Ptr& socket, const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)
 {
-	uint64_t hash = sockAddrHash((struct sockaddr_in*)addr);
+	std::string hash = sockAddrHash((struct sockaddr_in*)addr);
 	logInfo << "on dtls packet, size is [" << buffer->size() << "]";
     
-	auto context = getContext(hash);
+	auto context = getContextByHash(hash);
 	if (context) {
         if (socket->getLoop() != context->getLoop()) {
             logInfo << "changeLoop ========= ";
@@ -93,9 +93,9 @@ void WebrtcContextManager::onDtlsPacket(const Socket::Ptr& socket, const StreamB
 void WebrtcContextManager::onRtcpPacket(const Socket::Ptr& socket, const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)
 {
 	//logInfo << "on rtcp packet. size is [" << buf->size() << "]";
-	uint64_t hash = sockAddrHash((struct sockaddr_in*)addr);
+	std::string hash = sockAddrHash((struct sockaddr_in*)addr);
     
-	auto context = getContext(hash);
+	auto context = getContextByHash(hash);
 	if (context) {
         if (socket->getLoop() != context->getLoop()) {
             logInfo << "changeLoop ========= ";
@@ -124,7 +124,7 @@ void WebrtcContextManager::onStunPacket(const Socket::Ptr& socket, const StreamB
         }
         context->onStunPacket(socket, stunReq, addr, len);
 
-		uint64_t hash = sockAddrHash((struct sockaddr_in*)addr);
+		std::string hash = sockAddrHash((struct sockaddr_in*)addr);
 		std::lock_guard<std::mutex> lock(_addrToContextLck);
 		auto it = _mapAddrToContext.find(hash);
 		if (it == _mapAddrToContext.end()) {
@@ -137,8 +137,8 @@ void WebrtcContextManager::onStunPacket(const Socket::Ptr& socket, const StreamB
 
 void WebrtcContextManager::onRtpPacket(const Socket::Ptr& socket, const RtpPacket::Ptr& rtp, struct sockaddr* addr, int len)
 {
-    uint64_t hash = sockAddrHash((struct sockaddr_in*)addr);
-    auto context = getContext(hash);
+    std::string hash = sockAddrHash((struct sockaddr_in*)addr);
+    auto context = getContextByHash(hash);
 	if (context) {
         if (socket->getLoop() != context->getLoop()) {
             logInfo << "changeLoop ========= ";
@@ -198,7 +198,7 @@ void WebrtcContextManager::delContext(const string& key)
     _mapContext.erase(key);
 }
 
-void WebrtcContextManager::delContext(uint64_t hash)
+void WebrtcContextManager::delContextByHash(const std::string& hash)
 {
     logDebug << "del context: " << hash;
 
@@ -206,7 +206,7 @@ void WebrtcContextManager::delContext(uint64_t hash)
     _mapAddrToContext.erase(hash);
 }
 
-WebrtcContext::Ptr WebrtcContextManager::getContext(uint64_t hash)
+WebrtcContext::Ptr WebrtcContextManager::getContextByHash(const std::string& hash)
 {
     WebrtcContext::Ptr delContex;
     auto iter = _mapContextPerThread.find(hash);

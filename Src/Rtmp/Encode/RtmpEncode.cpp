@@ -10,6 +10,7 @@
 #include "RtmpEncodeCommon.h"
 #include "RtmpEncodeH264.h"
 #include "RtmpEncodeH265.h"
+#include "RtmpEncodeH266.h"
 #include "RtmpEncodeVPX.h"
 #include "RtmpEncodeAV1.h"
 
@@ -24,7 +25,9 @@ RtmpEncode::Ptr RtmpEncode::create(const shared_ptr<TrackInfo>& trackInfo)
         source = make_shared<RtmpEncodeH264>(trackInfo);
     } else if (trackInfo->codec_ == "h265") {
         source =  make_shared<RtmpEncodeH265>(trackInfo);
-    } else if (trackInfo->codec_ == "aac") {
+    } else if (trackInfo->codec_ == "h266") {
+        source =  make_shared<RtmpEncodeH266>(trackInfo);
+    }  else if (trackInfo->codec_ == "aac") {
         source =  make_shared<RtmpEncodeAac>(trackInfo);
     } else if (trackInfo->codec_ == "vp9") {
         source =  make_shared<RtmpEncodeVPX>(trackInfo);

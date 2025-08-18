@@ -1,9 +1,9 @@
 #include "ConfigTemplateApi.h"
-#include "Common/ApiUtil.h"
-#include "Common/ApiResponse.h"
+#include "Http/ApiUtil.h"
+#include "Http/ApiResponse.h"
 #include <cstdlib>
 #include <ctime>
-#include "Common/ErrorCodes.h"
+#include "Http/ErrorCodes.h"
 #include "Logger.h"
 #include "Util/String.h"
 

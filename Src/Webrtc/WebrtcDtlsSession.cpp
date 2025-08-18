@@ -2,6 +2,7 @@
 
 #include "WebrtcDtlsSession.h"
 #include "Log/Logger.h"
+#include "Common/Config.h"
 
 static int verifyCallback(int ok, X509_STORE_CTX *ctx)
 {
@@ -173,133 +174,201 @@ bool DtlsCertificate::init() {
 		return false;
 	}
 
-    // Create keys by RSA or ECDSA.
-    _dtlsPkey = EVP_PKEY_new();
-    if (!_dtlsPkey) {
-		logError << "EVP_PKEY_new failed";
-		return false;
-	}
-	
-    if (!_ecdsaMode) { // By RSA
-        RSA* rsa = RSA_new();
-        if (!rsa) {
-			logError << "RSA_new failed";
+
+    static string certFile = Config::instance()->getAndListen([](const json& config) {
+        certFile = Config::instance()->get("Ssl", "cert");
+    }, "Ssl", "cert");
+
+    static string keyFile = Config::instance()->getAndListen([](const json& config) {
+        keyFile = Config::instance()->get("Ssl", "key");
+    }, "Ssl", "key");
+
+    static bool loadCertFile = Config::instance()->getAndListen([](const json& config) {
+        loadCertFile = Config::instance()->get("Webrtc", "Server", "Server1", "loadCertFile", "0");
+    }, "Webrtc", "Server", "Server1", "loadCertFile", "0");
+
+    if (certFile.empty() || keyFile.empty() || !loadCertFile) {
+        // Create keys by RSA or ECDSA.
+        _dtlsPkey = EVP_PKEY_new();
+        if (!_dtlsPkey) {
+            logError << "EVP_PKEY_new failed";
+            return false;
+        }
+        
+        _ecdsaMode = false;
+        if (!_ecdsaMode) { // By RSA
+            RSA* rsa = RSA_new();
+            if (!rsa) {
+                logError << "RSA_new failed";
+                return false;
+            }
+
+            // Initialize the big-number for private key.
+            BIGNUM* exponent = BN_new();
+            if (!exponent) {
+                logError << "BN_new failed";
+                return false;
+            }
+            
+            BN_set_word(exponent, RSA_F4);
+
+            // Generates a key pair and stores it in the RSA structure provided in rsa.
+            // @see https://www.openssl.org/docs/man1.0.2/man3/RSA_generate_key_ex.html
+            int key_bits = 1024;
+            RSA_generate_key_ex(rsa, key_bits, exponent, NULL);
+
+            // @see https://www.openssl.org/docs/man1.1.0/man3/EVP_PKEY_type.html
+            if (EVP_PKEY_set1_RSA(_dtlsPkey, rsa) != 1) {
+                logError << "EVP_PKEY_set1_RSA failed";
+                return false;
+            }
+
+            RSA_free(rsa);
+            BN_free(exponent);
+        }
+
+        if (_ecdsaMode) { // By ECDSA, https://stackoverflow.com/a/6006898
+            // _eckey = EC_KEY_new();
+            // if (!_eckey) {
+            // 	logError << "EC_KEY_new failed";
+            // 	return false;
+            // }
+
+            // Should use the curves in ClientHello.supported_groups
+            // For example:
+            //      Supported Group: x25519 (0x001d)
+            //      Supported Group: secp256r1 (0x0017)
+            //      Supported Group: secp384r1 (0x0018)
+            // @remark The curve NID_secp256k1 is not secp256r1, k1 != r1.
+            // TODO: FIXME: Parse ClientHello and choose the curve.
+            // Note that secp256r1 in openssl is called NID_X9_62_prime256v1, not NID_secp256k1
+            // @see https://stackoverflow.com/questions/41950056/openssl1-1-0-b-is-not-support-secp256r1openssl-ecparam-list-curves
+            // EC_GROUP* ecgroup = EC_GROUP_new_by_curve_name(NID_X9_62_prime256v1);
+            // //EC_GROUP* ecgroup = EC_GROUP_new_by_curve_name(NID_secp384r1);
+            // if (!ecgroup) {
+            // 	logError << "EC_GROUP_new_by_curve_name failed";
+            // 	return false;
+            // }
+    // #if OPENSSL_VERSION_NUMBER < 0x10100000L // v1.1.x
+    //         // For openssl 1.0, we must set the group parameters, so that cert is ok.
+    //         // @see https://github.com/monero-project/monero/blob/master/contrib/epee/src/net_ssl.cpp#L225
+    //         EC_GROUP_set_asn1_flag(ecgroup, OPENSSL_EC_NAMED_CURVE);
+    // #endif
+
+            // if (EC_KEY_set_group(_eckey, ecgroup) != 1) {
+            // 	logError << "EC_KEY_set_group failed";
+            // 	return false;
+            // }
+
+            // Create key with curve.
+            _eckey = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
+            if (!_eckey) {
+                logError << "EC_KEY_new_by_curve_name failed";
+                return false;
+            }
+
+            EC_KEY_set_asn1_flag(_eckey, OPENSSL_EC_NAMED_CURVE);
+            
+            if (EC_KEY_generate_key(_eckey) != 1) {
+                logError << "EC_KEY_generate_key failed";
+                return false;
+            }
+
+            // @see https://www.openssl.org/docs/man1.1.0/man3/EVP_PKEY_type.html
+            if (EVP_PKEY_set1_EC_KEY(_dtlsPkey, _eckey) != 1) {
+                logError << "EVP_PKEY_set1_EC_KEY failed";
+                return false;
+            }
+
+            // EC_GROUP_free(ecgroup);
+            _eckey = nullptr;
+        }
+
+        // Create certificate, from previous generated pkey.
+        // TODO: Support ECDSA certificate.
+        _dtlsCert = X509_new();
+        if (!_dtlsCert) {
+            logError << "X509_new failed";
+            return false;
+        }
+        
+        if (true) {
+            X509_NAME* subject = X509_NAME_new();
+            if (!subject) {
+                logError << "X509_NAME_new failed";
+                return false;
+            }
+
+            int serial = rand();
+            ASN1_INTEGER_set(X509_get_serialNumber(_dtlsCert), serial);
+
+            const std::string& aor = "ossrs.net";
+            X509_NAME_add_entry_by_txt(subject, "CN", MBSTRING_ASC, (unsigned char *) aor.data(), aor.size(), -1, 0);
+
+            X509_set_issuer_name(_dtlsCert, subject);
+            X509_set_subject_name(_dtlsCert, subject);
+
+            int expire_day = 365;
+            const long cert_duration = 60*60*24*expire_day;
+
+            X509_gmtime_adj(X509_get_notBefore(_dtlsCert), 0);
+            X509_gmtime_adj(X509_get_notAfter(_dtlsCert), cert_duration);
+
+            X509_set_version(_dtlsCert, 2);
+            if (X509_set_pubkey(_dtlsCert, _dtlsPkey) != 1) {
+                logError << "X509_set_pubkey failed";
+                return false;
+            }
+            
+            if (X509_sign(_dtlsCert, _dtlsPkey, EVP_sha1()) == 0) {
+                logError << "X509_sign failed";
+                return false;
+            }
+
+            X509_NAME_free(subject);
+        }
+    } else {
+        FILE* file{ nullptr };
+
+		file = fopen(certFile.c_str(), "r");
+
+		if (!file)
+		{
+			logError << "error reading DTLS certificate file: " << std::strerror(errno);
+
 			return false;
 		}
 
-        // Initialize the big-number for private key.
-        BIGNUM* exponent = BN_new();
-        if (!exponent) {
-			logError << "BN_new failed";
-			return false;
-		}
-		
-        BN_set_word(exponent, RSA_F4);
+		_dtlsCert = PEM_read_X509(file, nullptr, nullptr, nullptr);
 
-        // Generates a key pair and stores it in the RSA structure provided in rsa.
-        // @see https://www.openssl.org/docs/man1.0.2/man3/RSA_generate_key_ex.html
-        int key_bits = 1024;
-        RSA_generate_key_ex(rsa, key_bits, exponent, NULL);
+		if (!_dtlsCert)
+		{
+			logError << "PEM_read_X509() failed";
 
-        // @see https://www.openssl.org/docs/man1.1.0/man3/EVP_PKEY_type.html
-        if (EVP_PKEY_set1_RSA(_dtlsPkey, rsa) != 1) {
-			logError << "EVP_PKEY_set1_RSA failed";
 			return false;
 		}
 
-        RSA_free(rsa);
-        BN_free(exponent);
-    }
+		fclose(file);
 
-	if (_ecdsaMode) { // By ECDSA, https://stackoverflow.com/a/6006898
-        _eckey = EC_KEY_new();
-        if (!_eckey) {
-			logError << "EC_KEY_new failed";
+		file = fopen(keyFile.c_str(), "r");
+
+		if (!file)
+		{
+			logError << "error reading DTLS private key file: " << std::strerror(errno);
+
 			return false;
 		}
 
-        // Should use the curves in ClientHello.supported_groups
-        // For example:
-        //      Supported Group: x25519 (0x001d)
-        //      Supported Group: secp256r1 (0x0017)
-        //      Supported Group: secp384r1 (0x0018)
-        // @remark The curve NID_secp256k1 is not secp256r1, k1 != r1.
-        // TODO: FIXME: Parse ClientHello and choose the curve.
-        // Note that secp256r1 in openssl is called NID_X9_62_prime256v1, not NID_secp256k1
-        // @see https://stackoverflow.com/questions/41950056/openssl1-1-0-b-is-not-support-secp256r1openssl-ecparam-list-curves
-        EC_GROUP* ecgroup = EC_GROUP_new_by_curve_name(NID_X9_62_prime256v1);
-        //EC_GROUP* ecgroup = EC_GROUP_new_by_curve_name(NID_secp384r1);
-        if (!ecgroup) {
-			logError << "EC_GROUP_new_by_curve_name failed";
-			return false;
-		}
-#if OPENSSL_VERSION_NUMBER < 0x10100000L // v1.1.x
-        // For openssl 1.0, we must set the group parameters, so that cert is ok.
-        // @see https://github.com/monero-project/monero/blob/master/contrib/epee/src/net_ssl.cpp#L225
-        EC_GROUP_set_asn1_flag(ecgroup, OPENSSL_EC_NAMED_CURVE);
-#endif
+		_dtlsPkey = PEM_read_PrivateKey(file, nullptr, nullptr, nullptr);
 
-        if (EC_KEY_set_group(_eckey, ecgroup) != 1) {
-			logError << "EC_KEY_set_group failed";
-			return false;
-		}
-		
-        if (EC_KEY_generate_key(_eckey) != 1) {
-			logError << "EC_KEY_generate_key failed";
+		if (!_dtlsPkey)
+		{
+			logError << "PEM_read_PrivateKey() failed";
+
 			return false;
 		}
 
-        // @see https://www.openssl.org/docs/man1.1.0/man3/EVP_PKEY_type.html
-        if (EVP_PKEY_set1_EC_KEY(_dtlsPkey, _eckey) != 1) {
-			logError << "EVP_PKEY_set1_EC_KEY failed";
-			return false;
-		}
-
-        EC_GROUP_free(ecgroup);
-    }
-
-    // Create certificate, from previous generated pkey.
-    // TODO: Support ECDSA certificate.
-    _dtlsCert = X509_new();
-    if (!_dtlsCert) {
-		logError << "X509_new failed";
-		return false;
-	}
-	
-    if (true) {
-        X509_NAME* subject = X509_NAME_new();
-        if (!subject) {
-			logError << "X509_NAME_new failed";
-			return false;
-		}
-
-        int serial = rand();
-        ASN1_INTEGER_set(X509_get_serialNumber(_dtlsCert), serial);
-
-        const std::string& aor = "ossrs.net";
-        X509_NAME_add_entry_by_txt(subject, "CN", MBSTRING_ASC, (unsigned char *) aor.data(), aor.size(), -1, 0);
-
-        X509_set_issuer_name(_dtlsCert, subject);
-        X509_set_subject_name(_dtlsCert, subject);
-
-        int expire_day = 365;
-        const long cert_duration = 60*60*24*expire_day;
-
-        X509_gmtime_adj(X509_get_notBefore(_dtlsCert), 0);
-        X509_gmtime_adj(X509_get_notAfter(_dtlsCert), cert_duration);
-
-        X509_set_version(_dtlsCert, 2);
-        if (X509_set_pubkey(_dtlsCert, _dtlsPkey) != 1) {
-			logError << "X509_set_pubkey failed";
-			return false;
-		}
-		
-        if (X509_sign(_dtlsCert, _dtlsPkey, EVP_sha1()) == 0) {
-			logError << "X509_sign failed";
-			return false;
-		}
-
-        X509_NAME_free(subject);
+		fclose(file);
     }
 
     // Show DTLS fingerprint

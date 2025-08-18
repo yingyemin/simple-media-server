@@ -1437,8 +1437,8 @@ void WebrtcContext::close()
     logInfo << "close webrtc context";
     _alive = false;
     if (_addr) {
-        auto hash = ntohl(((sockaddr_in*)_addr)->sin_addr.s_addr) << 32 + ntohs(((sockaddr_in*)_addr)->sin_port);
-        WebrtcContextManager::instance()->delContext(hash);
+        auto hash = to_string(((sockaddr_in*)_addr)->sin_addr.s_addr) + to_string(ntohs(((sockaddr_in*)_addr)->sin_port));
+        WebrtcContextManager::instance()->delContextByHash(hash);
     }
     WebrtcContextManager::instance()->delContext(_username);
 }

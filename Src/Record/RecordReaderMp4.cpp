@@ -77,7 +77,7 @@ bool RecordReaderMp4::initMp4()
             return ;
         }
         trackInfo->duration_ = self->getDuration();
-        logInfo << "mp4 reader add track";
+        logInfo << "mp4 reader add track: " << trackInfo->codec_;
         if (self->_onTrackInfo) {
             self->_onTrackInfo(trackInfo);
         }
@@ -156,6 +156,11 @@ bool RecordReaderMp4::start()
                     frame->_dts /= self->_scale;
                     frame->_pts /= self->_scale;
                     logDebug << "on frame from mp4";
+                    // if (frame->getTrackType() == VideoTrackType) {
+                    //     FILE* fp = fopen("test.h266", "ab+");
+                    //     fwrite(frame->data(), 1, frame->size(), fp);
+                    //     fclose(fp);
+                    // }
                     self->_onFrame(frame);
                 } else {
                     return 0;
@@ -171,9 +176,10 @@ bool RecordReaderMp4::start()
             for (int i = 0; i < 25; ++i) {
                 auto task = make_shared<WorkTask>();
                 task->priority_ = 100;
-                task->func_ = [wSelf](){
+                int curLoopCount = self->_curLoopCount;
+                task->func_ = [wSelf, curLoopCount](){
                     auto self = wSelf.lock();
-                    if (!self) {
+                    if (!self || curLoopCount != self->_curLoopCount) {
                         return ;
                     }
 
@@ -181,14 +187,15 @@ bool RecordReaderMp4::start()
                     if (!reader) {
                         return ;
                     }
-                //     logInfo << "read mp4";
+                    // logInfo << "read mp4";
                     if (!reader->mov_reader_read2()) {
                         if (++self->_curLoopCount >= self->_loopCount) {
                             logInfo << "mov_reader_read2 failed, stop";
                             self->_finish = true;
                         } else {
                             logInfo << "mov_reader_read2 failed, start another loop";
-                            self->initMp4();
+                            // self->initMp4();
+                            self->seek(0);
                         }
                     }
                 };

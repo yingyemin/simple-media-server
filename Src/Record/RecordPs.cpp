@@ -13,8 +13,8 @@
 using namespace std;
 
 RecordPs::RecordPs(const UrlParser& urlParser, const RecordTemplate::Ptr& recordTemplate)
-    :_template(recordTemplate)
 {
+    _template = recordTemplate;
     _urlParser = urlParser;
 }
 

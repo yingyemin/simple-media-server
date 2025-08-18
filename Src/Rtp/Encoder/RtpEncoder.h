@@ -31,7 +31,7 @@ protected:
     bool _useStapA = true;
     float _ptsScale = 0.95;
     uint32_t _ssrc = 0;
-    uint64_t _maxRtpSize = 0;
+    uint64_t _maxRtpSize = 1400;
 };
 
 

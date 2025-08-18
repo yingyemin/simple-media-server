@@ -411,6 +411,8 @@ bool RtmpConnection::handleNotify(RtmpMessage& rtmp_msg)
                 _rtmpVideoDecodeTrack = make_shared<RtmpDecodeTrack>(VideoTrackType);
                 if (videocodecid == fourccH265) {
                     videocodecid = RTMP_CODEC_ID_H265;
+                } else if (videocodecid == fourccH266) {
+                    videocodecid = RTMP_CODEC_ID_H266;
                 } else if (videocodecid == fourccAV1) {
                     videocodecid = RTMP_CODEC_ID_AV1;
                 } else if (videocodecid == fourccVP9) {
@@ -519,6 +521,8 @@ bool RtmpConnection::handleVideo(RtmpMessage& rtmp_msg)
         packet_type = payload[0] & 0x0f;
         if (readUint32BE((char*)payload + 1) == fourccH265) {
             codec_id = RTMP_CODEC_ID_H265;
+        } else if (readUint32BE((char*)payload + 1) == fourccH266) {
+            codec_id = RTMP_CODEC_ID_H266;
         } else if (readUint32BE((char*)payload + 1) == fourccAV1) {
             codec_id = RTMP_CODEC_ID_AV1;
         } else if (readUint32BE((char*)payload + 1) == fourccVP9) {
@@ -1001,7 +1005,7 @@ void RtmpConnection::responsePlay(const MediaSource::Ptr &src)
             if (!self) {
                 return 0;
             }
-            self->_lastBitrate = self->_intervalSendBytes / (interval / 1000.0);
+            self->_lastBitrate = self->_intervalSendBytes * 8 / (interval / 1000.0);
             self->_intervalSendBytes = 0;
 
             return interval;
@@ -1014,10 +1018,11 @@ void RtmpConnection::responsePlay(const MediaSource::Ptr &src)
             if (!self) {
                 return ret;
             }
-            ret.ip_ = self->_socket->getLocalIp();
-            ret.port_ = self->_socket->getLocalPort();
+            ret.ip_ = self->_socket->getPeerIp();
+            ret.port_ = self->_socket->getPeerPort();
             ret.protocol_ = PROTOCOL_RTMP;
             ret.bitrate_ = self->_lastBitrate;
+            ret.createTime_ = self->getCreateTime();
             ret.close_ = [wSelf](){
                 auto self = wSelf.lock();
                 if (self) {

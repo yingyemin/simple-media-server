@@ -112,6 +112,7 @@ int MP4Demuxer::mov_reader_box(const struct mov_box_t* parent)
     static struct mov_parse_t s_mov_parse_table[] = {
         { MOV_TAG('a', 'v', '1', 'C'), MOV_NULL, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_av1c(box);} }, // av1-isobmff
         { MOV_TAG('a', 'v', 'c', 'C'), MOV_NULL, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_avcc(box);} }, // ISO/IEC 14496-15:2010(E) avcC
+        { MOV_TAG('v', 'v', 'c', 'C'), MOV_NULL, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_vvcc(box);} }, // ISO/IEC 14496-15:2010(E) avcC
         { MOV_TAG('b', 't', 'r', 't'), MOV_NULL, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_btrt(box);} }, // ISO/IEC 14496-15:2010(E) 5.3.4.1.1 Definition
         { MOV_TAG('c', 'o', '6', '4'), MOV_STBL, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_stco(box);} },
         { MOV_TAG('C', 'o', 'L', 'L'), MOV_STBL, [](const mov_box_t *box, MP4Demuxer* self){return self->mov_read_coll(box);} },
@@ -519,6 +520,7 @@ int MP4Demuxer::mov_reader_getinfo()
 		track = _tracks[i].get();
 		for (j = 0; j < track->stsd.entry_count && j < 1 /* only the first */; j++)
 		{
+			logDebug << "object_type_indication: " << (int)entry->object_type_indication;
             entry = track->stsd.entries[j].get();
 			switch (track->handler_type)
 			{
@@ -542,6 +544,20 @@ int MP4Demuxer::mov_reader_getinfo()
                     trackInfo->payloadType_ = 96;
                     trackInfo->trackType_ = "video";
                     trackInfo->samplerate_ = 90000;
+
+					onTrackInfo(trackInfo);
+					_mapTrackInfo.emplace(trackInfo->index_, trackInfo);
+                } else if (entry->object_type_indication == MOV_OBJECT_H266) {
+					auto trackInfo = TrackInfo::createTrackInfo("h266");
+                    // auto trackInfo = make_shared<H266Track>();
+                    trackInfo->index_ = track->tkhd.track_ID;
+                    trackInfo->_width = entry->u.visual.width;
+                    trackInfo->_height = entry->u.visual.height;
+                    trackInfo->setConfig(entry->extra_data);
+                    // trackInfo->codec_ = "av1";
+                    // trackInfo->payloadType_ = 98;
+                    // trackInfo->trackType_ = "video";
+                    // trackInfo->samplerate_ = 90000;
 
 					onTrackInfo(trackInfo);
 					_mapTrackInfo.emplace(trackInfo->index_, trackInfo);
@@ -744,6 +760,26 @@ int MP4Demuxer::mov_read_avcc(const struct mov_box_t* box)
 
 	read((char*)entry->extra_data.data(), box->size);
 	entry->extra_data_size = (int)box->size;
+	return 0;
+}
+
+int MP4Demuxer::mov_read_vvcc(const struct mov_box_t* box)
+{
+	logTrace << "get in" << __FUNCTION__;
+	mov_track_t* track = _track;
+	struct mov_sample_entry_t* entry = track->stsd.current.get();
+	if (entry->extra_data_size < box->size)
+	{
+		// void* p = realloc(entry->extra_data, (size_t)box->size);
+		// if (NULL == p) return ENOMEM;
+		// entry->extra_data = p;
+        entry->extra_data.resize(box->size);
+	}
+
+	skip(4);
+
+	read((char*)entry->extra_data.data(), box->size - 4);
+	entry->extra_data_size = (int)box->size - 4;
 	return 0;
 }
 

@@ -43,13 +43,13 @@ public:
 
     bool keyFrame() const override
     {
-        uint8_t type = ((uint8_t)(_buffer[_startSize]) >> 1) & 0x3f;
-        return type == H266_IDR_W_RADL;
+        uint8_t type = (uint8_t)(_buffer[_startSize + 1]) >> 3;
+        return type >= H266_IDR_W_RADL && type < H266_RSV_IRAP;
     }
 
     bool metaFrame() const override
     {
-        uint8_t type = ((uint8_t)(_buffer[_startSize]) >> 1) & 0x3f;
+        uint8_t type = (uint8_t)(_buffer[_startSize + 1]) >> 3;
         switch(type){
             case H266NalType::H266_VPS:
             case H266NalType::H266_SPS:
@@ -60,7 +60,7 @@ public:
 
     bool startFrame() const override
     {
-        uint8_t type = ((uint8_t)(_buffer[_startSize]) >> 1) & 0x3f;
+        uint8_t type = (uint8_t)(_buffer[_startSize + 1]) >> 3;
         if (type == H266NalType::H266_VPS) {
             return true;
         }
@@ -70,16 +70,16 @@ public:
 
     uint8_t getNalType() override
     {
-        return ((uint8_t)(_buffer[_startSize]) >> 1) & 0x3f;
+        return (uint8_t)(_buffer[_startSize + 1]) >> 3;
     }
 
     bool isNonPicNalu() override
     {
-        uint8_t type = ((uint8_t)(_buffer[_startSize]) >> 1) & 0x3f;
+        uint8_t type = getNalType();
         switch(type){
-            case H266NalType::H266_VPS:
-            case H266NalType::H266_SPS:
-            case H266NalType::H266_PPS:
+            // case H266NalType::H266_VPS:
+            // case H266NalType::H266_SPS:
+            // case H266NalType::H266_PPS:
             case H266NalType::H266_AUD:
             case H266NalType::H266_PREFIX_SEI:
             case H266NalType::H266_SUFFIX_SEI: 
@@ -90,7 +90,7 @@ public:
 
     static uint8_t getNalType(uint8_t nalByte)
     {
-        return nalByte >> 1 & 0x3f;
+        return nalByte >> 3;
     }
 
     void split(const function<void(const FrameBuffer::Ptr& frame)>& cb) override;

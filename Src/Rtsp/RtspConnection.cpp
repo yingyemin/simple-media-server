@@ -909,6 +909,7 @@ void RtspConnection::handlePlay()
             ret.ip_ = self->_socket->getPeerIp();
             ret.port_ = self->_socket->getPeerPort();
             ret.protocol_ = PROTOCOL_RTSP;
+            ret.createTime_ = self->getCreateTime();
             ret.close_ = [weak_self](){
                 auto self = weak_self.lock();
                 if (self) {

@@ -43,6 +43,7 @@ private:
 	void send(const StreamBuffer::Ptr& buffer);
 
 private:
+	uint64_t _createTime = 0;
 	string _localIp;
 	int _localPort = 0;
 	string _peerIp;

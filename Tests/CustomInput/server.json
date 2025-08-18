@@ -199,7 +199,7 @@
             "Server1" : {
                 "timeout" : 5000,
                 "ip" : "0.0.0.0",
-                "candidateIp" : "192.168.0.104",
+                "candidateIp" : "172.24.6.4",
                 "port" : 7000,
                 "threads" : 1,
                 "sockType" : 3,

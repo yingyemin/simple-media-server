@@ -16,6 +16,7 @@ FlvMuxerWithRtmp::FlvMuxerWithRtmp(const UrlParser& urlParser, const EventLoop::
 {
 	logDebug << "FlvMuxerWithRtmp, path: " << _urlParser.path_;
 	_urlParser.protocol_ = PROTOCOL_RTMP;
+	_createTime = time(NULL);
 }
 
 FlvMuxerWithRtmp::~FlvMuxerWithRtmp()
@@ -101,6 +102,11 @@ void FlvMuxerWithRtmp::onPlay()
 			ret.ip_ = self->_peerIp;
 			ret.port_ = self->_peerPort;
 			ret.protocol_ = PROTOCOL_HTTP_FLV;
+			auto rtmpSrc = self->_source.lock();
+			if (rtmpSrc) {
+				ret.bitrate_ = rtmpSrc->getBitrate();
+			}
+			ret.createTime_ = self->_createTime;
 			return ret;
 		});
 		_playReader->setDetachCB([wSelf]() {

@@ -59,6 +59,7 @@ protected:
     int mov_sample_seek(mov_track_t* track, int64_t timestamp);
     int mov_read_av1c(const struct mov_box_t* box);
     int mov_read_avcc(const struct mov_box_t* box);
+    int mov_read_vvcc(const struct mov_box_t* box);
     int mov_read_coll(const struct mov_box_t* box);
     int mov_read_ctts(const struct mov_box_t* box);
     int mov_read_cslg(const struct mov_box_t* box);

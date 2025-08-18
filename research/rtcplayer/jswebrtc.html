@@ -45,6 +45,13 @@
             alert("请输入有效的 WebRTC URL");
         }
     });
+
+    // 页面关闭时停止播放
+    window.addEventListener('beforeunload', function() {
+        if (player) {
+            player.stop();
+        }
+    });
 </script>
 </body>
 </html>

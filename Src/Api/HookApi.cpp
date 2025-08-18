@@ -3,7 +3,7 @@
 #include "HookApi.h"
 #include "Logger.h"
 #include "Common/Config.h"
-#include "Common/ApiUtil.h"
+#include "Http/ApiUtil.h"
 #include "Util/String.h"
 
 using namespace std;

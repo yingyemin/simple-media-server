@@ -35,6 +35,10 @@ public:
     virtual bool start() = 0;
     virtual void stop() = 0;
     virtual void setOnClose(const function<void()>& cb) = 0;
+    virtual std::string getFormat() = 0;
+    virtual RecordTemplate::Ptr getTemplate() {return _template;}
+    virtual std::string getStatus() {return "recording";}
+    virtual uint64_t getCreateTime() {return _createTime;}
 
     virtual void setTaskId(const string& taskId)
     {
@@ -57,9 +61,11 @@ public:
     static void for_each_record(const function<void(const Record::Ptr& record)>& func);
 
 protected:
+    uint64_t _createTime;
     std::string _taskId;
     UrlParser _urlParser;
     OnRecordInfo _recordInfo;
+    RecordTemplate::Ptr _template;
 
 private:
     static mutex _mtx;

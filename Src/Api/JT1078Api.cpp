@@ -1,7 +1,7 @@
 ﻿#ifdef ENABLE_JT1078
 
 #include "JT1078Api.h"
-#include "Common/ApiUtil.h"
+#include "Http/ApiUtil.h"
 #include "Logger.h"
 #include "Common/Config.h"
 #include "Common/Define.h"

@@ -18,6 +18,8 @@ int getAudioObject(const string& codec, int samplerate)
 		}
         
 		return MOV_OBJECT_MP3;
+    } else if (codec == "opus") {
+        return MOV_OBJECT_OPUS;
     }
 
     return 0;
@@ -25,12 +27,18 @@ int getAudioObject(const string& codec, int samplerate)
 
 int getVideoObject(const string& codec)
 {
-    if (codec == "opus") {
-        return MOV_OBJECT_OPUS;
+    if (codec == "av1") {
+        return MOV_OBJECT_AV1;
     } else if (codec == "h264") {
         return MOV_OBJECT_H264;
     } else if (codec == "h265") {
         return MOV_OBJECT_HEVC;
+    } else if (codec == "vp8") {
+        return MOV_OBJECT_VP8;
+    } else if (codec == "vp9") {
+        return MOV_OBJECT_VP9;
+    } else if (codec == "h266") {
+        return MOV_OBJECT_H266;
     }
 
     return 0;
@@ -251,10 +259,17 @@ void MP4Muxer::inputFrame(const FrameBuffer::Ptr& frame, int trackIndex, bool ke
     auto pts = frame->_pts * _track->mdhd.timescale / 1000;
     auto dts = frame->_dts * _track->mdhd.timescale / 1000;
 
+	bool add_nalu_size = false;
+	int nalu_size = 0;
+	if (frame->codec() == "h264" || frame->codec() == "h265" || frame->codec() == "h266") {
+		add_nalu_size = true;
+		nalu_size = 4;
+	}
+
     auto sample = make_shared<mov_sample_t>(); 
     _track->sample_count++;
     sample->sample_description_index = 1;
-    sample->bytes = (uint32_t) frame->size() - frame->startSize() + 4;
+    sample->bytes = (uint32_t) frame->size() - frame->startSize() + nalu_size;
     sample->flags = keyframe;
     sample->data = NULL;
     sample->pts = pts;
@@ -265,19 +280,19 @@ void MP4Muxer::inputFrame(const FrameBuffer::Ptr& frame, int trackIndex, bool ke
     sample->offset = tell();
     _track->samples.push_back(sample);
 
-    // if (!add_nalu_size) {
-    //     mov_buffer_write(data, bytes);
-    // } else {
+    if (!add_nalu_size) {
+        write(frame->data() + frame->startSize(), sample->bytes);
+    } else {
         // uint8_t nalu_size_buf[4] = {0};
         // size_t nalu_size = sample->bytes;
         // nalu_size_buf[0] = (uint8_t) ((nalu_size >> 24) & 0xFF);
         // nalu_size_buf[1] = (uint8_t) ((nalu_size >> 16) & 0xFF);
         // nalu_size_buf[2] = (uint8_t) ((nalu_size >> 8) & 0xFF);
         // nalu_size_buf[3] = (uint8_t) ((nalu_size >> 0) & 0xFF);
-        write32BE(sample->bytes - 4);
+        write32BE(sample->bytes - nalu_size);
         // mov_buffer_write(nalu_size_buf, 4);
-        write(frame->data() + frame->startSize(), sample->bytes - 4);
-    // }
+        write(frame->data() + frame->startSize(), sample->bytes - nalu_size);
+    }
 
     if (INT64_MIN == _track->start_dts)
         _track->start_dts = sample->dts;
@@ -976,9 +991,12 @@ uint32_t MP4Muxer::mov_build_stts(mov_track_t* track)
     for (i = 0; i < track->sample_count; i++)
     {
 		if (i < (track->sample_count - 1)) {
-			logDebug << "track->samples[i + 1]->dts: " << track->samples[i + 1]->dts;
-			logDebug << "track->samples[i]->dts: " << track->samples[i]->dts;
-			assert(track->samples[i + 1]->dts >= track->samples[i]->dts || i + 1 == track->sample_count);
+			logWarn << "track->samples[i + 1]->dts: " << track->samples[i + 1]->dts;
+			logWarn << "track->samples[i]->dts: " << track->samples[i]->dts;
+			// assert(track->samples[i + 1]->dts >= track->samples[i]->dts || i + 1 == track->sample_count);
+			if (track->samples[i + 1]->dts == track->samples[i]->dts && i + 1 != track->sample_count) {
+				track->samples[i + 1]->dts = track->samples[i]->dts + 1;
+			}
 		}
         delta = (uint32_t)(i < (track->sample_count - 1) && track->samples[i + 1]->dts > track->samples[i]->dts ? track->samples[i + 1]->dts - track->samples[i]->dts : 1);
         if (NULL != sample && delta == sample->samples_per_chunk)
@@ -1254,6 +1272,9 @@ size_t MP4Muxer::mov_write_video(const struct mov_sample_entry_t* entry)
 		size += mov_write_av1c();
     else if (MOV_OBJECT_VP8 == entry->object_type_indication || MOV_OBJECT_VP9 == entry->object_type_indication)
         size += mov_write_vpcc();
+	else if (MOV_OBJECT_H266 == entry->object_type_indication) {
+		size += mov_write_vvcc();
+	}
 
 	writeMdatSize(offset, size); /* update size */
 	return size;
@@ -1423,6 +1444,24 @@ size_t MP4Muxer::mov_write_vpcc()
     if (entry->extra_data_size > 0)
         write(entry->extra_data.data(), entry->extra_data_size);
     return entry->extra_data_size + 12;
+}
+
+// extra_data: ISO/IEC 14496-15 AVCDecoderConfigurationRecord
+/*
+class VvcConfigurationBox extends FullBox('vvcC',version=0,flags) {
+	VvcDecoderConfigurationRecord() VvcConfig;
+}
+*/
+size_t MP4Muxer::mov_write_vvcc()
+{
+	const mov_track_t* track = _track.get();
+    const struct mov_sample_entry_t* entry = track->stsd.current.get();
+	write32BE(entry->extra_data_size + 8 + 4); /* size */ /* size */
+	write("vvcC", 4);
+	write32BE(0);
+	if (entry->extra_data_size > 0)
+		write(entry->extra_data.data(), entry->extra_data_size);
+	return entry->extra_data_size + 8 + 4;
 }
 
 size_t MP4Muxer::mov_write_dops()

@@ -3,7 +3,7 @@
 #include "JT808Api.h"
 #include "Logger.h"
 #include "Common/Config.h"
-#include "Common/ApiUtil.h"
+#include "Http/ApiUtil.h"
 #include "Util/String.h"
 #include "JT808/JT808Server.h"
 #include "JT808/JT808Manager.h"

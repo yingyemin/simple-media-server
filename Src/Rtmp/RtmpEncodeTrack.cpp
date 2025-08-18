@@ -32,7 +32,7 @@ void RtmpEncodeTrack::startEncode()
             }
         });
         _encoder->setEnhanced(_enhanced);
-        _encoder->setEnhanced(_enableFastPts);
+        _encoder->setFastPts(_enableFastPts);
         if (_trackInfo->codec_ == "vp8" || _trackInfo->codec_ == "vp9" || _trackInfo->codec_ == "av1") {
             _encoder->setEnhanced(true);
         }
@@ -45,6 +45,14 @@ void RtmpEncodeTrack::onFrame(const FrameBuffer::Ptr& frame)
         // logInfo << "encode a frame";
         _encoder->encode(frame);
     }
+}
+
+string RtmpEncodeTrack::getConfig()
+{
+    if (_encoder) {
+        return _encoder->getConfig();
+    }
+    return "";
 }
 
 void RtmpEncodeTrack::onRtmpPacket(const RtmpMessage::Ptr& pkt, bool start)

@@ -31,11 +31,11 @@
             <span>{{ formatDuration(scope.row.duration) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="fileSize" label="文件大小" width="120">
+        <!-- <el-table-column prop="fileSize" label="文件大小" width="120">
           <template #default="scope">
             <span>{{ formatFileSize(scope.row.fileSize) }}</span>
           </template>
-        </el-table-column>
+        </el-table-column> -->
         <el-table-column prop="startTime" label="开始时间" width="160">
           <template #default="scope">
             <span>{{ formatTime(scope.row.startTime) }}</span>
@@ -76,11 +76,11 @@
         </el-form-item>
         <el-form-item label="录制模板">
           <el-card>
-            <el-form-item label="录制时长(秒)">
+            <el-form-item label="录制时长(毫秒)">
               <el-input-number v-model="recordForm.recordTemplate.duration" :min="0" />
               <div class="form-tip">0表示不限制时长</div>
             </el-form-item>
-            <el-form-item label="分段时长(秒)">
+            <el-form-item label="分段时长(毫秒)">
               <el-input-number v-model="recordForm.recordTemplate.segmentDuration" :min="0" />
               <div class="form-tip">0表示不分段</div>
             </el-form-item>
@@ -125,6 +125,7 @@ const recordForm = ref({
 let refreshTimer = null
 
 const formatDuration = (duration) => {
+  duration /= 1000
   if (!duration) return '0秒'
   const hours = Math.floor(duration / 3600)
   const minutes = Math.floor((duration % 3600) / 60)
@@ -206,6 +207,18 @@ const createRecord = async () => {
   }
 }
 
+const parseStreamPath = (path) => {
+  const regex = /^\/([^\/]+)\/([^\/]+)/;
+  const match = path.match(regex);
+  if (match) {
+    return {
+      appName: match[1],
+      streamName: match[2]
+    };
+  }
+  return null;
+};
+
 const stopRecord = async (task) => {
   try {
     await ElMessageBox.confirm(
@@ -218,7 +231,12 @@ const stopRecord = async (task) => {
       }
     )
     
-    await recordAPI.stopRecord({ taskId: task.taskId })
+    const parsed = parseStreamPath(task.path);
+    await recordAPI.stopRecord({
+        taskId: task.taskId,
+        appName: parsed ? parsed.appName : "",
+        streamName: parsed ? parsed.streamName : ""
+    })
     ElMessage.success('录制任务停止成功')
     loadRecordTasks()
   } catch (error) {

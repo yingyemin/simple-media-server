@@ -103,8 +103,8 @@ bool H266Frame::isNewNalu()
     if(bytes < 3)
         return false;
     
-    nal_type = (nalu[0] >> 1) & 0x3f;
-    nuh_layer_id = ((nalu[0] & 0x01) << 5) | ((nalu[1] >> 3) &0x1F);
+    nal_type = (nalu[1] >> 3) & 0x1f;
+    nuh_layer_id = nalu[0] & 0x3F;
     
     // 7.4.2.4.4 Order of NAL units and coded pictures and their association to access units
     if (H266_AUD == nal_type || H266_OPI == nal_type || H266_DCI == nal_type || 

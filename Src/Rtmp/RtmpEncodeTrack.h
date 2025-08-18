@@ -22,7 +22,7 @@ public:
     void onRtmpPacket(const RtmpMessage::Ptr& pkt, bool start);
     void onFrame(const FrameBuffer::Ptr& frame);
     void startEncode();
-    string getConfig() {return _encoder->getConfig();}
+    string getConfig();
 
     void setOnRtmpPacket(const function<void(const RtmpMessage::Ptr& rtp, bool start)>& cb) {_onRtmpPacket = cb;}
 

@@ -20,6 +20,7 @@
 using namespace std;
 
 #define EPOLL_SIZE 1024
+#define USE_EPOLL_WAKEUP 0
 
 static thread_local std::weak_ptr<EventLoop> gCurrentLoop;
 
@@ -34,12 +35,14 @@ static int createEventfd(){
 EventLoop::EventLoop()
 {
     _epollFd = epoll_create(EPOLL_SIZE);
+#if USE_EPOLL_WAKEUP
     _wakeupFd = createEventfd();
+#endif
 
-    for (int i = 0; i < 10; i++) {
-        shared_ptr<ReaderWriterQueue<asyncEventFunc>> que = make_shared<ReaderWriterQueue<asyncEventFunc>>(10);
-        _asyncQueues.push_back(que);
-    }
+    // for (int i = 0; i < 10; i++) {
+    //     shared_ptr<ReaderWriterQueue<asyncEventFunc>> que = make_shared<ReaderWriterQueue<asyncEventFunc>>(10);
+    //     _asyncQueues.push_back(que);
+    // }
     logInfo << "_wakeupFd: " << _wakeupFd;
 }
 
@@ -69,8 +72,9 @@ void EventLoop::start()
 
     gCurrentLoop = shared_from_this();
     logInfo << "EventLoop::start(): " << gCurrentLoop.lock();
-
+#if USE_EPOLL_WAKEUP
     addEvent(_wakeupFd, EPOLLIN, [this](int event, void* args){ onAsyncEvent(); }, nullptr);
+#endif
     _timer = make_shared<Timer>();
 
     _runTime = TimeClock::now();
@@ -79,6 +83,9 @@ void EventLoop::start()
         loopStrat = TimeClock::now();
 
         uint64_t minDelay = _timer->flushTimerTask();
+#if !USE_EPOLL_WAKEUP
+        onAsyncEvent();
+#endif
         // logTrace << "next epoll run time: " << minDelay;
         _delayTaskDuration = TimeClock::now() - loopStrat;
 
@@ -89,7 +96,8 @@ void EventLoop::start()
         // logTrace << "_waitTime: " << _waitTime;
         _lastRunDuration = _waitTime - _runTime;
 
-        int ret = epoll_wait(_epollFd, events, EPOLL_SIZE, minDelay ? minDelay : -1);
+        // int ret = epoll_wait(_epollFd, events, EPOLL_SIZE, minDelay ? minDelay : -1);
+        int ret = epoll_wait(_epollFd, events, EPOLL_SIZE, minDelay < 40 ? minDelay : 40);
 
         _eventRun = true;
         _runTime = TimeClock::now();
@@ -216,13 +224,15 @@ void EventLoop::async(asyncEventFunc func, bool sync, bool front)
     }
     _asyncQueues[id]->enqueue(func);
 #endif
-    //写数据到管道,唤醒主线程
+
+#if USE_EPOLL_WAKEUP
+    // 写数据到管道,唤醒主线程
     uint64_t  one = 1111;
     ssize_t n = write(_wakeupFd, &one, sizeof(one));
     if(n != sizeof(one)) {
         logWarn << "write wakeup Fd failed, n: " << n << ", _wakeupFd: " << _wakeupFd;
     }
-
+#endif
 }
 
 inline void EventLoop::onAsyncEvent()
@@ -237,8 +247,10 @@ inline void EventLoop::onAsyncEvent()
     //         continue;
     //     }
     // }
-
+#if USE_EPOLL_WAKEUP
     read(_wakeupFd, &one, sizeof(one));
+#endif
+
 #if 1
     decltype(_asyncEvents) _enventSwap;
     {

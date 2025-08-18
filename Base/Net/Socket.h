@@ -78,6 +78,7 @@ public:
     int connect(const string& peetIp, int port, int timeout = 5);
 
     int getFd() {return _fd;}
+    uint64_t getCreateTime() {return _createTime;}
     int getLocalPort();
     string getLocalIp();
     void getLocalInfo();
@@ -128,13 +129,14 @@ private:
     int _type = 1;
     int _localPort = -1;
     int _peerPort = -1;
+    uint64_t _createTime = 0;
     size_t _remainSize = 0;
     string _localIp;
     string _peerIp;
     sockaddr_in _peerAddr4;
     sockaddr_in6 _peerAddr6;
     SocketBuffer::Ptr _sendBuffer;
-    list<SocketBuffer::Ptr> _readyBuffer;
+    deque<SocketBuffer::Ptr> _readyBuffer;
     EventLoop::Ptr _loop;
     onReadCb _onRead;
     onWriteCb _onWrite;

@@ -86,8 +86,8 @@
         </el-table-column>
         <el-table-column prop="type" label="类型" width="80">
           <template #default="scope">
-            <el-tag :type="scope.row.type === 'push' ? 'success' : 'info'">
-              {{ scope.row.type === 'push' ? '推流' : '拉流' }}
+            <el-tag :type="scope.row.action === 'push' ? 'success' : 'info'">
+              {{ scope.row.action === 'push' ? '推流' : '拉流' }}
             </el-tag>
           </template>
         </el-table-column>
@@ -207,6 +207,7 @@
       <el-table :data="streamClients" v-loading="clientLoading" style="width: 100%">
         <el-table-column prop="ip" label="IP地址" width="150" />
         <el-table-column prop="port" label="端口" width="100" />
+        <el-table-column prop="protocol" label="协议" width="100" />
         <el-table-column prop="bitrate" label="码率" width="120">
           <template #default="scope">
             <span>{{ formatBitrate(scope.row.bitrate) }}</span>
@@ -268,7 +269,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { streamAPI, rtspAPI, rtmpAPI, webrtcAPI, srtAPI } from '@/api'
 import { useRealtime } from '@/composables/useRealtime'
@@ -398,14 +399,15 @@ const refreshStreams = async () => {
 }
 
 const getTotalPlayerCount = (stream) => {
-  try {
-    if (!stream.muxer) return 0
-    return stream.muxer.reduce((total, mux) => total + (mux.playerCount || 0), 0)
-  } catch (error) {
-    console.error('计算总观看数时出错:', error)
-    ElMessage.error('计算总观看数时出错: ' + error.message)
-    return 0
-  }
+  return stream.totalPlayerCount
+  //try {
+  //  if (!stream.muxer) return 0
+  //  return stream.muxer.reduce((total, mux) => total + (mux.playerCount || 0), 0)
+  //} catch (error) {
+  //  console.error('计算总观看数时出错:', error)
+  //  ElMessage.error('计算总观看数时出错: ' + error.message)
+  //  return 0
+  //}
 }
 
 const getStreamStatus = (stream) => {
@@ -487,7 +489,11 @@ const showClientList = async (stream) => {
     clientDialogVisible.value = true
 
     const data = await streamAPI.getClientList({ path: stream.path })
-    streamClients.value = data.client || []
+    //streamClients.value = data.client || []
+    streamClients.value = (data.client || []).map(client => ({
+      ...client,
+      path: stream.path  // 附加当前流的path参数
+    }))
   } catch (error) {
     console.error('获取客户端列表失败:', error)
     ElMessage.error('获取客户端列表失败: ' + error.message)
@@ -522,8 +528,10 @@ const closeStream = async (stream) => {
 const closeClient = async (client) => {
   try {
     await streamAPI.closeClient({
-      ip: client.ip,
-      port: client.port
+      clientIp: client.ip,
+      clientPort: client.port,
+      path: client.path,
+      protocol: client.protocol
     })
     ElMessage.success('客户端断开成功')
     showClientList(currentStream.value)
@@ -710,7 +718,10 @@ const showPlayDialog = (stream) => {
   // 初始化播放器前先清除上次的视频元素
   clearVideoElement()
   // 初始化播放器
-  initFlvPlayer()
+  // 使用nextTick确保DOM渲染完成后再初始化播放器
+  nextTick(() => {
+    initFlvPlayer()
+  })
 }
 
 // 关闭播放对话框
@@ -745,7 +756,10 @@ const initFlvPlayer = () => {
   if (!currentPlayStream.value) return
 
   const videoContainer = document.getElementById('flv-player-container')
-  if (!videoContainer) return
+  if (!videoContainer) {
+    ElMessage.error('播放容器不存在')
+    return
+  }
 
   videoElement = document.createElement('video')
   videoElement.style.width = '100%'
@@ -754,14 +768,24 @@ const initFlvPlayer = () => {
   videoContainer.appendChild(videoElement)
 
   if (flvjs.isSupported()) {
+    const urlObj = new URL(window.location.origin);
+    const baseUrl = `${urlObj.protocol}//${urlObj.hostname}:8080${currentPlayStream.value.path}.flv`;
     flvPlayer = flvjs.createPlayer({
       type: 'flv',
       // 请替换为实际的 FLV 流地址
-      url: `http://172.24.6.4:8080${currentPlayStream.value.path}.flv`
+      url: `${baseUrl}`
     })
     flvPlayer.attachMediaElement(videoElement)
     flvPlayer.load()
-    flvPlayer.play()
+    flvPlayer.play().catch(error => {
+      ElMessage.error(`播放失败: ${error.message}`)
+      console.error('播放错误:', error)
+    })
+    // 添加错误监听
+    flvPlayer.on('error', (error) => {
+      ElMessage.error(`播放器错误: ${error}`)
+      console.error('播放器错误:', error)
+    })
   } else {
     ElMessage.error('当前浏览器不支持播放 FLV 流')
   }

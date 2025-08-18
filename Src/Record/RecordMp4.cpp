@@ -14,8 +14,8 @@
 using namespace std;
 
 RecordMp4::RecordMp4(const UrlParser& urlParser, const RecordTemplate::Ptr& recordTemplate)
-    :_template(recordTemplate)
 {
+    _template = recordTemplate;
     _urlParser = urlParser;
 }
 

@@ -4,7 +4,7 @@
 #include "SrtApi.h"
 #include "Logger.h"
 #include "Util/String.h"
-#include "Common/ApiUtil.h"
+#include "Http/ApiUtil.h"
 #include "Srt/SrtClient.h"
 
 #include <unordered_map>

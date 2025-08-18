@@ -72,6 +72,27 @@ FrameBuffer::Ptr FrameBuffer::createFrame(const string& codecName, int startSize
     }
 }
 
+int FrameBuffer::getVideoStartSize(const uint8_t* data, int len)
+{
+    if (len < 4) {
+        return 0;
+    }
+
+    if (*(uint16_t*)data != 0) {
+        return 0;
+    }
+
+    if (data[2] == 1) {
+        return 3;
+    }
+
+    if (*(uint16_t*)(data + 2) == 0x1000) {
+        return 4;
+    }
+
+    return 0;
+}
+
 void FrameBuffer::registerFrame(const string& codecName, const funcCreateFrame& func)
 {
     _mapCreateFrame[codecName] = func;

@@ -16,7 +16,7 @@
 #include "Util/Base64.h"
 #include "Ssl/SHA1.h"
 #include "Common/HookManager.h"
-#include "Common/ApiUtil.h"
+#include "ApiUtil.h"
 
 using namespace std;
 
@@ -168,7 +168,7 @@ void HttpConnection::onHttpRequest()
         logDebug << "origin _parser._url: " << _parser._url;
 
         _parser._url = "http://" + _socket->getLocalIp() + ":" + to_string(_socket->getLocalPort())
-                        + _parser._url;
+                        + UrlParser::urlDecode(_parser._url);
 
         logDebug << "_parser._url: " << _parser._url;
         UrlParser tmp;

@@ -108,6 +108,7 @@
 #include "Util/Thread.h"
 #include "Common/Heartbeat.h"
 #include "Common/Define.h"
+#include "Util/String.h"
 
 #include <unistd.h>
 #include <string.h>
@@ -787,7 +788,14 @@ bool CustomInput::onFrame(const uint8_t* data, int size, int64_t pts, int64_t dt
             return false;
         }
 
-        frameBuffer = FrameBuffer::createFrame(_videoCodec, 4, VideoTrackType, 0);
+        int startSize = 0;
+        if (readUint32BE((char*)data) == 1) {
+            startSize = 4;
+        } else if (readUint24BE((char*)data) == 1) {
+            startSize = 3;
+        }
+
+        frameBuffer = FrameBuffer::createFrame(_videoCodec, startSize, VideoTrackType, !startSize);
     } else {
         if (_audioCodec.empty()) {
             return false;
@@ -816,7 +824,10 @@ bool CustomInput::onFrame(const uint8_t* data, int size, int64_t pts, int64_t dt
             return ;
         }
 
-        frameSrc->onFrame(frameBuffer);
+        frameBuffer->split([frameSrc](FrameBuffer::Ptr frame){
+            frameSrc->onFrame(frame);
+        });
+        
     }, true);
 
     return true;

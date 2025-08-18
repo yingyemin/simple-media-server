@@ -5,7 +5,7 @@
 
 using namespace std;
 
-int getAacFalg(const shared_ptr<TrackInfo>& trackInfo)
+static int getAacFalg(const shared_ptr<TrackInfo>& trackInfo)
 {
     int audioType = RTMP_CODEC_ID_AAC;
     int sampleRate = trackInfo->samplerate_;

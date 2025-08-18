@@ -137,11 +137,11 @@
           <el-table :data="recentStreams" style="width: 100%" max-height="300">
             <el-table-column prop="path" label="流路径" width="200" />
             <el-table-column prop="protocol" label="协议" width="80" />
-            <el-table-column prop="playerCount" label="观看数" width="80" />
+            <el-table-column prop="totalPlayerCount" label="观看数" width="80" />
             <el-table-column prop="status" label="状态" width="80">
               <template #default="scope">
-                <el-tag :type="scope.row.status === 'active' ? 'success' : 'danger'">
-                  {{ scope.row.status === 'active' ? '活跃' : '停止' }}
+                <el-tag :type="scope.row.totalPlayerCount > 0 ? 'success' : 'danger'">
+                  {{ scope.row.totalPlayerCount > 0 ? '活跃' : '停止' }}
                 </el-tag>
               </template>
             </el-table-column>
@@ -273,7 +273,8 @@ const formatUptime = (uptime) => {
   if (!uptime) return '0天'
   const days = Math.floor(uptime / 86400)
   const hours = Math.floor((uptime % 86400) / 3600)
-  return `${days}天${hours}小时`
+  const m = Math.floor(((uptime % 86400) % 3600) / 60)
+  return `${days}天${hours}小时${m}分钟`
 }
 
 const formatTime = (timestamp) => {
@@ -312,8 +313,8 @@ const loadStreamStats = async () => {
       recentStreams.value = data.sources.slice(0, 10).map(stream => ({
         path: stream.path,
         protocol: stream.protocol,
-        playerCount: stream.playerCount || 0,
-        status: stream.playerCount > 0 ? 'active' : 'inactive'
+        playerCount: stream.totalPlayerCount || 0,
+        status: stream.totalPlayerCount > 0 ? 'active' : 'inactive'
       }))
     }
 

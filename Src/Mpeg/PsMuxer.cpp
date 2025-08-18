@@ -26,6 +26,13 @@ void PsMuxer::onFrame(const FrameBuffer::Ptr& frame)
         return ;
     }
 
+    // if (frame->getTrackType() == VideoTrackType) {
+    //     logInfo << "nal type: " << (int)frame->getNalType() << ", pts: " << frame->pts();
+    //     FILE* fp = fopen("testmux.h266", "ab+");
+    //     fwrite(frame->data(), 1, frame->size(), fp);
+    //     fclose(fp);
+    // }
+
     // framesouce 里已经添加了sps等帧，这里不再重复添加
     // if (frame->metaFrame()) {
     //     _sendMetaFrame = true;
@@ -84,6 +91,8 @@ void PsMuxer::addTrackInfo(const shared_ptr<TrackInfo>& trackInfo)
             _videoCodec = STREAM_TYPE_VIDEO_VP9;
         } else if (trackInfo->codec_ == "av1") {
             _videoCodec = STREAM_TYPE_VIDEO_AV1;
+        } else if (trackInfo->codec_ == "h266") {
+            _videoCodec = STREAM_TYPE_VIDEO_H266;
         } else {
             throw runtime_error("unsupport video codec: " + trackInfo->codec_);
         }

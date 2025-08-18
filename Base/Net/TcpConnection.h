@@ -32,6 +32,7 @@ public:
     virtual void init() {}
     virtual void close();
     virtual ssize_t send(Buffer::Ptr pkt);
+    virtual uint64_t getCreateTime() {return _socket->getCreateTime();}
 
     // session结束时，从tcpserver中删除
     void setCloseCallback(closeCb cb) {_closeCb = cb;}

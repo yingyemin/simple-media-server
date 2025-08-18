@@ -30,7 +30,8 @@ public:
 public:
     bool start() override;
     void stop() override;
-    void setOnClose(const function<void()>& cb);
+    void setOnClose(const function<void()>& cb) override;
+    std::string getFormat() override {return "ps";}
 
 private:
     void onError(const string& err);
@@ -42,7 +43,6 @@ private:
     uint64_t _recordDuration = 0;
     TimeClock _clock;
     std::shared_ptr<File> _file;
-    RecordTemplate::Ptr _template;
     EventLoop::Ptr _loop;
     WorkLoop::Ptr _workLoop;
     PsMediaSource::Wptr _source;

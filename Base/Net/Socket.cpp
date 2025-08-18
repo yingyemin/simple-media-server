@@ -77,6 +77,7 @@ Socket::Socket(const EventLoop::Ptr& loop)
     ,_sendBuffer(make_shared<SocketBuffer>())
 {
     logTrace << "Socket(" << this << ")";
+    _createTime = time(NULL);
 }
 
 Socket::Socket(const EventLoop::Ptr& loop, int fd)
@@ -85,6 +86,7 @@ Socket::Socket(const EventLoop::Ptr& loop, int fd)
     ,_sendBuffer(make_shared<SocketBuffer>())
 {
     logTrace << "Socket(" << this << ")";
+    _createTime = time(NULL);
 }
 
 Socket::~Socket()
@@ -101,8 +103,14 @@ sockaddr_storage Socket::createSocket(const string& peerIp, int peerPort, int ty
     if (netType == NET_IPV6) {
         ss_family = AF_INET6;
     }
+    
+    int ipproto = IPPROTO_TCP;
+    if (type == SOCKET_UDP) {
+        ipproto = IPPROTO_UDP;
+    }
+
     //优先使用ipv4地址
-    if (!DnsCache::instance().getDomainIP(peerIp.data(), peerPort, addr, ss_family, SOCK_STREAM, IPPROTO_TCP)) {
+    if (!DnsCache::instance().getDomainIP(peerIp.data(), peerPort, addr, ss_family, SOCK_STREAM, ipproto)) {
         //dns解析失败
         logError << "get domain ip failed";
         return addr;

@@ -5,6 +5,7 @@
 #include "Codec/H264Frame.h"
 #include "Codec/H264Track.h"
 #include "Codec/H265Frame.h"
+#include "Codec/H266Frame.h"
 #include "Codec/H265Track.h"
 #include "Log/Logger.h"
 
@@ -57,7 +58,7 @@ void Fmp4Demuxer::onFrame(const StreamBuffer::Ptr& buffer, int trackIndex, int p
 
     auto trackInfo = _mapTrackInfo[trackIndex];
     FrameBuffer::Ptr frame;
-    if (trackInfo->codec_ == "h265" || trackInfo->codec_ == "h264") {
+    if (trackInfo->codec_ == "h265" || trackInfo->codec_ == "h264" || trackInfo->codec_ == "h266") {
         uint32_t offset = 0;
         uint64_t bytes = buffer->size();
         auto data = buffer->data();
@@ -72,8 +73,10 @@ void Fmp4Demuxer::onFrame(const StreamBuffer::Ptr& buffer, int trackIndex, int p
             memcpy(data + offset, "\x0\x0\x0\x1", 4);
             if (trackInfo->codec_ == "h265" ) {
                 frame = make_shared<H265Frame>();
-            } else {
+            } else if (trackInfo->codec_ == "h264") {
                 frame = make_shared<H264Frame>();
+            } else if (trackInfo->codec_ == "h266") {
+                frame = make_shared<H266Frame>();
             }
             frame->_buffer.assign("\x0\x0\x0\x1", 4);
             frame->_buffer.append(data + offset + 4, frame_len);

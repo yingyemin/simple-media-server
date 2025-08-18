@@ -1,8 +1,8 @@
 ﻿#ifdef ENABLE_RTMP
 
 #include "RtmpApi.h"
-#include "Common/ApiUtil.h"
-#include "Common/ApiResponse.h"
+#include "Http/ApiUtil.h"
+#include "Http/ApiResponse.h"
 #include "Logger.h"
 #include "Common/Config.h"
 #include "Util/String.h"

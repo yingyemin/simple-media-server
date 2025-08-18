@@ -52,6 +52,7 @@ public:
 public:
     virtual string getSdp() { return "";}
     virtual string getConfig() {return "";}
+    virtual void setConfig(const string& config) {}
     virtual void getWidthAndHeight(int& width, int& height, int& fps) {}
     virtual bool isBFrame(unsigned char* data, int size) {return false;}
     virtual void getVpsSpsPps(FrameBuffer::Ptr& vps, FrameBuffer::Ptr& sps, FrameBuffer::Ptr& pps)

@@ -51,6 +51,7 @@ static const int RTMP_AVC_SEQUENCE_HEADER = 0x18;
 static const int RTMP_AAC_SEQUENCE_HEADER = 0x19;
 
 static uint32_t fourccH265 = (unsigned)('h') << 24 | 'v' << 16 | 'c' << 8 | '1';
+static uint32_t fourccH266 = (unsigned)('v') << 24 | 'v' << 16 | 'c' << 8 | '2';
 static uint32_t fourccAV1 = (unsigned)('a') << 24 | 'v' << 16 | '0' << 8 | '1';
 static uint32_t fourccVP9 = (unsigned)('v') << 24 | 'p' << 16 | '0' << 8 | '9';
 

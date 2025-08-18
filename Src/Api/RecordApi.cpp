@@ -1,6 +1,6 @@
 ﻿#ifdef ENABLE_RECORD
 
-#include "Common/ApiUtil.h"
+#include "Http/ApiUtil.h"
 #include "Logger.h"
 #include "Common/Config.h"
 #include "Util/String.h"
@@ -104,6 +104,11 @@ void RecordApi::listRecord(const HttpParser& parser, const UrlParser& urlParser,
         auto urlParser = record->getUrlParser();
         recordInfo["path"] = urlParser.path_;
         recordInfo["taskId"] = record->getTaskId();
+        recordInfo["format"] = record->getFormat();
+        recordInfo["status"] = record->getStatus();
+        auto temp = record->getTemplate();
+        recordInfo["duration"] = temp->duration;
+        recordInfo["createTime"] = record->getCreateTime() * 1000;
 
         value["records"].push_back(recordInfo);
         ++count;

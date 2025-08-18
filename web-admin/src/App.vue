@@ -36,7 +36,7 @@
               <span>流媒体管理</span>
             </template>
             <el-menu-item index="/streams/list">流列表</el-menu-item>
-            <el-menu-item index="/streams/clients">客户端管理</el-menu-item>
+            <!-- <el-menu-item index="/streams/clients">客户端管理</el-menu-item> -->
           </el-sub-menu>
 
           <el-sub-menu index="protocols">
@@ -63,7 +63,7 @@
             <el-menu-item index="/record/vod">点播管理</el-menu-item>
           </el-sub-menu>
 
-          <el-sub-menu index="monitor">
+          <!-- <el-sub-menu index="monitor">
             <template #title>
               <el-icon><DataAnalysis /></el-icon>
               <span>系统监控</span>
@@ -71,7 +71,7 @@
             <el-menu-item index="/monitor/server">服务器状态</el-menu-item>
             <el-menu-item index="/monitor/loops">事件循环</el-menu-item>
             <el-menu-item index="/monitor/performance">性能统计</el-menu-item>
-          </el-sub-menu>
+          </el-sub-menu> -->
         </el-menu>
       </el-aside>
 

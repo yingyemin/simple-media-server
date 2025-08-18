@@ -87,6 +87,7 @@ protected:
     size_t mov_write_hvcc();
     size_t mov_write_av1c();
     size_t mov_write_vpcc();
+    size_t mov_write_vvcc();
     size_t mov_write_dops();
 
 protected:

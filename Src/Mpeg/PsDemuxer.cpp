@@ -9,6 +9,7 @@
 #include "Codec/H265Track.h"
 #include "Codec/H264Frame.h"
 #include "Codec/H265Frame.h"
+#include "Codec/H266Frame.h"
 #include "Mpeg.h"
 #include "EventPoller/EventLoop.h"
 
@@ -410,6 +411,14 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
                         _videoCodec = "vp9";
                     } else if (_video_es_type == STREAM_TYPE_VIDEO_AV1) {
                         _videoCodec = "av1";
+                    } else if (_video_es_type == STREAM_TYPE_VIDEO_MPEG1) {
+                        _videoCodec = "mpeg1";
+                    } else if (_video_es_type == STREAM_TYPE_VIDEO_MPEG2) {
+                        _videoCodec = "mpeg2";
+                    } else if (_video_es_type == STREAM_TYPE_VIDEO_MPEG4) {
+                        _videoCodec = "mpeg4";
+                    } else if (_video_es_type == STREAM_TYPE_VIDEO_H266) {
+                        _videoCodec = "h266";
                     }
                     addTrackInfo(TrackInfo::createTrackInfo(_videoCodec));
                 }
@@ -1145,6 +1154,13 @@ void PsDemuxer::onDecode(const FrameBuffer::Ptr& frame, int index, uint64_t pts,
                 //     // logInfo << "gb28181 _onReady";
                 //     onReady(VideoTrackType);
                 // }
+                if (_onFrame) {
+                    _onFrame(subFrame);
+                }
+            });
+        } else if (_videoCodec == "h266") {
+            auto h266frame = dynamic_pointer_cast<H266Frame>(frame);
+            h266frame->split([this](const FrameBuffer::Ptr &subFrame){
                 if (_onFrame) {
                     _onFrame(subFrame);
                 }

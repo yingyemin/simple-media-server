@@ -40,6 +40,7 @@ public:
 
     virtual bool isNonPicNalu() {return false;}
 
+    static int getVideoStartSize(const uint8_t* data, int len);
     
     static FrameBuffer::Ptr createFrame(const string& codecName, int startSize, int index, bool addStart);
     

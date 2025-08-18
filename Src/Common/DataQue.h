@@ -31,6 +31,7 @@ class ClientInfo
 {
 public:
     int port_;
+    uint64_t createTime_ = 0;
     float bitrate_;
     string ip_;
     string protocol_;
@@ -212,7 +213,7 @@ private:
 private:
     std::mutex _mtx_map;
     std::atomic_int _total_count { 0 };
-    std::atomic_uint64_t _total_bytes { 0 };
+    std::atomic<uint64_t> _total_bytes { 0 };
     typename DataQueStorageT::Ptr _storage;
     std::unordered_map<void*, onWriteFunc> _on_write_map;
     onReaderChanged _on_reader_changed;
@@ -645,9 +646,11 @@ std::shared_ptr<DataQueReader<T>> DataQue<T>::attach(const EventLoop::Ptr &loop,
         if (!ref) {
             std::weak_ptr<DataQue<T>> weak_self = this->shared_from_this();
             auto onSizeChanged = [weak_self, loop](int size, bool add_flag) {
-                if (auto strong_self = weak_self.lock()) {
-                    strong_self->onSizeChanged(loop, size, add_flag);
-                }
+                loop->async([weak_self, size, add_flag, loop]() {
+                    if (auto strong_self = weak_self.lock()) {
+                        strong_self->onSizeChanged(loop, size, add_flag);
+                    }
+                }, false);
             };
             auto onDealloc = [loop](DataQueReaderDispatcher<T> *ptr) { loop->async([ptr]() { delete ptr; }, true, true); };
             ref.reset(new DataQueReaderDispatcher<T>(_storage->clone(), std::move(onSizeChanged)), std::move(onDealloc));

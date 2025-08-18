@@ -179,6 +179,8 @@ private:
 
     mutex _mtxOnDetachFunc;
     unordered_map<void*, onDetachFunc> _mapOnDetachFunc;
+
+    list<FrameBuffer::Ptr> _frameList;
 };
 
 

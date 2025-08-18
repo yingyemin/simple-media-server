@@ -30,8 +30,8 @@ public:
     void addContext(const string& key, const WebrtcContext::Ptr& context);
     WebrtcContext::Ptr getContext(const string& key);
     void delContext(const string& key);
-    void delContext(uint64_t hash);
-    WebrtcContext::Ptr getContext(uint64_t hash);
+    void delContextByHash(const std::string& hash);
+    WebrtcContext::Ptr getContextByHash(const std::string& hash);
 
 private:
     void onStunPacket(const Socket::Ptr& socket, const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len);
@@ -46,7 +46,7 @@ private:
     unordered_map<string, WebrtcContext::Ptr> _mapContext;
 
     mutex _addrToContextLck;
-    unordered_map<uint64_t, WebrtcContext::Ptr> _mapAddrToContext;
+    unordered_map<std::string, WebrtcContext::Ptr> _mapAddrToContext;
 };
 
 #endif //GB28181Manager_h

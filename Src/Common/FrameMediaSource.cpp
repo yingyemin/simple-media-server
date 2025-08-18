@@ -71,7 +71,7 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
         if (frame->getTrackType() == VideoTrackType) {
             _lastFrameTime = now;
             // ++_frameCount;
-            // logInfo << "nal type: " << (int)frame->getNalType();
+            // logInfo << "nal type: " << (int)frame->getNalType() << ", pts: " << frame->pts();
             if (frame->isNonPicNalu()) {
                 return ;
             }
@@ -115,16 +115,16 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
                     _keyframe = _frame;
                     _gopTime = now - _lastKeyframeTime;
                     _lastKeyframeTime = now;
-                    if (_frame->codec() == "h264" || _frame->codec() == "h265") {
+                    if (_frame->codec() == "h264" || _frame->codec() == "h265" || _frame->codec() == "h266") {
                         if (!_sendConfig) {
                             FrameBuffer::Ptr vps;
                             FrameBuffer::Ptr sps;
                             FrameBuffer::Ptr pps;
                             _mapTrackInfo[_frame->_index]->getVpsSpsPps(vps, sps, pps);
 
-                            if (_mapTrackInfo[_frame->_index]->codec_ == "h264") {
+                            if (!vps) {
                                 keyframe = true;
-                            } else if (_mapTrackInfo[_frame->_index]->codec_ == "h265") {
+                            } else {
                                 keyframe = false;
                                 vps->_dts = _frame->_dts;
                                 vps->_pts = _frame->_pts;

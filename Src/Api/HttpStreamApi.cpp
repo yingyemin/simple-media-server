@@ -1,5 +1,5 @@
 ﻿#include "HttpStreamApi.h"
-#include "Common/ApiUtil.h"
+#include "Http/ApiUtil.h"
 #include "Logger.h"
 #include "Common/Config.h"
 #include "Util/String.h"

@@ -12,7 +12,7 @@ unordered_map<string/*uri*/, unordered_map<string/*taskid*/, Record::Ptr>> Recor
 
 Record::Record()
 {
-
+    _createTime = time(nullptr);
 }
 
 Record::~Record()

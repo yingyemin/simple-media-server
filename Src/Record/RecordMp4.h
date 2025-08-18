@@ -29,7 +29,8 @@ public:
 public:
     bool start() override;
     void stop() override;
-    void setOnClose(const function<void()>& cb);
+    void setOnClose(const function<void()>& cb) override;
+    std::string getFormat() override {return "mp4";}
 
 private:
     void onError(const string& err);
@@ -42,7 +43,6 @@ private:
     uint64_t _recordDuration = 0;
     File _file;
     TimeClock _clock;
-    RecordTemplate::Ptr _template;
     Mp4FileWriter::Ptr _mp4Writer;
     EventLoop::Ptr _loop;
     WorkLoop::Ptr _workLoop;

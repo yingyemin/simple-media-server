@@ -250,10 +250,10 @@ void HlsMuxer::updateM3u8()
 		lock_guard<mutex> lck(_tsMtx);
 		_mapTs.emplace(mkey, _tsBuffer);
 
-		string name = "." + mkey;
-		auto fp = fopen(name.data(), "wb");
-		fwrite(_tsBuffer->data(), _tsBuffer->size(), 1, fp);
-		fclose(fp);
+		// string name = "." + mkey;
+		// auto fp = fopen(name.data(), "wb");
+		// fwrite(_tsBuffer->data(), _tsBuffer->size(), 1, fp);
+		// fclose(fp);
 		
 		logDebug << "add ts: " << mkey;
 		while (_mapTs.size() > tsNum) {
