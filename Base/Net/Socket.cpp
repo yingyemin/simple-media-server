@@ -13,6 +13,9 @@
 #include <netinet/tcp.h>
 #include <fcntl.h>
 #include <sys/epoll.h>
+#include <ifaddrs.h>
+#include <algorithm>
+#include <linux/vm_sockets.h>
 
 using namespace std;
 
@@ -177,6 +180,7 @@ int Socket::createTcpSocket(int family)
     setCloseWait();
     setCloExec();
     setIpv6Only(false);
+    setZeroCopy();
 
     return 0;
 }
@@ -199,6 +203,7 @@ int Socket::createUdpSocket(int family)
     setCloseWait();
     setCloExec();
     setIpv6Only(false);
+    setZeroCopy();
 
     logTrace << "create a udp socket: " << _fd;
 
@@ -235,6 +240,25 @@ int Socket::setIpv6Only(bool enable)
     }
     
     return ret;
+}
+
+int Socket::setZeroCopy()
+{
+#if defined(MSG_ZEROCOPY) &&	\
+    defined(SO_ZEROCOPY) &&	\
+    defined(SOL_SOCKET) && 0
+    int enable;
+    int ret = setsockopt(_fd, SOL_SOCKET, SO_ZEROCOPY, &enable, sizeof(enable));
+    if (ret == -1)
+    {
+        logWarn << "setsockopt SO_ZEROCOPY failed: " << strerror(errno);
+    }
+    
+    return ret;
+#else
+    logInfo << "socket not support zero copy";
+    return 0;
+#endif
 }
 
 int Socket::setNoSigpipe()
@@ -742,13 +766,21 @@ ssize_t Socket::send(const Buffer::Ptr pkt, int flag, int offset, int length, st
 
         ssize_t sendSize = 0;
         do {
+            int sendFlag = MSG_DONTWAIT | MSG_NOSIGNAL;
             struct msghdr msg = {0};
             msg.msg_iov = &(sendBuffer->vecBuffer[0]);
             msg.msg_iovlen = sendBuffer->vecBuffer.size();
             msg.msg_name = sendBuffer->addr;
             msg.msg_namelen = sendBuffer->addr_len;
-            
-            sendSize = sendmsg(_fd, &msg, MSG_DONTWAIT | MSG_NOSIGNAL);
+
+#if defined(MSG_ZEROCOPY) &&	\
+    defined(SO_ZEROCOPY) &&	\
+    defined(SOL_SOCKET) && 0
+            msg.msg_flags |= MSG_ZEROCOPY;
+            sendFlag |= MSG_ZEROCOPY;
+#endif
+
+            sendSize = sendmsg(_fd, &msg, sendFlag);
         } while (sendSize == -1 && errno == EINTR);
 
         // logInfo << "sendBuffer->length: " << sendBuffer->length;
@@ -824,6 +856,202 @@ ssize_t Socket::send(const Buffer::Ptr pkt, int flag, int offset, int length, st
     _remainSize -= totalSendSize;
     // logInfo << "_remainSize: " << _remainSize;
     // logInfo << "totalSendSize: " << totalSendSize;
+
+    if (_remainSize > 0) {
+        _loop->modifyEvent(_fd, EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR | 0, nullptr);
+    } else {
+        // 上层根据实际情况，是发后面的buffer，还是断开链接
+        // 可能会造成递归问题
+        onGetBuffer();
+    }
+
+    return totalSendSize;
+}
+
+// ssize_t Socket::sendZeroCopy(const Buffer::Ptr pkt, int flag, int offset, int length, struct sockaddr *addr, socklen_t addr_len)
+ssize_t Socket::sendZeroCopy(const Buffer::Ptr pkt, int flag, int offset, int length, struct sockaddr *addr, socklen_t addr_len)
+{
+    // static int pipeFd[2] = {0};
+    if (_pipeFd[0] == 0) {
+        pipe2(_pipeFd, O_NONBLOCK);
+        fcntl(_pipeFd[0], F_SETPIPE_SZ, 65536);
+        fcntl(_pipeFd[1], F_SETPIPE_SZ, 65536);
+    }
+
+    if (!_sendBuffer) {
+        return 0;
+    }
+    
+    if (!_loop->isCurrent()) { //切换到当前socket线程发送
+        Socket::Wptr wSelf = shared_from_this();
+        _loop->async([wSelf, pkt, flag, offset, length, addr, addr_len](){
+            auto self = wSelf.lock();
+            if (self) {
+                self->send(pkt, flag, offset, length, addr, addr_len);
+            }
+        }, true, true);
+        logInfo << "change thread";
+        return 0;
+    }
+    // 需要改为配置读取
+    // 超过缓存了，丢掉pkt
+    // 做丢包处理，按整包丢，避免tcp数据错位
+    bool dropFlag = flag;
+    bool originDrop = _drop;
+    if (_drop) {
+        // pkt = nullptr;
+    } else if (_remainSize > 10 * 1024 * 1024) {
+        // if (flag && _sendBuffer->length > 0) {
+        //     // _readyBuffer.push_back(_sendBuffer);
+        //     // _sendBuffer = make_shared<SocketBuffer>();
+        // } else {
+        //     // pkt = nullptr;
+        //     // flag = false;
+        // }
+        if (_sendBuffer->length > 0) {
+            _sendBuffer = make_shared<SocketBuffer>();
+        }
+        _drop = true;
+        if (flag) {
+            dropFlag = false;
+        }
+        logTrace << "overlow buffer: " << _remainSize;
+    }
+
+    // 已经过了一个整包，重新判断是否要丢包
+    if (dropFlag) {
+        _drop = false;
+    }
+
+    if (!originDrop) {
+        if (pkt && pkt->size() > 0) {
+            // logInfo << "send pkt size: " << pkt->size() << ", flag : " << flag;
+            iovec io;
+            int size = length ? length : (pkt->size() - offset);
+            io.iov_base = pkt->data() + offset;
+            io.iov_len = size;
+
+            _sendBuffer->vecBuffer.emplace_back(std::move(io));
+            _sendBuffer->rawBuffer.push_back(pkt);
+            _sendBuffer->length += size;
+            _sendBuffer->socket = shared_from_this();
+            _sendBuffer->addr = addr;
+            _sendBuffer->addr_len = addr_len;
+
+            _remainSize += size;
+        } else {
+            if (pkt) {
+                logTrace << "pkt size: " << 0 << ", flag : " << flag;
+            } else {
+                logTrace << "pkt empty, flag : " << flag;
+            }
+            // logInfo << "send pkt size: " << 0 << ", flag : " << flag;
+        }
+    }
+
+    if (flag || _sendBuffer->vecBuffer.size() > 1000) {
+        if (_sendBuffer->length > 0) {
+            _readyBuffer.push_back(_sendBuffer);
+        }
+        _sendBuffer = make_shared<SocketBuffer>();
+    }
+
+    int readySize = _readyBuffer.size();
+    if (readySize == 0) {
+        // logInfo << "_readyBuffer empty";
+        return 0;
+    }
+
+    // logInfo << "_remainSize: " << _remainSize;
+
+    ssize_t totalSendSize = 0;
+    for (int i = 0; i < readySize; ++i) {
+        auto& sendBuffer = _readyBuffer.front();
+        if (sendBuffer->length == 0) {
+            logTrace << "sendBuffer->length is 0";
+            _readyBuffer.pop_front();
+            continue;
+        }
+
+        ssize_t sendSize = 0;
+        do {
+            // struct msghdr msg = {0};
+            // msg.msg_iov = &(sendBuffer->vecBuffer[0]);
+            // msg.msg_iovlen = sendBuffer->vecBuffer.size();
+            // msg.msg_name = sendBuffer->addr;
+            // msg.msg_namelen = sendBuffer->addr_len;
+            
+            // sendSize = sendmsg(_fd, &msg, MSG_DONTWAIT | MSG_NOSIGNAL);
+
+            sendSize = vmsplice(_pipeFd[1], &(sendBuffer->vecBuffer[0]), 1, SPLICE_F_NONBLOCK); // 使用SPLICE_F_MORE表示还有更多数据要写。
+            if (sendSize == -1 && errno == EAGAIN) {
+                logError << "vmsplice error: " << strerror(errno);
+                continue;
+            } else if (sendSize == -1) {
+                logError << "vmsplice error: " << strerror(errno);
+                break;
+            } else if (sendSize > 0) {
+                logInfo << "vmsplice sendSize: " << sendSize;
+                logInfo << "vmsplice sendSize: " << sendSize;
+                ssize_t totalSpliced = 0;
+                // 修复1：循环splice直到所有数据被发送或发生错误
+                while (totalSpliced < sendSize) {
+                    ssize_t currentSpliced = splice(_pipeFd[0], NULL, _fd, NULL,
+                                                sendSize - totalSpliced, SPLICE_F_MOVE | SPLICE_F_NONBLOCK);
+                    if (currentSpliced == -1) {
+                        if (errno == EINTR) continue;
+                        if (errno == EAGAIN) {
+                            // 修复2：添加短暂延迟避免CPU空转
+                            // usleep(100);
+                            continue;
+                        }
+                        logError << "splice error: " << strerror(errno);
+                        break;
+                    }
+                    totalSpliced += currentSpliced;
+                    logInfo << "vmsplice totalSpliced: " << totalSpliced;
+                }
+                sendSize = totalSpliced;
+                logInfo << "vmsplice sendSize: " << sendSize;
+            }
+        } while (sendSize == -1 && errno == EINTR);
+
+        // logInfo << "sendBuffer->length: " << sendBuffer->length;
+        logInfo << "sendSize: " << sendSize;
+        // logInfo << "sendBuffer->vecBuffer[0].iov_base: " << (char*)sendBuffer->vecBuffer[0].iov_base;
+        logInfo << "sendBuffer->vecBuffer[0].iov_len: " << sendBuffer->vecBuffer[0].iov_len;
+
+        if (sendSize >= sendBuffer->length) {
+            // logInfo << "sendBuffer->length: " << sendBuffer->length;
+            totalSendSize += sendBuffer->length;
+            _readyBuffer.pop_front();
+            continue;
+        } else if (sendSize > 0) {
+            totalSendSize += sendSize;
+            for (auto it = sendBuffer->vecBuffer.begin(); it != sendBuffer->vecBuffer.end();) {
+                size_t size = it->iov_len;
+                if (sendSize >= size) {
+                    sendSize -= size;
+                    it = sendBuffer->vecBuffer.erase(it);
+                    // sendBuffer->rawBuffer.pop_front();
+                    sendBuffer->length -= size;
+                } else {
+                    it->iov_base = (char*)(it->iov_base) + sendSize;
+                    it->iov_len -= sendSize;
+                    sendBuffer->length -= sendSize;
+                    break;
+                }
+            }
+            logTrace << "sendBuffer->length: " << sendBuffer->length;
+            break;
+        } else {
+            break;
+        }
+    }
+
+    _remainSize -= totalSendSize;
+    logInfo << "_remainSize: " << _remainSize;
+    logInfo << "totalSendSize: " << totalSendSize;
 
     if (_remainSize > 0) {
         _loop->modifyEvent(_fd, EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR | 0, nullptr);
@@ -986,6 +1214,74 @@ std::pair<std::string, uint16_t> Socket::getIpAndPort(const struct sockaddr_stor
     }
 
     return {ip, port};
+}
+
+static bool isInterfaceUp(const std::string& ifname) {
+    int sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sock < 0) return false;
+
+    ifreq ifr;
+    strncpy(ifr.ifr_name, ifname.c_str(), IFNAMSIZ - 1);
+    ifr.ifr_name[IFNAMSIZ - 1] = '\0';
+
+    bool up = false;
+    if (ioctl(sock, SIOCGIFFLAGS, &ifr) == 0) {
+        up = (ifr.ifr_flags & IFF_UP) != 0;
+    }
+
+    close(sock);
+    return up;
+}
+
+std::vector<InterfaceInfo> Socket::getIfaceList(const std::string& ifacePrefix)
+{
+    std::vector<InterfaceInfo> interfaces;
+    ifaddrs *ifap = nullptr, *ifa = nullptr;
+
+    // 获取所有网络接口
+    if (getifaddrs(&ifap) == -1) {
+        logError << "获取网络接口失败: " << strerror(errno);
+        return interfaces;
+    }
+
+    // 遍历网络接口
+    for (ifa = ifap; ifa != nullptr; ifa = ifa->ifa_next) {
+        if (!ifa->ifa_addr) continue;
+
+        // 查找接口是否已存在
+        auto it = std::find_if(interfaces.begin(), interfaces.end(),
+            [&](const InterfaceInfo& info) { return info.name == ifa->ifa_name; });
+
+        InterfaceInfo* if_info = nullptr;
+        if (it == interfaces.end()) {
+            InterfaceInfo info;
+            info.name = ifa->ifa_name;
+            info.is_up = isInterfaceUp(ifa->ifa_name);
+            interfaces.push_back(info);
+            if_info = &interfaces.back();
+        } else {
+            if_info = &(*it);
+        }
+
+        // 获取IP地址
+        char ip_str[INET6_ADDRSTRLEN] = {0};
+        if (ifa->ifa_addr->sa_family == AF_INET) {
+            // IPv4地址
+            sockaddr_in* addr = reinterpret_cast<sockaddr_in*>(ifa->ifa_addr);
+            inet_ntop(AF_INET, &addr->sin_addr, ip_str, sizeof(ip_str));
+            if_info->ip = ip_str;
+            if_info->net_type = NET_IPV4;
+        } else if (ifa->ifa_addr->sa_family == AF_INET6) {
+            // IPv6地址
+            sockaddr_in6* addr = reinterpret_cast<sockaddr_in6*>(ifa->ifa_addr);
+            inet_ntop(AF_INET6, &addr->sin6_addr, ip_str, sizeof(ip_str));
+            if_info->ip = ip_str;
+            if_info->net_type = NET_IPV6;
+        }
+    }
+
+    freeifaddrs(ifap);
+    return interfaces;
 }
 
 int Socket::getSocketType()

@@ -48,6 +48,11 @@ EventLoop::EventLoop()
 
 EventLoop::~EventLoop()
 {
+    if (_wakeupFd != -1) {
+        close(_wakeupFd);
+        _wakeupFd = -1;
+    }
+    
     if (_epollFd != -1) {
         close(_epollFd);
         _epollFd = -1;

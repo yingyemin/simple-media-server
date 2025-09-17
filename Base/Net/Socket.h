@@ -21,6 +21,17 @@ enum NetType {
     NET_IPV6
 };
 
+class InterfaceInfo {
+public:
+    InterfaceInfo() = default;
+    ~InterfaceInfo() = default;
+
+    std::string name;           // 网卡名称
+    std::string ip; // IP地址
+    bool is_up;                 // 网卡是否启用
+    NetType net_type = NET_INVALID; // 网络类型
+};
+
 class Socket;
 
 class SocketBuffer
@@ -64,6 +75,7 @@ public:
 
     int setReuseable();
     int setIpv6Only(bool enable);
+    int setZeroCopy();
     int setNoSigpipe();
     int setNoBlocked();
     int setNoDelay();
@@ -104,6 +116,8 @@ public:
     ssize_t send(const char* data, int len, int flag = true, struct sockaddr *addr = nullptr, socklen_t addr_len = 0);
     ssize_t send(const Buffer::Ptr pkt, int flag = true, int offset = 0, int length = 0, struct sockaddr *addr = nullptr, socklen_t addr_len = 0);
 
+    ssize_t sendZeroCopy(const Buffer::Ptr pkt, int flag = true, int offset = 0, int length = 0, struct sockaddr *addr = nullptr, socklen_t addr_len = 0);
+
     void setReadCb(const onReadCb& cb) { _onRead = cb;}
     void setWriteCb(const onWriteCb& cb) { _onWrite = cb;}
     void setErrorCb(const onErrorCb& cb) { _onError = cb;}
@@ -120,6 +134,8 @@ public:
 
     static std::pair<std::string, uint16_t> getIpAndPort(const struct sockaddr_storage *addr);
 
+    static std::vector<InterfaceInfo> getIfaceList(const std::string& ifacePrefix);
+
 private:
     bool _isClient = false;
     bool _isConnected = false;
@@ -129,6 +145,7 @@ private:
     int _type = 1;
     int _localPort = -1;
     int _peerPort = -1;
+    int _pipeFd[2] = {0};
     uint64_t _createTime = 0;
     size_t _remainSize = 0;
     string _localIp;

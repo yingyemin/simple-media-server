@@ -50,6 +50,20 @@ void GB28181ClientPull::doPull()
         if(!self){
             return;
         }
+
+        if (!self->_context) {
+            string uri = self->_appName + "/" + self->_streamName;
+            self->_context = make_shared<GB28181Context>(self->getLoop(), uri, DEFAULT_VHOST, PROTOCOL_GB28181, DEFAULT_TYPE);
+            if (!self->_context->init()) {
+                self->_context = nullptr;
+                self->stop();
+                return ;
+            }
+        } else if (!self->_context->isAlive()) {
+            self->stop();
+            return ;
+        }
+
         // auto buffer = StreamBuffer::create();
         // buffer->assign(data + 2, len - 2);
         RtpPacket::Ptr rtp = make_shared<RtpPacket>(buffer, 0);

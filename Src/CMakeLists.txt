@@ -289,6 +289,20 @@ else()
     message(STATUS "not add http moudle")
 endif ()
 
+###Webrtc########
+if (ENABLE_WEBRTC)
+    message(STATUS "add webrtc moudle")
+    project(webrtc)
+    add_definitions(-DENABLE_WEBRTC)
+    aux_source_directory("Webrtc" SRC_Webrtc)
+    add_library(webrtc STATIC 
+        ${SRC_Webrtc}
+    )
+    list(INSERT LINK_LIB_LIST 0 webrtc)
+else()
+    message(STATUS "not add webrtc moudle")
+endif ()
+
 ###API########
 if (ENABLE_API)
     message(STATUS "add api moudle")
@@ -310,20 +324,6 @@ if (ENABLE_API)
     message(STATUS "Git Version: ${GIT_VERSION}")
 else()
     message(STATUS "not add api moudle")
-endif ()
-
-###Webrtc########
-if (ENABLE_WEBRTC)
-    message(STATUS "add webrtc moudle")
-    project(webrtc)
-    add_definitions(-DENABLE_WEBRTC)
-    aux_source_directory("Webrtc" SRC_Webrtc)
-    add_library(webrtc STATIC 
-        ${SRC_Webrtc}
-    )
-    list(INSERT LINK_LIB_LIST 0 webrtc)
-else()
-    message(STATUS "not add webrtc moudle")
 endif ()
 
 # 获取 Git 版本信息

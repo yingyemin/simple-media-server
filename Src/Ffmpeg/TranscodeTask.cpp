@@ -98,6 +98,7 @@ std::string TranscodeTask::init(const std::string& uri, const std::string& video
     }
 
     frameSrc->setOrigin(originSource);
+    frameSrc->setOrigin();
     _source = frameSrc;
     weak_ptr<TranscodeTask> wSelf = shared_from_this();
 
@@ -177,24 +178,23 @@ std::string TranscodeTask::init(const std::string& uri, const std::string& video
         } else if (track->trackType_ == "audio" && !audioCodec.empty()) {
             TrackInfo::Ptr newTrack;
             if (audioCodec == "aac") {
-                newTrack = make_shared<AacTrack>();
-                newTrack->codec_ = "aac";
+                newTrack = TrackInfo::createTrackInfo("aac");
             } else if (audioCodec == "g711a") {
-                newTrack = make_shared<G711aTrack>();
-                newTrack->codec_ = audioCodec;
+                newTrack = TrackInfo::createTrackInfo("g711a");
             } else if (audioCodec == "g711u") {
-                newTrack = make_shared<G711uTrack>();
-                newTrack->codec_ = audioCodec;
+                TrackInfo::createTrackInfo("g711u");
             } else {
                 throw runtime_error("audio codec not support: " + audioCodec);
             }
 
-            newTrack->payloadType_ = track->payloadType_;
-            newTrack->index_ = track->index_;
-            newTrack->trackType_ = track->trackType_;
-            newTrack->samplerate_ = track->samplerate_;
-            newTrack->channel_ = track->channel_;
-            newTrack->bitPerSample_ = track->bitPerSample_;
+            if (audioCodec == "aac") {
+                // newTrack->payloadType_ = track->payloadType_;
+                // newTrack->index_ = track->index_;
+                // newTrack->trackType_ = track->trackType_;
+                newTrack->samplerate_ = track->samplerate_;
+                newTrack->channel_ = track->channel_;
+                newTrack->bitPerSample_ = track->bitPerSample_;
+            }
             frameSrc->addTrack(newTrack);
 
             _transcodeAudio = make_shared<AudioDecoder>(track);

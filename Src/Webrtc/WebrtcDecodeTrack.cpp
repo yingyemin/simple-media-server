@@ -10,9 +10,11 @@
 #include "Codec/AacTrack.h"
 #include "Codec/G711Track.h"
 #include "Codec/H264Track.h"
+#include "Codec/H264Frame.h"
 #include "Codec/H265Track.h"
 #include "Codec/H265Frame.h"
-#include "Codec/H264Frame.h"
+#include "Codec/H266Track.h"
+#include "Codec/H266Frame.h"
 
 using namespace std;
 
@@ -109,6 +111,11 @@ static shared_ptr<TrackInfo> createTrackBySdp(int index, const shared_ptr<Webrtc
         // h265TrackInfo->setPps(ppsFrame);
         trackInfo = h265TrackInfo;
         trackInfo->codec_ = "h265";
+        trackInfo->trackType_ = "video";
+    }else if (strcasecmp(piInfo->codec_.data(), "h266") == 0) {
+        auto h266TrackInfo = make_shared<H266Track>();
+        trackInfo = h266TrackInfo;
+        trackInfo->codec_ = "h266";
         trackInfo->trackType_ = "video";
     }
 

@@ -1,7 +1,7 @@
-﻿#if defined(ENABLE_FFMPEG)
+#if defined(ENABLE_FFMPEG)
 #include "VideoStack.h"
 #include "Transcode.h"
-#include "Log/logger.h"
+#include "Log/Logger.h"
 #include "Common/Define.h"
 #include "Util/String.h"
 #include <fstream>

@@ -931,7 +931,7 @@ void WebrtcContext::onStunPacket(const Socket::Ptr& socket, const WebrtcStun& st
 
             _videoSort = make_shared<RtpSort>(25);
             _videoSort->setOnRtpPacket([wSelf](const RtpPacket::Ptr& rtp){
-                // logInfo << "decode rtp seq: " << rtp->getSeq() << ", rtp size: " << rtp->size() << ", rtp time: " << rtp->getStamp();
+                logTrace << "decode rtp seq: " << rtp->getSeq() << ", rtp size: " << rtp->size() << ", rtp time: " << rtp->getStamp();
                 auto self = wSelf.lock();
                 if (self) {
                     self->_videoDecodeTrack->onRtpPacket(rtp);
@@ -940,7 +940,7 @@ void WebrtcContext::onStunPacket(const Socket::Ptr& socket, const WebrtcStun& st
 
             _audioSort = make_shared<RtpSort>(25);
             _audioSort->setOnRtpPacket([wSelf](const RtpPacket::Ptr& rtp){
-                logInfo << "decode rtp seq: " << rtp->getSeq() << ", rtp size: " << rtp->size() << ", rtp time: " << rtp->getStamp();
+                logTrace << "decode rtp seq: " << rtp->getSeq() << ", rtp size: " << rtp->size() << ", rtp time: " << rtp->getStamp();
                 auto self = wSelf.lock();
                 if (self) {
                     self->_audioDecodeTrack->onRtpPacket(rtp);

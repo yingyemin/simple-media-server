@@ -92,7 +92,7 @@ void RtspConnection::onManager()
 
 void RtspConnection::onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)
 {
-    // logInfo << "get a buf: " << buffer->size();
+    // logInfo << "get a buf: " << buffer->data();
     _parser.parse(buffer->data(), buffer->size());
 }
 
@@ -136,7 +136,7 @@ void RtspConnection::onRtspPacket()
     } else {
         // sendRtspResponse("403 Forbidden");
         // throw SockException(Err_shutdown, StrPrinter << "403 Forbidden:" << method);
-        logWarn << _parser._content;
+        logWarn << "not support method: " << _parser._method << ", content: " << _parser._content;
     }
 }
 

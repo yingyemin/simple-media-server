@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2016-present The ZLMediaKit project authors. All Rights Reserved.
  *
  * This file is part of ZLMediaKit(https://github.com/ZLMediaKit/ZLMediaKit).
@@ -15,7 +15,7 @@
 #include "Util/File.h"
 #include "Util/String.h"
 #include "Transcode.h"
-#include "Common/config.h"
+#include "Common/Config.h"
 #include "Log/Logger.h"
 #include "Util/Thread.h"
 #define MAX_DELAY_SECOND 3

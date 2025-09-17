@@ -507,6 +507,8 @@ bool AudioEncoder::inputFrame(const FFmpegFrame::Ptr &input, bool async) {
                 }
                 //logInfo << "AudioEncoder::inputFrame_l__888" << endl;
                 return true;
+            } else {
+                return encode(frame);
             }
         }
     }

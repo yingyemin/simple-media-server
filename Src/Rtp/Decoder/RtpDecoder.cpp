@@ -8,6 +8,7 @@
 #include "Util/String.h"
 #include "RtpDecodeH264.h"
 #include "RtpDecodeH265.h"
+#include "RtpDecodeH266.h"
 #include "RtpDecodeAac.h"
 #include "RtpDecodeCommon.h"
 #include "RtpDecodeMp3.h"
@@ -26,6 +27,8 @@ RtpDecoder::Ptr RtpDecoder::creatDecoder(const shared_ptr<TrackInfo>& trackInfo)
         return make_shared<RtpDecodeAac>(trackInfo);
     } else if (trackInfo->codec_ == "h265") {
         return make_shared<RtpDecodeH265>(trackInfo);
+    } else if (trackInfo->codec_ == "h266") {
+        return make_shared<RtpDecodeH266>(trackInfo);
     } else if (trackInfo->codec_ == "mp3") {
         return make_shared<RtpDecodeMp3>(trackInfo);
     } else if (trackInfo->codec_ == "vp8") {

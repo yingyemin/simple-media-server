@@ -8,6 +8,7 @@
 #include "Util/String.h"
 #include "RtpEncodeH264.h"
 #include "RtpEncodeH265.h"
+#include "RtpEncodeH266.h"
 #include "RtpEncodeAac.h"
 #include "RtpEncodeCommon.h"
 #include "RtpEncodeMp3.h"
@@ -26,6 +27,8 @@ RtpEncoder::Ptr RtpEncoder::create(const shared_ptr<TrackInfo>& trackInfo)
         encoder = make_shared<RtpEncodeH264>(trackInfo);
     } else if (trackInfo->codec_ == "h265") {
         encoder = make_shared<RtpEncodeH265>(trackInfo);
+    } else if (trackInfo->codec_ == "h266") {
+        encoder = make_shared<RtpEncodeH266>(trackInfo);
     } else if (trackInfo->codec_ == "aac") {
         encoder = make_shared<RtpEncodeAac>(trackInfo);
     } else if (trackInfo->codec_ == "mp3") {

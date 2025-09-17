@@ -2,9 +2,12 @@
 #include "Logger.h"
 #include "Util/String.h"
 #include "Util/CRC32.h"
+#include "Util/MD5.h"
 #include "Ssl/HmacSHA1.h"
 
 #include <unordered_map>
+
+#define MAGIC_COOKIE 0x2112A442
 
 using namespace std;
 
@@ -126,6 +129,21 @@ bool WebrtcStun::getUseCandidate() const
     return _useCandidate;
 }
 
+Buffer::Ptr WebrtcStun::getBuffer() const
+{
+    return _buffer;
+}
+
+std::string WebrtcStun::getRealm() const
+{
+    return _realm;
+}
+
+std::string WebrtcStun::getNonce() const
+{
+    return _nonce;
+}
+
 void WebrtcStun::setType(const uint16_t& m)
 {
     _messageType = m;
@@ -160,6 +178,7 @@ int32_t WebrtcStun::parse(const char* buf, const int32_t nb_buf)
 {
     int32_t err = 0;
     int index = 0;
+    uint8_t mask[16];
 
     // YangBuffer* stream = new YangBuffer(const_cast<char*>(buf), nb_buf);
     // YangAutoFree(YangBuffer, stream);
@@ -186,6 +205,7 @@ int32_t WebrtcStun::parse(const char* buf, const int32_t nb_buf)
         index += 2;
         uint16_t len = readUint16BE(buf + index);
         index += 2;
+        memset(mask, 0, sizeof(mask));
 
         if (nb_buf - index < len) {
             return -1;
@@ -233,6 +253,49 @@ int32_t WebrtcStun::parse(const char* buf, const int32_t nb_buf)
                 logTrace << ("stun ice-controlling");
                 break;
             }
+
+            case MappedAddress: {
+                parseMappedAddress(val, mask, &_mapAddr);
+                break;
+            }
+
+            case MessageIntegrity: {
+                char message_integrity_hex[41];
+
+                for (int i = 0; i < 20; i++) {
+                sprintf(message_integrity_hex + 2 * i, "%02x", (uint8_t)val[i]);
+                }
+                break;
+            }
+
+            case Realm: {
+                _realm = val;
+                break;
+            }
+
+            case Nonce: {
+                _nonce = val;
+                break;
+            }
+
+            case XorRelayedAddress: {
+                *((uint32_t*)mask) = htonl(MAGIC_COOKIE);
+                memcpy(mask + 4, _transcationId.c_str(), _transcationId.size());
+                parseMappedAddress(val, mask, &_relayAddr);
+                break;
+            }
+
+            case XorMappedAddress: {
+                *((uint32_t*)mask) = htonl(MAGIC_COOKIE);
+                memcpy(mask + 4, _transcationId.c_str(), _transcationId.size());
+                parseMappedAddress(val, mask, &_mapAddr);
+                break;
+            }
+
+            case Fingerprint: {
+                logInfo << "fingerprint: " << val;
+                break;
+            }
             
             default: {
               //  yang_trace("stun type=%u, no process", type);
@@ -254,6 +317,14 @@ int32_t WebrtcStun::toBuffer(const string& pwd, StringBuffer::Ptr stream)
 
     //  yang_error("ERROR_RTC_STUN unknown stun type=%d", get_message_type());
      return 1;
+}
+
+Address* WebrtcStun::getMappedAddr(int type)
+{
+    if (type == 1) {
+        return &_mapAddr;
+    }
+    return &_relayAddr;
 }
 
 // FIXME: make this function easy to read
@@ -439,3 +510,128 @@ string WebrtcStun::encodeMappedAddress()
     return buffer;
 }
 
+void WebrtcStun::parseMappedAddress(const std::string& val, uint8_t* mask, Address* addr)
+{
+    char* value = (char*)val.data();
+
+    int i;
+    char addr_string[INET6_ADDRSTRLEN];
+    uint32_t* addr32 = (uint32_t*)&addr->getAddr4()->sin_addr;
+    uint16_t* addr16 = (uint16_t*)&addr->getAddr6()->sin6_addr;
+    uint8_t family = value[1];
+    uint16_t port;
+
+    switch (family) {
+    case STUN_FAMILY_IPV6:
+        addr->setFamily(AF_INET6);
+        for (i = 0; i < 8; i++) {
+            addr16[i] = (*(uint16_t*)(value + 4 + 2 * i) ^ *(uint16_t*)(mask + 2 * i));
+        }
+        break;
+    case STUN_FAMILY_IPV4:
+    default:
+        addr->setFamily(AF_INET);
+        *addr32 = (*(uint32_t*)(value + 4) ^ *(uint32_t*)mask);
+        break;
+    }
+
+    port = ntohs(*(uint16_t*)(value + 2) ^ *(uint16_t*)mask);
+    auto addrString = addr->toString();
+    addr->setPort(port);
+
+    logDebug << "XOR Mapped Address Family: " << family;
+    logDebug << "XOR Mapped Address Port: " << addr->getPort() << " (Port XOR: " << port << ")";
+    logDebug << "XOR Mapped Address IP: " << addr_string << " (IP XOR: "  << *addr32 << ")";
+}
+
+void WebrtcStun::createHeader()
+{
+    StunHeader header;
+    header.type = htons(_messageType);
+    header.length = 0;
+    header.magic_cookie = htonl(kStunMagicCookie);
+    header.transaction_id[0] = htonl(0x12345678);
+    header.transaction_id[1] = htonl(0x90abcdef);
+    header.transaction_id[2] = htonl(0x12345678);
+
+    _size = sizeof(StunHeader);
+    _buffer->append((char*)&header, sizeof(StunHeader));
+}
+
+void WebrtcStun::createAttribute(StunAttrType type, uint16_t length, char* value)
+{
+    StunHeader* header = (StunHeader*)_buffer->data();
+
+    StunAttribute stun_attr;
+    stun_attr.type = htons(type);
+    stun_attr.length = htons(length);
+    if (value)
+        memcpy(stun_attr.value, value, length);
+
+    length = 4 * ((length + 3) / 4);
+    header->length = htons(ntohs(header->length) + sizeof(StunAttribute) + length);
+
+    _size += length + sizeof(StunAttribute);
+
+    _buffer->append((char*)&stun_attr, sizeof(StunAttribute));
+
+    switch (type) {
+    case STUN_ATTR_TYPE_REALM:
+        _realm.assign(value, length);
+        break;
+    case STUN_ATTR_TYPE_NONCE:
+        _nonce.assign(value, length);
+        break;
+    case STUN_ATTR_TYPE_USERNAME:
+        _username.assign(value, length);
+        break;
+    default:
+        break;
+    }
+}
+
+void WebrtcStun::createAttribute(StunAttrType type, const std::string& value)
+{
+    createAttribute(type, value.size(), (char*)value.data());
+}
+
+void WebrtcStun::finish(StunCredential credential, std::string& password)
+{
+    StunHeader* header = (StunHeader*)_buffer->data();
+
+    uint16_t header_length = ntohs(header->length);
+
+    switch (credential) {
+    case STUN_CREDENTIAL_LONG_TERM:
+        password = MD5(_username + ":" + _realm + ":" + password).rawdigest();
+        // password_len = 16;
+        break;
+    default:
+        break;
+    }
+
+    //   stun_attr = (StunAttribute*)(msg->buf + msg->size);
+    header->length = htons(header_length + 24); /* HMAC-SHA1 */
+    // stun_attr.type = htons(STUN_ATTR_TYPE_MESSAGE_INTEGRITY);
+    // stun_attr.length = htons(20);
+    auto hmanBuf = HmacSHA1::hmac_sha1(_buffer->buffer(), password);
+    string hmac = encode_hmac((char*)hmanBuf.data(), hmanBuf.size());
+    _buffer->append(hmac);
+    // utils_get_hmac_sha1((char*)_bu, msg->size, password, password_len, (unsigned char*)stun_attr->value);
+    _size += sizeof(StunAttribute) + 20;
+    // FINGERPRINT
+
+    //   stun_attr1 = (StunAttribute*)(msg->buf + msg->size);
+    header->length = htons(header_length + 24 /* HMAC-SHA1 */ + 8 /* FINGERPRINT */);
+    // stun_attr1.type = htons(STUN_ATTR_TYPE_FINGERPRINT);
+    // stun_attr1.length = htons(4);
+    // stun_calculate_fingerprint((char*)msg->buf, msg->size, (uint32_t*)stun_attr1.value);
+
+    uint32_t crc32 = CRC32::encode((unsigned char*)_buffer->data(), _buffer->size()) ^ 0x5354554E;
+
+    string fingerprint = encode_fingerprint(crc32);
+
+    _buffer->append(fingerprint);
+
+    _size += sizeof(StunAttribute) + 4;
+}

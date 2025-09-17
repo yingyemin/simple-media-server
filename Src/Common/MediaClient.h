@@ -12,7 +12,8 @@ using namespace std;
 enum MediaClientType
 {
     MediaClientType_Push = 0,
-    MediaClientType_Pull
+    MediaClientType_Pull,
+    MediaClientType_Both,
 };
 
 class MediaClient

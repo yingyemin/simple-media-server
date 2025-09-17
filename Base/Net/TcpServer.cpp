@@ -120,6 +120,7 @@ void TcpServer::accept(int event, void* args)
             socket->setCloseWait();
             socket->setCloExec();
             socket->setFamily(_socket->getFamily());
+            socket->setZeroCopy();
 
             TcpConnection::Ptr session = createSession(_loop, socket);
             session->init();

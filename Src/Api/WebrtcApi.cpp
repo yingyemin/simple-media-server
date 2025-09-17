@@ -8,6 +8,7 @@
 #include "Webrtc/WebrtcContextManager.h"
 #include "Webrtc/WebrtcContext.h"
 #include "Webrtc/WebrtcClient.h"
+#include "Webrtc/WebrtcP2PManager.h"
 
 #include <unordered_map>
 
@@ -32,6 +33,11 @@ void WebrtcApi::initApi()
     g_mapApi.emplace("/api/v1/rtc/push/start", WebrtcApi::startRtcPush);
     g_mapApi.emplace("/api/v1/rtc/push/stop", WebrtcApi::stopRtcPush);
     g_mapApi.emplace("/api/v1/rtc/push/list", WebrtcApi::listRtcPush);
+
+    g_mapApi.emplace("/api/v1/rtc/p2p/add", WebrtcApi::addRtcP2P);
+    g_mapApi.emplace("/api/v1/rtc/p2p/remove", WebrtcApi::removeRtcP2P);
+    g_mapApi.emplace("/api/v1/rtc/p2p/list", WebrtcApi::listRtcP2P);
+    g_mapApi.emplace("/api/v1/rtc/p2p/stop", WebrtcApi::stopRtcP2P);
 }
 
 void WebrtcApi::rtcPlay(const HttpParser& parser, const UrlParser& urlParser,
@@ -103,10 +109,11 @@ void WebrtcApi::rtcPublish(const HttpParser& parser, const UrlParser& urlParser,
     int enableDtls = 0;
     if (isWhip) {
         enableDtls = true;
-        appName = urlParser.vecParam_.at("appName");
-        streamName = urlParser.vecParam_.at("streamName");
-        preferVideoCodec = urlParser.vecParam_.at("preferVideoCodec");
-        preferAudioCodec = urlParser.vecParam_.at("preferAudioCodec");
+        checkArgs(parser._body, {"appName", "streamName"});
+        appName = parser._body["appName"];
+        streamName = parser._body["streamName"];
+        preferVideoCodec = parser._body.value("preferVideoCodec", "");
+        preferAudioCodec = parser._body.value("preferAudioCodec", "");
         sdp = parser._content;
     } else {
         checkArgs(parser._body, {"appName", "streamName", "sdp"});
@@ -319,6 +326,83 @@ void WebrtcApi::listRtcPush(const HttpParser& parser, const UrlParser& urlParser
     value["code"] = "200";
     value["msg"] = "success";
     value["count"] = count;
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void WebrtcApi::addRtcP2P(const HttpParser& parser, const UrlParser& urlParser,
+             const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    checkArgs(parser._body, {"roomId", "userId", "sdp"});
+
+    WebrtcP2PManager::getInstance()->addP2PSdp(parser._body["roomId"].get<string>(), parser._body["userId"].get<string>(), parser._body["sdp"].get<string>());
+
+    value["code"] = "200";
+    value["msg"] = "success";
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void WebrtcApi::removeRtcP2P(const HttpParser& parser, const UrlParser& urlParser,
+             const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    checkArgs(parser._body, {"roomId", "userId"});
+
+    WebrtcP2PManager::getInstance()->delP2PSdp(parser._body["roomId"].get<string>(), parser._body["userId"].get<string>());
+    // WebrtcP2PManager::getInstance()->delP2PManager(parser._body["roomId"].get<string>());
+
+    value["code"] = "200";
+    value["msg"] = "success";
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void WebrtcApi::listRtcP2P(const HttpParser& parser, const UrlParser& urlParser,
+             const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    // checkArgs(parser._body, {"roomId"});
+
+    // auto sdp = WebrtcP2PManager::getInstance()->getP2PSdp(parser._body["roomId"].get<string>());
+    // if (sdp.empty()) {
+    //     value["code"] = "400";
+    //     value["msg"] = "sdp not found";
+    //     rsp.setContent(value.dump());
+    //     rspFunc(rsp);
+    //     return;
+    // }
+    // value["sdp"] = sdp;
+
+    value["code"] = "200";
+    value["msg"] = "success";
+    rsp.setContent(value.dump());
+    rspFunc(rsp);
+}
+
+void WebrtcApi::stopRtcP2P(const HttpParser& parser, const UrlParser& urlParser,
+             const function<void(HttpResponse& rsp)>& rspFunc)
+{
+    HttpResponse rsp;
+    rsp._status = 200;
+    json value;
+
+    checkArgs(parser._body, {"roomId"});
+
+    WebrtcP2PManager::getInstance()->delP2PManager(parser._body["roomId"].get<string>());
+
+    value["code"] = "200";
+    value["msg"] = "success";
     rsp.setContent(value.dump());
     rspFunc(rsp);
 }

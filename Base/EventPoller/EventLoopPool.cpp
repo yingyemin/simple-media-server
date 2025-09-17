@@ -11,6 +11,10 @@
 #include "EventLoopPool.h"
 #include "Log/Logger.h"
 
+#if defined(ENABLE_URING)
+#include "UringLoop.h"
+#endif
+
 using namespace std;
 
 EventLoopPool::EventLoopPool()
@@ -32,8 +36,13 @@ void EventLoopPool::init(int size, int priority, bool affinity)
         auto loopName = "EventLoop " + to_string(i);
         logInfo << loopName;
         auto cpuIndex = i % cpus;
+#if defined(ENABLE_URING)
+        UringLoop::Ptr loop(new UringLoop());
+        std::thread* loopThd = new std::thread(&UringLoop::start, loop);
+#else
         EventLoop::Ptr loop(new EventLoop());
         std::thread* loopThd = new std::thread(&EventLoop::start, loop);
+#endif
         loop->setThread(loopThd);
         loop->setEpollID(i);
         // loop->async([cpuIndex, loopName, priority, affinity]() {

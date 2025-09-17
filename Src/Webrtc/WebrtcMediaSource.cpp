@@ -90,7 +90,7 @@ void WebrtcMediaSource::addTrack(const WebrtcDecodeTrack::Ptr& track)
             if (!strongSelf) {
                 return;
             }
-            // logInfo << "on frame";
+            logInfo << "on frame: nal type: " << (int)frame->getNalType();
             strongSelf->MediaSource::onFrame(frame);
             for (auto& sink : strongSelf->_mapSink) {
                 // logInfo << "on frame to sink";
