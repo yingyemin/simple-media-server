@@ -4,14 +4,14 @@
 #include "RecordReader.h"
 #include "Mpeg/PsDemuxer.h"
 
-using namespace std;
+// using namespace std;
 
 class RecordReaderPs : public RecordReader
 {
 public:
-    using Ptr = shared_ptr<RecordReaderPs>;
+    using Ptr = std::shared_ptr<RecordReaderPs>;
 
-    RecordReaderPs(const string& path);
+    RecordReaderPs(const std::string& path);
     ~RecordReaderPs();
 
 public:

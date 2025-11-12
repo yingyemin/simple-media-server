@@ -5,7 +5,7 @@
 
 #include "WebrtcSdpParser.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Common/Config.h"
 #include "Webrtc.h"
 
@@ -255,22 +255,22 @@ void WebrtcSdpMedia::parseRtcpRsize(const string& value)
 
 void WebrtcSdpMedia::parseRecvonly(const string& value)
 {
-    sendRecvType_ = RecvOnly;
+    sendRecvType_ = SMS::RecvOnly;
 }
 
 void WebrtcSdpMedia::parseSendonly(const string& value)
 {
-    sendRecvType_ = SendOnly;
+    sendRecvType_ = SMS::SendOnly;
 }
 
 void WebrtcSdpMedia::parseSendrecv(const string& value)
 {
-    sendRecvType_ = SendRecv;
+    sendRecvType_ = SMS::SendRecv;
 }
 
 void WebrtcSdpMedia::parseInactive(const string& value)
 {
-    sendRecvType_ = Inactive;
+    sendRecvType_ = SMS::Inactive;
 }
 
 void WebrtcSdpMedia::parseIceOptions(const string& value)
@@ -311,7 +311,7 @@ void WebrtcSdpMedia::parseFingerprint(const string& value)
 void WebrtcSdpMedia::parseCandidate(const string& value)
 {
     auto vecValue = split(value, " ");
-    if (vecValue.size() < 10) {
+    if (vecValue.size() < 8) {
         return ;
     }
 
@@ -322,7 +322,7 @@ void WebrtcSdpMedia::parseCandidate(const string& value)
     candidate->priority_ = stoull(vecValue[3]);
     candidate->ip_ = vecValue[4];
     candidate->port_ = stoi(vecValue[5]);
-    candidate->candidateType_ = vecValue[6];
+    candidate->candidateType_ = vecValue[7];
 
     for (auto candidateIter : candidates_) {
         if (candidateIter->foundation_ == candidate->foundation_) {
@@ -583,16 +583,16 @@ void WebrtcSdpMedia::encode(stringstream& ss)
 
     switch (sendRecvType_)
     {
-    case SendOnly:
+    case SMS::SendOnly:
         ss << "a=sendonly" << "\r\n";
         break;
-    case RecvOnly:
+    case SMS::RecvOnly:
         ss << "a=recvonly" << "\r\n";
         break;
-    case SendRecv:
+    case SMS::SendRecv:
         ss << "a=sendrecv" << "\r\n";
         break;
-    case Inactive:
+    case SMS::Inactive:
         ss << "a=inactive" << "\r\n";
         break;
     

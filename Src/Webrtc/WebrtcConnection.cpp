@@ -2,12 +2,14 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
+#ifndef _WIN32
 #include <arpa/inet.h>
+#endif
 
 #include "WebrtcConnection.h"
 #include "WebrtcContextManager.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Common/Define.h"
 #include "Webrtc.h"
 

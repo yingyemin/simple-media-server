@@ -5,7 +5,7 @@
 
 #include "RtspAuth.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Util/MD5.h"
 #include "Util/Base64.h"
 

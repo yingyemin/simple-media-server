@@ -5,7 +5,7 @@
 
 #include "Mp4FileWriter.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 
 using namespace std;
 
@@ -45,6 +45,5 @@ bool Mp4FileWriter::open()
         logWarn << "open mp4 file failed: " << _filepath;
         return false;
     }
-
     return true;
 }

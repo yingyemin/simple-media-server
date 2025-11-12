@@ -10,7 +10,7 @@
 #include <memory>
 #include <functional>
 
-using namespace std;
+// using namespace std;
 
 class HttpClientApi : public HttpClient
 {
@@ -23,18 +23,18 @@ public:
     void onHttpRequest() override;
     void onRecvContent(const char *data, uint64_t len) override;
     void onConnect() override;
-    void onError(const string& err) override;
+    void onError(const std::string& err) override;
 
     void onHttpResponce();
-    void setOnHttpResponce(const function<void(const HttpParser& parser)>& cb);
+    void setOnHttpResponce(const std::function<void(const HttpParser& parser)>& cb);
 
-    static void reportByHttp(const string& url, const string&method, const string& msg, const function<void(const string& err, 
-                const nlohmann::json& res)>& cb = [](const string& err, const nlohmann::json& res){});
+    static void reportByHttp(const std::string& url, const std::string&method, const std::string& msg, const std::function<void(const std::string& err, 
+                const nlohmann::json& res)>& cb = [](const std::string& err, const nlohmann::json& res){});
 
 private:
     EventLoop::Ptr _loop;
     HttpChunkedParser::Ptr _chunkedParser;
-    function<void(const HttpParser& parser)> _onHttpResponce;
+    std::function<void(const HttpParser& parser)> _onHttpResponce;
 };
 
 #endif //HttpClient_h

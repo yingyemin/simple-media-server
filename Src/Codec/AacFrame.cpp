@@ -5,7 +5,7 @@
 
 #include "AacFrame.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Common/Config.h"
 
 using namespace std;
@@ -17,21 +17,21 @@ static FrameBuffer::Ptr getAdtsAac()
     const int frequency_index = 0xb;  //8KHz
     const int channel_configuration = 1;  //MPEG-4 Audio Channel Configuration.
     unsigned int packetLen = 6;
-    frame->_buffer.resize(13, 0x00);
+    frame->_buffer->resize(13, 0x00);
     int m_data_len = 0;
-    frame->_buffer[m_data_len++] = (char)0xFF;
-    frame->_buffer[m_data_len++] = (char)0xF1; 
-    frame->_buffer[m_data_len++] = (char)(((profile - 1) << 6) + (frequency_index << 2) + (channel_configuration >> 2));
-    frame->_buffer[m_data_len++] = (char)((channel_configuration & 0x3) << 6 | (packetLen >> 11));
-    frame->_buffer[m_data_len++] = (char)((packetLen & 0x7FF) >> 3);
-    frame->_buffer[m_data_len++] = (char)(((packetLen & 7) << 5) + 0x1F);
-    frame->_buffer[m_data_len++] = (char)0xFC;
-    frame->_buffer[m_data_len++] = (char)0x21;
-    frame->_buffer[m_data_len++] = (char)0x10;
-    frame->_buffer[m_data_len++] = (char)0x04;
-    frame->_buffer[m_data_len++] = (char)0x60;
-    frame->_buffer[m_data_len++] = (char)0x8C;
-    frame->_buffer[m_data_len++] = (char)0x1C;
+    frame->_buffer->data()[m_data_len++] = (char)0xFF;
+    frame->_buffer->data()[m_data_len++] = (char)0xF1; 
+    frame->_buffer->data()[m_data_len++] = (char)(((profile - 1) << 6) + (frequency_index << 2) + (channel_configuration >> 2));
+    frame->_buffer->data()[m_data_len++] = (char)((channel_configuration & 0x3) << 6 | (packetLen >> 11));
+    frame->_buffer->data()[m_data_len++] = (char)((packetLen & 0x7FF) >> 3);
+    frame->_buffer->data()[m_data_len++] = (char)(((packetLen & 7) << 5) + 0x1F);
+    frame->_buffer->data()[m_data_len++] = (char)0xFC;
+    frame->_buffer->data()[m_data_len++] = (char)0x21;
+    frame->_buffer->data()[m_data_len++] = (char)0x10;
+    frame->_buffer->data()[m_data_len++] = (char)0x04;
+    frame->_buffer->data()[m_data_len++] = (char)0x60;
+    frame->_buffer->data()[m_data_len++] = (char)0x8C;
+    frame->_buffer->data()[m_data_len++] = (char)0x1C;
 
     frame->_codec = "aac";
     frame->_trackType = 1; //AudioTrackType
@@ -69,8 +69,8 @@ static StreamBuffer::Ptr getFlvAac()
 
 void AacFrame::split(const function<void(const FrameBuffer::Ptr& frame)>& cb)
 {
-    auto payload = (uint8_t*)_buffer.data();
-    uint32_t size = _buffer.size();
+    auto payload = (uint8_t*)_buffer->data();
+    uint32_t size = _buffer->size();
 
     while (size >= 7) { 
         if (!(payload[0] == 0xFF && (payload[1] & 0xF0) == 0xF0)) {
@@ -83,7 +83,7 @@ void AacFrame::split(const function<void(const FrameBuffer::Ptr& frame)>& cb)
         }
         auto subframe = make_shared<AacFrame>();
         subframe->_startSize = 7;
-        subframe->_buffer.assign((char*)payload, aacLen);
+        subframe->_buffer->assign((char*)payload, aacLen);
         subframe->_pts = _pts; // pts * 1000 / 90000,计算为毫秒
         subframe->_dts = _dts;
         subframe->_index = _index;

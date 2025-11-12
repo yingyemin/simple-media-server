@@ -5,7 +5,7 @@
 
 #include "JT1078DecodeTrack.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Codec/H264Track.h"
 #include "Codec/H265Track.h"
 #include "Codec/AacTrack.h"
@@ -17,120 +17,156 @@ using namespace std;
 
 JT1078DecodeTrack::JT1078DecodeTrack(int trackIndex)
 {
-    _index = trackIndex;
-	_state.index =0;
-	_state.valprev =0;
-    // _frame = make_shared<FrameBuffer>();
+	_index = trackIndex;
+	_state.index = 0;
+	_state.valprev = 0;
+	// _frame = make_shared<FrameBuffer>();
 }
 
 void JT1078DecodeTrack::onRtpPacket(const JT1078RtpPacket::Ptr& rtp)
 {
-    if (!_trackInfo && !_createInfoFailed) {
-        if (rtp->getTrackType() == "video") {
-            // if (rtp->getCodecType() == "h264") {
-            //     auto trackInfo = H264Track::createTrack(_index, 96, 90000);
-            //     _trackInfo = dynamic_pointer_cast<TrackInfo>(trackInfo);
-            //     onTrackInfo(_trackInfo);
-            //     _frame = make_shared<H264Frame>();
-            //     _frame->_startSize = 4;
-            // } else if (rtp->getCodecType() == "h265") {
-            //     auto trackInfo = make_shared<H265Track>();
-            //     trackInfo->codec_ = "h265";
-            //     trackInfo->index_ = _index;
-            //     trackInfo->trackType_ = "video";
-            //     trackInfo->payloadType_ = 96;
-            //     trackInfo->samplerate_ = 90000;
-            //     _trackInfo = dynamic_pointer_cast<TrackInfo>(trackInfo);
-            //     onTrackInfo(_trackInfo);
-            //     _frame = make_shared<H265Frame>();
-            //     _frame->_startSize = 4;
-            // } else {
-            //     // logInfo << "unsurpport video codec" << rtp->getCodecType();
-            //     return ;
-            // }
-            _trackInfo = TrackInfo::createTrackInfo(rtp->getCodecType());
-            if (_trackInfo) {
-                onTrackInfo(_trackInfo);
-            } else {
-                logDebug << "创建TrackInfo失败";
-                _createInfoFailed = true;
-                return ;
-            }
+	if (!_trackInfo && !_createInfoFailed) {
+		if (rtp->getTrackType() == "video") {
+			// if (rtp->getCodecType() == "h264") {
+			//     auto trackInfo = H264Track::createTrack(_index, 96, 90000);
+			//     _trackInfo = dynamic_pointer_cast<TrackInfo>(trackInfo);
+			//     onTrackInfo(_trackInfo);
+			//     _frame = make_shared<H264Frame>();
+			//     _frame->_startSize = 4;
+			// } else if (rtp->getCodecType() == "h265") {
+			//     auto trackInfo = make_shared<H265Track>();
+			//     trackInfo->codec_ = "h265";
+			//     trackInfo->index_ = _index;
+			//     trackInfo->trackType_ = "video";
+			//     trackInfo->payloadType_ = 96;
+			//     trackInfo->samplerate_ = 90000;
+			//     _trackInfo = dynamic_pointer_cast<TrackInfo>(trackInfo);
+			//     onTrackInfo(_trackInfo);
+			//     _frame = make_shared<H265Frame>();
+			//     _frame->_startSize = 4;
+			// } else {
+			//     // logInfo << "unsurpport video codec" << rtp->getCodecType();
+			//     return ;
+			// }
+			_trackInfo = TrackInfo::createTrackInfo(rtp->getCodecType());
+			if (_trackInfo) {
+				onTrackInfo(_trackInfo);
+			}
+			else {
+				logDebug << "创建TrackInfo失败";
+				_createInfoFailed = true;
+				return;
+			}
 
-            int startSize = 0;
-            if (rtp->getCodecType() == "h264" || rtp->getCodecType() == "h265" || rtp->getCodecType() == "h266") {
-                startSize = 4;
-            }
+			int startSize = 0;
+			if (rtp->getCodecType() == "h264" || rtp->getCodecType() == "h265" || rtp->getCodecType() == "h266") {
+				startSize = 4;
+			}
 
-            _frame = FrameBuffer::createFrame(rtp->getCodecType(), startSize, VideoTrackType, 0);
-        } else if (rtp->getTrackType() == "audio") {
-            logDebug << "rtp->getCodecType() : " << rtp->getCodecType() << ", rtp->getCodecType() != adpcma = " << (rtp->getCodecType() != "adpcma");
-            if (rtp->getCodecType() != "adpcma" && rtp->getCodecType() != "g726") {
-                _trackInfo = TrackInfo::createTrackInfo(rtp->getCodecType());
-            } else {
-                _trackInfo = TrackInfo::createTrackInfo("g711a");
-                _originAudioCodec = rtp->getCodecType();
-            }
-            if (_trackInfo) {
-                onTrackInfo(_trackInfo);
-            } else {
-                logDebug << "创建TrackInfo失败";
-                _createInfoFailed = true;
-                return ;
-            }
+			_frame = FrameBuffer::createFrame(rtp->getCodecType(), startSize, VideoTrackType, 0);
+		}
+		else if (rtp->getTrackType() == "audio") {
+			logDebug << "rtp->getCodecType() : " << rtp->getCodecType() << ", rtp->getCodecType() != adpcma = " << (rtp->getCodecType() != "adpcma");
+			/* if (rtp->getCodecType() != "adpcma" && rtp->getCodecType() != "g726") {
+				 _trackInfo = TrackInfo::createTrackInfo(rtp->getCodecType());
+			 } else {
+				 _trackInfo = TrackInfo::createTrackInfo("g711a");
+				 _originAudioCodec = rtp->getCodecType();
+			 }*/
 
-            int startSize = 0;
-            if (rtp->getCodecType() == "aac") {
-                startSize = 7;
-            }
+			string pt = rtp->getCodecType();
+			if (pt == "adpcma") {
+				_trackInfo = TrackInfo::createTrackInfo("g711a");
+				_originAudioCodec = "adpcma";
+			}
+			else if (pt == "g726") {
+				int dataLength = rtp->getPayloadSize();
+				int _g726_bitRate = 16000;
+				if (dataLength == 120 || dataLength == 124)
+				{
+					_g726_bitRate = 8000 * 3;
+					_726_pcm_len = 80;
+				}
+				else if (dataLength == 164 || dataLength == 160 || dataLength == 324 || dataLength == 320)
+				{
+					_g726_bitRate = 8000 * 4;
+					_726_pcm_len = 60;
+				}
+				else if (dataLength == 204 || dataLength == 104 || dataLength == 100 || dataLength == 200)
+				{
+					_g726_bitRate = 8000 * 5;
+					_726_pcm_len = 60;//40长度不够
+				}
 
-            _frame = FrameBuffer::createFrame(rtp->getCodecType(), startSize, AudioTrackType, 0);
-            // if (rtp->getCodecType() == "g711a") {
-            //     auto trackInfo = make_shared<G711aTrack>();
-            //     trackInfo->codec_ = "g711a";
-            //     trackInfo->index_ = _index;
-            //     trackInfo->trackType_ = "audio";
-            //     trackInfo->samplerate_ = 8000;
-            //     _trackInfo = dynamic_pointer_cast<TrackInfo>(trackInfo);
-            //     onTrackInfo(_trackInfo);
-            // } else if (rtp->getCodecType() == "g711u") {
-            //     auto trackInfo = make_shared<G711uTrack>();
-            //     trackInfo->codec_ = "g711u";
-            //     trackInfo->index_ = _index;
-            //     trackInfo->trackType_ = "audio";
-            //     trackInfo->samplerate_ = 8000;
-            //     _trackInfo = dynamic_pointer_cast<TrackInfo>(trackInfo);
-            //     onTrackInfo(_trackInfo);
-            // } else if (rtp->getCodecType() == "aac") {
-            //     auto trackInfo = make_shared<AacTrack>();
-            //     trackInfo->codec_ = "aac";
-            //     trackInfo->index_ = _index;
-            //     trackInfo->trackType_ = "audio";
-            //     trackInfo->payloadType_ = 97;
-            //     trackInfo->samplerate_ = 44100;
-            //     _trackInfo = dynamic_pointer_cast<TrackInfo>(trackInfo);
-            //     onTrackInfo(_trackInfo);
-            // } else {
-            //     // logInfo << "unsurpport audio codec" << rtp->getCodecType();
-            //     return ;
-            // }
-            // _frame = make_shared<FrameBuffer>();
-        }
-    }
+				if (g726_init(&_state726, _g726_bitRate))
+				{
+					_trackInfo = TrackInfo::createTrackInfo("g711a");
+					_originAudioCodec = "g726";
+					logInfo << "_state726 >> " << _state726.bits_per_sample << ",_g726_bitRate >> " << _g726_bitRate << ",dataLength >> " << dataLength;
+				}
+			}
 
-    if (_onRtpPacket && _trackInfo) {
-        _onRtpPacket(rtp, rtp->isStartGop());
-    }
+			if (_trackInfo) {
+				onTrackInfo(_trackInfo);
+			}
+			else {
+				logDebug << "创建TrackInfo失败";
+				_createInfoFailed = true;
+				return;
+			}
+
+			int startSize = 0;
+			if (rtp->getCodecType() == "aac") {
+				startSize = 7;
+			}
+
+			_frame = FrameBuffer::createFrame(rtp->getCodecType(), startSize, AudioTrackType, 0);
+			// if (rtp->getCodecType() == "g711a") {
+			//     auto trackInfo = make_shared<G711aTrack>();
+			//     trackInfo->codec_ = "g711a";
+			//     trackInfo->index_ = _index;
+			//     trackInfo->trackType_ = "audio";
+			//     trackInfo->samplerate_ = 8000;
+			//     _trackInfo = dynamic_pointer_cast<TrackInfo>(trackInfo);
+			//     onTrackInfo(_trackInfo);
+			// } else if (rtp->getCodecType() == "g711u") {
+			//     auto trackInfo = make_shared<G711uTrack>();
+			//     trackInfo->codec_ = "g711u";
+			//     trackInfo->index_ = _index;
+			//     trackInfo->trackType_ = "audio";
+			//     trackInfo->samplerate_ = 8000;
+			//     _trackInfo = dynamic_pointer_cast<TrackInfo>(trackInfo);
+			//     onTrackInfo(_trackInfo);
+			// } else if (rtp->getCodecType() == "aac") {
+			//     auto trackInfo = make_shared<AacTrack>();
+			//     trackInfo->codec_ = "aac";
+			//     trackInfo->index_ = _index;
+			//     trackInfo->trackType_ = "audio";
+			//     trackInfo->payloadType_ = 97;
+			//     trackInfo->samplerate_ = 44100;
+			//     _trackInfo = dynamic_pointer_cast<TrackInfo>(trackInfo);
+			//     onTrackInfo(_trackInfo);
+			// } else {
+			//     // logInfo << "unsurpport audio codec" << rtp->getCodecType();
+			//     return ;
+			// }
+			// _frame = make_shared<FrameBuffer>();
+		}
+	}
+
+	if (_onRtpPacket && _trackInfo) {
+		_onRtpPacket(rtp, rtp->isStartGop());
+	}
 }
 
 void JT1078DecodeTrack::startDecode()
 {
-    _startDecode = true;
+	_startDecode = true;
 }
 
 void JT1078DecodeTrack::stopDecode()
 {
-    _startDecode = false;
+	_startDecode = false;
 }
 
 void JT1078DecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
@@ -201,15 +237,16 @@ void JT1078DecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
         uint8_t* payload = (uint8_t*)frame->data();
         uint8_t* start = payload;
         uint64_t size = frame->size();
-        if (payload[0] == 0x00 && payload[1] == 0x01 && 
-                ((payload[2] & 0xff) == (size - 4) / 2) && payload[3] == 0x00)
+        if (payload[0] == 0x00 && payload[1] == 0x01 &&
+            ((payload[2] & 0xff) == (size - 4) / 2) && payload[3] == 0x00)
         {
             payload += 8;
             size -= 8;
 
             _state.valprev = (uint16_t)(((start[5] << 8) & 0xff00) | (start[4] & 0xff));
             _state.index = start[6];
-        } else {
+        }
+        else {
             payload += 4;
             size -= 4;
 
@@ -217,10 +254,10 @@ void JT1078DecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
             _state.index = start[2];
         }
 
-        uint16_t* pcm = new uint16_t[size*2];
+        uint16_t* pcm = new uint16_t[size * 2];
         adpcm_decoder((char*)payload, (short*)pcm, size * 2, &_state);
-        uint8_t* pcmdata = new uint8_t[size*4];
-        for (int i = 0, k = 0; i < size*2; i++)
+        uint8_t* pcmdata = new uint8_t[size * 4];
+        for (int i = 0, k = 0; i < size * 2; i++)
         {
             short s = pcm[i];
             pcmdata[k++] = (uint8_t)(s & 0xff);
@@ -230,8 +267,8 @@ void JT1078DecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
         auto newFrame = FrameBuffer::createFrame("g711a", 0, frame->_index, 0);
         // auto pcmFrame = make_shared<FrameBuffer>();
         // pcmFrame->_buffer.assign((char*)pcmdata, size * 4);
-        
-        newFrame->_buffer.resize(size * 2);
+
+        newFrame->_buffer->resize(size * 2);
         _g711aEncode.pcm_2_alaw((const int16_t *)pcmdata, (uint8_t *)newFrame->data(), size * 2);
 
         newFrame->_dts = frame->_pts;
@@ -246,8 +283,9 @@ void JT1078DecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
         delete[] pcm;
         delete[] pcmdata;
 
-        return ;
-    } else if (_originAudioCodec == "g726") {
+        return;
+    }
+    else if (_originAudioCodec == "g726") {
         int rateBits = 16;
         int bitrate = 0;
         uint64_t size = frame->size();
@@ -279,8 +317,8 @@ void JT1078DecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
         auto newFrame = FrameBuffer::createFrame("g711a", 0, frame->_index, 0);
         // auto pcmFrame = make_shared<FrameBuffer>();
         // pcmFrame->_buffer.assign((char*)pcmdata, size * 4);
-        
-        newFrame->_buffer.resize(result);
+
+        newFrame->_buffer->resize(result);
         _g711aEncode.pcm_2_alaw((const int16_t *)pcmdata, (uint8_t *)newFrame->data(), result);
 
         newFrame->_dts = frame->_pts;
@@ -293,7 +331,7 @@ void JT1078DecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
         }
 
         delete[] pcmdata;
-        return ;
+        return;
     }
 
     frame->_dts = frame->_pts;
@@ -307,38 +345,40 @@ void JT1078DecodeTrack::onFrame(const FrameBuffer::Ptr& frame)
 
 void JT1078DecodeTrack::createFrame()
 {
-    if (_trackInfo->codec_ == "h264") {
-        _frame = make_shared<H264Frame>();
-        _frame->_startSize = 4;
-    } else if (_trackInfo->codec_ == "h265") {
-        _frame = make_shared<H265Frame>();
-        _frame->_startSize = 4;
-    } else if (_trackInfo->codec_ == "aac" || _trackInfo->codec_ == "g711a" || _trackInfo->codec_ == "g711u") {
-        _frame = make_shared<FrameBuffer>();
-    }
+	if (_trackInfo->codec_ == "h264") {
+		_frame = make_shared<H264Frame>();
+		_frame->_startSize = 4;
+	}
+	else if (_trackInfo->codec_ == "h265") {
+		_frame = make_shared<H265Frame>();
+		_frame->_startSize = 4;
+	}
+	else if (_trackInfo->codec_ == "aac" || _trackInfo->codec_ == "g711a" || _trackInfo->codec_ == "g711u") {
+		_frame = make_shared<FrameBuffer>();
+	}
 }
 
 void JT1078DecodeTrack::decodeRtp(const JT1078RtpPacket::Ptr& rtp)
 {
-    if (!rtp) {
-        logDebug << "rtp is empty";
-        return ;
-    }
+	if (!rtp) {
+		logDebug << "rtp is empty";
+		return;
+	}
 
-    if (!_trackInfo) {
-        logDebug << "_trackInfo is empty, codec: " << rtp->getCodecType();
-        return ;
-    }
+	if (!_trackInfo) {
+		logDebug << "_trackInfo is empty, codec: " << rtp->getCodecType();
+		return;
+	}
 
-    if (rtp->getTrackType() != "audio" && rtp->getTrackType() != "video") {
-        logInfo << " get a JT1078_Passthrough packet";
-        return ;
-    }
+	if (rtp->getTrackType() != "audio" && rtp->getTrackType() != "video") {
+		logInfo << " get a JT1078_Passthrough packet";
+		return;
+	}
 
-    auto subMark = rtp->getSubMark();
-    // static int ii = 0;
-    // string name = "testjt1078" + to_string(ii) + ".h264";
-    // FILE* fp = fopen(name.c_str(), "ab+");
+	auto subMark = rtp->getSubMark();
+	// static int ii = 0;
+	// string name = "testjt1078" + to_string(ii) + ".h264";
+	// FILE* fp = fopen(name.c_str(), "ab+");
 
     logTrace << "stream path: " << _trackInfo->_parser.path_ << ", rtp->getSeq(): " << rtp->getSeq() << ", rtp->getTimestamp(): " << rtp->getTimestamp() 
             << ", codec : " << rtp->getCodecType() << ", rtp subMark: " << (int)subMark
@@ -346,7 +386,7 @@ void JT1078DecodeTrack::decodeRtp(const JT1078RtpPacket::Ptr& rtp)
     
     switch (subMark) {
     case JT1078_Atomic:
-        _frame->_buffer.assign(rtp->getPayload(), rtp->getPayloadSize());
+        _frame->_buffer->assign(rtp->getPayload(), rtp->getPayloadSize());
         _frame->_pts = rtp->getTimestamp();
         // _frame->_startSize = 4;
         // fwrite(_frame->data(), 1, _frame->size(), fp);
@@ -359,7 +399,7 @@ void JT1078DecodeTrack::decodeRtp(const JT1078RtpPacket::Ptr& rtp)
         break;
     case JT1078_First:
         _lossRtp = false;
-        _frame->_buffer.assign(rtp->getPayload(), rtp->getPayloadSize());
+        _frame->_buffer->assign(rtp->getPayload(), rtp->getPayloadSize());
         break;
     case JT1078_Intermediate:
         // if (_lossRtp || rtp->getSeq() != (uint16_t)(_lastSeq + 1)) {
@@ -367,7 +407,7 @@ void JT1078DecodeTrack::decodeRtp(const JT1078RtpPacket::Ptr& rtp)
         //     _frame->_buffer.clear();
         //     break;
         // }
-        _frame->_buffer.append(rtp->getPayload(), rtp->getPayloadSize());
+        _frame->_buffer->append(rtp->getPayload(), rtp->getPayloadSize());
         break;
     case JT1078_Last:
         // if (_lossRtp || rtp->getSeq() != (uint16_t)(_lastSeq + 1)) {
@@ -376,7 +416,7 @@ void JT1078DecodeTrack::decodeRtp(const JT1078RtpPacket::Ptr& rtp)
         //     break;
         // }
         _frame->_pts = rtp->getTimestamp();
-        _frame->_buffer.append(rtp->getPayload(), rtp->getPayloadSize());
+        _frame->_buffer->append(rtp->getPayload(), rtp->getPayloadSize());
         // _frame->_startSize = 4;
         // fwrite(_frame->data(), 1, _frame->size(), fp);
         // fclose(fp);
@@ -395,12 +435,12 @@ void JT1078DecodeTrack::decodeRtp(const JT1078RtpPacket::Ptr& rtp)
 
 void JT1078DecodeTrack::setOnTrackInfo(const function<void(const shared_ptr<TrackInfo>& trackInfo)>& cb)
 {
-    _onTrackInfo = cb;
+	_onTrackInfo = cb;
 }
 
 void JT1078DecodeTrack::onTrackInfo(const shared_ptr<TrackInfo>& trackInfo)
 {
-    if (_onTrackInfo) {
-        _onTrackInfo(trackInfo);
-    }
+	if (_onTrackInfo) {
+		_onTrackInfo(trackInfo);
+	}
 }

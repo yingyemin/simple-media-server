@@ -13,29 +13,29 @@
 #include "Mpeg/TsMediaSource.h"
 
 
-using namespace std;
+// using namespace std;
 
 #ifdef ENABLE_SRT
 
-class SrtClient : public MediaClient, public enable_shared_from_this<SrtClient>
+class SrtClient : public MediaClient, public std::enable_shared_from_this<SrtClient>
 {
 public:
-    using Ptr = shared_ptr<SrtClient>;
-    using Wptr = weak_ptr<SrtClient>;
+    using Ptr = std::shared_ptr<SrtClient>;
+    using Wptr = std::weak_ptr<SrtClient>;
 
-    SrtClient(MediaClientType type, const string& appName, const string& streamName);
+    SrtClient(MediaClientType type, const std::string& appName, const std::string& streamName);
     ~SrtClient();
 
-    string getPath() {return _urlParser.path_;}
-    string getSourceUrl() {return _url;}
-    void getProtocolAndType(string& protocol, MediaClientType& type);
+    std::string getPath() {return _urlParser.path_;}
+    std::string getSourceUrl() {return _url;}
+    void getProtocolAndType(std::string& protocol, MediaClientType& type);
 
 public:
     // override MediaClient
-    bool start(const string& localIp, int localPort, const string& url, int timeout) override;
+    bool start(const std::string& localIp, int localPort, const std::string& url, int timeout) override;
     void stop() override;
     void pause() override;
-    void setOnClose(const function<void()>& cb) override;
+    void setOnClose(const std::function<void()>& cb) override;
 
 public:
     // 继承自tcpseesion
@@ -47,12 +47,12 @@ private:
     void onPushTs(const TsMediaSource::Ptr &tsSrc);
     void initPull();
     void handlePull(const StreamBuffer::Ptr& buffer);
-    void onError(const string& err);
+    void onError(const std::string& err);
 
 private:
     bool _inited = false;
-    string _request = "pull";
-    string _url;
+    std::string _request = "pull";
+    std::string _url;
     UrlParser _urlParser;
     UrlParser _peerUrlParser;
     SrtEventLoop::Ptr _loop;
@@ -60,8 +60,8 @@ private:
     SrtSocket::Ptr _acceptSocket;
     TsMediaSource::Wptr _source;
     TsMediaSource::RingType::DataQueReaderT::Ptr _playTsReader;
-    function<void()> _onClose;
-    unordered_map<string, string> _mapParam;
+    std::function<void()> _onClose;
+    std::unordered_map<std::string, std::string> _mapParam;
 };
 
 #endif

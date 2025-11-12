@@ -5,7 +5,7 @@
 
 #include "RtspPsEncodeTrack.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Util/Base64.h"
 #include "Codec/H264Track.h"
 #include "Codec/H265Track.h"

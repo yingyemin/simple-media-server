@@ -13,13 +13,13 @@
 #include "RtpContext.h"
 
 
-using namespace std;
+// using namespace std;
 
 class RtpConnection : public TcpConnection
 {
 public:
-    using Ptr = shared_ptr<RtpConnection>;
-    using Wptr = weak_ptr<RtpConnection>;
+    using Ptr = std::shared_ptr<RtpConnection>;
+    using Wptr = std::weak_ptr<RtpConnection>;
 
     RtpConnection(const EventLoop::Ptr& loop, const Socket::Ptr& socket);
     ~RtpConnection();
@@ -34,12 +34,12 @@ public:
     ssize_t send(Buffer::Ptr pkt) override;
 
     void onRtpPacket(const RtpPacket::Ptr& rtp);
-    void setUri(const string& uri) {_uri = uri; }
+    void setUri(const std::string& uri) {_uri = uri; }
 
 private:
     bool _isClose = false;
     int64_t _ssrc = -1;
-    string _uri;
+    std::string _uri;
     RtpParser _parser;
     RtpContext::Ptr _context;
     EventLoop::Ptr _loop;

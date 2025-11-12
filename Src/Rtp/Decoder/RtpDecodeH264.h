@@ -9,19 +9,20 @@
 #include "RtpDecoder.h"
 #include "Rtp/RtpPacket.h"
 #include "Codec/H264Frame.h"
+#include "Common/DtsGenerator.h"
 
-using namespace std;
+// using namespace std;
 
 class RtpDecodeH264 : public RtpDecoder
 {
 public:
-    using Ptr = shared_ptr<RtpDecodeH264>;
-    RtpDecodeH264(const shared_ptr<TrackInfo>& trackInfo);
+    using Ptr = std::shared_ptr<RtpDecodeH264>;
+    RtpDecodeH264(const std::shared_ptr<TrackInfo>& trackInfo);
 
 public:
     static bool isStartGop(const RtpPacket::Ptr& rtp);
     void decode(const RtpPacket::Ptr& rtp) override;
-    void setOnDecode(const function<void(const FrameBuffer::Ptr& frame)> cb) override;
+    void setOnDecode(const std::function<void(const FrameBuffer::Ptr& frame)> cb) override;
     void onFrame(const FrameBuffer::Ptr& frame);
 
 private:
@@ -35,9 +36,10 @@ public:
     bool _firstRtp = true;
     uint32_t _lastStamp = -1;
     uint16_t _lastSeq = -1;
-    function<void(const FrameBuffer::Ptr& frame)> _onFrame;
+    DtsGenerator _dtsGenerator;
+    std::function<void(const FrameBuffer::Ptr& frame)> _onFrame;
     H264Frame::Ptr _frame;
-    shared_ptr<TrackInfo> _trackInfo;
+    std::shared_ptr<TrackInfo> _trackInfo;
 };
 
 

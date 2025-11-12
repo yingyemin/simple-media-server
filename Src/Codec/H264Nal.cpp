@@ -5,7 +5,7 @@
 #include <cmath>
 
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "H264Nal.h"
 
 using namespace std;

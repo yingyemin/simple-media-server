@@ -21,7 +21,7 @@ H265Frame::Ptr RtmpDecodeH265::createFrame()
     frame->_index = _trackInfo->index_;
     frame->_trackType = VideoTrackType;
 
-    frame->_buffer.assign("\x00\x00\x00\x01", 4);
+    frame->_buffer->assign("\x00\x00\x00\x01", 4);
 
     return frame;
 }
@@ -58,7 +58,7 @@ void RtmpDecodeH265::decode(const RtmpMessage::Ptr& msg)
 
                 auto frame = createFrame();
                 frame->_pts = frame->_dts = msg->abs_timestamp;
-                frame->_buffer.append((char*)payload + index, naluLen);
+                frame->_buffer->append((char*)payload + index, naluLen);
                 index += naluLen;
 
                 logInfo << "get a config frame: " << (int)frame->getNalType();
@@ -100,7 +100,7 @@ void RtmpDecodeH265::decode(const RtmpMessage::Ptr& msg)
             auto frame = createFrame();
             frame->_pts = frame->_dts = msg->abs_timestamp;
             frame->_pts += cts;
-            frame->_buffer.append((char*)payload + num, len);
+            frame->_buffer->append((char*)payload + num, len);
             
             onFrame(frame);
 
@@ -109,7 +109,7 @@ void RtmpDecodeH265::decode(const RtmpMessage::Ptr& msg)
     }
 }
 
-void RtmpDecodeH265::setOnFrame(const function<void(const FrameBuffer::Ptr& frame)> cb)
+void RtmpDecodeH265::setOnFrame(const function<void(const FrameBuffer::Ptr& frame)>& cb)
 {
     _onFrame = cb;
 }

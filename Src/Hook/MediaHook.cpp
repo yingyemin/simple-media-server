@@ -4,7 +4,7 @@
 #include "Logger.h"
 #include "Common/Config.h"
 #include "Http/HttpClientApi.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 
 using namespace std;
 
@@ -287,12 +287,12 @@ void MediaHook::onKeepAlive(const ServerInfo& info)
 void MediaHook::onRegisterServer(const RegisterServerInfo& info)
 {
     json value;
-    value["serverId"] = info.ip + ":" + to_string(info.port);
+    value["id"] = info.ip + ":" + to_string(info.port);
     value["ip"] = info.ip;
     value["port"] = info.port;
-    value["httpServerPort"] = info.httpServerPort;
-    value["rtmpServerPort"] = info.rtmpServerPort;
-    value["rtspServerPort"] = info.rtspServerPort;
+    value["httpPort"] = info.httpServerPort;
+    value["rtmpPort"] = info.rtmpServerPort;
+    value["rtspPort"] = info.rtspServerPort;
     value["jt1078Port"] = info.jt1078ServerPort;
 
     logInfo << "server info: " << value.dump();

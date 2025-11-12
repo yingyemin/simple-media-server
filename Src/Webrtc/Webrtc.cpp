@@ -2,7 +2,11 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
+
+#ifndef _WIN32
 #include <arpa/inet.h>
+#endif
+
 #include <sstream>
 
 #include "Webrtc.h"

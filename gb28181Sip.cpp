@@ -4,15 +4,21 @@
 #include "Util/Thread.h"
 #include "Ssl/TlsContext.h"
 #include "Common/Config.h"
+#include "Common/HookManager.h"
 #include "GB28181SIP/GB28181TcpClient.h"
 #include "GB28181SIP/GB28181UdpClient.h"
 #include "GB28181SIP/GB28181SIPServer.h"
 #include "Http/HttpServer.h"
+#include "Http/HttpClientApi.h"
 #include "GB28181SIP/GB28181SIPApi.h"
+#include "GB28181SIP/GB28181Hook.h"
+#include "GB28181SIP/Heartbeat.h"
 
 #include <unistd.h>
 #include <string.h>
+#ifndef _WIN32
 #include <sys/resource.h>
+#endif
 
 using namespace std;
 
@@ -22,6 +28,7 @@ using namespace std;
 
 void setFileLimits()
 {
+#ifndef _WIN32
     struct rlimit limitOld, limitNew;
 
     if (getrlimit(RLIMIT_NOFILE, &limitOld)==0) {
@@ -33,6 +40,7 @@ void setFileLimits()
         }
         logInfo << "文件最大描述符个数设置为:" << limitNew.rlim_cur;
     }
+#endif
 }
 
 int main(int argc, char** argv)
@@ -57,7 +65,7 @@ int main(int argc, char** argv)
     if (consoleLog) {
         Logger::instance()->addChannel(std::make_shared<ConsoleChannel>("ConsoleChannel", LTrace));
     }
-    auto fileChannel = std::make_shared<FileChannel>("FileChannel", Path::exeDir() + "log/", LTrace);
+    auto fileChannel = std::make_shared<FileChannel>("FileChannel", Path::exeDir() + "log/", "GB28181SIP", LTrace);
 
     //日志最多保存天数
     fileChannel->setMaxDay(Config::instance()->get("Log", "maxDay"));
@@ -79,7 +87,13 @@ int main(int argc, char** argv)
     Logger::instance()->setLevel((LogLevel)logLevel);
 
     setFileLimits();
+
     GB28181SIPApi::initApi();
+    GB28181Hook::instance()->init();
+    HookManager::instance()->setOnHookReportByHttp(HttpClientApi::reportByHttp);
+
+    Heartbeat::Ptr beat = make_shared<Heartbeat>();
+    beat->startAsync();
 
     auto sslKey = Config::instance()->get("Ssl", "key");
     auto sslCrt = Config::instance()->get("Ssl", "cert");
@@ -102,7 +116,6 @@ int main(int argc, char** argv)
         logInfo << "start gb28181 sip server, port: " << port;
         if (port) {
             GB28181SIPServer::instance()->start(ip, port, count, sockType);
-            // RtcServer::Instance().Start(EventLoopPool::instance()->getLoopByCircle(), port, "0.0.0.0");
         }
         // logInfo << "start rtsps server, sslPort: " << sslPort;
         // if (sslPort) {

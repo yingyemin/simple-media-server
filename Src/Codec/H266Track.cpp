@@ -9,10 +9,18 @@
 #include "H266Frame.h"
 #include "NalBitstream.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Util/Base64.h"
 
 using namespace std;
+
+#ifdef __GNUC__
+// GCC/Clang 环境：使用 __builtin_constant_p
+#define IS_CONSTANT(x) __builtin_constant_p(x)
+#else
+// MSVC 环境：使用替代方案（见下文）
+#define IS_CONSTANT(x) false  // 简单替代，或根据需求实现
+#endif
 
 class vvcParam
 {
@@ -143,8 +151,8 @@ void parseVvcSps(uint8* data, int size, vvcParam& params)
         const unsigned int sps_num_subpics_minus1 = bs.GetUE();
         const int ctb_log2_size_y = sps_log2_ctu_size_minus5 + 5;
         const int ctb_size_y      = 1 << ctb_log2_size_y;
-        const int tmp_width_val   = (!__builtin_constant_p(ctb_log2_size_y) ? -((-(sps_pic_width_max_in_luma_samples)) >> (ctb_log2_size_y)) : ((sps_pic_width_max_in_luma_samples) + (1<<(ctb_log2_size_y)) - 1) >> (ctb_log2_size_y));
-        const int tmp_height_val  = (!__builtin_constant_p(ctb_log2_size_y) ? -((-(sps_pic_height_max_in_luma_samples)) >> (ctb_log2_size_y)) : ((sps_pic_height_max_in_luma_samples) + (1<<(ctb_log2_size_y)) - 1) >> (ctb_log2_size_y));
+        const int tmp_width_val   = (!IS_CONSTANT(ctb_log2_size_y) ? -((-(sps_pic_width_max_in_luma_samples)) >> (ctb_log2_size_y)) : ((sps_pic_width_max_in_luma_samples) + (1<<(ctb_log2_size_y)) - 1) >> (ctb_log2_size_y));
+        const int tmp_height_val  = (!IS_CONSTANT(ctb_log2_size_y) ? -((-(sps_pic_height_max_in_luma_samples)) >> (ctb_log2_size_y)) : ((sps_pic_height_max_in_luma_samples) + (1<<(ctb_log2_size_y)) - 1) >> (ctb_log2_size_y));
         const int wlen            = av_ceil_log2(tmp_width_val);
         const int hlen            = av_ceil_log2(tmp_height_val);
         unsigned int sps_subpic_id_len;
@@ -278,7 +286,7 @@ string H266Track::getConfig()
         *data++ = (uint8_t)(vpsLen); //sequence parameter set  length low 8 bits
         // 7 byte
 
-        memcpy(data, vpsBuffer.data() + vpsSize, vpsLen); //H264 sequence parameter set
+        memcpy(data, vpsBuffer->data() + vpsSize, vpsLen); //H264 sequence parameter set
         data += vpsLen; 
         // 7 + vpsLen
     }
@@ -295,7 +303,7 @@ string H266Track::getConfig()
     *data++ = (uint8_t)(spsLen); //sequence parameter set  length low 8 bits
 	// 12 byte + vpsLen
 
-    memcpy(data, spsBuffer.data() + spsSize, spsLen); //H264 sequence parameter set
+    memcpy(data, spsBuffer->data() + spsSize, spsLen); //H264 sequence parameter set
     data += spsLen; 
     // 12 + vpsLen + spsLen
 
@@ -311,7 +319,7 @@ string H266Track::getConfig()
     *data++ = (uint8_t)(ppsLen); //sequence parameter set  length low 8 bits
 	// 17 + vpsLen + spsLen
 
-    memcpy(data, ppsBuffer.data() + ppsSize, ppsLen); //H264 sequence parameter set
+    memcpy(data, ppsBuffer->data() + ppsSize, ppsLen); //H264 sequence parameter set
     data += ppsLen; 
     // 17  + vpsLen + spsLen + ppsLen
 
@@ -382,10 +390,10 @@ void H266Track::setConfig(const string& config)
 			frame->_index = index_;
 			frame->_trackType = VideoTrackType;
 
-			frame->_buffer.assign("\x00\x00\x00\x01", 4);
+			frame->_buffer->assign("\x00\x00\x00\x01", 4);
 			frame->_pts = frame->_dts = 0;
             int bitIndex = (bs.getBitPos() + 1) / 8 - 1;
-			frame->_buffer.append((char*)_hvcc.data() + bitIndex, naluLen);
+			frame->_buffer->append((char*)_hvcc.data() + bitIndex, naluLen);
 			bs.skipByte(naluLen);
 
 			logInfo << "get a config frame: " << (int)frame->getNalType();

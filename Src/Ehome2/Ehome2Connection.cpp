@@ -2,12 +2,17 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
+
+#if defined(_WIN32)
+#include "Util.h"
+#else
 #include <arpa/inet.h>
+#endif
 
 #include "Ehome2Connection.h"
 #include "Rtp/RtpManager.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Common/Define.h"
 
 using namespace std;

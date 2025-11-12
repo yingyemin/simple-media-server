@@ -1,6 +1,7 @@
 #ifndef T0A00_8A00_H
 #define T0A00_8A00_H
 
+#include <cstdint>
 #include <string>
 #include <vector>
 

@@ -8,12 +8,12 @@
 
 #include "HlsMuxer.h"
 
-using namespace std;
+// using namespace std;
 
 class HlsManager
 {
 public:
-	using Ptr = shared_ptr<HlsManager>;
+	using Ptr = std::shared_ptr<HlsManager>;
 	
 	HlsManager();
 	~HlsManager();
@@ -21,9 +21,9 @@ public:
 public:
 	static HlsManager::Ptr& instance();
 
-	void addMuxer(const string& key, const HlsMuxer::Ptr& muxer);
-	HlsMuxer::Ptr getMuxer(const string& key);
-	void delMuxer(const string& key);
+	void addMuxer(const std::string& key, const HlsMuxer::Ptr& muxer);
+	HlsMuxer::Ptr getMuxer(const std::string& key);
+	void delMuxer(const std::string& key);
 
 	// void addMuxer(int uid, const HlsMuxer::Ptr& muxer);
 	// HlsMuxer::Ptr getMuxer(int uid);
@@ -33,8 +33,8 @@ private:
 	// mutex _muxerMtx;
 	// unordered_map<int, HlsMuxer::Ptr> _mapMuxer;
 
-	mutex _muxerStrMtx;
-	unordered_map<string, HlsMuxer::Ptr> _mapStrMuxer;
+	std::mutex _muxerStrMtx;
+	std::unordered_map<std::string, HlsMuxer::Ptr> _mapStrMuxer;
 };
 
 #endif

@@ -81,14 +81,14 @@ void RtmpDecodeVPX::decode(const RtmpMessage::Ptr& msg)
             auto frame = FrameBuffer::createFrame(_trackInfo->codec_, 0, _trackInfo->index_, false);
             frame->_pts = frame->_dts = msg->abs_timestamp;
             frame->_pts += cts;
-            frame->_buffer.append((char*)payload, end - payload);
+            frame->_buffer->append((char*)payload, end - payload);
             
             onFrame(frame);
         }
     }
 }
 
-void RtmpDecodeVPX::setOnFrame(const function<void(const FrameBuffer::Ptr& frame)> cb)
+void RtmpDecodeVPX::setOnFrame(const function<void(const FrameBuffer::Ptr& frame)>& cb)
 {
     _onFrame = cb;
 }

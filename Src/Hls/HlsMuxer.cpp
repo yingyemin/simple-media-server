@@ -10,6 +10,8 @@
 #include "Codec/H264Track.h"
 #include "Codec/H265Track.h"
 
+using namespace std;
+
 static int getUid()
 {
 	random_device rd; // 用于获得种子
@@ -219,9 +221,9 @@ void HlsMuxer::onTsPacket(const Buffer::Ptr &pkt, int pts, int dts, bool keyfram
 	}
 
 	if (_tsBuffer->size() == 0 && _fmp4Header) {
-		_tsBuffer->_buffer.append(_fmp4Header->data(), _fmp4Header->size());
+		_tsBuffer->_buffer->append(_fmp4Header->data(), _fmp4Header->size());
 	}
-	_tsBuffer->_buffer.append(pkt->data(), pkt->size());
+	_tsBuffer->_buffer->append(pkt->data(), pkt->size());
 	_lastPts = pts;
 }
 

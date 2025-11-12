@@ -1,5 +1,7 @@
 ﻿#include "ApiUtil.h"
 
+using namespace std;
+
 void checkArgs(const nlohmann::json &allArgs, const std::vector<std::string>& requiredParams)
 {
     string lossParams = "";

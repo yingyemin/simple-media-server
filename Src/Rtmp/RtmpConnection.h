@@ -13,13 +13,13 @@
 #include <memory>
 #include <vector>
 
-using namespace std;
+// using namespace std;
 
 class RtmpConnection : public TcpConnection
 {
 public:
-    using Ptr = shared_ptr<RtmpConnection>;
-    using Wptr = weak_ptr<RtmpConnection>;
+    using Ptr = std::shared_ptr<RtmpConnection>;
+    using Wptr = std::weak_ptr<RtmpConnection>;
 
     RtmpConnection(const EventLoop::Ptr& loop, const Socket::Ptr& socket);
     ~RtmpConnection();
@@ -27,7 +27,7 @@ public:
 public:
     // 继承自tcpseesion
     void onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len) override;
-    void onError(const string& msg) override;
+    void onError(const std::string& msg) override;
     void onManager() override;
     void init() override;
     void close() override;
@@ -72,11 +72,11 @@ private:
     StreamBuffer::Ptr _avcHeader;
     int _aacHeaderSize = 0;
     StreamBuffer::Ptr _aacHeader;
-    string _streamName;
-    string _app;
-    string _tcUrl;
-    string _path;
-    string _status;
+    std::string _streamName;
+    std::string _app;
+    std::string _tcUrl;
+    std::string _path;
+    std::string _status;
     AmfObjects _metaData;
     AmfDecoder _amfDecoder;
     AmfEncoder _amfEncoder;
@@ -84,7 +84,7 @@ private:
     UrlParser _urlParser;
     RtmpDecodeTrack::Ptr _rtmpVideoDecodeTrack;
     RtmpDecodeTrack::Ptr _rtmpAudioDecodeTrack;
-    shared_ptr<RtmpHandshake> _handshake;
+    std::shared_ptr<RtmpHandshake> _handshake;
     EventLoop::Ptr _loop;
     Socket::Ptr _socket;
     RtmpMediaSource::Wptr _source;

@@ -13,13 +13,13 @@
 #include "GB28181Context.h"
 
 
-using namespace std;
+// using namespace std;
 
 class GB28181Connection : public TcpConnection
 {
 public:
-    using Ptr = shared_ptr<GB28181Connection>;
-    using Wptr = weak_ptr<GB28181Connection>;
+    using Ptr = std::shared_ptr<GB28181Connection>;
+    using Wptr = std::weak_ptr<GB28181Connection>;
 
     GB28181Connection(const EventLoop::Ptr& loop, const Socket::Ptr& socket);
     ~GB28181Connection();
@@ -27,7 +27,7 @@ public:
 public:
     // 继承自tcpseesion
     void onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len) override;
-    void onError(const string& msg) override;
+    void onError(const std::string& msg) override;
     void onManager() override;
     void init() override;
     void close() override;

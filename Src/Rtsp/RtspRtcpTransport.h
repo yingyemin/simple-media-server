@@ -10,13 +10,13 @@
 #include "RtspTrack.h"
 #include "Rtp/RtpSort.h"
 
-using namespace std;
+// using namespace std;
 
-class RtspRtcpTransport : public enable_shared_from_this<RtspRtcpTransport>
+class RtspRtcpTransport : public std::enable_shared_from_this<RtspRtcpTransport>
 {
 public:
-    using Ptr = shared_ptr<RtspRtcpTransport>;
-    using Wptr = weak_ptr<RtspRtcpTransport>;
+    using Ptr = std::shared_ptr<RtspRtcpTransport>;
+    using Wptr = std::weak_ptr<RtspRtcpTransport>;
 
     RtspRtcpTransport(int transType, int dataType, const RtspTrack::Ptr& track, const Socket::Ptr& socket);
 
@@ -27,7 +27,7 @@ public:
     void sendRtcpPacket();
     void bindPeerAddr(struct sockaddr* addr);
     Socket::Ptr getSocket() {return _socket;}    
-    void setOnTcpSend(const function<void(const Buffer::Ptr& pkt, int flag)>& func) {_tcpSend = func;}
+    void setOnTcpSend(const std::function<void(const Buffer::Ptr& pkt, int flag, size_t offset, size_t len)>& func) {_tcpSend = func;}
 
 private:
     int _transType; //tcp or udp
@@ -40,7 +40,7 @@ private:
     RtpSort::Ptr _sort;
     Socket::Ptr _socket;
     RtspTrack::Ptr _track;
-    function<void(const Buffer::Ptr& pkt, int flag)> _tcpSend;
+    std::function<void(const Buffer::Ptr& pkt, int flag, size_t offset, size_t len)> _tcpSend;
 };
 
 

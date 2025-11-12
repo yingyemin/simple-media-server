@@ -11,24 +11,24 @@
 #include <functional>
 #include <deque>
 
-using namespace std;
+// using namespace std;
 
-class HttpVodClient :  public MediaClient, public enable_shared_from_this<HttpVodClient>
+class HttpVodClient :  public MediaClient, public std::enable_shared_from_this<HttpVodClient>
 {
 public:
-    HttpVodClient(MediaClientType type, const string& appName, const string& streamName);
+    HttpVodClient(MediaClientType type, const std::string& appName, const std::string& streamName);
     virtual ~HttpVodClient();
 
 public:
     // override MediaClient
-    virtual bool start(const string& localIp, int localPort, const string& url, int timeout) override;
+    virtual bool start(const std::string& localIp, int localPort, const std::string& url, int timeout) override;
     void stop() override;
     void pause() override;
-    void setOnClose(const function<void()>& cb) override;
-    void getProtocolAndType(string& protocol, MediaClientType& type) override;
+    void setOnClose(const std::function<void()>& cb) override;
+    void getProtocolAndType(std::string& protocol, MediaClientType& type) override;
 
 public:
-    void onError(const string& err);
+    void onError(const std::string& err);
     void close();
     void download();
     virtual void onFrame(const FrameBuffer::Ptr& frame);
@@ -45,8 +45,8 @@ protected:
 
     int _localPort = 0;
     int _timeout = 5;
-    string _localIp;
-    string _url;
+    std::string _localIp;
+    std::string _url;
 
     uint64_t _curPos = 0;
     uint64_t _readSize = 4 * 1024 * 1024;
@@ -61,9 +61,9 @@ protected:
     Socket::Ptr _socket;
     FrameMediaSource::Wptr _source;
 
-    function<void()> _onClose;
-    deque<FrameBuffer::Ptr> _frameList;
-    unordered_map<int, TrackInfo::Ptr> _mapTrackInfo;
+    std::function<void()> _onClose;
+    std::deque<FrameBuffer::Ptr> _frameList;
+    std::unordered_map<int, TrackInfo::Ptr> _mapTrackInfo;
 };
 
 #endif //HttpFlvClient_h

@@ -62,10 +62,10 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    customInput->addVideoTrack("h264");
+    customInput->addVideoTrack("h265");
     customInput->addAudioTrack("g711a", 8000, 1, 8);
 
-    std::string videoName = "video.h264";
+    std::string videoName = "video.h265";
     FILE* videoFp = fopen(videoName.c_str(), "rb");
     if (!videoFp) {
         return -1;

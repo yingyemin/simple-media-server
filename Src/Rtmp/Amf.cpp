@@ -1,5 +1,5 @@
 #include "Amf.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Log/Logger.h"
 
 int AmfDecoder::decode(const char *data, int size, int n)
@@ -193,7 +193,7 @@ uint32_t AmfDecoder::decodeInt32(const char *data, int size)
 }
 
 AmfEncoder::AmfEncoder(uint32_t size)
-	: _data(make_shared<StreamBuffer>(size + 1))
+	: _data(std::make_shared<StreamBuffer>(size + 1))
 	, _size(size)
 {
 }
@@ -358,7 +358,7 @@ void AmfEncoder::realloc(uint32_t size)
 		return;
 	}
 
-	StreamBuffer::Ptr data = make_shared<StreamBuffer>(size + 1);
+	StreamBuffer::Ptr data = std::make_shared<StreamBuffer>(size + 1);
 	memcpy(data->data(), _data->data(), _index);
 	_size = size;
 	_data = data;

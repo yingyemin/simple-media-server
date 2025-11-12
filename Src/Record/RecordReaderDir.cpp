@@ -6,7 +6,11 @@
 #include "Common/Config.h"
 #include "RecordReaderDir.h"
 #include "Logger.h"
-#include "Util/String.h"
+#if defined(_WIN32)
+#include "Util/String.hpp"
+#else
+#include "Util/String.hpp"
+#endif
 #include "WorkPoller/WorkLoopPool.h"
 #include "RecordReaderMp4.h"
 #include "RecordReaderPs.h"

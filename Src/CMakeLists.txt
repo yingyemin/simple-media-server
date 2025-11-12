@@ -223,13 +223,11 @@ if (ENABLE_SRT)
     project(srtapp)
     add_definitions(-DENABLE_SRT)
     aux_source_directory("Srt" SRC_Srt)
-    add_library(srtapp STATIC 
-        ${SRC_Srt}
-    )
+    add_library(srtapp STATIC ${SRC_Srt})
     list(INSERT LINK_LIB_LIST 0 srtapp)
 else()
     message(STATUS "not add srt moudle")
-endif ()
+endif()
 
 ###SRT Custom########
 if (ENABLE_SRTCUSTOM)

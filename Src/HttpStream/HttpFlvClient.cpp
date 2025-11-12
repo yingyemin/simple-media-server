@@ -3,7 +3,7 @@
 #include "HttpFlvClient.h"
 #include "Logger.h"
 #include "Common/Config.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Common/Define.h"
 #include "Rtmp/Amf.h"
 #include "Rtmp/Rtmp.h"

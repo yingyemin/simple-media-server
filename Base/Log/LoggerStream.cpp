@@ -4,6 +4,8 @@
 
 #include <string.h>
 
+using namespace std;
+
 static inline const char *getFileName(const char *file) {
     auto pos = strrchr(file, '/');
     

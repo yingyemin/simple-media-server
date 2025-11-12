@@ -1,4 +1,4 @@
-#ifndef Mpeg_H
+﻿#ifndef Mpeg_H
 #define Mpeg_H
 
 #include <stdint.h>
@@ -80,4 +80,3 @@ struct bits_buffer_s {
 uint32_t mpegCrc32(const uint8_t* data, uint32_t len);
 
 #endif //Mpeg_H
-

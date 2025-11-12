@@ -33,10 +33,10 @@ public:
     int port_;
     uint64_t createTime_ = 0;
     float bitrate_;
-    string ip_;
-    string protocol_;
-    unordered_map<string, string> info_;
-    function<void()> close_;
+    std::string ip_;
+    std::string protocol_;
+    std::unordered_map<std::string, std::string> info_;
+    std::function<void()> close_;
 };
 
 template <typename T>
@@ -89,7 +89,7 @@ template <typename T>
 class DataQueStorage {
 public:
     using Ptr = std::shared_ptr<DataQueStorage>;
-    using GopType = list<list<std::pair<bool, T>>>;
+    using GopType = std::list<std::list<std::pair<bool, T>>>;
     
     DataQueStorage(size_t max_size, size_t max_gop_size);
 

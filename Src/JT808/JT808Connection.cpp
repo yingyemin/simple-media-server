@@ -2,11 +2,17 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
-#include <arpa/inet.h>
+
 
 #include "JT808Connection.h"
 #include "Logger.h"
-#include "Util/String.h"
+#ifdef _WIN32
+#include "Util/String.hpp"
+#else
+#include <arpa/inet.h>
+#include "Util/String.hpp"
+#endif
+
 #include "Common/Define.h"
 #include "Common/HookManager.h"
 #include "Common/Config.h"

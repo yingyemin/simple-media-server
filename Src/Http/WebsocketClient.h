@@ -11,7 +11,7 @@
 #include <memory>
 #include <functional>
 
-using namespace std;
+// using namespace std;
 
 class WebsocketClient : public HttpClient
 {
@@ -28,26 +28,26 @@ public:
     void close() override;
 
     void onWebsocketFrame(const char *data, uint64_t len);
-    void setOnWebsocketFrame(const function<void(const char *data, uint64_t len)>& cb);
+    void setOnWebsocketFrame(const std::function<void(const char *data, uint64_t len)>& cb);
     void sendData(const Buffer::Ptr& buffer);
     void sendStream();
     void onGetSource(const MediaSource::Ptr& src);
-    void setUri(const string& uri) {_uri = uri;}
+    void setUri(const std::string& uri) {_uri = uri;}
 
-    void setOnClose(const function<void()>& cb) {_onClose = cb;}
+    void setOnClose(const std::function<void()>& cb) {_onClose = cb;}
 
 private:
     bool _handshake = false;
     uint64_t _recvLen = 0;
-    string _uri;
+    std::string _uri;
     WebsocketContext _websocket;
     EventLoop::Ptr _loop;
     FrameMediaSource::Wptr _source;
     MediaSource::FrameRingType::DataQueReaderT::Ptr _playReader;
-    function<void(const HttpParser& parser)> _onHttpResponce;
-    function<void()> _onSendData;
-    function<void()> _onClose;
-    function<void(const char *data, uint64_t len)> _onWebsocketFrame;
+    std::function<void(const HttpParser& parser)> _onHttpResponce;
+    std::function<void()> _onSendData;
+    std::function<void()> _onClose;
+    std::function<void(const char *data, uint64_t len)> _onWebsocketFrame;
 };
 
 #endif //WebsocketClient_h

@@ -5,7 +5,7 @@
 
 #include "Frame.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 
 using namespace std;
 
@@ -13,7 +13,7 @@ unordered_map<string, FrameBuffer::funcCreateFrame> FrameBuffer::_mapCreateFrame
 
 FrameBuffer::FrameBuffer()
 {
-
+    _buffer = make_shared<StringBuffer>();
 }
 
 const char* FrameBuffer::findNextNalu(const char* p, size_t bytes, size_t& leading)

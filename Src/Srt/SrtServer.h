@@ -11,14 +11,14 @@
 #include <memory>
 #include <vector>
 
-using namespace std;
+// using namespace std;
 
 #ifdef ENABLE_SRT
 
-class SrtServer : public enable_shared_from_this<SrtServer> {
+class SrtServer : public std::enable_shared_from_this<SrtServer> {
 public:
-    using Ptr = shared_ptr<SrtServer>;
-    using Wptr = weak_ptr<SrtServer>;
+    using Ptr = std::shared_ptr<SrtServer>;
+    using Wptr = std::weak_ptr<SrtServer>;
 
     SrtServer();
     ~SrtServer();
@@ -30,20 +30,20 @@ public:
     // 可多次调用，为了可以动态的增减端口或者线程数
     // 比如想动态换一个监听端口，或者动态加一个监听端口
     // sockType: 1:tcp, 2:udp, 3:both
-    void start(const string& ip, int port, int count, int sockType);
+    void start(const std::string& ip, int port, int count, int sockType);
     void stopByPort(int port, int count, int sockType);
 
     // 后面考虑增加IP参数
     // void stopByIp(int port, int count);
     
-    void for_each_socket(const function<void(const SrtSocket::Ptr &)> &cb);
+    void for_each_socket(const std::function<void(const SrtSocket::Ptr &)> &cb);
 
 private:
-    mutex _mtx;
+    std::mutex _mtx;
     // int : port
-    unordered_map<int, vector<SrtSocket::Ptr>> _udpSockets;
-    unordered_map<int, vector<Socket::Ptr>> _Sockets;
-    unordered_map<int, SrtConnection::Ptr> _mapSrtConn;
+    std::unordered_map<int, std::vector<SrtSocket::Ptr>> _udpSockets;
+    std::unordered_map<int, std::vector<Socket::Ptr>> _Sockets;
+    std::unordered_map<int, SrtConnection::Ptr> _mapSrtConn;
 };
 
 #endif

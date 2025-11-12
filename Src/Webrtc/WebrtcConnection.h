@@ -13,13 +13,13 @@
 #include "WebrtcContext.h"
 
 
-using namespace std;
+// using namespace std;
 
 class WebrtcConnection : public TcpConnection
 {
 public:
-    using Ptr = shared_ptr<WebrtcConnection>;
-    using Wptr = weak_ptr<WebrtcConnection>;
+    using Ptr = std::shared_ptr<WebrtcConnection>;
+    using Wptr = std::weak_ptr<WebrtcConnection>;
 
     WebrtcConnection(const EventLoop::Ptr& loop, const Socket::Ptr& socket);
     ~WebrtcConnection();
@@ -27,7 +27,7 @@ public:
 public:
     // 继承自tcpseesion
     void onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len) override;
-    void onError(const string& msg) override;
+    void onError(const std::string& msg) override;
     void onManager() override;
     void init() override;
     void close() override;
@@ -38,7 +38,7 @@ public:
 
 private:
     int _ssrc = -1;
-    string _username;
+    std::string _username;
     WebrtcParser _parser;
     WebrtcContext::Ptr _context;
     EventLoop::Ptr _loop;

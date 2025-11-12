@@ -2,13 +2,19 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
+#if !defined(_WIN32)
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <iconv.h>
+#endif
 
 #include "JT808Context.h"
 #include "Logger.h"
-#include "Util/String.h"
+#if defined(_WIN32)
+#include "Util/String.hpp"
+#else
+#include "Util/String.hpp"
+#endif
 #include "Common/Define.h"
 #include "Common/Config.h"
 #include "Hook/MediaHook.h"
@@ -40,6 +46,25 @@ void JT808Context::update()
     _timeClock.update();
 }
 
+#if defined(_WIN32)
+// GBK 转 UTF-8
+std::string GBKToUTF8(const std::string& gbk_str) {
+    // 先将 GBK 转为宽字符（UTF-16）
+    int wcs_len = MultiByteToWideChar(CP_ACP, 0, gbk_str.c_str(), -1, nullptr, 0);
+    wchar_t* wcs_buf = new wchar_t[wcs_len];
+    MultiByteToWideChar(CP_ACP, 0, gbk_str.c_str(), -1, wcs_buf, wcs_len);
+
+    // 再将宽字符转为 UTF-8
+    int utf8_len = WideCharToMultiByte(CP_UTF8, 0, wcs_buf, -1, nullptr, 0, nullptr, nullptr);
+    char* utf8_buf = new char[utf8_len];
+    WideCharToMultiByte(CP_UTF8, 0, wcs_buf, -1, utf8_buf, utf8_len, nullptr, nullptr);
+
+    std::string utf8_str(utf8_buf);
+    delete[] wcs_buf;
+    delete[] utf8_buf;
+    return utf8_str;
+}
+#else
 std::string GBKToUTF8(const std::string& gbkStr) {
     iconv_t cd = iconv_open("UTF - 8", "GBK");
     if (cd == (iconv_t)-1) {
@@ -61,6 +86,7 @@ std::string GBKToUTF8(const std::string& gbkStr) {
     utf8Str.resize(utf8Str.size() - outlen);
     return utf8Str;
 }
+#endif
 
 void JT808Context::onRegister(const Socket::Ptr& socket, const JT808Packet::Ptr& packet)
 {

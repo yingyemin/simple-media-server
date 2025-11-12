@@ -96,3 +96,12 @@ ssize_t TcpConnection::send(Buffer::Ptr pkt)
         return _socket->send(pkt);
     }
 }
+
+ssize_t TcpConnection::send(Buffer::Ptr pkt, bool flag, size_t offset, size_t len)
+{
+    if (_tlsCtx) {
+        return _tlsCtx->send(pkt);
+    } else {
+        return _socket->send(pkt, flag, offset, len);
+    }
+}

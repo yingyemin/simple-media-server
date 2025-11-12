@@ -17,7 +17,7 @@
 #include <memory>
 #include <vector>
 
-using namespace std;
+// using namespace std;
 
 enum RtmpState
 {
@@ -34,26 +34,26 @@ enum RtmpState
 class RtmpClient : public TcpClient, public MediaClient
 {
 public:
-    using Ptr = shared_ptr<RtmpClient>;
-    RtmpClient(MediaClientType type, const string& appName, const string& streamName);
+    using Ptr = std::shared_ptr<RtmpClient>;
+    RtmpClient(MediaClientType type, const std::string& appName, const std::string& streamName);
     ~RtmpClient();
 
 public:
     static void init();
 
-    string getPath() {return _localUrlParser.path_;}
-    string getSourceUrl() {return _url;}
+    std::string getPath() {return _localUrlParser.path_;}
+    std::string getSourceUrl() {return _url;}
     // void getProtocolAndType(string& protocol, MediaClientType& type);
     void onManager();
 
 public:
     // override MediaClient
-    bool start(const string& localIp, int localPort, const string& url, int timeout) override;
+    bool start(const std::string& localIp, int localPort, const std::string& url, int timeout) override;
     void stop() override;
     void pause() override;
-    void setOnClose(const function<void()>& cb) override;
-    void addOnReady(void* key, const function<void()>& onReady) override;
-    void getProtocolAndType(string& protocol, MediaClientType& type) override;
+    void setOnClose(const std::function<void()>& cb) override;
+    void addOnReady(void* key, const std::function<void()>& onReady) override;
+    void getProtocolAndType(std::string& protocol, MediaClientType& type) override;
 
     // string getPath() {return _localUrlParser.path_;}
     // string getSourceUrl() {return _url;}
@@ -65,7 +65,7 @@ public:
 protected:
     // override TcpClient
     void onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len) override;
-    void onError(const string& err) override;
+    void onError(const std::string& err) override;
     void close() override;
     void onConnect() override;
 
@@ -109,12 +109,12 @@ private:
     int _aacHeaderSize = 0;
     StreamBuffer::Ptr _aacHeader;
 
-    string _localAppName;
-    string _localStreamName;
+    std::string _localAppName;
+    std::string _localStreamName;
 
-    string _tcUrl;
-    string _peerAppName;
-    string _peerStreamName;
+    std::string _tcUrl;
+    std::string _peerAppName;
+    std::string _peerStreamName;
     AmfDecoder _amfDecoder;
     AmfEncoder _amfEncoder;
     AmfObjects _metaData;
@@ -128,15 +128,15 @@ private:
 
     RtmpDecodeTrack::Ptr _rtmpVideoDecodeTrack;
     RtmpDecodeTrack::Ptr _rtmpAudioDecodeTrack;
-    shared_ptr<RtmpHandshake> _handshake;
+    std::shared_ptr<RtmpHandshake> _handshake;
     EventLoop::Ptr _loop;
     Socket::Ptr _socket;
     RtmpMediaSource::Wptr _source;
     RtmpMediaSource::RingType::DataQueReaderT::Ptr _playReader;
 
-    function<void()> _onClose;
-    mutex _mtx;
-    unordered_map<void*, function<void()>> _mapOnReady;
+    std::function<void()> _onClose;
+    std::mutex _mtx;
+    std::unordered_map<void*, std::function<void()>> _mapOnReady;
 };
 
 #endif //RtmpClient_h

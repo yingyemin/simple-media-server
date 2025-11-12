@@ -11,15 +11,15 @@
 #include "Buffer.h"
 #include "Ssl/TlsContext.h"
 
-using namespace std;
+// using namespace std;
 
 
 
 class TcpConnection  : public std::enable_shared_from_this<TcpConnection> {
 public:
-    using Ptr = shared_ptr<TcpConnection>;
-    using Wptr = weak_ptr<TcpConnection>;
-    using closeCb = function<void(TcpConnection::Ptr)>;
+    using Ptr = std::shared_ptr<TcpConnection>;
+    using Wptr = std::weak_ptr<TcpConnection>;
+    using closeCb = std::function<void(TcpConnection::Ptr)>;
     TcpConnection(const EventLoop::Ptr& loop, const Socket::Ptr& socket);
     TcpConnection(const EventLoop::Ptr& loop, const Socket::Ptr& socket, bool enableTls);
     ~TcpConnection();
@@ -32,6 +32,7 @@ public:
     virtual void init() {}
     virtual void close();
     virtual ssize_t send(Buffer::Ptr pkt);
+    virtual ssize_t send(Buffer::Ptr pkt, bool flag, size_t offset = 0, size_t len = 0);
     virtual uint64_t getCreateTime() {return _socket->getCreateTime();}
 
     // session结束时，从tcpserver中删除

@@ -11,17 +11,17 @@
 #include <memory>
 #include <unordered_map>
 
-using namespace std;
+// using namespace std;
 
 class JT808MediaInfo{
 public:
-    string simCode;
-    string streamId;
+    std::string simCode;
+    std::string streamId;
     int channelNum;
     int type; // 0: 实时流 1: 回放 2：语音对讲
     uint64_t startStamp;
     uint64_t endStamp;
-    string ip;
+    std::string ip;
     int tcpPort;
     int udpPort = 0;
     int mediaType;
@@ -46,13 +46,13 @@ public:
     std::shared_ptr<T0200_Version1> location;
 };
 
-class JT808Context : public enable_shared_from_this<JT808Context>
+class JT808Context : public std::enable_shared_from_this<JT808Context>
 {
 public:
-    using Ptr = shared_ptr<JT808Context>;
-    using Wptr = weak_ptr<JT808Context>;
+    using Ptr = std::shared_ptr<JT808Context>;
+    using Wptr = std::weak_ptr<JT808Context>;
 
-    JT808Context(const EventLoop::Ptr& loop, const string& deviceId);
+    JT808Context(const EventLoop::Ptr& loop, const std::string& deviceId);
     ~JT808Context();
 public:
     bool init();
@@ -66,22 +66,22 @@ public:
     void on9102(int channel, int control, int closeType, int mediaType);
     void sendMessage(const Buffer::Ptr& buffer);
     void packHeader(JT808Header& header);
-    bool isMediaExist(const string& simCode, const string& streamId);
+    bool isMediaExist(const std::string& simCode, const std::string& streamId);
     JT808DeviceInfo getDeviceInfo() {return _deviceInfo;}
 
 private:
     bool _alive = true;
-    string _simCode;
+    std::string _simCode;
     JT808DeviceInfo _deviceInfo;
     TimeClock _timeClock;
     JT808Header _header;
-    shared_ptr<sockaddr> _addr;
+    std::shared_ptr<sockaddr> _addr;
     Socket::Ptr _socket;
     EventLoop::Ptr _loop;
 
-    mutex _mtx;
+    std::mutex _mtx;
     // simCode, streamId/port, JT808MediaInfo
-    unordered_map<string, unordered_map<string, JT808MediaInfo>> _mapMediaInfo;
+    std::unordered_map<std::string, std::unordered_map<std::string, JT808MediaInfo>> _mapMediaInfo;
 };
 
 

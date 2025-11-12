@@ -3,14 +3,14 @@
 
 #include "RecordReader.h"
 
-using namespace std;
+// using namespace std;
 
 class RecordReaderDir : public RecordReader
 {
 public:
-    using Ptr = shared_ptr<RecordReaderDir>;
+    using Ptr = std::shared_ptr<RecordReaderDir>;
 
-    RecordReaderDir(const string& path);
+    RecordReaderDir(const std::string& path);
     ~RecordReaderDir();
 
 public:
@@ -31,7 +31,7 @@ private:
     uint64_t _firstDts = 0;
     uint64_t _duration = 0;
     RecordReader::Ptr _reader;
-    vector<RecordReader::Ptr> _vecDemuxer;
+    std::vector<RecordReader::Ptr> _vecDemuxer;
 };
 
 #endif //RecordReaderDir_H

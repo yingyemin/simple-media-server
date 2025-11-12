@@ -1,11 +1,15 @@
 ﻿#include "WebrtcStun.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Util/CRC32.h"
 #include "Util/MD5.h"
 #include "Ssl/HmacSHA1.h"
 
 #include <unordered_map>
+
+#if defined(_WIN32)
+#include "Util/Util.h"
+#endif
 
 #define MAGIC_COOKIE 0x2112A442
 
@@ -293,7 +297,7 @@ int32_t WebrtcStun::parse(const char* buf, const int32_t nb_buf)
             }
 
             case Fingerprint: {
-                logInfo << "fingerprint: " << val;
+                logInfo << "fingerprint: ";// << val;
                 break;
             }
             
@@ -386,15 +390,20 @@ int32_t WebrtcStun::encodeBindingRequest(const string& pwd, StringBuffer::Ptr st
 
     string property_username = encodeUsername();
     string mapped_address = encodeMappedAddress();
+    string priority = encodePriority();
+    string use_candidate = encodeUseCandidate();
 
     stream->resize(8);
     writeUint16BE(stream->data(), BindingRequest);
-    writeUint16BE(stream->data() + 2, property_username.size() + mapped_address.size());
+    writeUint16BE(stream->data() + 2, property_username.size() + mapped_address.size() + priority.size() + use_candidate.size());
     writeUint32BE(stream->data() + 4, kStunMagicCookie);
     stream->append(_transcationId);
     stream->append(property_username);
     stream->append(mapped_address);
+    stream->append(priority);
+    stream->append(use_candidate);
 
+    // 中途几次长度计算不能去掉，参与签名
     stream->data()[2] = ((stream->size() - 20 + 20 + 4) & 0x0000FF00) >> 8;
     stream->data()[3] = ((stream->size() - 20 + 20 + 4) & 0x000000FF);
 
@@ -445,6 +454,37 @@ string WebrtcStun::encodeUsername()
         static char padding[4] = {0};
         buffer.append(padding, 4 - (buffer.size() % 4));
     }
+
+    return buffer;
+}
+
+string WebrtcStun::encodePriority()
+{
+    // char buf[1460];
+    // YangBuffer* stream = new YangBuffer(buf, sizeof(buf));
+    // YangAutoFree(YangBuffer, stream);
+
+    string buffer;
+    buffer.resize(8);
+
+    writeUint16BE((char*)buffer.data(), Priority);
+    writeUint16BE((char*)buffer.data() + 2, 4);
+    writeUint32BE((char*)buffer.data() + 4, _priority);
+
+    return buffer;
+}
+
+string WebrtcStun::encodeUseCandidate()
+{
+    // char buf[1460];
+    // YangBuffer* stream = new YangBuffer(buf, sizeof(buf));
+    // YangAutoFree(YangBuffer, stream);
+
+    string buffer;
+    buffer.resize(4);
+
+    writeUint16BE((char*)buffer.data(), UseCandidate);
+    writeUint16BE((char*)buffer.data() + 2, 0);
 
     return buffer;
 }

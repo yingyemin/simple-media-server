@@ -2,11 +2,14 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
+
+#ifndef _WIN32
 #include <sys/socket.h>
+#endif
 
 #include "GB28181Context.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Common/Define.h"
 #include "Common/Config.h"
 #include "Common/HookManager.h"

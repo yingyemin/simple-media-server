@@ -10,17 +10,23 @@
 #include <memory>
 #include <functional>
 
-using namespace std;
+// using namespace std;
 
 class GB28181SIPApi
 {
 public:
     static void initApi();
     static void catalog(const HttpParser& parser, const UrlParser& urlParser, 
-                        const function<void(HttpResponse& rsp)>& rspFunc);
+                        const std::function<void(HttpResponse& rsp)>& rspFunc);
 
     static void invite(const HttpParser& parser, const UrlParser& urlParser, 
-                        const function<void(HttpResponse& rsp)>& rspFunc);
+                        const std::function<void(HttpResponse& rsp)>& rspFunc);
+
+    static void listDevice(const HttpParser& parser, const UrlParser& urlParser, 
+                        const std::function<void(HttpResponse& rsp)>& rspFunc);
+
+    static void getDevice(const HttpParser& parser, const UrlParser& urlParser, 
+                        const std::function<void(HttpResponse& rsp)>& rspFunc);
 };
 
 #endif //GB28181SIPApi_h

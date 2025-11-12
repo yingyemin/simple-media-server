@@ -6,23 +6,23 @@
 
 #include "RtmpMediaSource.h"
 
-using namespace std;
+// using namespace std;
 
-class FlvMuxerWithRtmp : public enable_shared_from_this<FlvMuxerWithRtmp>
+class FlvMuxerWithRtmp : public std::enable_shared_from_this<FlvMuxerWithRtmp>
 {
 public:
 	FlvMuxerWithRtmp(const UrlParser& urlParser, const EventLoop::Ptr& loop);
 	virtual ~FlvMuxerWithRtmp();
 
 	void start();
-	void setOnWrite(const function<void(const char* data, int len)>& cb) {_onWrite = cb;}
-	void setOnWrite(const function<void(const StreamBuffer::Ptr& buffer)>& cb) {_onWriteBuffer = cb;}
-	void setOnDetach(const function<void()>& cb) {_onDetach = cb;}
+	void setOnWrite(const std::function<void(const char* data, int len)>& cb) {_onWrite = cb;}
+	void setOnWrite(const std::function<void(const StreamBuffer::Ptr& buffer)>& cb) {_onWriteBuffer = cb;}
+	void setOnDetach(const std::function<void()>& cb) {_onDetach = cb;}
 
-	void setLocalIp(const string& ip) {_localIp = ip;}
+	void setLocalIp(const std::string& ip) {_localIp = ip;}
 	void setLocalPort(int port) {_localPort = port;}
 
-	void setPeerIp(const string& ip) {_peerIp = ip;}
+	void setPeerIp(const std::string& ip) {_peerIp = ip;}
 	void setPeerPort(int port) {_peerPort = port;}
 	
 	virtual bool ssPlaying()  { return _isPlaying; }
@@ -44,9 +44,9 @@ private:
 
 private:
 	uint64_t _createTime = 0;
-	string _localIp;
+	std::string _localIp;
 	int _localPort = 0;
-	string _peerIp;
+	std::string _peerIp;
 	int _peerPort = 0;
 	EventLoop::Ptr _loop;
 
@@ -64,9 +64,9 @@ private:
 	RtmpMediaSource::Wptr _source;
 	RtmpMediaSource::RingType::DataQueReaderT::Ptr _playReader;
 
-	function<void(const char* data, int len)> _onWrite;
-	function<void(const StreamBuffer::Ptr& buffer)> _onWriteBuffer;
-	function<void()> _onDetach;
+	std::function<void(const char* data, int len)> _onWrite;
+	std::function<void(const StreamBuffer::Ptr& buffer)> _onWriteBuffer;
+	std::function<void()> _onDetach;
 };
 
 #endif

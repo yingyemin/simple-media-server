@@ -5,7 +5,7 @@
 
 #include "GB28181EncodeTrack.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Util/Base64.h"
 // #include "Codec/AacTrack.h"
 #include "Codec/H264Track.h"

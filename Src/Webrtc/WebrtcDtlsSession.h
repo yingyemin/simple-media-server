@@ -37,29 +37,29 @@ private:
 
 class DtlsSession {
 public:
-	DtlsSession(const string& role = "server");
+	DtlsSession(const std::string& role = "server");
 	~DtlsSession();
 
-	bool init(const shared_ptr<DtlsCertificate>& dtlsCert);
+	bool init(const std::shared_ptr<DtlsCertificate>& dtlsCert);
 	int onDtls(Socket::Ptr sock, const Buffer::Ptr& buf, struct sockaddr* addr, int addr_len);
 	int startActiveHandshake(Socket::Ptr sock);
 	int32_t decodeHandshake(Socket::Ptr sock, char *data, int32_t nb_data);
 	void sendApplicationData(Socket::Ptr socket, const char* data, int len);
 	int checkTimeout(Socket::Ptr sock);
 	int getSrtpKey(std::string& recv_key, std::string& send_key);
-	void setOnHandshakeDone(const function<void()>& cb) {_onHandshakeDone = cb;}
-	void setOnRecvApplicationData(const function<void(const char* data, int len)>& cb) {_onRecvApplicationData = cb;}
+	void setOnHandshakeDone(const std::function<void()>& cb) {_onHandshakeDone = cb;}
+	void setOnRecvApplicationData(const std::function<void(const char* data, int len)>& cb) {_onRecvApplicationData = cb;}
 	
 private:
-	string _role;
+	std::string _role;
   	SSL_CTX* _dtlsCtx = nullptr;
     SSL* _dtls = nullptr;
     BIO* _bioIn = nullptr;
     BIO* _bioOut = nullptr;
 	bool _handshakeFinish = false;
 	uint8_t _sslReadBuffer[2000] = {0};
-	function<void()> _onHandshakeDone;
-	function<void(const char* data, int len)> _onRecvApplicationData;
+	std::function<void()> _onHandshakeDone;
+	std::function<void(const char* data, int len)> _onRecvApplicationData;
 };
 
 #endif

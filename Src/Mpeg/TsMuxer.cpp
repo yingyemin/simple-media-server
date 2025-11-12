@@ -1,6 +1,11 @@
 #include <string>
 #include <unordered_map>
+#if defined(_WIN32)
+#include "Util/Util.h"
+#else
 #include <arpa/inet.h>
+#endif
+
 #include <iostream>
 
 #include "Common/Track.h"
@@ -10,7 +15,7 @@
 #include "Log/Logger.h"
 #include "Mpeg.h"
 #include "Util/CRC32.h"
-
+#include "Util/Util.h"
 /* 
  *remark: 上面用到的一些宏定义和一些关于字节操作的函数，很多一些开源到视频处理的库都能看到，
           为了方便也都将贴出来分享，当然也可以参考下vlc里面的源码
@@ -25,6 +30,8 @@
 
 #define TS_PES_PAYLOAD_SIZE 65522
 
+using namespace std;
+
 enum {
     TS_TYPE_PAT,
     TS_TYPE_PMT,
@@ -32,78 +39,157 @@ enum {
     TS_TYPE_AUDIO
 };
  
+#if defined(_WIN32)
+#pragma pack(push, 1)
 typedef struct
 {
-	unsigned int startcode		: 24;	// 固定为00 00 01
-	unsigned int stream_id		: 8;	// 0xC0-0xDF audio stream, 0xE0-0xEF video stream, 0xBD Private stream 1, 0xBE Padding stream, 0xBF Private stream 2
+	unsigned int startcode : 24;	// 固定为00 00 01
+	unsigned int stream_id : 8;	// 0xC0-0xDF audio stream, 0xE0-0xEF video stream, 0xBD Private stream 1, 0xBE Padding stream, 0xBF Private stream 2
 	unsigned short pack_len;			// PES packet length
-} __attribute__ ((packed)) PES_HEAD_S;
- 
+}PES_HEAD_S;
+
 typedef struct
 {
 #if (BYTE_ORDER == LITTLE_ENDIAN)
-	unsigned char original		: 1;	// original or copy, 原版或拷贝
-	unsigned char copyright		: 1;	// copyright flag
-	unsigned char align			: 1;	// data alignment indicator, 数据定位指示符
-	unsigned char priority		: 1;	// PES priority
-	unsigned char scramb		: 2;	// PES Scrambling control, 加扰控制
-	unsigned char fixed			: 2;	// 固定为10
- 
-	unsigned char exten			: 1;	// PES extension flag
-	unsigned char crc			: 1;	// PES CRC flag
-	unsigned char acopy			: 1;	// additional copy info flag
-	unsigned char trick			: 1;	// DSM(Digital Storage Media) trick mode flag
-	unsigned char rate			: 1;	// ES rate flag, ES流速率标志
-	unsigned char escr			: 1;	// ESCR(Elementary Stream Clock Reference) flag, ES流时钟基准标志
-	unsigned char pts_dts		: 2;	// PTS DTS flags, 00 no PTS and DTS, 01 forbid, 10 have PTS, 11 have PTS and DTS
+	unsigned char original : 1;	// original or copy, 原版或拷贝
+	unsigned char copyright : 1;	// copyright flag
+	unsigned char align : 1;	// data alignment indicator, 数据定位指示符
+	unsigned char priority : 1;	// PES priority
+	unsigned char scramb : 2;	// PES Scrambling control, 加扰控制
+	unsigned char fixed : 2;	// 固定为10
+
+	unsigned char exten : 1;	// PES extension flag
+	unsigned char crc : 1;	// PES CRC flag
+	unsigned char acopy : 1;	// additional copy info flag
+	unsigned char trick : 1;	// DSM(Digital Storage Media) trick mode flag
+	unsigned char rate : 1;	// ES rate flag, ES流速率标志
+	unsigned char escr : 1;	// ESCR(Elementary Stream Clock Reference) flag, ES流时钟基准标志
+	unsigned char pts_dts : 2;	// PTS DTS flags, 00 no PTS and DTS, 01 forbid, 10 have PTS, 11 have PTS and DTS
 #elif (BYTE_ORDER == BIG_ENDIAN)
-	unsigned char fixed			: 2;	// 固定为10
-	unsigned char scramb		: 2;	// PES Scrambling control, 加扰控制
-	unsigned char priority		: 1;	// PES priority
-	unsigned char align			: 1;	// data alignment indicator, 数据定位指示符
-	unsigned char copyright		: 1;	// copyright flag
-	unsigned char original		: 1;	// original or copy, 原版或拷贝
-	
-	unsigned char pts_dts		: 2;	// PTS DTS flags, 00 no PTS and DTS, 01 forbid, 10 have PTS, 11 have PTS and DTS
-	unsigned char escr			: 1;	// ESCR(Elementary Stream Clock Reference) flag, ES流时钟基准标志
-	unsigned char rate			: 1;	// ES rate flag, ES流速率标志
-	unsigned char trick			: 1;	// DSM(Digital Storage Media) trick mode flag
-	unsigned char acopy			: 1;	// additional copy info flag
-	unsigned char crc			: 1;	// PES CRC flag
-	unsigned char exten			: 1;	// PES extension flag
+	unsigned char fixed : 2;	// 固定为10
+	unsigned char scramb : 2;	// PES Scrambling control, 加扰控制
+	unsigned char priority : 1;	// PES priority
+	unsigned char align : 1;	// data alignment indicator, 数据定位指示符
+	unsigned char copyright : 1;	// copyright flag
+	unsigned char original : 1;	// original or copy, 原版或拷贝
+
+	unsigned char pts_dts : 2;	// PTS DTS flags, 00 no PTS and DTS, 01 forbid, 10 have PTS, 11 have PTS and DTS
+	unsigned char escr : 1;	// ESCR(Elementary Stream Clock Reference) flag, ES流时钟基准标志
+	unsigned char rate : 1;	// ES rate flag, ES流速率标志
+	unsigned char trick : 1;	// DSM(Digital Storage Media) trick mode flag
+	unsigned char acopy : 1;	// additional copy info flag
+	unsigned char crc : 1;	// PES CRC flag
+	unsigned char exten : 1;	// PES extension flag
 #endif
- 
+
 	unsigned char head_len;				// PES header data length
-} __attribute__ ((packed)) PES_OPTION_S;
- 
+}PES_OPTION_S;
+
 typedef struct
 {// ts total 33 bits
 #if (BYTE_ORDER == LITTLE_ENDIAN)
-	unsigned char fixed2		: 1;	// 固定为1
-	unsigned char ts1			: 3;	// bit30-32
-	unsigned char fixed1		: 4;	// DTS为0x01, PTS为0x02, PTS+DTS则PTS为0x03
-	
+	unsigned char fixed2 : 1;	// 固定为1
+	unsigned char ts1 : 3;	// bit30-32
+	unsigned char fixed1 : 4;	// DTS为0x01, PTS为0x02, PTS+DTS则PTS为0x03
+
 	unsigned char ts2;					// bit22-29
-	unsigned char fixed3		: 1;	// 固定为1
-	unsigned char ts3			: 7;	// bit15-21
- 
+	unsigned char fixed3 : 1;	// 固定为1
+	unsigned char ts3 : 7;	// bit15-21
+
 	unsigned char ts4;					// bit7-14
-	unsigned char fixed4		: 1;	// 固定为1
-	unsigned char ts5			: 7;	// bit0-6
+	unsigned char fixed4 : 1;	// 固定为1
+	unsigned char ts5 : 7;	// bit0-6
 #elif (BYTE_ORDER == BIG_ENDIAN)
-	unsigned char fixed1		: 4;	// DTS为0x01, PTS为0x02, PTS+DTS则PTS为0x03
-	unsigned char ts1			: 3;	// bit30-32
-	unsigned char fixed2		: 1;	// 固定为1
- 
+	unsigned char fixed1 : 4;	// DTS为0x01, PTS为0x02, PTS+DTS则PTS为0x03
+	unsigned char ts1 : 3;	// bit30-32
+	unsigned char fixed2 : 1;	// 固定为1
+
 	unsigned char ts2;					// bit22-29
-	unsigned char ts3			: 7;	// bit15-21
-	unsigned char fixed3		: 1;	// 固定为1
- 
+	unsigned char ts3 : 7;	// bit15-21
+	unsigned char fixed3 : 1;	// 固定为1
+
 	unsigned char ts4;					// bit7-14
-	unsigned char ts5			: 7;	// bit0-6
-	unsigned char fixed4		: 1;	// 固定为1
+	unsigned char ts5 : 7;	// bit0-6
+	unsigned char fixed4 : 1;	// 固定为1
 #endif
-} __attribute__ ((packed)) PES_PTS_S;
+}PES_PTS_S;
+
+#pragma pack(pop)
+#else
+typedef struct
+{
+	unsigned int startcode : 24;	// 固定为00 00 01
+	unsigned int stream_id : 8;	// 0xC0-0xDF audio stream, 0xE0-0xEF video stream, 0xBD Private stream 1, 0xBE Padding stream, 0xBF Private stream 2
+	unsigned short pack_len;			// PES packet length
+} __attribute__((packed)) PES_HEAD_S;
+
+typedef struct
+{
+#if (BYTE_ORDER == LITTLE_ENDIAN)
+	unsigned char original : 1;	// original or copy, 原版或拷贝
+	unsigned char copyright : 1;	// copyright flag
+	unsigned char align : 1;	// data alignment indicator, 数据定位指示符
+	unsigned char priority : 1;	// PES priority
+	unsigned char scramb : 2;	// PES Scrambling control, 加扰控制
+	unsigned char fixed : 2;	// 固定为10
+
+	unsigned char exten : 1;	// PES extension flag
+	unsigned char crc : 1;	// PES CRC flag
+	unsigned char acopy : 1;	// additional copy info flag
+	unsigned char trick : 1;	// DSM(Digital Storage Media) trick mode flag
+	unsigned char rate : 1;	// ES rate flag, ES流速率标志
+	unsigned char escr : 1;	// ESCR(Elementary Stream Clock Reference) flag, ES流时钟基准标志
+	unsigned char pts_dts : 2;	// PTS DTS flags, 00 no PTS and DTS, 01 forbid, 10 have PTS, 11 have PTS and DTS
+#elif (BYTE_ORDER == BIG_ENDIAN)
+	unsigned char fixed : 2;	// 固定为10
+	unsigned char scramb : 2;	// PES Scrambling control, 加扰控制
+	unsigned char priority : 1;	// PES priority
+	unsigned char align : 1;	// data alignment indicator, 数据定位指示符
+	unsigned char copyright : 1;	// copyright flag
+	unsigned char original : 1;	// original or copy, 原版或拷贝
+
+	unsigned char pts_dts : 2;	// PTS DTS flags, 00 no PTS and DTS, 01 forbid, 10 have PTS, 11 have PTS and DTS
+	unsigned char escr : 1;	// ESCR(Elementary Stream Clock Reference) flag, ES流时钟基准标志
+	unsigned char rate : 1;	// ES rate flag, ES流速率标志
+	unsigned char trick : 1;	// DSM(Digital Storage Media) trick mode flag
+	unsigned char acopy : 1;	// additional copy info flag
+	unsigned char crc : 1;	// PES CRC flag
+	unsigned char exten : 1;	// PES extension flag
+#endif
+
+	unsigned char head_len;				// PES header data length
+} __attribute__((packed)) PES_OPTION_S;
+
+typedef struct
+{// ts total 33 bits
+#if (BYTE_ORDER == LITTLE_ENDIAN)
+	unsigned char fixed2 : 1;	// 固定为1
+	unsigned char ts1 : 3;	// bit30-32
+	unsigned char fixed1 : 4;	// DTS为0x01, PTS为0x02, PTS+DTS则PTS为0x03
+
+	unsigned char ts2;					// bit22-29
+	unsigned char fixed3 : 1;	// 固定为1
+	unsigned char ts3 : 7;	// bit15-21
+
+	unsigned char ts4;					// bit7-14
+	unsigned char fixed4 : 1;	// 固定为1
+	unsigned char ts5 : 7;	// bit0-6
+#elif (BYTE_ORDER == BIG_ENDIAN)
+	unsigned char fixed1 : 4;	// DTS为0x01, PTS为0x02, PTS+DTS则PTS为0x03
+	unsigned char ts1 : 3;	// bit30-32
+	unsigned char fixed2 : 1;	// 固定为1
+
+	unsigned char ts2;					// bit22-29
+	unsigned char ts3 : 7;	// bit15-21
+	unsigned char fixed3 : 1;	// 固定为1
+
+	unsigned char ts4;					// bit7-14
+	unsigned char ts5 : 7;	// bit0-6
+	unsigned char fixed4 : 1;	// 固定为1
+#endif
+} __attribute__((packed)) PES_PTS_S;
+#endif
+
  
  
 /* remark:接口函数定义 */

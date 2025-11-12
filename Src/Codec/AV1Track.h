@@ -10,7 +10,7 @@
 #include "Common/Track.h"
 #include "Common/Frame.h"
 
-using namespace std;
+// using namespace std;
 
 class AV1Info
 {
@@ -29,7 +29,7 @@ public:
 class AV1Track : public TrackInfo
 {
 public:
-    using Ptr = shared_ptr<AV1Track>;
+    using Ptr = std::shared_ptr<AV1Track>;
 
     AV1Track();
     virtual ~AV1Track() {}
@@ -38,14 +38,14 @@ public:
     static AV1Track::Ptr createTrack(int index, int payloadType, int samplerate);
 
 public:
-    void setVps(const FrameBuffer::Ptr& sequence) {_sequence = sequence;}
-    string getSdp() override;
-    string getConfig() override;
+    void setVps(const std::shared_ptr<FrameBuffer>& sequence) {_sequence = sequence;}
+    std::string getSdp() override;
+    std::string getConfig() override;
     void getWidthAndHeight(int& width, int& height, int& fps);
     bool isBFrame(unsigned char* data, int size);
     bool isReady() override {return !!_sequence;}
     
-    void getVpsSpsPps(FrameBuffer::Ptr& vps, FrameBuffer::Ptr& sps, FrameBuffer::Ptr& pps) override
+    void getVpsSpsPps(std::shared_ptr<FrameBuffer>& vps, std::shared_ptr<FrameBuffer>& sps, std::shared_ptr<FrameBuffer>& pps) override
     {
         vps = _sequence;
     }
@@ -57,7 +57,7 @@ public:
 public:
     FrameBuffer::Ptr _sequence;
     FrameBuffer::Ptr _metadata;
-    string _av1Cfg;
+    std::string _av1Cfg;
     AV1Info info;
 };
 

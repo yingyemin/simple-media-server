@@ -1,6 +1,7 @@
 #ifndef T8108_H
 #define T8108_H
 
+#include <cstdint>
 #include <string>
 #include <vector>
 

@@ -7,12 +7,12 @@
 #include "EventPoller/EventLoop.h"
 #include "Common/HookManager.h"
 
-using namespace std;
+// using namespace std;
 
-class Heartbeat : public enable_shared_from_this<Heartbeat>
+class Heartbeat : public std::enable_shared_from_this<Heartbeat>
 {
 public:
-    using Ptr = shared_ptr<Heartbeat>;
+    using Ptr = std::shared_ptr<Heartbeat>;
 
     Heartbeat();
     ~Heartbeat();

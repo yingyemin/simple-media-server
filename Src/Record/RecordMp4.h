@@ -16,12 +16,12 @@
 #include "Common/FrameMediaSource.h"
 #include "Record.h"
 
-using namespace std;
+// using namespace std;
 
 class RecordMp4 : public Record
 {
 public:
-    using Ptr = shared_ptr<RecordMp4>;
+    using Ptr = std::shared_ptr<RecordMp4>;
 
     RecordMp4(const UrlParser& urlParser, const RecordTemplate::Ptr& recordTemplate);
     ~RecordMp4();
@@ -29,11 +29,11 @@ public:
 public:
     bool start() override;
     void stop() override;
-    void setOnClose(const function<void()>& cb) override;
+    void setOnClose(const std::function<void()>& cb) override;
     std::string getFormat() override {return "mp4";}
 
 private:
-    void onError(const string& err);
+    void onError(const std::string& err);
     void onPlayFrame(const FrameMediaSource::Ptr &frameSrc);
     void tryNewSegment(const FrameBuffer::Ptr& frame);
 
@@ -48,7 +48,7 @@ private:
     WorkLoop::Ptr _workLoop;
     FrameMediaSource::Wptr _source;
     MediaSource::FrameRingType::DataQueReaderT::Ptr _playFrameReader;
-    function<void()> _onClose;
+    std::function<void()> _onClose;
 };
 
 #endif

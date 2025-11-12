@@ -48,6 +48,7 @@ void WebrtcContextManager::init(const EventLoop::Ptr& loop)
 void WebrtcContextManager::onUdpPacket(const Socket::Ptr& socket, const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)
 {
     int pktType = guessType(buffer);
+    logTrace << "on udp packet, type: " << pktType;
     switch(pktType) {
         case kStunPkt: {
             onStunPacket(socket, buffer, addr, len);

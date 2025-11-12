@@ -12,20 +12,20 @@
 #include <memory>
 #include <functional>
 
-using namespace std;
+// using namespace std;
 
 class GB28181Api
 {
 public:
     static void initApi();
     static void createGB28181Receiver(const HttpParser& parser, const UrlParser& urlParser, 
-                        const function<void(HttpResponse& rsp)>& rspFunc);
+                        const std::function<void(HttpResponse& rsp)>& rspFunc);
     static void createGB28181Sender(const HttpParser& parser, const UrlParser& urlParser, 
-                        const function<void(HttpResponse& rsp)>& rspFunc);
+                        const std::function<void(HttpResponse& rsp)>& rspFunc);
     static void stopGB28181Receiver(const HttpParser& parser, const UrlParser& urlParser, 
-                        const function<void(HttpResponse& rsp)>& rspFunc);
+                        const std::function<void(HttpResponse& rsp)>& rspFunc);
     static void stopGB28181Sender(const HttpParser& parser, const UrlParser& urlParser, 
-                        const function<void(HttpResponse& rsp)>& rspFunc);
+                        const std::function<void(HttpResponse& rsp)>& rspFunc);
 };
 
 #endif

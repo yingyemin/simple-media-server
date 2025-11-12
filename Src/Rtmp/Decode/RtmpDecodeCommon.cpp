@@ -23,11 +23,11 @@ void RtmpDecodeCommon::decode(const RtmpMessage::Ptr& msg)
     frame->_trackType = _trackInfo->trackType_ == "video" ? VideoTrackType : AudioTrackType;
     frame->_dts = frame->_pts = msg->abs_timestamp;
 
-    frame->_buffer.append((char*)payload + 1, length - 1);
+    frame->_buffer->append((char*)payload + 1, length - 1);
     onFrame(frame);
 }
 
-void RtmpDecodeCommon::setOnFrame(const function<void(const FrameBuffer::Ptr& frame)> cb)
+void RtmpDecodeCommon::setOnFrame(const function<void(const FrameBuffer::Ptr& frame)>& cb)
 {
     _onFrame = cb;
 }

@@ -12,23 +12,29 @@
 #include <memory>
 #include <functional>
 
-using namespace std;
+// using namespace std;  // 去掉这行
 
 class RecordApi
 {
 public:
     static void initApi();
     static void startRecord(const HttpParser& parser, const UrlParser& urlParser, 
-                        const function<void(HttpResponse& rsp)>& rspFunc);
+                        const std::function<void(HttpResponse& rsp)>& rspFunc);
 
     static void listRecord(const HttpParser& parser, const UrlParser& urlParser, 
-                        const function<void(HttpResponse& rsp)>& rspFunc);
+                        const std::function<void(HttpResponse& rsp)>& rspFunc);
 
     static void stopRecord(const HttpParser& parser, const UrlParser& urlParser, 
-                        const function<void(HttpResponse& rsp)>& rspFunc);
+                        const std::function<void(HttpResponse& rsp)>& rspFunc);
 
     static void queryRecord(const HttpParser& parser, const UrlParser& urlParser, 
-                        const function<void(HttpResponse& rsp)>& rspFunc);
+                        const std::function<void(HttpResponse& rsp)>& rspFunc);
+
+    static void queryRecordFile(const HttpParser& parser, const UrlParser& urlParser, 
+                        const std::function<void(HttpResponse& rsp)>& rspFunc);
+
+    static void delRecordFile(const HttpParser& parser, const UrlParser& urlParser, 
+                        const std::function<void(HttpResponse& rsp)>& rspFunc);
 };
 
 #endif

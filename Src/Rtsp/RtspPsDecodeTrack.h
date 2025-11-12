@@ -15,13 +15,13 @@
 #include "RtspTrack.h"
 #include "Mpeg/PsDemuxer.h"
 
-using namespace std;
+// using namespace std;
 
-class RtspPsDecodeTrack : public RtspTrack, public enable_shared_from_this<RtspPsDecodeTrack>
+class RtspPsDecodeTrack : public RtspTrack, public std::enable_shared_from_this<RtspPsDecodeTrack>
 {
 public:
-    using Ptr = shared_ptr<RtspPsDecodeTrack>;
-    RtspPsDecodeTrack(int trackIndex, const shared_ptr<SdpMedia>& media);
+    using Ptr = std::shared_ptr<RtspPsDecodeTrack>;
+    RtspPsDecodeTrack(int trackIndex, const std::shared_ptr<SdpMedia>& media);
     virtual ~RtspPsDecodeTrack()  {}
 
 public:
@@ -29,15 +29,15 @@ public:
     void startDecode() override;
     void stopDecode() override;
 
-    void setOnRtpPacket(const function<void(const RtpPacket::Ptr& rtp, bool start)>& cb) override {_onRtpPacket = cb;}
-    void setOnFrame(const function<void(const FrameBuffer::Ptr& frame)>& cb) override {_onFrame = cb;}
+    void setOnRtpPacket(const std::function<void(const RtpPacket::Ptr& rtp, bool start)>& cb) override {_onRtpPacket = cb;}
+    void setOnFrame(const std::function<void(const FrameBuffer::Ptr& frame)>& cb) override {_onFrame = cb;}
     void onFrame(const FrameBuffer::Ptr& frame) override;
-    void setOnPsFrame(const function<void(const FrameBuffer::Ptr& frame)>& cb) {_onPsFrame = cb;}
+    void setOnPsFrame(const std::function<void(const FrameBuffer::Ptr& frame)>& cb) {_onPsFrame = cb;}
     void onPsFrame(const FrameBuffer::Ptr frame);
 
     int getTrackIndex()  override {return _index;}
     int getTrackType() {return _type;}
-    shared_ptr<TrackInfo> getTrackInfo() override { return _trackInfo;}
+    std::shared_ptr<TrackInfo> getTrackInfo() override { return _trackInfo;}
 
     bool hasSetup() {return _setup;}
     void setup(bool flag) {_setup = flag;}
@@ -46,8 +46,8 @@ public:
 
     void decodeRtp(const RtpPacket::Ptr& rtp);
 
-    void setOnTrackInfo(const function<void(const shared_ptr<TrackInfo>& trackInfo)>& cb);
-    void setOnReady(const function<void()>& cb);
+    void setOnTrackInfo(const std::function<void(const std::shared_ptr<TrackInfo>& trackInfo)>& cb);
+    void setOnReady(const std::function<void()>& cb);
 
 private:
     bool _startDemuxer = false;
@@ -57,15 +57,15 @@ private:
     int _type;
     int _interleavedRtp;
     RtpDecoder::Ptr _decoder;
-    shared_ptr<PsDemuxer> _demuxer;
-    shared_ptr<SdpMedia> _media;
-    shared_ptr<StampAdjust> _stampAdjust;
-    shared_ptr<TrackInfo> _trackInfo;
-    function<void(const FrameBuffer::Ptr& frame)> _onFrame;
-    function<void(const RtpPacket::Ptr& rtp, bool start)> _onRtpPacket;
-    function<void(const FrameBuffer::Ptr& frame)> _onPsFrame;
-    function<void(const shared_ptr<TrackInfo>& trackInfo)> _onTrackInfo;
-    function<void()> _onReady;
+    std::shared_ptr<PsDemuxer> _demuxer;
+    std::shared_ptr<SdpMedia> _media;
+    std::shared_ptr<StampAdjust> _stampAdjust;
+    std::shared_ptr<TrackInfo> _trackInfo;
+    std::function<void(const FrameBuffer::Ptr& frame)> _onFrame;
+    std::function<void(const RtpPacket::Ptr& rtp, bool start)> _onRtpPacket;
+    std::function<void(const FrameBuffer::Ptr& frame)> _onPsFrame;
+    std::function<void(const std::shared_ptr<TrackInfo>& trackInfo)> _onTrackInfo;
+    std::function<void()> _onReady;
 };
 
 #endif //RtspPsDecodeTrack_H

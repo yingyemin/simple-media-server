@@ -4,14 +4,14 @@
 #include "GB28181Client.h"
 #include "GB28181ConnectionSend.h"
 
-using namespace std;
+// using namespace std;
 
 class GB28181ClientPush : public GB28181Client {
 public:
-    using Ptr = shared_ptr<GB28181ClientPush>;
-    using Wptr = weak_ptr<GB28181ClientPush>;
+    using Ptr = std::shared_ptr<GB28181ClientPush>;
+    using Wptr = std::weak_ptr<GB28181ClientPush>;
 
-    GB28181ClientPush(const string& app, const string& stream, int ssrc, int sockType);
+    GB28181ClientPush(const std::string& app, const std::string& stream, int ssrc, int sockType);
     ~GB28181ClientPush();
 
 private:
@@ -22,8 +22,8 @@ private:
     // bool _firstWrite = true;
     int _sockType;
     int _ssrc;
-    string _streamName;
-    string _appName;
+    std::string _streamName;
+    std::string _appName;
 
     Socket::Ptr _socket;
     sockaddr _addr;

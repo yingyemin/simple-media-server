@@ -12,29 +12,29 @@
 #include <memory>
 #include <vector>
 
-using namespace std;
+// using namespace std;
 
-class GB28181Client : public MediaClient, public enable_shared_from_this<GB28181Client> {
+class GB28181Client : public MediaClient, public std::enable_shared_from_this<GB28181Client> {
 public:
-    using Ptr = shared_ptr<GB28181Client>;
-    using Wptr = weak_ptr<GB28181Client>;
+    using Ptr = std::shared_ptr<GB28181Client>;
+    using Wptr = std::weak_ptr<GB28181Client>;
 
-    GB28181Client(MediaClientType type, const string& app, 
-                    const string& stream, int ssrc, int sockType);
+    GB28181Client(MediaClientType type, const std::string& app, 
+                    const std::string& stream, int ssrc, int sockType);
     ~GB28181Client();
 
 public:
     // override MediaClient
-    bool start(const string& localIp, int localPort, const string& url, int timeout) override;
+    bool start(const std::string& localIp, int localPort, const std::string& url, int timeout) override;
     void stop() override;
     void pause() override;
-    void setOnClose(const function<void()>& cb) override;
+    void setOnClose(const std::function<void()>& cb) override;
 
 public:
     // sockType: 1:tcp, 2:udp, 3:both
-    void create(const string& localIp, int localPort, const string& url);
+    void create(const std::string& localIp, int localPort, const std::string& url);
 
-    string getLocalIp();
+    std::string getLocalIp();
     int getLocalPort();
     EventLoop::Ptr getLoop();
     Socket::Ptr getSocket() {return _socket;}
@@ -54,12 +54,12 @@ private:
     UrlParser _peerUrlParser;
     int _sockType;
     int _ssrc;
-    string _streamName;
-    string _appName;
+    std::string _streamName;
+    std::string _appName;
 
     Socket::Ptr _socket;
     sockaddr _addr;
-    function<void()> _onClose;
+    std::function<void()> _onClose;
 };
 
 #endif //GB28181Client_h

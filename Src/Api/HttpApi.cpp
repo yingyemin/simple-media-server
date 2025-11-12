@@ -1,8 +1,8 @@
-﻿#include "HttpApi.h"
+#include "HttpApi.h"
 #include "Logger.h"
 #include "Common/Config.h"
+#include "Util/String.hpp"
 #include "Common/FrameMediaSource.h"
-#include "Util/String.h"
 #include "Util/Thread.h"
 #include "EventPoller/EventLoopPool.h"
 #include "Common/Define.h"
@@ -433,6 +433,7 @@ void HttpApi::getLoopList(const HttpParser& parser, const UrlParser& urlParser,
     EventLoopPool::instance()->for_each_loop([&value](const EventLoop::Ptr &loop){
         json item;
         item["epollFd"] = loop->getEpollFd();
+        item["threadId"] = loop->getThreadId();
         item["fdCount"] = loop->getFdCount();
         item["timerTaskCount"] = loop->getTimerTaskCount();
 

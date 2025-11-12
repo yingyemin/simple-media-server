@@ -6,15 +6,19 @@
 #include "Common/Config.h"
 #include "RecordReaderRecord.h"
 #include "Logger.h"
-#include "Util/String.h"
+#if defined(_WIN32)
+#include "Util/String.hpp"
+#else
+#include "Util/String.hpp"
+#endif
 #include "WorkPoller/WorkLoopPool.h"
 #include "RecordReaderMp4.h"
 #include "RecordReaderPs.h"
 
 using namespace std;
 
-// 本地文件点播的url格式 rtmp://127.0.0.1/file/vodId/live/test.mp4/3
-// 录像回放的url格式 rtmp://127.0.0.1/record/vodId/live/test/{starttime}/{endtime}
+// 本地文件点播的url格式 rtmp://127.0.0.1/file/{vodId}/live/test.mp4/3
+// 录像回放的url格式 rtmp://127.0.0.1/record/{vodId}/live/test/{starttime}/{endtime}
 // 云端录像回放的url格式 rtmp://127.0.0.1/cloud/vodId/live/test/{starttime}/{endtime}，云端录像回放需要向管理服务拿一下云端地址
 // 目录点播 rtmp://127.0.0.1/dir/vodId/live/test/3
 
@@ -33,11 +37,12 @@ RecordReaderRecord::RecordReaderRecord(const string& path)
     tmpPath = tmpPath.substr(tmpPath.find_first_of("/", 1) + 1);
     // 找到最后一层目录的位置
     int pos = tmpPath.find_last_of("/");
-    // 获取循环次数
+    // 获取结束时间
     _endTime = stoull(tmpPath.substr(pos + 1));
     tmpPath = tmpPath.substr(0, pos);
     // 找到最后第二层目录的位置
     pos = tmpPath.find_last_of("/");
+    // 获取开始时间
     _startTime = stoull(tmpPath.substr(pos + 1));
     // 获取点播文件的路径
     _filePath = tmpPath.substr(0, pos);

@@ -8,7 +8,7 @@
 
 #include "Common/Frame.h"
 
-using namespace std;
+// using namespace std;
 
 enum VP9NalType
 {
@@ -91,7 +91,7 @@ private:
 class VP9Frame : public FrameBuffer
 {
 public:
-    using Ptr = shared_ptr<VP9Frame>;
+    using Ptr = std::shared_ptr<VP9Frame>;
 
     VP9Frame()
     {
@@ -130,7 +130,7 @@ public:
 
     static uint8_t getNalType(uint8_t* nalByte, int len);
 
-    void split(const function<void(const FrameBuffer::Ptr& frame)>& cb) override;
+    void split(const std::function<void(const FrameBuffer::Ptr& frame)>& cb) override;
     static FrameBuffer::Ptr createFrame(int startSize, int index, bool addStart);
     
     static void registerFrame();

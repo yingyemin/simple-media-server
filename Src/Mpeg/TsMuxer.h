@@ -12,7 +12,7 @@
 class TsMuxer
 {
 public:
-    using Ptr = shared_ptr<TsMuxer>;
+    using Ptr = std::shared_ptr<TsMuxer>;
     TsMuxer();
     ~TsMuxer();
 
@@ -20,9 +20,9 @@ public:
     void onFrame(const FrameBuffer::Ptr& frame);
     void startEncode();
     void stopEncode();
-    void addTrackInfo(const shared_ptr<TrackInfo>& trackInfo);
+    void addTrackInfo(const std::shared_ptr<TrackInfo>& trackInfo);
 
-    void setOnTsPacket(const function<void(const StreamBuffer::Ptr& pkt, int pts, int dts, bool keyframe)>& cb) {_onTsPacket = cb;}
+    void setOnTsPacket(const std::function<void(const StreamBuffer::Ptr& pkt, int pts, int dts, bool keyframe)>& cb) {_onTsPacket = cb;}
     void onTsPacket(const StreamBuffer::Ptr& frame, int pts, int dts, bool keyframe);
 
 private:
@@ -43,10 +43,10 @@ private:
     int _audioCodec = 0;
     int _videoCodec = 0;
 	int _streamPid = 0x100;
-    unordered_map<int, int> _mapStreamId;
-    unordered_map<int, int> _mapContinuity;
-    unordered_map<int, shared_ptr<TrackInfo>> _mapTrackInfo;
-    function<void(const StreamBuffer::Ptr& pkt, int pts, int dts, bool keyframe)> _onTsPacket;
+    std::unordered_map<int, int> _mapStreamId;
+    std::unordered_map<int, int> _mapContinuity;
+    std::unordered_map<int, std::shared_ptr<TrackInfo>> _mapTrackInfo;
+    std::function<void(const StreamBuffer::Ptr& pkt, int pts, int dts, bool keyframe)> _onTsPacket;
 };
 
 #endif //PsMuxer_H

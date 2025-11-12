@@ -3,8 +3,17 @@
 
 #include <memory>
 #include <string>
+#if defined(_WIN32)
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <iphlpapi.h>
+#include <cstdint>
+#pragma comment (lib, "Ws2_32.lib")
+#pragma comment(lib,"Iphlpapi.lib")
+#else
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#endif
 
 class Address : public std::enable_shared_from_this<Address>
 {

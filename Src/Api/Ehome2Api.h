@@ -12,7 +12,7 @@
 #include <memory>
 #include <functional>
 
-using namespace std;
+// using namespace std;
 
 class Ehome2Api
 {
@@ -21,10 +21,10 @@ public:
 
 private:
     static void createVodServer(const HttpParser& parser, const UrlParser& urlParser, 
-                        const function<void(HttpResponse& rsp)>& rspFunc);
+                        const std::function<void(HttpResponse& rsp)>& rspFunc);
 
     static void stopVodServer(const HttpParser& parser, const UrlParser& urlParser, 
-                        const function<void(HttpResponse& rsp)>& rspFunc);
+                        const std::function<void(HttpResponse& rsp)>& rspFunc);
 };
 
 #endif

@@ -8,12 +8,12 @@
 #include <memory>
 #include <functional>
 
-using namespace std;
+// using namespace std;
 
 class HttpDownload : public HttpClient
 {
 public:
-    using Ptr = shared_ptr<HttpDownload>;
+    using Ptr = std::shared_ptr<HttpDownload>;
     HttpDownload();
     ~HttpDownload();
 
@@ -26,11 +26,11 @@ public:
 
 public:
     void setRange(uint64_t startPos, uint64_t size = 4 * 1024 * 1024);
-    void start(const string& localIp, int localPort, const string& url, int timeout);
+    void start(const std::string& localIp, int localPort, const std::string& url, int timeout);
     void onHttpResponce(const char* data, int len);
-    void onError(const string& err);
-    void setOnHttpResponce(const function<void(const char* data, int len)>& cb);
-    void setOnClose(const function<void(uint64_t filesize)>& cb);
+    void onError(const std::string& err);
+    void setOnHttpResponce(const std::function<void(const char* data, int len)>& cb);
+    void setOnClose(const std::function<void(uint64_t filesize)>& cb);
     void stop();
     void pause();
     uint64_t getFileSize()  {return _fileSize;}
@@ -43,8 +43,8 @@ private:
     Socket::Ptr _socket;
     HttpChunkedParser::Ptr _chunkedParser;
 
-    function<void(const char* data, int len)> _onHttpResponce;
-    function<void(uint64_t filesize)> _onClose;
+    std::function<void(const char* data, int len)> _onHttpResponce;
+    std::function<void(uint64_t filesize)> _onClose;
 };
 
 #endif //HttpFlvClient_h

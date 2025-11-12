@@ -14,13 +14,13 @@
 #include "Mpeg/PsMediaSource.h"
 
 
-using namespace std;
+// using namespace std;
 
 class Ehome5Connection : public TcpConnection
 {
 public:
-    using Ptr = shared_ptr<Ehome5Connection>;
-    using Wptr = weak_ptr<Ehome5Connection>;
+    using Ptr = std::shared_ptr<Ehome5Connection>;
+    using Wptr = std::weak_ptr<Ehome5Connection>;
 
     Ehome5Connection(const EventLoop::Ptr& loop, const Socket::Ptr& socket);
     ~Ehome5Connection();
@@ -28,7 +28,7 @@ public:
 public:
     // 继承自tcpseesion
     void onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len) override;
-    void onError(const string& msg) override;
+    void onError(const std::string& msg) override;
     void onManager() override;
     void init() override;
     void close() override;

@@ -4,6 +4,10 @@
 #include "Util/TimeClock.h"
 
 #include <cstring>
+#if defined(_WIN32)
+#include <winsock2.h>
+#pragma comment (lib,"WS2_32")
+#else
 #include <unistd.h>
 #include <netdb.h>
 #include <arpa/inet.h>
@@ -14,7 +18,7 @@
 #include <netinet/tcp.h>
 #include <fcntl.h>
 #include <sys/epoll.h>
-
+#endif
 using namespace std;
 
 #ifdef ENABLE_SRT
@@ -405,6 +409,7 @@ int SrtSocket::setCloseWait(int second)
 
 int SrtSocket::setCloExec()
 {
+#ifndef _WIN32
     int on = 1;
     int flags = fcntl(_fd, F_GETFD);
     if (flags == -1) {
@@ -423,6 +428,9 @@ int SrtSocket::setCloExec()
         return -1;
     }
     return ret;
+#else
+    return 0;
+#endif
 }
 
 int SrtSocket::bind(const uint16_t port, const char *localIp)
@@ -523,7 +531,7 @@ int SrtSocket::connect(const string& peerIp, int port, int timeout)
 
 void SrtSocket::handleEvent(int event, void* args)
 {
-    // logInfo << "handle event: " << event;
+    logInfo << "handle event: " << event;
     if (_isListen) {
         onAccept(args);
         return ;
@@ -657,9 +665,7 @@ int SrtSocket::onAccept(void* args)
             return ;
         }
         // self->close();
-        if (self->_onAccept) {
-            self->_onAccept();
-        }
+        self->_onAccept();
     }, true, false);
 
     return 0;
@@ -749,15 +755,14 @@ ssize_t SrtSocket::send(const Buffer::Ptr pkt, int flag, int offset, struct sock
             logInfo << "sendBuffer->_offset: " << sendBuffer->_offset;
             break;
         } else {
-            // onError(nullptr);
-            // return 0;
+            onError(nullptr);
             break;
         }
     }
 
     _remainSize -= totalSendSize;
-    // logInfo << "_remainSize: " << _remainSize;
-    // logInfo << "totalSendSize: " << totalSendSize;
+    logInfo << "_remainSize: " << _remainSize;
+    logInfo << "totalSendSize: " << totalSendSize;
 
     if (_remainSize > 0) {
         _loop->modifyEvent(_fd, 1, nullptr);

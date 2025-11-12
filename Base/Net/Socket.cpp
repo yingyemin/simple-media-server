@@ -4,18 +4,7 @@
 
 #include <cstring>
 #include <unistd.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <net/if.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h>
-#include <fcntl.h>
-#include <sys/epoll.h>
-#include <ifaddrs.h>
 #include <algorithm>
-#include <linux/vm_sockets.h>
 
 using namespace std;
 
@@ -165,7 +154,7 @@ int Socket::createSocket(int type, int family)
 int Socket::createTcpSocket(int family)
 {
     _type = SOCKET_TCP;
-    _fd = (int) socket(family, SOCK_STREAM, IPPROTO_TCP);
+    _fd = (int)socket(family, SOCK_STREAM, IPPROTO_TCP);
     if (_fd < 0) {
         logError << "Create tcp socket failed: " << strerror(errno);
         return -1;
@@ -188,7 +177,7 @@ int Socket::createTcpSocket(int family)
 int Socket::createUdpSocket(int family)
 {
     _type = SOCKET_UDP;
-    _fd = (int) socket(family, SOCK_DGRAM, IPPROTO_UDP);
+    _fd = (int)socket(family, SOCK_DGRAM, IPPROTO_UDP);
     if (_fd < 0) {
         logError << "Create udp socket failed: " << strerror(errno);
         return -1;
@@ -205,7 +194,7 @@ int Socket::createUdpSocket(int family)
     setIpv6Only(false);
     setZeroCopy();
 
-    logTrace << "create a udp socket: " << _fd;
+    logDebug << "###create a udp socket: " << _fd;
 
     return 0;
 }
@@ -218,12 +207,12 @@ int Socket::setReuseable()
         logWarn << "setsockopt SO_REUSEADDR failed: " << strerror(errno);
         return ret;
     }
-    
+#ifndef _WIN32
     ret = setsockopt(_fd, SOL_SOCKET, SO_REUSEPORT, (char *) &opt, static_cast<socklen_t>(sizeof(opt)));
     if (ret == -1) {
         logWarn << "setsockopt SO_REUSEPORT failed: " << strerror(errno);
     }
-    
+#endif
     return ret;
 }
 
@@ -236,7 +225,9 @@ int Socket::setIpv6Only(bool enable)
     int ret = setsockopt(_fd, IPPROTO_IPV6, IPV6_V6ONLY, reinterpret_cast<char*>(&enable), sizeof(enable));
     if (ret == -1)
     {
+#ifndef _WIN32
         logWarn << "setsockopt IPV6_V6ONLY failed: " << strerror(errno);
+#endif
     }
     
     return ret;
@@ -256,7 +247,7 @@ int Socket::setZeroCopy()
     
     return ret;
 #else
-    logInfo << "socket not support zero copy";
+    logDebug << "socket not support zero copy";
     return 0;
 #endif
 }
@@ -277,8 +268,13 @@ int Socket::setNoSigpipe()
 
 int Socket::setNoBlocked()
 {
+#if defined(_WIN32)
+    unsigned long ul = 1;
+    int ret = ::ioctlsocket(_fd, FIONBIO, &ul); //设置为非阻塞模式
+#else
     int ul = 1;
-    int ret = ioctl(_fd, FIONBIO, &ul); //设置为非阻塞模式
+    int ret = ::ioctl(_fd, FIONBIO, &ul); //设置为非阻塞模式
+#endif //defined(_WIN32)
     if (ret == -1) {
         logWarn << "ioctl FIONBIO failed: " << strerror(errno);
     }
@@ -330,13 +326,16 @@ int Socket::setCloseWait(int second)
     m_sLinger.l_linger = second; //设置等待时间为x秒
     int ret = setsockopt(_fd, SOL_SOCKET, SO_LINGER, (char *) &m_sLinger, sizeof(linger));
     if (ret == -1) {
+#ifndef _WIN32
         logWarn << "setsockopt SO_LINGER failed: " << strerror(errno);
+#endif
     }
     return ret;
 }
 
 int Socket::setCloExec()
 {
+#if !defined(_WIN32)
     int on = 1;
     int flags = fcntl(_fd, F_GETFD);
     if (flags == -1) {
@@ -345,7 +344,8 @@ int Socket::setCloExec()
     }
     if (on) {
         flags |= FD_CLOEXEC;
-    } else {
+    }
+    else {
         int cloexec = FD_CLOEXEC;
         flags &= ~cloexec;
     }
@@ -355,6 +355,9 @@ int Socket::setCloExec()
         return -1;
     }
     return ret;
+#else
+    return -1;
+#endif
 }
 
 int Socket::setKeepAlive(int interval, int idle, int times)
@@ -441,11 +444,21 @@ int Socket::connect(const string& peerIp, int port, int timeout)
         //dns解析失败
         return -1;
     }
-
+#ifndef _WIN32
     struct timeval timeo = {3, 0};
     timeo.tv_sec = timeout;
     setsockopt(_fd, SOL_SOCKET, SO_SNDTIMEO, &timeo, sizeof(timeo));
+#else
+    // 设置发送超时时间，单位为毫秒
+    int sendTimeout = 3000;
 
+    // 使用 setsockopt 函数设置发送超时选项
+    if (setsockopt(_fd, SOL_SOCKET, SO_SNDTIMEO, (char*)&sendTimeout, sizeof(sendTimeout)) == SOCKET_ERROR) {
+        std::cerr << "setsockopt failed: " << WSAGetLastError() << std::endl;
+
+        return -1;
+    }
+#endif
     int socketLen = 0;
     if (addr.ss_family == AF_INET) {
         ((sockaddr_in *) &addr)->sin_port = htons(port);
@@ -454,15 +467,24 @@ int Socket::connect(const string& peerIp, int port, int timeout)
         ((sockaddr_in6 *) &addr)->sin6_port = htons(port);
         socketLen = sizeof(sockaddr_in6);
     }
+
     errno = 0;
     if (::connect(_fd, (sockaddr *) &addr, socketLen) == 0) {
         addToEpoll();
         //同步连接成功
         return 0;
     }
-    
+#if defined(_WIN32)
+    int errorCode = WSAGetLastError();
+    logTrace << "fd: " << _fd << ", connect errno: " << errorCode;
+    if(errorCode == WSAEWOULDBLOCK)
+#else
     logTrace << "fd: " << _fd << ", connect errno: " << errno;
-    if (errno == 115) {
+
+    if (errno == 115) 
+#endif
+
+    {
         addToEpoll();
         weak_ptr<Socket> wSelf = shared_from_this();
         _loop->addTimerTask(timeout * 1000, [wSelf, peerIp, port](){
@@ -493,12 +515,13 @@ void Socket::handleEvent(int event, void* args)
     // logInfo << "EPOLLOUT: " << EPOLLOUT;
     // logInfo << "EPOLLERR: " << EPOLLERR;
     // logInfo << "EPOLLHUP: " << EPOLLHUP;
+    
     if (event & EPOLLIN) {
-        // logInfo << "handle read: " << this;
+        //logInfo << "handle read: " << this << "fd:" << _fd;
         onRead(args);
     } 
     if (event & EPOLLOUT) {
-        logTrace << "handle write: " << this;
+        logTrace << "handle write: " << this << "fd" << _fd;
         if (!_isConnected) {
             _isConnected = true;
         }
@@ -513,13 +536,19 @@ void Socket::handleEvent(int event, void* args)
 void Socket::addToEpoll()
 {
     Socket::Wptr weakSocket = shared_from_this();
-    _loop->addEvent(_fd, EPOLLIN | EPOLLHUP | EPOLLERR | EPOLLOUT | EPOLLET, [weakSocket](int event, void* args){
+#ifndef _WIN32
+    _loop->addEvent(_fd, EPOLLIN | EPOLLHUP | EPOLLERR | EPOLLOUT | EPOLLET, [weakSocket](int event, void* args)
+#else
+    _loop->addEvent(_fd, EPOLLIN | EPOLLHUP | EPOLLERR | EPOLLOUT, [weakSocket](int event, void* args)
+#endif
+       {
         auto socket = weakSocket.lock();
         if (!socket) {
             return ;
         }
         socket->handleEvent(event, args);
     });
+
 }
 
 thread_local StreamBuffer::Ptr g_readBuffer;
@@ -552,11 +581,22 @@ int Socket::onRead(void* args)
         auto data = readBuffer->data();
         // 最后一个字节设置为'\0'
         auto capacity = readBuffer->getCapacity() - 1;
-        
+#if defined(_WIN32)
+        int errorCode;
         do {
-            nread = recvfrom(_fd, data, capacity, 0, (struct sockaddr *)&addr, &len);
+            nread = recvfrom(_fd, data, capacity, 0, (struct sockaddr*)&addr, &len);
+            if (nread == SOCKET_ERROR) {
+                errorCode = WSAGetLastError();
+                if (errorCode != WSAEINTR) {
+                    break;
+                }
+            }
+        } while (-1 == nread && errorCode == WSAEINTR);
+#else
+        do {
+            nread = recvfrom(_fd, data, capacity, 0, (struct sockaddr*)&addr, &len);
         } while (-1 == nread && EINTR == errno);
-
+#endif
         if (nread == 0) {
             if (_type == 1) {
                 onError("end of file");
@@ -567,7 +607,13 @@ int Socket::onRead(void* args)
         }
 
         if (nread == -1) {
-            if (errno != EAGAIN) {
+#if defined(_WIN32)
+            if(errorCode != WSAEWOULDBLOCK)
+#else
+            if (errno != EAGAIN)
+#endif
+            {
+
                 if (_type == 1) {
                     logDebug << errno;
                 } else {
@@ -654,7 +700,11 @@ int Socket::close()
 {
     if (_fd > 0) {
         _loop->delEvent(_fd, [](bool success){});
+#if defined(_WIN32)
+        closesocket(_fd);
+#else
         ::close(_fd);
+#endif
         _fd = 0;
     }
 
@@ -703,10 +753,15 @@ ssize_t Socket::send(const Buffer::Ptr pkt, int flag, int offset, int length, st
             _sendBuffer = make_shared<SocketBuffer>();
         }
         _drop = true;
+        originDrop = _drop;
         if (flag) {
             dropFlag = false;
         }
-        logTrace << "overlow buffer: " << _remainSize;
+        logWarn << "overlow buffer: " << _remainSize;
+        logInfo << "dropFlag: " << dropFlag;
+        logInfo << "originDrop: " << originDrop;
+        logInfo << "_drop: " << _drop;
+        logInfo << "flag: " << flag;
     }
 
     // 已经过了一个整包，重新判断是否要丢包
@@ -717,10 +772,15 @@ ssize_t Socket::send(const Buffer::Ptr pkt, int flag, int offset, int length, st
     if (!originDrop) {
         if (pkt && pkt->size() > 0) {
             // logInfo << "send pkt size: " << pkt->size() << ", flag : " << flag;
-            iovec io;
+            SocketBuf io;
             int size = length ? length : (pkt->size() - offset);
+#ifndef _WIN32
             io.iov_base = pkt->data() + offset;
             io.iov_len = size;
+#else
+            io.buf = pkt->data() + offset;
+            io.len = size;
+#endif
 
             _sendBuffer->vecBuffer.emplace_back(std::move(io));
             _sendBuffer->rawBuffer.push_back(pkt);
@@ -765,6 +825,58 @@ ssize_t Socket::send(const Buffer::Ptr pkt, int flag, int offset, int length, st
         }
 
         ssize_t sendSize = 0;
+
+#if defined(_WIN32)
+
+        do {
+            // 准备分散缓冲区数组（WSABUF 数组与原代码 msg.msg_iov 对应）
+            std::vector<WSABUF>& vecBuffer = sendBuffer->vecBuffer;
+            DWORD bytesSent = 0;
+            int flags = 0;
+
+            // Windows 下 MSG_DONTWAIT 对应非阻塞发送，需先将套接字设为非阻塞（或使用异步选择）
+            // MSG_NOSIGNAL 在 Windows 中无等效（Windows 不会发送 SIGPIPE）
+            // 这里显式添加 MSG_DONTWAIT 标志（需确保套接字支持，否则可能返回 WSAEWOULDBLOCK）
+            //flags |= MSG_DONTWAIT;
+
+            // 调用 WSASendTo 发送分散缓冲区数据
+            int result = WSASendTo(
+                _fd,                          // 套接字
+                &(sendBuffer->vecBuffer[0]),           // WSABUF 数组指针（对应 msg.msg_iov）
+                sendBuffer->vecBuffer.size(), // 缓冲区数量（对应 msg.msg_iovlen）
+                &bytesSent,                   // 实际发送字节数
+                flags,                        // 标志位
+                sendBuffer->addr,             // 目标地址（对应 msg.msg_name）
+                sendBuffer->addr_len,         // 地址长度（对应 msg.msg_namelen）
+                nullptr,                      // 重叠结构（异步时使用）
+                nullptr                       // 完成例程
+            );
+
+            if (result == SOCKET_ERROR) {
+                int err = WSAGetLastError();
+                if (err == WSAEINTR) {        // 处理被信号中断的情况（对应 Linux EINTR）
+                    continue;                 // 重试循环
+                }
+                else {
+                    sendSize = SOCKET_ERROR;  // 其他错误，记录错误码
+                    break;
+                }
+            }
+            else {
+                sendSize = static_cast<int>(bytesSent); // 成功发送的字节数
+            }
+        } while (sendSize == SOCKET_ERROR && WSAGetLastError() == WSAEINTR);
+ /*       int erro = SOCKET_ERROR;
+        do {
+            DWORD sent = 0;
+            erro = WSASend(_fd, const_cast<LPWSABUF>(&(sendBuffer->vecBuffer[0])),
+                sendBuffer->vecBuffer.size(), &sent, 0, nullptr,nullptr);
+            int errorCode = WSAGetLastError();
+            sendSize = sent;
+            if (errorCode != WSAEWOULDBLOCK && errorCode != WSAEINTR) break;
+        }while((erro == SOCKET_ERROR) && (WSAGetLastError() == WSAEINTR));*/
+#else
+
         do {
             int sendFlag = MSG_DONTWAIT | MSG_NOSIGNAL;
             struct msghdr msg = {0};
@@ -782,7 +894,7 @@ ssize_t Socket::send(const Buffer::Ptr pkt, int flag, int offset, int length, st
 
             sendSize = sendmsg(_fd, &msg, sendFlag);
         } while (sendSize == -1 && errno == EINTR);
-
+#endif
         // logInfo << "sendBuffer->length: " << sendBuffer->length;
         // logInfo << "sendSize: " << sendSize;
 
@@ -794,6 +906,21 @@ ssize_t Socket::send(const Buffer::Ptr pkt, int flag, int offset, int length, st
         } else if (sendSize > 0) {
             totalSendSize += sendSize;
             for (auto it = sendBuffer->vecBuffer.begin(); it != sendBuffer->vecBuffer.end();) {
+#if defined(_WIN32)
+                size_t size = it->len;
+                if (sendSize >= size) {
+                    sendSize -= size;
+                    it = sendBuffer->vecBuffer.erase(it);
+                    // sendBuffer->rawBuffer.pop_front();
+                    sendBuffer->length -= size;
+                }
+                else {
+                    it->buf = (char*)(it->buf) + sendSize;
+                    it->len -= sendSize;
+                    sendBuffer->length -= sendSize;
+                    break;
+                }
+#else
                 size_t size = it->iov_len;
                 if (sendSize >= size) {
                     sendSize -= size;
@@ -806,6 +933,7 @@ ssize_t Socket::send(const Buffer::Ptr pkt, int flag, int offset, int length, st
                     sendBuffer->length -= sendSize;
                     break;
                 }
+#endif
             }
             logTrace << "sendBuffer->length: " << sendBuffer->length;
             break;
@@ -871,6 +999,9 @@ ssize_t Socket::send(const Buffer::Ptr pkt, int flag, int offset, int length, st
 // ssize_t Socket::sendZeroCopy(const Buffer::Ptr pkt, int flag, int offset, int length, struct sockaddr *addr, socklen_t addr_len)
 ssize_t Socket::sendZeroCopy(const Buffer::Ptr pkt, int flag, int offset, int length, struct sockaddr *addr, socklen_t addr_len)
 {
+#ifdef _WIN32
+    return 0;
+#else
     // static int pipeFd[2] = {0};
     if (_pipeFd[0] == 0) {
         pipe2(_pipeFd, O_NONBLOCK);
@@ -1062,6 +1193,7 @@ ssize_t Socket::sendZeroCopy(const Buffer::Ptr pkt, int flag, int offset, int le
     }
 
     return totalSendSize;
+#endif
 }
 
 void Socket::getLocalInfo()
@@ -1190,6 +1322,27 @@ sockaddr_in6* Socket::getPeerAddr6()
     return &_peerAddr6;
 }
 
+#if defined(_WIN32)
+bool isTcpSocket(SOCKET sock) {
+    int optval;
+    int optlen = sizeof(optval);
+
+    // 尝试获取 TCP 选项
+    if (getsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char*)&optval, &optlen) == 0) {
+        return true;
+    }
+
+    // 尝试获取 UDP 选项
+    if (getsockopt(sock, IPPROTO_UDP, UDP_CHECKSUM_COVERAGE, (char*)&optval, &optlen) == 0) {
+        return false;
+    }
+
+    // 无法确定类型
+    return false;
+}
+#endif
+
+
 
 // 辅助函数，从 sockaddr_storage 中获取 IP 地址和端口号
 std::pair<std::string, uint16_t> Socket::getIpAndPort(const struct sockaddr_storage *addr)
@@ -1217,6 +1370,9 @@ std::pair<std::string, uint16_t> Socket::getIpAndPort(const struct sockaddr_stor
 }
 
 static bool isInterfaceUp(const std::string& ifname) {
+#ifdef _WIN32
+    return false;
+#else
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock < 0) return false;
 
@@ -1231,11 +1387,15 @@ static bool isInterfaceUp(const std::string& ifname) {
 
     close(sock);
     return up;
+#endif
 }
 
 std::vector<InterfaceInfo> Socket::getIfaceList(const std::string& ifacePrefix)
 {
     std::vector<InterfaceInfo> interfaces;
+#ifdef _WIN32
+    return interfaces;
+#else
     ifaddrs *ifap = nullptr, *ifa = nullptr;
 
     // 获取所有网络接口
@@ -1282,6 +1442,7 @@ std::vector<InterfaceInfo> Socket::getIfaceList(const std::string& ifacePrefix)
 
     freeifaddrs(ifap);
     return interfaces;
+#endif
 }
 
 int Socket::getSocketType()
@@ -1289,13 +1450,18 @@ int Socket::getSocketType()
     int protocol;
     socklen_t protocolLength = sizeof(protocol);
  
+#if defined(_WIN32)
+    isTcpSocket(_fd) ? (protocol = SOCKET_TCP) : (protocol = SOCKET_UDP);
+    return protocol;
+#else
     // 获取socket的传输协议
     if (getsockopt(_fd, SOL_SOCKET, SO_PROTOCOL, &protocol, &protocolLength) == -1) {
         logError << "Error getting socket protocol" << std::endl;
         return -1;
     }
-
     return protocol == IPPROTO_TCP ? SOCKET_TCP : SOCKET_UDP;
+#endif
+    
 }
 
 NetType Socket::getNetType(const string& ip)

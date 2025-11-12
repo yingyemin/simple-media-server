@@ -1,8 +1,8 @@
-{
-    "LocalIp" : "172.24.6.9",
+﻿{
+    "LocalIp" : "192.168.2.32",
     "Ssl" : {
-        "key" : "./sms.com.key",
-        "cert" : "./sms.com.crt"
+        "key" : "",
+        "cert" : ""
     },
     "Log" : { 
         "logLevel" : 2,
@@ -49,7 +49,7 @@
         }
     },
     "Record" : {
-        "rootPath" : "./"
+        "rootPath" : "./record"
     },
     "Cdn" : {
         "mode" : "forward1",
@@ -93,7 +93,7 @@
         "Api" : {
             "Api1" : {
                 "ip" : "0.0.0.0",
-                "port" : 80,
+                "port" : 8891,
                 "sslPort" : 443,
                 "timeout" : 5000,
                 "threads" : 1

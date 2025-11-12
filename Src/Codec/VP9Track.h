@@ -10,12 +10,12 @@
 #include "Common/Track.h"
 #include "Common/Frame.h"
 
-using namespace std;
+// using namespace std;
 
 class VP9Track : public TrackInfo
 {
 public:
-    using Ptr = shared_ptr<VP9Track>;
+    using Ptr = std::shared_ptr<VP9Track>;
 
     VP9Track();
     virtual ~VP9Track() {}
@@ -24,13 +24,13 @@ public:
     static VP9Track::Ptr createTrack(int index, int payloadType, int samplerate);
 
 public:
-    string getSdp() override;
-    string getConfig() override;
+    std::string getSdp() override;
+    std::string getConfig() override;
     void getWidthAndHeight(int& width, int& height, int& fps);
     bool isBFrame(unsigned char* data, int size);
     bool isReady() override {return _hasReady;}
     
-    void setConfig(const string& config);
+    void setConfig(const std::string& config);
     
     void onFrame(const FrameBuffer::Ptr& frame); 
     static void registerTrackInfo();
@@ -45,8 +45,8 @@ private:
     uint8_t _matrix_coefficients = 0;
     uint8_t _level = 31;
     uint8_t _bitDepth = 8;
-    string _VP9Cfg;
-    string _codec_intialization_data;
+    std::string _VP9Cfg;
+    std::string _codec_intialization_data;
 };
 
 

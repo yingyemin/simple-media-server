@@ -1,7 +1,9 @@
 ﻿#include "RtmpChunk.h"
 #include "Rtmp.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Log/Logger.h"
+
+using namespace std;
 
 RtmpChunk::RtmpChunk()
 {

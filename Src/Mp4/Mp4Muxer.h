@@ -9,12 +9,12 @@
 #include <vector>
 #include <unordered_map>
 
-using namespace std;
+// using namespace std;
 
-int getAudioObject(const string& codec, int samplerate);
-int getVideoObject(const string& codec);
+int getAudioObject(const std::string& codec, int samplerate);
+int getVideoObject(const std::string& codec);
 
-class MP4Muxer : public enable_shared_from_this<MP4Muxer>
+class MP4Muxer : public std::enable_shared_from_this<MP4Muxer>
 {
 public:
     MP4Muxer(int flags);
@@ -29,8 +29,8 @@ public:
 public:
     void init();
     void stop();
-    void addAudioTrack(const shared_ptr<TrackInfo>& trackInfo);
-    void addVideoTrack(const shared_ptr<TrackInfo>& trackInfo);
+    void addAudioTrack(const std::shared_ptr<TrackInfo>& trackInfo);
+    void addVideoTrack(const std::shared_ptr<TrackInfo>& trackInfo);
     void inputFrame(const FrameBuffer::Ptr& frame, int track, bool keyframe);
 
 protected:
@@ -102,14 +102,14 @@ protected:
 	uint64_t _moof_offset; // last moof offset(from file begin)
     uint64_t _implicit_offset;
 
-    shared_ptr<mov_track_t> _track; // current stream
-	vector<shared_ptr<mov_track_t>> _tracks;
+    std::shared_ptr<mov_track_t> _track; // current stream
+	std::vector<std::shared_ptr<mov_track_t>> _tracks;
 	int _track_count = 0;
 
     const void* _udta = nullptr;
 	uint64_t _udta_size = 0;
 
-    unordered_map<int, int> _mapTrackInfo;
+    std::unordered_map<int, int> _mapTrackInfo;
 };
 
 #endif //MP4Muxer_H

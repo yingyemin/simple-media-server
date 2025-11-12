@@ -8,7 +8,7 @@
 
 #include "Common/Frame.h"
 
-using namespace std;
+// using namespace std;
 
 enum H266NalType
 {
@@ -30,7 +30,7 @@ enum H266NalType
 class H266Frame : public FrameBuffer
 {
 public:
-    using Ptr = shared_ptr<H266Frame>;
+    using Ptr = std::shared_ptr<H266Frame>;
 
     H266Frame()
     {
@@ -43,13 +43,13 @@ public:
 
     bool keyFrame() const override
     {
-        uint8_t type = (uint8_t)(_buffer[_startSize + 1]) >> 3;
+        uint8_t type = (uint8_t)((*_buffer)[_startSize + 1]) >> 3;
         return type >= H266_IDR_W_RADL && type < H266_RSV_IRAP;
     }
 
     bool metaFrame() const override
     {
-        uint8_t type = (uint8_t)(_buffer[_startSize + 1]) >> 3;
+        uint8_t type = (uint8_t)((*_buffer)[_startSize + 1]) >> 3;
         switch(type){
             case H266NalType::H266_VPS:
             case H266NalType::H266_SPS:
@@ -60,7 +60,7 @@ public:
 
     bool startFrame() const override
     {
-        uint8_t type = (uint8_t)(_buffer[_startSize + 1]) >> 3;
+        uint8_t type = (uint8_t)((*_buffer)[_startSize + 1]) >> 3;
         if (type == H266NalType::H266_VPS) {
             return true;
         }
@@ -70,7 +70,7 @@ public:
 
     uint8_t getNalType() override
     {
-        return (uint8_t)(_buffer[_startSize + 1]) >> 3;
+        return (uint8_t)((*_buffer)[_startSize + 1]) >> 3;
     }
 
     bool isNonPicNalu() override
@@ -93,7 +93,7 @@ public:
         return nalByte >> 3;
     }
 
-    void split(const function<void(const FrameBuffer::Ptr& frame)>& cb) override;
+    void split(const std::function<void(const FrameBuffer::Ptr& frame)>& cb) override;
     static FrameBuffer::Ptr createFrame(int startSize, int index, bool addStart);
     
     static void registerFrame();

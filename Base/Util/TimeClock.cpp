@@ -120,3 +120,26 @@ string TimeClock::getFmtTime(const char *fmt, time_t time)
         return string(fmt);
     return buffer;
 }
+
+string TimeClock::getGmtTime(time_t time) {
+    if (!time) {
+        time = ::time(NULL);
+    }
+    
+    // 创建一个 tm 结构体来存储 GMT 时间
+    struct tm tm_gmt;
+#ifdef _WIN32
+    // Windows 平台使用 gmtime_s 函数
+    gmtime_s(&tm_gmt, &time);
+#else
+    // 非 Windows 平台使用 gmtime_r 函数
+    gmtime_r(&time, &tm_gmt);
+#endif
+    
+    char buffer[1024];
+    // 格式：Mon, Nov 10 2025 08:39:50 GMT
+    auto success = std::strftime(buffer, sizeof(buffer), "%a, %b %d %Y %H:%M:%S GMT", &tm_gmt);
+    if (0 == success)
+        return "";
+    return buffer;
+}

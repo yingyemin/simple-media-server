@@ -5,7 +5,7 @@
 
 #include "VP8Frame.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Common/Config.h"
 
 using namespace std;

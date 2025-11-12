@@ -32,17 +32,17 @@
 #include "GB28181Client.h"
 #include "Net/Socket.h"
 
-using namespace std;
+// using namespace std;
 
 // The gb28181 client.
-class GB28181UdpClient : public GB28181Client, public enable_shared_from_this<GB28181UdpClient>
+class GB28181UdpClient : public GB28181Client, public std::enable_shared_from_this<GB28181UdpClient>
 {
 public:
     GB28181UdpClient();
     ~GB28181UdpClient();
 public:
     void start() override;
-    void sendMessage(const string& message) override;
+    void sendMessage(const std::string& message) override;
     void addTimerTask() override;
 
 private:

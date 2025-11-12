@@ -1,6 +1,8 @@
 ﻿#include "HlsManager.h"
 #include "Log/Logger.h"
 
+using namespace std;
+
 HlsManager::HlsManager()
 {}
 

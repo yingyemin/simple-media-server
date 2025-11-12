@@ -9,26 +9,26 @@
 #include "Encode/RtmpEncode.h"
 #include "Common/Track.h"
 
-using namespace std;
+// using namespace std;
 
-class RtmpEncodeTrack : public enable_shared_from_this<RtmpEncodeTrack>
+class RtmpEncodeTrack : public std::enable_shared_from_this<RtmpEncodeTrack>
 {
 public:
-    using Ptr = shared_ptr<RtmpEncodeTrack>;
-    RtmpEncodeTrack(const shared_ptr<TrackInfo>& trackInfo);
+    using Ptr = std::shared_ptr<RtmpEncodeTrack>;
+    RtmpEncodeTrack(const std::shared_ptr<TrackInfo>& trackInfo);
     virtual ~RtmpEncodeTrack()  {}
 
 public:
     void onRtmpPacket(const RtmpMessage::Ptr& pkt, bool start);
     void onFrame(const FrameBuffer::Ptr& frame);
     void startEncode();
-    string getConfig();
+    std::string getConfig();    
 
-    void setOnRtmpPacket(const function<void(const RtmpMessage::Ptr& rtp, bool start)>& cb) {_onRtmpPacket = cb;}
+    void setOnRtmpPacket(const std::function<void(const RtmpMessage::Ptr& rtp, bool start)>& cb) {_onRtmpPacket = cb;}
 
     int getTrackIndex()  {return _index;}
     int getTrackType() {return _type;}
-    shared_ptr<TrackInfo> getTrackInfo() { return _trackInfo;}
+    std::shared_ptr<TrackInfo> getTrackInfo() { return _trackInfo;} 
     void setEnhanced(bool enhanced) {_enhanced = enhanced;}
     void setFastPts(bool enabled) {_enableFastPts = enabled;}
 
@@ -39,8 +39,8 @@ private:
     int _index;
     int _type;
     RtmpEncode::Ptr _encoder;
-    shared_ptr<TrackInfo> _trackInfo;
-    function<void(const RtmpMessage::Ptr& rtp, bool start)> _onRtmpPacket;
+    std::shared_ptr<TrackInfo> _trackInfo;
+    std::function<void(const RtmpMessage::Ptr& rtp, bool start)> _onRtmpPacket;
 };
 
 

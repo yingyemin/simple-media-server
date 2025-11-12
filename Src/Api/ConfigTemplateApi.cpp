@@ -5,8 +5,11 @@
 #include <ctime>
 #include "Http/ErrorCodes.h"
 #include "Logger.h"
-#include "Util/String.h"
-
+#if defined(_WIN32)
+#include "Util/String.hpp"
+#else
+#include "Util/String.hpp"
+#endif
 using namespace std;
 using json = nlohmann::json;
 
@@ -238,8 +241,8 @@ void ConfigTemplateManager::loadDefaultTemplates()
     // 加载默认RTMP模板
     ConfigTemplate rtmpTemplate;
     rtmpTemplate.id = "default_rtmp";
-    rtmpTemplate.name = "默认RTMP配置";
-    rtmpTemplate.description = "标准RTMP流配置模板";
+    rtmpTemplate.name = "defalut rtmp config";
+    rtmpTemplate.description = "Default RTMP Model";
     rtmpTemplate.category = "rtmp";
     rtmpTemplate.configData = R"({
         "protocol": "rtmp",
@@ -260,8 +263,8 @@ void ConfigTemplateManager::loadDefaultTemplates()
     // 加载默认RTSP模板
     ConfigTemplate rtspTemplate;
     rtspTemplate.id = "default_rtsp";
-    rtspTemplate.name = "默认RTSP配置";
-    rtspTemplate.description = "标准RTSP流配置模板";
+    rtspTemplate.name = "default rtsp config";
+    rtspTemplate.description = "Default RTSP Model";
     rtspTemplate.category = "rtsp";
     rtspTemplate.configData = R"({
         "protocol": "rtsp",

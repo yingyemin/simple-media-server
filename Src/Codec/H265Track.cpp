@@ -9,7 +9,7 @@
 #include "H265Frame.h"
 #include "NalBitstream.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Util/Base64.h"
 
 using namespace std;
@@ -271,28 +271,28 @@ string H265Track::getConfig()
     *data++ = 0x01;   //configurationversion
     // 6 byte
 
-    *data++ = spsBuffer[spsSize + 5];  //general_profile_space(2), general_tier_flag(1), general_profile_idc(5)
+    *data++ = spsBuffer->data()[spsSize + 5];  //general_profile_space(2), general_tier_flag(1), general_profile_idc(5)
 
-    *data++ = spsBuffer[spsSize + 6]; //general_profile_compatibility_flags
-    *data++ = spsBuffer[spsSize + 7]; 
-    *data++ = spsBuffer[spsSize + 8]; 
-    *data++ = spsBuffer[spsSize + 9]; 
+    *data++ = spsBuffer->data()[spsSize + 6]; //general_profile_compatibility_flags
+    *data++ = spsBuffer->data()[spsSize + 7]; 
+    *data++ = spsBuffer->data()[spsSize + 8]; 
+    *data++ = spsBuffer->data()[spsSize + 9]; //general_profile_compatibility_flags
 
-    *data++ = spsBuffer[spsSize + 10]; //general_constraint_indicator_flags
-    *data++ = spsBuffer[spsSize + 11]; 
-    *data++ = spsBuffer[spsSize + 12]; 
-    *data++ = spsBuffer[spsSize + 13]; 
-    *data++ = spsBuffer[spsSize + 14]; 
-    *data++ = spsBuffer[spsSize + 15]; 
+    *data++ = spsBuffer->data()[spsSize + 10]; //general_constraint_indicator_flags
+    *data++ = spsBuffer->data()[spsSize + 11]; 
+    *data++ = spsBuffer->data()[spsSize + 12]; 
+    *data++ = spsBuffer->data()[spsSize + 13]; 
+    *data++ = spsBuffer->data()[spsSize + 14]; 
+    *data++ = spsBuffer->data()[spsSize + 15]; 
 
-    *data++ = spsBuffer[spsSize + 16]; // general_level_idc
+    *data++ = spsBuffer->data()[spsSize + 16]; // general_level_idc
 
-    *data++ = spsBuffer[spsSize + 17]; // reserved(4),min_spatial_segmentation_idc(12)
-    *data++ = spsBuffer[spsSize + 18]; 
+    *data++ = spsBuffer->data()[spsSize + 17]; // reserved(4),min_spatial_segmentation_idc(12)
+    *data++ = spsBuffer->data()[spsSize + 18]; 
 
-    *data++ = spsBuffer[spsSize + 19]; // reserved(6),parallelismType(2)
+    *data++ = spsBuffer->data()[spsSize + 19]; // reserved(6),parallelismType(2)
 
-    *data++ = spsBuffer[spsSize + 20]; // reserved(6),chromaFormat(2)
+    *data++ = spsBuffer->data()[spsSize + 20]; // reserved(6),chromaFormat(2)
     // 22 byte 
 
     // 下面几个0xff乱填的，貌似不影响播放
@@ -323,7 +323,7 @@ string H265Track::getConfig()
     *data++ = (uint8_t)(vpsLen >> 8); //sequence parameter set length high 8 bits
     *data++ = (uint8_t)(vpsLen); //sequence parameter set  length low 8 bits
 
-    memcpy(data, vpsBuffer.data() + vpsSize, vpsLen); //H264 sequence parameter set
+    memcpy(data, vpsBuffer->data() + vpsSize, vpsLen); //H264 sequence parameter set
     data += vpsLen; 
     // 37 + vpsLen
 
@@ -336,7 +336,7 @@ string H265Track::getConfig()
     *data++ = (uint8_t)(spsLen >> 8); //sequence parameter set length high 8 bits
     *data++ = (uint8_t)(spsLen); //sequence parameter set  length low 8 bits
 
-    memcpy(data, spsBuffer.data() + spsSize, spsLen); //H264 sequence parameter set
+    memcpy(data, spsBuffer->data() + spsSize, spsLen); //H264 sequence parameter set
     data += spsLen; 
     // 38 + vpsLen + spsLen
 
@@ -349,7 +349,7 @@ string H265Track::getConfig()
     *data++ = (uint8_t)(ppsLen >> 8); //sequence parameter set length high 8 bits
     *data++ = (uint8_t)(ppsLen); //sequence parameter set  length low 8 bits
 
-    memcpy(data, ppsBuffer.data() + ppsSize, ppsLen); //H264 sequence parameter set
+    memcpy(data, ppsBuffer->data() + ppsSize, ppsLen); //H264 sequence parameter set
     data += ppsLen; 
     // 43  + vpsLen + spsLen + ppsLen
 
@@ -379,9 +379,9 @@ void H265Track::setConfig(const string& config)
 			frame->_index = index_;
 			frame->_trackType = VideoTrackType;
 
-			frame->_buffer.assign("\x00\x00\x00\x01", 4);
+			frame->_buffer->assign("\x00\x00\x00\x01", 4);
 			frame->_pts = frame->_dts = 0;
-			frame->_buffer.append((char*)config.data() + index, naluLen);
+			frame->_buffer->append((char*)config.data() + index, naluLen);
 			index += naluLen;
 
 			logInfo << "get a config frame: " << (int)frame->getNalType();

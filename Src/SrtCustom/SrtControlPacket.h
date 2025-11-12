@@ -190,7 +190,7 @@ public:
     StreamBuffer::Ptr encode() override;
 
 public:
-    string streamId;
+    std::string streamId;
 };
 
 /**

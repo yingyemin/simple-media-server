@@ -8,7 +8,7 @@
 #include <memory>
 #include <functional>
 
-using namespace std;
+// using namespace std;
 
 class WebsocketConnection : public HttpConnection
 {

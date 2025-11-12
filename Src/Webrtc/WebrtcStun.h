@@ -2,12 +2,15 @@
 #define WebrtcStun_h
 
 #include <string>
+#if defined(_WIN32)
+#include <Util/Util.h>
+#else
 #include <netinet/in.h>
-
+#endif
 #include "Net/Buffer.h"
 #include "Net/Address.h"
 
-using namespace std;
+// using namespace std;
 
 const uint32_t kStunMagicCookie = 0x2112A442;
 
@@ -144,11 +147,14 @@ private:
     int32_t encodeBindingRequest(const std::string& pwd, StringBuffer::Ptr stream);
     int32_t encodeBindingResponse(const std::string& pwd, StringBuffer::Ptr stream);
     std::string encodeUsername();
+    std::string encodeUseCandidate();
+    std::string encodePriority();
     std::string encodeMappedAddress();
     void parseMappedAddress(const std::string& val, uint8_t* mask, Address* addr);
 
 private:
     uint16_t _messageType;
+    uint64_t _priority = 543798573;
     std::string _username;
     std::string _realm;
     std::string _nonce;

@@ -2,11 +2,14 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
+
+#ifndef _WIN32
 #include <netinet/in.h>
+#endif
 
 #include "WebrtcRtpPacket.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Webrtc.h"
 
 using namespace std;

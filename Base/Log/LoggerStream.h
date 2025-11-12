@@ -2,12 +2,15 @@
 #define LoggerStream_H_
 
 #include <sstream>
-#include <sys/time.h>
-
+#ifndef _WIN32
+    #include <sys/time.h>
+#else
+    #include "Util/Util.h"
+#endif
 // #include "Logger.h"
 #include <memory>
 
-using namespace std;
+// using namespace std;
 
 typedef enum 
 { 
@@ -24,7 +27,7 @@ class Logger;
 /**
  * 日志上下文
  */
-class LogContext : public ostringstream{
+class LogContext : public std::ostringstream{
     //_file,_function改成string保存，目的是有些情况下，指针可能会失效
     //比如说动态库中打印了一条日志，然后动态库卸载了，那么指向静态数据区的指针就会失效
 public:
@@ -34,9 +37,9 @@ public:
     LogLevel _level;
     int _thread_id;
     int _line;
-    string _file;
-    string _function;
-    string _thread_name;
+    std::string _file;
+    std::string _function;
+    std::string _thread_name;
     struct timeval _tv;
 };
 
@@ -47,7 +50,7 @@ class LogStream {
 public:
     using Ptr = std::shared_ptr<LogStream>;
 
-    LogStream(const shared_ptr<Logger>& logger, LogLevel level, const char *file, const char *function, int line);
+    LogStream(const std::shared_ptr<Logger>& logger, LogLevel level, const char *file, const char *function, int line);
     LogStream(const LogStream &that);
 
     ~LogStream();
@@ -57,7 +60,7 @@ public:
      * @param f std::endl(回车符)
      * @return 自身引用
      */
-    LogStream &operator << (ostream &(*f)(ostream &));
+    LogStream &operator << (std::ostream &(*f)(std::ostream &));
 
     template<typename T>
     LogStream &operator<<(T &&data) {
@@ -71,7 +74,7 @@ public:
     void clear();
 private:
     LogContext::Ptr _ctx;
-    shared_ptr<Logger> _logger;
+    std::shared_ptr<Logger> _logger;
 };
 
 #endif

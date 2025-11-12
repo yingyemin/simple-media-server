@@ -1,6 +1,6 @@
 ﻿#include "SrtControlPacket.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Util/MD5.h"
 #include "Net/Socket.h"
 #include "Util/TimeClock.h"

@@ -6,7 +6,7 @@
 #include "Common/Config.h"
 #include "RecordReaderBase.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "WorkPoller/WorkLoopPool.h"
 
 using namespace std;

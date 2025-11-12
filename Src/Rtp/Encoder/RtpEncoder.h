@@ -10,16 +10,16 @@
 #include "Common/Track.h"
 #include "Rtp/RtpPacket.h"
 
-using namespace std;
+// using namespace std;
 
-class RtpEncoder : public enable_shared_from_this<RtpEncoder>
+class RtpEncoder : public std::enable_shared_from_this<RtpEncoder>
 {
 public:
-    using Ptr = shared_ptr<RtpEncoder>;
+    using Ptr = std::shared_ptr<RtpEncoder>;
 
-    static RtpEncoder::Ptr create(const shared_ptr<TrackInfo>& trackInfo);
+    static RtpEncoder::Ptr create(const std::shared_ptr<TrackInfo>& trackInfo);
 
-    virtual void setOnRtpPacket(const function<void(const RtpPacket::Ptr& packet, bool start)>& cb) = 0;
+    virtual void setOnRtpPacket(const std::function<void(const RtpPacket::Ptr& packet, bool start)>& cb) = 0;
     virtual void encode(const FrameBuffer::Ptr& frame) = 0;
     virtual void setSsrc(uint32_t ssrc) {_ssrc = ssrc;}
     virtual void setEnableHuge(bool enabled);

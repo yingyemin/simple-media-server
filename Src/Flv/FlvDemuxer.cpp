@@ -1,6 +1,8 @@
 ﻿#include "FlvDemuxer.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Log/Logger.h"
+
+using namespace std;
 
 FlvDemuxer::FlvDemuxer()
 {}
@@ -156,6 +158,11 @@ void FlvDemuxer::onError(const string& err)
 	}
 }
 
+void FlvDemuxer::resetToSeek()
+{
+	_remainData.clear();
+	_state = FLV_PARSE_Media;
+}
 
 void FlvDemuxer::setOnFlvHeader(const function<void(const char* data, int len)>& cb)
 {

@@ -2,7 +2,11 @@
 #include "Http/ApiUtil.h"
 #include "Logger.h"
 #include "Common/Config.h"
-#include "Util/String.h"
+#if defined(_WIN32)
+#include "Util/String.hpp"
+#else
+#include "Util/String.hpp"
+#endif
 #include "Common/MediaClient.h"
 #include "HttpStream/HttpFlvClient.h"
 #include "HttpStream/HlsClientContext.h"

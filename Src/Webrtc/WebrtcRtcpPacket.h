@@ -8,8 +8,10 @@
 
 #include "Net/Buffer.h"
 #include "Common/Track.h"
+#include "Util/Util.h"
+// using namespace std;
 
-using namespace std;
+#pragma pack(push, 1)
 
 enum RtcpType
 {
@@ -73,7 +75,7 @@ public:
 class RtcpPacket
 {
 public:
-    using Ptr = shared_ptr<RtcpPacket>;
+    using Ptr = std::shared_ptr<RtcpPacket>;
     RtcpPacket(const StreamBuffer::Ptr& buffer, int pos);
     RtcpPacket() {}
 
@@ -82,7 +84,7 @@ public:
     virtual char* data() {return _buffer->data() + _pos;};
     virtual void parse();
 
-    void setOnRtcp(const function<void(const RtcpPacket::Ptr& rtcp)>& cb) {_onRtcp = cb;}
+    void setOnRtcp(const std::function<void(const RtcpPacket::Ptr& rtcp)>& cb) {_onRtcp = cb;}
     void onRtcp(const RtcpPacket::Ptr& rtcp);
     RtcpHeader* getHeader() {return _header;}
 
@@ -93,7 +95,7 @@ protected:
     int _payloadLen = 0;
     int _pos = 0;
     int _length = 0;
-    function<void(const RtcpPacket::Ptr& rtcp)> _onRtcp;
+    std::function<void(const RtcpPacket::Ptr& rtcp)> _onRtcp;
 };
 
 class RtcpSR : public RtcpPacket
@@ -146,7 +148,7 @@ public:
     void parse();
 
 private:
-    vector<RtcpRRBlock> _reportBlocks;
+    std::vector<RtcpRRBlock> _reportBlocks;
 };
 
 class RtcpXrDlsrBlock
@@ -174,7 +176,7 @@ public:
 
 private:
     RtcpXrRrtBlock _rrtBlock;
-    vector<RtcpXrDlsrBlock> _dlsrBlocks;
+    std::vector<RtcpXrDlsrBlock> _dlsrBlocks;
 };
 
 class RtcpSdes : public RtcpPacket
@@ -195,7 +197,7 @@ public:
     void parse();
 
 private:
-    string _name;
+    std::string _name;
 };
 
 class RtcpNack : public RtcpPacket
@@ -206,15 +208,15 @@ public:
 
 public:
     void parse();
-    vector<uint16_t> getLossPacket() {return _lossSn;}
+    std::vector<uint16_t> getLossPacket() {return _lossSn;}
 
     StreamBuffer::Ptr encode();
     void setSsrc(uint32_t ssrc) {_ssrc = ssrc;}
-    void setLossSn(const vector<uint16_t>& lossSn) {_lossSn = lossSn;}
+    void setLossSn(const std::vector<uint16_t>& lossSn) {_lossSn = lossSn;}
 
 private:
     uint32_t _ssrc;
-    vector<uint16_t> _lossSn;
+    std::vector<uint16_t> _lossSn;
 };
 
 enum PacketChunkStatus
@@ -265,7 +267,7 @@ public:
     void addPacket(const PacketChunkInfo& pktChunk) {_pktChunks.emplace_back(std::move(pktChunk));}
     StringBuffer::Ptr encode();
     uint16_t getFbPktCnt() {return _fbPktCnt;}
-    vector<PacketChunkInfo> getPktChunks() {return _pktChunks;}
+    std::vector<PacketChunkInfo> getPktChunks() {return _pktChunks;}
 
 private:
     uint32_t _ssrc;
@@ -273,7 +275,7 @@ private:
     uint16_t _pktStatusCnt;
     uint16_t _referenceTime; // 单位：64ms
     uint16_t _fbPktCnt;
-    vector<PacketChunkInfo> _pktChunks;
+    std::vector<PacketChunkInfo> _pktChunks;
     // vector<uint8_t> _recvDeltas; // 单位：0.25ms
 };
 
@@ -348,8 +350,10 @@ public:
     void parse();
 
 private:
-    vector<int> _ssrcs;
-    string _reason;
+    std::vector<int> _ssrcs;
+    std::string _reason;
 };
+
+#pragma pack(pop)
 
 #endif //WebrtcRtcpPacket_H

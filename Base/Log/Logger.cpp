@@ -3,6 +3,8 @@
 #include "LoggerStream.h"
 #include "LoggerWriter.h"
 
+using namespace std;
+
 Logger::Ptr g_defaultLogger = Logger::instance();
 
 ///////////////////Logger///////////////////

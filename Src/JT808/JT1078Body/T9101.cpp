@@ -111,7 +111,7 @@ void T9101::parse(const char* data, int len) {
 
 // 将类成员编码成字节流
 StringBuffer::Ptr T9101::encode() {
-    auto buffer = make_shared<StringBuffer>();
+    auto buffer = std::make_shared<StringBuffer>();
     
     // 写入IP长度
     buffer->push_back(static_cast<char>(ip.size()));

@@ -5,7 +5,7 @@
 
 #include "RtspPsMediaSource.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 
 using namespace std;
 
@@ -104,7 +104,7 @@ void RtspPsMediaSource::addTrack(const RtspPsDecodeTrack::Ptr& track)
             }
             int samples = 1;
             if (frame->_trackType == AudioTrackType) {
-                samples = frame->_buffer.size() - frame->startSize();
+                samples = frame->_buffer->size() - frame->startSize();
             }
             // strongSelf->_mapStampAdjust[frame->_index]->inputStamp(frame->_pts, frame->_dts, samples);
             // logInfo << "on frame";

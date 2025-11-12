@@ -3,7 +3,7 @@
 
 #include <string>
 
-using namespace std;
+// using namespace std;
 
 class Path
 {
@@ -12,11 +12,11 @@ public:
     ~Path() {}
 
 public:
-    static string exePath();
-    static string exeDir();
-    static string exeName();
+    static std::string exePath();
+    static std::string exeDir();
+    static std::string exeName();
 
-    static string getFileName(const std::string& path);
+    static std::string getFileName(const std::string& path);
 
 private:
 };

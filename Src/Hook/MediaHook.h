@@ -11,12 +11,12 @@
 #include "Common/json.hpp"
 #include "Common/HookManager.h"
 
-using namespace std;
+// using namespace std;
 
 class MediaHook : public HookBase
 {
 public:
-    using Ptr = shared_ptr<MediaHook>;
+    using Ptr = std::shared_ptr<MediaHook>;
 
     MediaHook() {}
     ~MediaHook() {}
@@ -27,11 +27,11 @@ public:
 
     void onStreamStatus(const StreamStatusInfo& info) override;
     void onStreamHeartbeat(const StreamHeartbeatInfo& info) override;
-    void onPublish(const PublishInfo& info, const function<void(const PublishResponse& rsp)>& cb) override;
-    void onPlay(const PlayInfo& info, const function<void(const PlayResponse& rsp)>& cb) override;
+    void onPublish(const PublishInfo& info, const std::function<void(const PublishResponse& rsp)>& cb) override;
+    void onPlay(const PlayInfo& info, const std::function<void(const PlayResponse& rsp)>& cb) override;
     void onPlayer(const PlayerInfo& info) override;
-    void onNonePlayer(const string& protocol, const string& uri, 
-                        const string& vhost, const string& type) override;
+    void onNonePlayer(const std::string& protocol, const std::string& uri, 
+                        const std::string& vhost, const std::string& type) override;
 
     void onKeepAlive(const ServerInfo& info) override;
     void onRegisterServer(const RegisterServerInfo& info) override;
@@ -41,7 +41,7 @@ public:
 
 private:
     bool _enableHook = true;
-    string _type = "http";
+    std::string _type = "http";
 };
 
 

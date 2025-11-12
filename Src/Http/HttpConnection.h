@@ -24,14 +24,14 @@
 #include <unordered_map>
 #include <memory>
 
-using namespace std;
+// using namespace std;
 
 
 class HttpConnection : public TcpConnection
 {
 public:
-    using Ptr = shared_ptr<HttpConnection>;
-    using Wptr = weak_ptr<HttpConnection>;
+    using Ptr = std::shared_ptr<HttpConnection>;
+    using Wptr = std::weak_ptr<HttpConnection>;
 
     HttpConnection(const EventLoop::Ptr& loop, const Socket::Ptr& socket, bool enbaleSsl);
     ~HttpConnection();
@@ -39,23 +39,23 @@ public:
 public:
     // 继承自tcpseesion
     virtual void onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len) override;
-    void onError(const string& msg) override;
+    void onError(const std::string& msg) override;
     void onManager() override;
     void init() override;
     void close() override;
     ssize_t send(Buffer::Ptr pkt) override;
 
 public:
-    void setServerId(const string& key) {_serverId = key;}
+    void setServerId(const std::string& key) {_serverId = key;}
     virtual void onWebsocketFrame(const char* data, int len) {}
     void apiRoute(const HttpParser& parser, const UrlParser& urlParser, 
-                        const function<void(HttpResponse& rsp)>& rspFunc);
+                        const std::function<void(HttpResponse& rsp)>& rspFunc);
 
 protected:
     void onHttpRequest();
     void writeHttpResponse(HttpResponse& rsp);
     void sendFile();
-    void setFileRange(const string& rangeStr);
+    void setFileRange(const std::string& rangeStr);
 
     virtual void handleGet();
     void handlePost();
@@ -85,7 +85,7 @@ protected:
     void onPlayFmp4(const Fmp4MediaSource::Ptr &fmp4Src);
 #endif
 
-    void onHttpError(const string& msg);
+    void onHttpError(const std::string& msg);
 
 protected:
     bool _isChunked = false;
@@ -94,14 +94,14 @@ protected:
     uint64_t _totalSendBytes = 0;
     uint64_t _intervalSendBytes = 0;
     float _lastBitrate = 0;
-    string _rangeStr;
-    string _mimeType;
-    string _serverId;
+    std::string _rangeStr;
+    std::string _mimeType;
+    std::string _serverId;
     HttpParser _parser;
     UrlParser _urlParser;
     WebsocketContext _websocket;
     TimeClock _clock;
-    shared_ptr<HttpFile> _httpFile;
+    std::shared_ptr<HttpFile> _httpFile;
 
 #ifdef ENABLE_MPEG
     TsMediaSource::RingType::DataQueReaderT::Ptr _playTsReader;
@@ -114,8 +114,8 @@ protected:
 
     EventLoop::Ptr _loop;
     Socket::Ptr _socket;
-    function<void()> _onClose;
-    function<void(const char* data, int len)> _onHttpBody;
+    std::function<void()> _onClose;
+    std::function<void(const char* data, int len)> _onHttpBody;
 };
 
 #endif /* HttpConnection_h */

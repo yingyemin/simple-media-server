@@ -26,14 +26,14 @@
 class FrameMediaSource : public MediaSource {
 public:
     using Ptr = std::shared_ptr<FrameMediaSource>;
-    using Wptr = weak_ptr<FrameMediaSource>;
+    using Wptr = std::weak_ptr<FrameMediaSource>;
     
     FrameMediaSource(const UrlParser& urlParser, const EventLoop::Ptr& loop = nullptr);
     virtual ~FrameMediaSource();
 
 
 public:
-    void addTrack(const shared_ptr<TrackInfo>& track) override;
+    void addTrack(const std::shared_ptr<TrackInfo>& track) override;
     void addSink(const MediaSource::Ptr &src) override;
     void delSink(const MediaSource::Ptr& sink) override;
     void onFrame(const FrameBuffer::Ptr& frame) override;
@@ -55,8 +55,8 @@ private:
     uint64_t _lastFrameTime = 0;
     uint64_t _lastKeyframeTime = 0;
     TimeClock _frameClock;
-    shared_ptr<StampAdjust> _videoStampAdjust;
-    shared_ptr<StampAdjust> _audioStampAdjust;
+    std::shared_ptr<StampAdjust> _videoStampAdjust;
+    std::shared_ptr<StampAdjust> _audioStampAdjust;
     FrameRingType::Ptr _ring;
     FrameBuffer::Ptr _frame;
     FrameBuffer::Ptr _keyframe;

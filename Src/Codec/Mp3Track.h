@@ -10,7 +10,7 @@
 #include "Common/Track.h"
 #include "Common/Frame.h"
 
-using namespace std;
+// using namespace std;
 
 class ID3v2
 {
@@ -65,13 +65,13 @@ public:
     uint16_t crc;
     // mpeg 1：单声道17个字节，双声道32字节
     // mpeg 2：单声道占9字节，双声道占17字节
-    string sideInfo; // 7/19/32 字节
+    std::string sideInfo; // 7/19/32 字节
 };
 
 class Mp3Track : public TrackInfo
 {
 public:
-    using Ptr = shared_ptr<Mp3Track>;
+    using Ptr = std::shared_ptr<Mp3Track>;
 
 public:
     static Mp3Track::Ptr createTrack(int index, int payloadType, int samplerate);
@@ -80,7 +80,7 @@ public:
     virtual ~Mp3Track() {}
 
 public:
-    string getSdp() override;
+    std::string getSdp() override;
     void onFrame(const FrameBuffer::Ptr& frame) override;
     static void registerTrackInfo();
 

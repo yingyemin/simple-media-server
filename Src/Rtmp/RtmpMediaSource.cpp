@@ -5,7 +5,7 @@
 
 #include "RtmpMediaSource.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Common/Define.h"
 
 using namespace std;

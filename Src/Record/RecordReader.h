@@ -22,6 +22,10 @@ class RecordReader : public RecordReaderBase, public enable_shared_from_this<Rec
 {
 public:
     using Ptr = shared_ptr<RecordReader>;
+    using RecordMenuMap = unordered_map<string/*path*/, 
+            unordered_map<string/*year*/, 
+                unordered_map<string/*month*/, 
+                    unordered_map<string/*day*/, vector<string/*file*/>>>>>;
 
     RecordReader(const string& path);
     ~RecordReader();
@@ -42,6 +46,11 @@ public:
     void setOnReady(const function<void()>& cb);
     void setOnFrame(const function<void(const FrameBuffer::Ptr& frame)>& cb);
     void setOnClose(const function<void()>& cb);
+
+    static void loadRecordMenu();
+    static RecordMenuMap getRecordList(const string& path = "", const string& year = "", const string& month = "", const string& day = "");
+    static void addRecordInfo(const string& path, const string& year, const string& month, const string& day, const string& fileName);
+    static void delRecordInfo(const string& path, const string& year, const string& month, const string& day, const string& fileName);
 
 protected:
     bool _isPause = false;
@@ -64,6 +73,9 @@ protected:
     function<void()> _onReady;
     function<void()> _onClose;
     function<void(const FrameBuffer::Ptr& frame)> _onFrame;
+
+    static mutex _mtxRecordMenu;
+    static RecordMenuMap _recordMenu;
 };
 
 #endif //RecordReader_H

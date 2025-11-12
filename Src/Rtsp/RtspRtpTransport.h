@@ -12,7 +12,7 @@
 #include "Rtp/RtpSort.h"
 #include "RtspRtcpTransport.h"
 
-using namespace std;
+// using namespace std;
 
 enum TransportType {
     Transport_Invalide = -1,
@@ -27,11 +27,11 @@ enum TransportDataType {
     TransportData_Data = 1   //rtcp
 };
 
-class RtspRtpTransport : public enable_shared_from_this<RtspRtpTransport>
+class RtspRtpTransport : public std::enable_shared_from_this<RtspRtpTransport>
 {
 public:
-    using Ptr = shared_ptr<RtspRtpTransport>;
-    using Wptr = weak_ptr<RtspRtpTransport>;
+    using Ptr = std::shared_ptr<RtspRtpTransport>;
+    using Wptr = std::weak_ptr<RtspRtpTransport>;
 
     RtspRtpTransport(int transType, int dataType, const RtspTrack::Ptr& track, const Socket::Ptr& socket);
 
@@ -42,7 +42,7 @@ public:
     void bindPeerAddr(struct sockaddr* addr);
     Socket::Ptr getSocket() {return _socket;}
     void setRtcp(const RtspRtcpTransport::Ptr rtcp) {_rtcp = rtcp;}
-    void setOnTcpSend(const function<void(const Buffer::Ptr& pkt, int flag)>& func) {_tcpSend = func;}
+    void setOnTcpSend(const std::function<void(const Buffer::Ptr& pkt, int flag, size_t offset, size_t len)>& func) {_tcpSend = func;}
 
 private:
     int _transType; //tcp or udp
@@ -53,7 +53,7 @@ private:
     Socket::Ptr _socket;
     RtspTrack::Ptr _track;
     RtspRtcpTransport::Ptr _rtcp;
-    function<void(const Buffer::Ptr& pkt, int flag)> _tcpSend;
+    std::function<void(const Buffer::Ptr& pkt, int flag, size_t offset, size_t len)> _tcpSend;
 };
 
 

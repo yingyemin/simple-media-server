@@ -1,6 +1,6 @@
 ﻿#include "WebrtcContext.h"
 #include "Log/Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Common/Define.h"
 #include "Common/Config.h"
 #include "Common/MediaSource.h"
@@ -461,7 +461,7 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
         }
 
         if (!findFlag) {
-            sdpMedia->sendRecvType_ = Inactive;
+            sdpMedia->sendRecvType_ = SMS::Inactive;
         }
 
         if (remotePtInfo) {
@@ -509,17 +509,17 @@ void WebrtcContext::negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, c
 
             switch (sdpMedia->sendRecvType_)
             {
-            case SendOnly:
-                localSdpMedia->sendRecvType_ = RecvOnly;
+            case SMS::SendOnly:
+                localSdpMedia->sendRecvType_ = SMS::RecvOnly;
                 break;
-            case RecvOnly:
-                localSdpMedia->sendRecvType_ = SendOnly;
+            case SMS::RecvOnly:
+                localSdpMedia->sendRecvType_ = SMS::SendOnly;
                 break;
-            case SendRecv:
-                localSdpMedia->sendRecvType_ = SendRecv;
+            case SMS::SendRecv:
+                localSdpMedia->sendRecvType_ = SMS::SendRecv;
                 break;
-            case Inactive:
-                localSdpMedia->sendRecvType_ = Inactive;
+            case SMS::Inactive:
+                localSdpMedia->sendRecvType_ = SMS::Inactive;
                 break;
             
             default:
@@ -752,7 +752,7 @@ void WebrtcContext::onRtpPacket(const Socket::Ptr& socket, const RtpPacket::Ptr&
 
     uint32_t ssrc = rtp->getSSRC();
     uint32_t sdpSsrc = _videoPtInfo ? _videoPtInfo->ssrc_ : 0;
-    uint rtxSsrc = _videoRtxPtInfo ? _videoRtxPtInfo->ssrc_ : 0;
+    uint32_t rtxSsrc = _videoRtxPtInfo ? _videoRtxPtInfo->ssrc_ : 0;
     // logInfo << "rtp ssrc: " << ssrc << ", sdp ssrc: " << sdpSsrc << ", rtx ssrc: " << rtxSsrc;
     weak_ptr<WebrtcContext> wSelf = dynamic_pointer_cast<WebrtcContext>(shared_from_this());
     if (ssrc == sdpSsrc && !_rtcpPliTimerCreated) {
@@ -997,9 +997,11 @@ void WebrtcContext::onStunPacket(const Socket::Ptr& socket, const WebrtcStun& st
         payload_ptr[1] = buffer->size() & 0x00FF;
 
         socket->send((char*)payload_ptr, 2);
+        socket->send(buffer->data(), buffer->size(), 1);
+    } else {
+        socket->send(buffer->data(), buffer->size(), 1, _addr, len);
     }
     
-	socket->send(buffer->data(), buffer->size(), 1, _addr, len);
 	_lastRecvTime = time(nullptr);
 
     if (!_enbaleDtls && _isPlayer) {

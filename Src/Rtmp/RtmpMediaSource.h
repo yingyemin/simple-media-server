@@ -14,14 +14,14 @@
 #include "RtmpDecodeTrack.h"
 #include "Amf.h"
 
-using namespace std;
+// using namespace std;
 
 class RtmpMediaSource : public MediaSource
 {
 public:
-    using Ptr = shared_ptr<RtmpMediaSource>;
-    using Wptr = weak_ptr<RtmpMediaSource>;
-    using RingDataType = shared_ptr<list<RtmpMessage::Ptr> >;
+    using Ptr = std::shared_ptr<RtmpMediaSource>;
+    using Wptr = std::weak_ptr<RtmpMediaSource>;
+    using RingDataType = std::shared_ptr<list<RtmpMessage::Ptr> >;
     using RingType = DataQue<RingDataType>;
 
     RtmpMediaSource(const UrlParser& urlParser, const EventLoop::Ptr& loop = nullptr, bool muxer = false);
@@ -30,7 +30,7 @@ public:
 public:
     void addTrack(const RtmpDecodeTrack::Ptr& track);
     void onReady() override;
-    void addTrack(const shared_ptr<TrackInfo>& track) override;
+    void addTrack(const std::shared_ptr<TrackInfo>& track) override;
     void addSink(const MediaSource::Ptr &src) override;
     void delSink(const MediaSource::Ptr &src) override;
     void onFrame(const FrameBuffer::Ptr& frame) override;
@@ -49,7 +49,7 @@ public:
     RingType::Ptr getRing() {return _ring;}
 
     int playerCount();
-    void getClientList(const function<void(const list<ClientInfo>& info)>& func) override;
+    void getClientList(const std::function<void(const std::list<ClientInfo>& info)>& func) override; 
     uint64_t getBytes() override { return _ring ? _ring->getBytes() : 0;}
 
     void setEnhanced(bool enhanced) {_enhanced = enhanced;}
@@ -71,15 +71,15 @@ private:
     int _ringSize = 512;
     int64_t _lastPts = -1;
 
-    mutex _mtxMeta;
+    std::mutex _mtxMeta;
     AmfObjects _metaData;
 
     RingType::Ptr _ring;
     RingDataType _cache;
 
-    mutex _mtxTrack;
-    unordered_map<int/*index*/, RtmpDecodeTrack::Ptr> _mapRtmpDecodeTrack;
-    unordered_map<int/*index*/, RtmpEncodeTrack::Ptr> _mapRtmpEncodeTrack;
+    std::mutex _mtxTrack;
+    std::unordered_map<int/*index*/, RtmpDecodeTrack::Ptr> _mapRtmpDecodeTrack;
+    std::unordered_map<int/*index*/, RtmpEncodeTrack::Ptr> _mapRtmpEncodeTrack;
 };
 
 

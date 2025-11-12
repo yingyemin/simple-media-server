@@ -5,7 +5,7 @@
 
 #include "Fmp4MediaSource.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 
 using namespace std;
 
@@ -250,6 +250,11 @@ void Fmp4MediaSource::onFrame(const FrameBuffer::Ptr& frame)
     // auto it = _mapGB28181EncodeTrack.find(frame->getTrackIndex());
     if (!_fmp4EncodeTrack) {
         return ;
+    }
+    // sps,pps要么丢了，要么和关键帧封装在一起
+    // 否则chrome上播放会有问题
+    if (frame->metaFrame()) {
+        return;
     }
     // logInfo << "on muxer a frame";
     _fmp4EncodeTrack->inputFrame_l(frame->getTrackIndex(), frame->data() + frame->startSize(), frame->size() - frame->startSize(), frame->pts(), frame->dts(), frame->keyFrame(), 0);

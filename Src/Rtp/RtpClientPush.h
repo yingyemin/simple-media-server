@@ -8,29 +8,29 @@ using namespace std;
 
 class RtpClientPush : public RtpClient {
 public:
-    using Ptr = shared_ptr<RtpClientPush>;
-    using Wptr = weak_ptr<RtpClientPush>;
+    using Ptr = std::shared_ptr<RtpClientPush>;
+    using Wptr = std::weak_ptr<RtpClientPush>;
 
-    RtpClientPush(const string& app, const string& stream, int ssrc, int sockType);
+    RtpClientPush(const std::string& app, const std::string& stream, int ssrc, int sockType);
     ~RtpClientPush();
 
 public:
     virtual void onRead(const StreamBuffer::Ptr& buffer);
     virtual void doPush();
-    virtual void setPayloadType(const string& payloadType) {_payloadType = payloadType;}
-    virtual void setOnlyTrack(const string& onlyTrack) {_onlyTrack = onlyTrack;}
+    virtual void setPayloadType(const std::string& payloadType) {_payloadType = payloadType;}
+    virtual void setOnlyTrack(const std::string& onlyTrack) {_onlyTrack = onlyTrack;}
 
 private:
     // bool _firstWrite = true;
     bool _sendFlag = true;
-    string _peerIp;
+    std::string _peerIp;
     int _peerPort;
     int _sockType;
     int _ssrc;
-    string _streamName;
-    string _appName;
-    string _payloadType = "ps";
-    string _onlyTrack = "all";
+    std::string _streamName;
+    std::string _appName;
+    std::string _payloadType = "ps";
+    std::string _onlyTrack = "all";
 
     Socket::Ptr _socket;
     sockaddr _addr;

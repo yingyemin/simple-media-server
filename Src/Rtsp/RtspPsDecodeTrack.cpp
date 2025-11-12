@@ -5,7 +5,7 @@
 
 #include "RtspPsDecodeTrack.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Util/Base64.h"
 #include "Codec/AacTrack.h"
 #include "Codec/G711Track.h"
@@ -63,16 +63,16 @@ static shared_ptr<TrackInfo> createTrackBySdp(const shared_ptr<SdpMedia>& media)
 
         auto spsFrame = make_shared<H264Frame>();
         spsFrame->_startSize = 4;
-        spsFrame->_buffer.assign("\x00\x00\x00\x01", 4);
-        spsFrame->_buffer.append(Base64::decode(base64_SPS));
+        spsFrame->_buffer->assign("\x00\x00\x00\x01", 4);
+        spsFrame->_buffer->append(Base64::decode(base64_SPS));
         // FILE* fp = fopen("sps.h264", "wb");
         // fwrite(spsFrame->_buffer.data(), 1, spsFrame->_buffer.size(), fp);
         // fclose(fp);
         
         auto ppsFrame = make_shared<FrameBuffer>();
         ppsFrame->_startSize = 4;
-        ppsFrame->_buffer.assign("\x00\x00\x00\x01", 4);
-        ppsFrame->_buffer.append(Base64::decode(base64_PPS));
+        ppsFrame->_buffer->assign("\x00\x00\x00\x01", 4);
+        ppsFrame->_buffer->append(Base64::decode(base64_PPS));
         // FILE* pfp = fopen("pps.h264", "wb");
         // fwrite(ppsFrame->_buffer.data(), 1, ppsFrame->_buffer.size(), pfp);
         // fclose(pfp);
@@ -89,18 +89,18 @@ static shared_ptr<TrackInfo> createTrackBySdp(const shared_ptr<SdpMedia>& media)
         auto mapFmtp = split(findSubStr(media->fmtp_," ", ""),";","=");
         auto vpsFrame = make_shared<FrameBuffer>();
         vpsFrame->_startSize = 4;
-        vpsFrame->_buffer.assign("\x00\x00\x00\x01", 4);
-        vpsFrame->_buffer.append(Base64::decode(mapFmtp["sprop-vps"]));
+        vpsFrame->_buffer->assign("\x00\x00\x00\x01", 4);
+        vpsFrame->_buffer->append(Base64::decode(mapFmtp["sprop-vps"]));
         
         auto spsFrame = make_shared<FrameBuffer>();
         spsFrame->_startSize = 4;
-        spsFrame->_buffer.assign("\x00\x00\x00\x01", 4);
-        spsFrame->_buffer.append(Base64::decode(mapFmtp["sprop-sps"]));
+        spsFrame->_buffer->assign("\x00\x00\x00\x01", 4);
+        spsFrame->_buffer->append(Base64::decode(mapFmtp["sprop-sps"]));
 
         auto ppsFrame = make_shared<FrameBuffer>();
         ppsFrame->_startSize = 4;
-        ppsFrame->_buffer.assign("\x00\x00\x00\x01", 4);
-        ppsFrame->_buffer.append(Base64::decode(mapFmtp["sprop-pps"]));
+        ppsFrame->_buffer->assign("\x00\x00\x00\x01", 4);
+        ppsFrame->_buffer->append(Base64::decode(mapFmtp["sprop-pps"]));
 
         h265TrackInfo->setVps(vpsFrame);
         h265TrackInfo->setSps(spsFrame);

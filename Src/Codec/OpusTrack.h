@@ -10,12 +10,12 @@
 #include "Common/Track.h"
 #include "Common/Frame.h"
 
-using namespace std;
+// using namespace std;
 
 class OpusTrack : public TrackInfo
 {
 public:
-    using Ptr = shared_ptr<OpusTrack>;
+    using Ptr = std::shared_ptr<OpusTrack>;
 
 public:
     static OpusTrack::Ptr createTrack(int index, int payloadType, int samplerate);
@@ -24,7 +24,7 @@ public:
     virtual ~OpusTrack() {}
 
 public:
-    string getSdp() override;
+    std::string getSdp() override;
     
     static void registerTrackInfo();
 

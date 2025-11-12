@@ -13,12 +13,12 @@
 #include <memory>
 #include <functional>
 
-using namespace std;
+// using namespace std;
 
 class HttpTsClient : public HttpClient, public MediaClient
 {
 public:
-    HttpTsClient(MediaClientType type, const string& appName, const string& streamName);
+    HttpTsClient(MediaClientType type, const std::string& appName, const std::string& streamName);
     ~HttpTsClient();
 
 public:
@@ -30,15 +30,15 @@ public:
 
 public:
     // override MediaClient
-    bool start(const string& localIp, int localPort, const string& url, int timeout) override;
+    bool start(const std::string& localIp, int localPort, const std::string& url, int timeout) override;
     void stop() override;
     void pause() override;
-    void setOnClose(const function<void()>& cb) override;
+    void setOnClose(const std::function<void()>& cb) override;
 
 public:
     void onHttpResponce();
-    void onError(const string& err);
-    void setOnHttpResponce(const function<void(const HttpParser& parser)>& cb);
+    void onError(const std::string& err);
+    void setOnHttpResponce(const std::function<void(const HttpParser& parser)>& cb);
 
 private:
     bool _hasVideo = false;
@@ -52,8 +52,8 @@ private:
     TsMediaSource::Wptr _source;
     HttpChunkedParser::Ptr _chunkedParser;
 
-    function<void(const HttpParser& parser)> _onHttpResponce;
-    function<void()> _onClose;
+    std::function<void(const HttpParser& parser)> _onHttpResponce;
+    std::function<void()> _onClose;
 };
 
 #endif

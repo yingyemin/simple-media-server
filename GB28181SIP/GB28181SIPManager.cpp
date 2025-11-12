@@ -139,3 +139,8 @@ GB28181SIPContext::Ptr GB28181SIPManager::getContext(const string& deviceId)
     return iter->second;
 }
 
+unordered_map<string, GB28181SIPContext::Ptr> GB28181SIPManager::getMapContext()
+{
+    lock_guard<mutex> lock(_contextLck);
+    return _mapContext;
+}

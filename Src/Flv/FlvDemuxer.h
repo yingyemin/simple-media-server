@@ -7,7 +7,7 @@
 
 #include "Net/Buffer.h"
 
-using namespace std;
+// using namespace std;
 
 enum FlvParseState
 {
@@ -16,7 +16,7 @@ enum FlvParseState
 	FLV_PARSE_Media
 };
 
-class FlvDemuxer : public enable_shared_from_this<FlvDemuxer>
+class FlvDemuxer : public std::enable_shared_from_this<FlvDemuxer>
 {
 public:
 	FlvDemuxer();
@@ -25,11 +25,12 @@ public:
 public:
 	void input(const char* data, int len);
 
-	void setOnFlvHeader(const function<void(const char* data, int len)>& cb);
-	void setOnFlvMetadata(const function<void(const char* data, int len)>& cb);
-	void setOnFlvMedia(const function<void(const char* data, int len)>& cb);
-	void setOnError(const function<void(const string& err)>& cb);
+	void setOnFlvHeader(const std::function<void(const char* data, int len)>& cb);
+	void setOnFlvMetadata(const std::function<void(const char* data, int len)>& cb);
+	void setOnFlvMedia(const std::function<void(const char* data, int len)>& cb);
+	void setOnError(const std::function<void(const std::string& err)>& cb);
 
+	void resetToSeek();
 private:
 	bool parseFlvHeader(const char* data, int len);
 	bool parseFlvMetadata(const char* data, int len);
@@ -38,15 +39,16 @@ private:
 	void onFlvHeader(const char* data, int len);
 	void onFlvMetadata(const char* data, int len);
 	void onFlvMedia(const char* data, int len);
-	void onError(const string& err);
+	void onError(const std::string& err);
 
+	
 private:
 	FlvParseState _state = FLV_PARSE_HEADER;
 	StringBuffer _remainData;
-	function<void(const char* data, int len)> _onFlvHeader;
-	function<void(const char* data, int len)> _onFlvMetadata;
-	function<void(const char* data, int len)> _onFlvMedia;
-	function<void(const string& err)> _onError;
+	std::function<void(const char* data, int len)> _onFlvHeader;
+	std::function<void(const char* data, int len)> _onFlvMetadata;
+	std::function<void(const char* data, int len)> _onFlvMedia;
+	std::function<void(const std::string& err)> _onError;
 };
 
 #endif //FlvDemuxer_H

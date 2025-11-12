@@ -1,6 +1,6 @@
 #include "PsDemuxer.h"
 #include "Common/Config.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Log/Logger.h"
 #include "Codec/AacTrack.h"
 #include "Codec/Mp3Track.h"
@@ -13,8 +13,13 @@
 #include "Mpeg.h"
 #include "EventPoller/EventLoop.h"
 
+#if defined(_WIN32)
+#include "Util/Util.h"
+#else
 #include <sys/socket.h>
 #include <netdb.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -522,10 +527,10 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
             }
             
             if (_videoFrame) {
-                if (_videoFrame->_buffer.empty()) {
-                    _videoFrame->_buffer.assign(next_ps_pack, payloadlen);
+                if (_videoFrame->_buffer->empty()) {
+                    _videoFrame->_buffer->assign(next_ps_pack, payloadlen);
                 } else {
-                    _videoFrame->_buffer.append(next_ps_pack, payloadlen);
+                    _videoFrame->_buffer->append(next_ps_pack, payloadlen);
                 }
             }
             _lastVideoPts = video_pts;
@@ -660,7 +665,7 @@ int PsDemuxer::onPsStream(char* ps_data, int ps_size, uint32_t timestamp, uint32
                 }
             }
          
-            audio_stream->_buffer.append(next_ps_pack, payload_len);
+            audio_stream->_buffer->append(next_ps_pack, payload_len);
             
 // #ifdef W_AUDIO_FILE            
 //             if (!audio_fw.is_open()) {
@@ -1174,7 +1179,7 @@ void PsDemuxer::onDecode(const FrameBuffer::Ptr& frame, int index, uint64_t pts,
     }
 }
 
-void PsDemuxer::setOnDecode(const function<void(const FrameBuffer::Ptr& frame)> cb)
+void PsDemuxer::setOnDecode(const function<void(const FrameBuffer::Ptr& frame)>& cb)
 {
     _onFrame = cb;
 }

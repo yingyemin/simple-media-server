@@ -1,35 +1,39 @@
 ﻿#ifndef WebrtcSdpParser_H
 #define WebrtcSdpParser_H
 
+#include <cstdint>
 #include <unordered_map>
 #include <string>
 #include <memory>
 #include <vector>
 
-using namespace std;
+// using namespace std;
 
-enum SendRecvType
+namespace SMS
 {
-    Unknown,
-    SendOnly,
-    RecvOnly,
-    SendRecv,
-    Inactive
+    enum SendRecvType
+    {
+        Unknown,
+        SendOnly,
+        RecvOnly,
+        SendRecv,
+        Inactive
+    };
 };
 
 class WebrtcPtInfo
 {
 public:
-    using Ptr = shared_ptr<WebrtcPtInfo>;
-    void encode(stringstream& ss);
+    using Ptr = std::shared_ptr<WebrtcPtInfo>;
+    void encode(std::stringstream& ss);
 public:
     int payloadType_;
-    string codec_;
-    string codecExt_;
+    std::string codec_;
+    std::string codecExt_;
     int samplerate_;
 
-    string fmtp_;
-    vector<string> rtcpFbs_;
+    std::string fmtp_;
+    std::vector<std::string> rtcpFbs_;
 
     // 关联 ssrcinfo
     uint32_t ssrc_;
@@ -44,163 +48,163 @@ public:
 class CandidateInfo
 {
 public:
-    using Ptr = shared_ptr<CandidateInfo>;
-    void encode(stringstream& ss);
+    using Ptr = std::shared_ptr<CandidateInfo>;
+    void encode(std::stringstream& ss);
 public:
-    string foundation_;
+    std::string foundation_;
     int componentId_;
     // tcp udp
-    string transType_;
+    std::string transType_;
     int priority_;
-    string ip_;
+    std::string ip_;
     int port_;
     // host srflx prflx relay
-    string candidateType_;
-    string relAddr_;
+    std::string candidateType_;
+    std::string relAddr_;
     int relPort_;
 };
 
 class SsrcInfo
 {
 public:
-    using Ptr = shared_ptr<SsrcInfo>;
+    using Ptr = std::shared_ptr<SsrcInfo>;
     
-    void encode(stringstream& ss);
+    void encode(std::stringstream& ss);
 public:
     uint64_t ssrc_;
-    string cname_;
-    string msid_;
-    vector<string> msidTracker_;
-    string mslabel_;
-    string label_;
+    std::string cname_;
+    std::string msid_;
+    std::vector<std::string> msidTracker_;
+    std::string mslabel_;
+    std::string label_;
 };
 
 class WebrtcSdpMedia
 {
 public:
-    void parseMediaDesc(const string& value);
-    void parseAttr(const string& value);
-    void parseConnect(const string& value);
+    void parseMediaDesc(const std::string& value);
+    void parseAttr(const std::string& value);
+    void parseConnect(const std::string& value);
 
-    void encode(stringstream& ss);
+    void encode(std::stringstream& ss);
 
 private:
     // decode the attrs
-    void parseExtmap(const string& value);
-    void parseRtpmap(const string& value);
-    void parseRtcp(const string& value);
-    void parseRtcpFb(const string& value);
-    void parseFmtp(const string& value);
-    void parseMid(const string& value);
-    void parseMsid(const string& value);
-    void parseSsrc(const string& value);
-    void parseSsrcGroup(const string& value);
-    void parseRtcpMux(const string& value);
-    void parseRtcpRsize(const string& value);
-    void parseRecvonly(const string& value);
-    void parseSendonly(const string& value);
-    void parseSendrecv(const string& value);
-    void parseInactive(const string& value);
-    void parseIceOptions(const string& value);
-    void parseIceUflag(const string& value);
-    void parseIcePwd(const string& value);
-    void parseSetup(const string& value);
-    void parseExtmapAllowMixed(const string& value);
-    void parseFingerprint(const string& value);
-    void parseCandidate(const string& value);
-    void parseSctpPort(const string& value);
+    void parseExtmap(const std::string& value);
+    void parseRtpmap(const std::string& value);
+    void parseRtcp(const std::string& value);
+    void parseRtcpFb(const std::string& value);
+    void parseFmtp(const std::string& value);
+    void parseMid(const std::string& value);
+    void parseMsid(const std::string& value);
+    void parseSsrc(const std::string& value);
+    void parseSsrcGroup(const std::string& value);
+    void parseRtcpMux(const std::string& value);
+    void parseRtcpRsize(const std::string& value);
+    void parseRecvonly(const std::string& value);
+    void parseSendonly(const std::string& value);
+    void parseSendrecv(const std::string& value);
+    void parseInactive(const std::string& value);
+    void parseIceOptions(const std::string& value);
+    void parseIceUflag(const std::string& value);
+    void parseIcePwd(const std::string& value);
+    void parseSetup(const std::string& value);
+    void parseExtmapAllowMixed(const std::string& value);
+    void parseFingerprint(const std::string& value);
+    void parseCandidate(const std::string& value);
+    void parseSctpPort(const std::string& value);
 
 public:
     int index_;
-    string media_;
+    std::string media_;
     int port_;
     int channelPort_;
-    string protocol_;
+    std::string protocol_;
     bool rtcpMux_ = false;
     bool rtcpRsize_ = false;
-    SendRecvType sendRecvType_ = Unknown;
-    string iceOptions_;
-    string iceUfrag_;
-    string icePwd_;
-    string setup_;
+    SMS::SendRecvType sendRecvType_ = SMS::Unknown;
+    std::string iceOptions_;
+    std::string iceUfrag_;
+    std::string icePwd_;
+    std::string setup_;
     bool mixed_ = false;
-    string fingerprintAlg_;
-    string fingerprint_;
-    string mid_;
-    string msid_;
-    vector<string> msidTracker_;
-    string channelName_;
+    std::string fingerprintAlg_;
+    std::string fingerprint_;
+    std::string mid_;
+    std::string msid_;
+    std::vector<std::string> msidTracker_;
+    std::string channelName_;
 
-    unordered_map<int, WebrtcPtInfo::Ptr> mapPtInfo_;
-    unordered_map<uint64_t, SsrcInfo::Ptr> mapSsrcInfo_;
-    vector<CandidateInfo::Ptr> candidates_;
+    std::unordered_map<int, WebrtcPtInfo::Ptr> mapPtInfo_;
+    std::unordered_map<uint64_t, SsrcInfo::Ptr> mapSsrcInfo_;
+    std::vector<CandidateInfo::Ptr> candidates_;
     // string fid,fec,sim
-    unordered_map<string, vector<uint64_t>> mapSsrcGroup_;
-    unordered_map<string, uint64_t> mapSsrc_;
+    std::unordered_map<std::string, std::vector<uint64_t>> mapSsrcGroup_;
+    std::unordered_map<std::string, uint64_t> mapSsrc_;
 
-    unordered_map<char, string> mapMedia_;
-    unordered_map<string, string> mapAttr_;
-    unordered_map<string, int> mapExtmap_;
+    std::unordered_map<char, std::string> mapMedia_;
+    std::unordered_map<std::string, std::string> mapAttr_;
+    std::unordered_map<std::string, int> mapExtmap_;
 };
 
 class WebrtcSdpTitle
 {
 public:
-    void parseVersion(const string& value);
-    void parseOrigin(const string& value);
-    void parseSession(const string& value);
-    void parseTime(const string& value);
-    void parseAttr(const string& value);
+    void parseVersion(const std::string& value);
+    void parseOrigin(const std::string& value);
+    void parseSession(const std::string& value);
+    void parseTime(const std::string& value);
+    void parseAttr(const std::string& value);
 
-    void encode(stringstream& ss);
+    void encode(std::stringstream& ss);
 public:
     //v
-    string version_;
+    std::string version_;
     //o
-    string username_;
-    string sessionId_;
-    string sessionVersion_;
-    string netType_;
-    string addrType_;
-    string addr_;
+    std::string username_;
+    std::string sessionId_;
+    std::string sessionVersion_;
+    std::string netType_;
+    std::string addrType_;
+    std::string addr_;
     //s
-    string sessionName_;
+    std::string sessionName_;
     //t
     uint64_t startTime_;
     uint64_t endTime_;
     //a
-    string groupPolicy_;
-    vector<string> groups_;
-    string msidSemantic_;
-    vector<string> msids_;
+    std::string groupPolicy_;
+    std::vector<std::string> groups_;
+    std::string msidSemantic_;
+    std::vector<std::string> msids_;
     //a ice
-    string fingerprintAlg_;
-    string fingerprint_;
-    string iceOptions_;
-    string iceUfrag_;
-    string icePwd_;
-    string setup_;
-    string iceRole_;
+    std::string fingerprintAlg_;
+    std::string fingerprint_;
+    std::string iceOptions_;
+    std::string iceUfrag_;
+    std::string icePwd_;
+    std::string setup_;
+    std::string iceRole_;
     //extmap-allow-mixed
     bool mixed_ = false;
 
-    unordered_map<char, string> mapTitle_;
-    unordered_map<string, string> mapAttr_;
+    std::unordered_map<char, std::string> mapTitle_;
+    std::unordered_map<std::string, std::string> mapAttr_;
 };
 
 class WebrtcSdp {
 public:
-    void parse(const string& sdp);
-    string getSdp();
+    void parse(const std::string& sdp);
+    std::string getSdp();
     void addCandidate(const CandidateInfo::Ptr& info);
 
 public:
     
-    string _sdp;
-    shared_ptr<WebrtcSdpTitle> _title;
+    std::string _sdp;
+    std::shared_ptr<WebrtcSdpTitle> _title;
     // index , SdpMedia
-    vector<shared_ptr<WebrtcSdpMedia>> _vecSdpMedia;
-    shared_ptr<WebrtcSdpMedia> _dataChannelSdp;
+    std::vector<std::shared_ptr<WebrtcSdpMedia>> _vecSdpMedia;
+    std::shared_ptr<WebrtcSdpMedia> _dataChannelSdp;
 };
 
 

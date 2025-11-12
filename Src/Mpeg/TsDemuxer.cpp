@@ -8,7 +8,7 @@
 #include "Codec/H264Frame.h"
 #include "Codec/H265Frame.h"
 #include "Codec/AacFrame.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 
 #include <fstream>
 #include <list>
@@ -18,6 +18,7 @@
 
 #define tsPacketSize 188
 
+using namespace std;
 
 TsDemuxer::TsDemuxer()
 {
@@ -1187,7 +1188,7 @@ void TsDemuxer::onDecode(const char* data, int len, int index, uint64_t pts, uin
         dts = dts == 0 ? pts : dts;
         logDebug << "pts: " << pts;
         logDebug << "dts: " << dts;
-        frame->_buffer.assign(data, len);
+        frame->_buffer->assign(data, len);
         frame->_pts = pts / 90; // pts * 1000 / 90000,计算为毫秒
         frame->_dts = dts / 90;
         frame->_index = index;
@@ -1291,7 +1292,7 @@ void TsDemuxer::onDecode(const char* data, int len, int index, uint64_t pts, uin
     }
 }
 
-void TsDemuxer::setOnDecode(const function<void(const FrameBuffer::Ptr& frame)> cb)
+void TsDemuxer::setOnDecode(const function<void(const FrameBuffer::Ptr& frame)>& cb)
 {
     _onFrame = cb;
 }

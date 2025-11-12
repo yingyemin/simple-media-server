@@ -22,23 +22,25 @@
  */
 
 #include "SipMessage.h"
-#include "tinyxml.h"
+#include "pugixml.hpp"
 #include "Common/config.h"
 #include "Log/Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Util/TimeClock.h"
+#include "Utils.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <sys/time.h>
+// #include <sys/time.h>
 #include <iostream>  
 #include <map>
+#include <iomanip>
 #include <string_view>
 #include <any>
 
+
 using namespace std;
-using namespace tinyxml2;
 
 // #include <srs_protocol_io.hpp>
 // #include <srs_kernel_stream.hpp>
@@ -175,6 +177,11 @@ bool SipRequest::is_message()
 bool SipRequest::is_bye()
 {
     return method == SIP_METHOD_BYE;
+}
+
+bool SipRequest::is_notify()
+{
+    return method == SIP_METHOD_NOTIFY;
 }
 
 std::string SipRequest::get_cmdtype_str()
@@ -433,6 +440,19 @@ void SipStack::resp_keepalive(std::stringstream& ss, shared_ptr<SipRequest> req)
     << "Content-Length: 0" << RTSP_CRLFCRLF;
 }
 
+void SipStack::resp_bad_request(std::stringstream& ss, shared_ptr<SipRequest> req){
+    ss << SIP_VERSION <<" 400 Bad requst" << RTSP_CRLF
+    << "Via: " << SIP_VERSION << "/UDP " << req->host << ":" << req->host_port << ";branch=" << req->branch << RTSP_CRLF
+    << "From: <sip:" << req->from << ">;tag=" << req->from_tag << RTSP_CRLF
+    << "To: <sip:"<< req->to << ">\r\n"
+    << "Call-ID: " << req->call_id << RTSP_CRLF
+    << "CSeq: " << req->seq << " " << req->method << RTSP_CRLF
+    << "Contact: "<< req->contact << RTSP_CRLF
+    << "Max-Forwards: 70" << RTSP_CRLF
+    << "User-Agent: "<< SIP_USER_AGENT << RTSP_CRLF
+    << "Content-Length: 0" << RTSP_CRLFCRLF;
+}
+
 void SipStack::resp_status(stringstream& ss, shared_ptr<SipRequest> req)
 {
     if (req->method == "REGISTER"){
@@ -525,7 +545,7 @@ void SipStack::resp_status(stringstream& ss, shared_ptr<SipRequest> req)
    
 }
 
-void SipStack::req_query_catalog(std::stringstream& ss, shared_ptr<SipRequest> req)
+void SipStack::req_query_catalog(std::stringstream& ss, shared_ptr<SipRequest> req, int sn)
 {
     /*
     //request: sip-agent <----MESSAGE Query Catalog--- sip-server
@@ -623,6 +643,52 @@ void SipStack::req_query_catalog(std::stringstream& ss, shared_ptr<SipRequest> r
     xml << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << RTSP_CRLF
     << "<Query>" << RTSP_CRLF
     << "<CmdType>Catalog</CmdType>" << RTSP_CRLF
+    << "<SN>" << sn << "</SN>" << RTSP_CRLF
+    << "<DeviceID>" << req->sip_auth_id << "</DeviceID>" << RTSP_CRLF
+    << "</Query>" << RTSP_CRLF;
+    xmlbody = xml.str();
+
+    std::stringstream from, to, uri, branch, from_tag;
+    //"INVITE sip:34020000001320000001@3402000000 SIP/2.0\r\n
+    uri << "sip:" <<  req->sip_auth_id << "@" << req->realm;
+    //From: <sip:34020000002000000001@%s:%s>;tag=500485%d\r\n
+    from << req->serial << "@" << req->host << ":"  << req->host_port;
+    to << req->sip_auth_id <<  "@" << req->realm;
+ 
+    req->from = from.str();
+    req->to   = to.str();
+    req->uri  = uri.str();
+
+    int rand = sip_random(1000, 9999);
+
+    branch << "z9hG4bK3420" << rand;
+    from_tag << "51235" << rand;
+    req->branch = branch.str();
+    req->from_tag = from_tag.str();
+    req->call_id = sip_random(10000000, 99999999);
+
+    ss << "MESSAGE " << req->uri << " " << SIP_VERSION << RTSP_CRLF
+    << "Via: " << SIP_VERSION << "/UDP "<< req->host << ":" << req->host_port << ";rport;branch=" << req->branch << RTSP_CRLF
+    << "From: <sip:" << req->from << ">;tag=" << req->from_tag << RTSP_CRLF
+    << "To: <sip:" << req->to << ">" << RTSP_CRLF
+    << "Call-ID: " << req->call_id << RTSP_CRLF
+    << "CSeq: " << sip_random(22, 99) << " MESSAGE" << RTSP_CRLF
+    << "Content-Type: Application/MANSCDP+xml" << RTSP_CRLF
+    << "Max-Forwards: 70" << RTSP_CRLF
+    << "User-Agent: " << SIP_USER_AGENT << RTSP_CRLF
+    << "Content-Length: " << xmlbody.length() << RTSP_CRLFCRLF
+    << xmlbody;
+
+}
+
+void SipStack::req_query_deviceInfo(std::stringstream& ss, shared_ptr<SipRequest> req)
+{
+    std::stringstream xml;
+    std::string xmlbody;
+
+    xml << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << RTSP_CRLF
+    << "<Query>" << RTSP_CRLF
+    << "<CmdType>DeviceInfo</CmdType>" << RTSP_CRLF
     << "<SN>" << sip_random(1000, 9999) << "</SN>" << RTSP_CRLF
     << "<DeviceID>" << req->sip_auth_id << "</DeviceID>" << RTSP_CRLF
     << "</Query>" << RTSP_CRLF;
@@ -735,6 +801,12 @@ string SipStack::req_invite(stringstream& ss, shared_ptr<SipRequest> req, string
     Content-Length: 0
     */
 
+    std::stringstream ssSsrc;
+    ssSsrc << std::setfill('0'); // 全局设置补零    
+    // 第三部分：_ssrc_idx 自增后格式化为 10 位补零数字
+    ssSsrc << std::setw(10) << ssrc; // setw(10) 作用于自增前的值
+    std::string strSsrc = ssSsrc.str();
+
     std::stringstream sdp;
     sdp << "v=0" << RTSP_CRLF
     << "o=" << req->sip_auth_id << " 0 0 IN IP4 " << ip << RTSP_CRLF
@@ -752,7 +824,7 @@ string SipStack::req_invite(stringstream& ss, shared_ptr<SipRequest> req, string
     //<< "a=rtpmap:99 H265/90000" << SRS_RTSP_CRLF
     //<< "a=streamMode:MAIN\r\n"
     //<< "a=filesize:0\r\n"
-    << "y=" << ssrc << RTSP_CRLF;
+    << "y=" << strSsrc << RTSP_CRLF;
 
     
     int rand = sip_random(1000, 9999);
@@ -948,6 +1020,13 @@ void SipStack::resp_401_unauthorized(std::stringstream& ss, shared_ptr<SipReques
     WWW-Authenticate: Digest realm="3402000000",qop="auth",nonce="f1da98bd160f3e2efe954c6eedf5f75a"
     */
 
+    static string realm = Config::instance()->getAndListen([](const json &config){
+        realm = Config::instance()->get("SipServer", "Server","realm");
+    }, "SipServer", "Server","realm");
+    
+    static std::string nonce = GenerateRandomString(16);
+    static std::string opaque = GenerateRandomString(16);
+
     ss << SIP_VERSION <<" 401 Unauthorized" << RTSP_CRLF
     //<< "Via: " << req->via << SRS_RTSP_CRLF
     << "Via: " << req->via << ";rport=" << req->peer_port << ";received=" << req->peer_ip << ";branch=" << req->branch << RTSP_CRLF
@@ -958,7 +1037,7 @@ void SipStack::resp_401_unauthorized(std::stringstream& ss, shared_ptr<SipReques
     << "Contact: " << req->contact << RTSP_CRLF
     << "User-Agent: " << SIP_USER_AGENT << RTSP_CRLF
     << "Content-Length: 0" << RTSP_CRLF
-    << "WWW-Authenticate: Digest realm=\"3402000000\",qop=\"auth\",nonce=\"f1da98bd160f3e2efe954c6eedf5f75a\"" << RTSP_CRLFCRLF;
+    << "WWW-Authenticate: Digest realm=\"" << realm << "\",qop=\"auth\",nonce=\"" << nonce << "\",opaque=\"" << opaque << "\"" << RTSP_CRLFCRLF;
     return;
 }
 
@@ -1278,6 +1357,58 @@ std::string SipStack::req_record_info(std::stringstream& ss, shared_ptr<SipReque
     return to_string(sn);
 }
 
+std::string SipStack::req_subscribe_catalog(std::stringstream& ss, std::shared_ptr<SipRequest> req, 
+                    const std::string& deviceId, const uint32_t expires, const int sn)
+{
+    std::stringstream xml;
+    std::string xmlbody;
+
+    xml << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << RTSP_CRLF
+    << "<Query>" << RTSP_CRLF
+    << "<CmdType>Catalog</CmdType>" << RTSP_CRLF
+    << "<SN>" << sn << "</SN>" << RTSP_CRLF
+    << "<DeviceID>" << req->sip_auth_id << "</DeviceID>" << RTSP_CRLF
+    << "</Query>" << RTSP_CRLF;
+    xmlbody = xml.str();
+
+    std::stringstream from, to, uri, branch, from_tag;
+    //"INVITE sip:34020000001320000001@3402000000 SIP/2.0\r\n
+    uri << "sip:" <<  req->sip_auth_id << "@" << req->realm;
+    //From: <sip:34020000002000000001@%s:%s>;tag=500485%d\r\n
+    from << req->serial << "@" << req->host << ":"  << req->host_port;
+    to << req->sip_auth_id <<  "@" << req->realm;
+ 
+    req->from = from.str();
+    req->to   = to.str();
+    req->uri  = uri.str();
+
+    int rand = sip_random(1000, 9999);
+
+    branch << "z9hG4bK3420" << rand;
+    from_tag << "51235" << rand;
+    req->branch = branch.str();
+    req->from_tag = from_tag.str();
+    req->call_id = sip_random(10000000, 99999999);
+
+    ss << "SUBSCRIBE " << req->uri << " " << SIP_VERSION << RTSP_CRLF
+    << "Via: " << SIP_VERSION << "/UDP "<< req->host << ":" << req->host_port << ";rport;branch=" << req->branch << RTSP_CRLF
+    << "From: <sip:" << req->from << ">;tag=" << req->from_tag << RTSP_CRLF
+    << "To: <sip:" << req->to << ">" << RTSP_CRLF
+    << "Call-ID: " << req->call_id << RTSP_CRLF
+    << "CSeq: " << sip_random(22, 99) << " MESSAGE" << RTSP_CRLF
+    << "Content-Type: Application/MANSCDP+xml" << RTSP_CRLF
+    << "Max-Forwards: 70" << RTSP_CRLF
+    << "User-Agent: " << SIP_USER_AGENT << RTSP_CRLF
+    << "Expires: " << expires << RTSP_CRLF
+    << "Event: Catalog" << RTSP_CRLF
+    << "Content-Length: " << xmlbody.length() << RTSP_CRLFCRLF
+    << xmlbody;
+
+    return req->call_id;
+}
+
+////////////////////////////client///////////////////////////////
+
 void SipStack::req_register(std::stringstream& ss, shared_ptr<SipRequest> req)
 {
     /* 
@@ -1432,35 +1563,15 @@ void SipStack::req_keepalive(std::stringstream& ss, shared_ptr<SipRequest> req)
     string from_tag = ";tag=51235" + to_string(rand);
     string branch = ";branch=z9hG4bK3420" + to_string(rand);
 
-    const char* declaration = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
-    XMLDocument doc;
-    doc.Parse(declaration);
-    XMLElement *root = doc.NewElement("Notify");
-    //root->SetText();
-    doc.InsertEndChild(root);
+    stringstream ssxml;
+	ssxml  <<  "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+		<<  "<Query>"
+		<<		"<CmdType>Catalog</CmdType>"
+		<<  	"<SN>" << sn++ << "</SN>"
+		<<		"<DeviceID>" << req->sip_auth_id << "</DeviceID>"
+		<<	"</Query>";
 
-    XMLElement *cmdType = doc.NewElement("CmdType");
-    cmdType->InsertEndChild(doc.NewText("Keepalive"));
-    root->InsertEndChild(cmdType);
-
-    XMLElement *SN = doc.NewElement("SN");
-    SN->InsertEndChild(doc.NewText(to_string(++sn).c_str()));
-    root->InsertEndChild(SN);
-
-    XMLElement *DeviceID = doc.NewElement("DeviceID");
-    DeviceID->InsertEndChild(doc.NewText(req->sip_auth_id.c_str()));
-    root->InsertEndChild(DeviceID);
-
-    XMLElement *Status = doc.NewElement("Status");
-    Status->InsertEndChild(doc.NewText("OK"));
-    root->InsertEndChild(Status);
-
-    XMLElement *Info = doc.NewElement("Info");
-    root->InsertEndChild(Info);
-
-    XMLPrinter printer;
-	doc.Print(&printer);
-	string content = printer.CStr();
+	string content = ssxml.str();
 
     int seq = sip_random(22, 99);
     ss << "MESSAGE " << req->uri << " "<< SIP_VERSION << RTSP_CRLF

@@ -18,8 +18,10 @@
 #include <vector>
 #include <type_traits>
 #include <functional>
+#include <cstdint>
+#include <string>
 
-using namespace std;
+// using namespace std;
 
 //缓存基类
 class Buffer {
@@ -98,7 +100,7 @@ private:
 // 用于存储需要动态增长的内存，如帧数据
 class StringBuffer : public Buffer {
 public:
-    using Ptr = shared_ptr<StringBuffer>;
+    using Ptr = std::shared_ptr<StringBuffer>;
 
     ~StringBuffer() override = default;
 
@@ -138,7 +140,7 @@ public:
 
     StringBuffer &insert(size_t pos, const char *s, size_t n);
 
-    StringBuffer &assign(const string& data);
+    StringBuffer &assign(const std::string& data);
 
     StringBuffer &assign(const char *data);
 

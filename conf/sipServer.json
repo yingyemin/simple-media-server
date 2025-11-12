@@ -1,0 +1,73 @@
+{
+    "LocalIp" : "192.168.2.4",
+    "Log" : { 
+        "logLevel" : 0,
+        "console" : 1,
+        "maxDay" : 7,
+        "maxSize" : 1024,
+        "maxCount" : 100
+    },
+    "EventLoopPool" : {
+        "size" : 0
+    },
+    "Http" : {
+        "Api" : {
+            "Api1" : {
+                "ip" : "0.0.0.0",
+                "port" : 8000,
+                "sslPort" : 443,
+                "timeout" : 5000,
+                "threads" : 1
+            }
+        }
+    },
+    "Sip" : {
+        "serverIp" : "192.168.1.101",
+        "serverPort" : 15060,
+        "serverId" : "34020000002000000001",
+        "serverRealm" : "3402000000",
+        "localIp" : "192.168.1.101",
+        "localPort" : 0,
+        "localId" : "34020000001320000001",
+        "channelNum" : 1,
+        "channelStart" : "3402000000",
+        "localPassword" : "12345678"
+    },
+    "Sqlite3Manager" : {
+        "url" : "SimpleSipServer.db",
+        "user" : "admin",
+        "password" : "123456"
+    },
+    "SipServer" : {
+		"UpServer":{
+			"ip":"192.168.2.4",
+			"port":25060,
+			"id":"340200000020000000101",
+			"realm":"3402000000",
+			"password":"12345678",
+			"externIP":"192.168.2.4",
+			"externPort":10002,
+			"heartBeat":30
+		},
+        "Server" : {
+            "ip" : "192.168.2.4",
+            "port" : 15060,
+			"sipClientPort":35060,
+            "id" : "34020000002000000001",
+            "realm" : "3402000000",
+			"nonce":"12345678abcdefgh",
+            "password" : "12345678",
+			"externIP":"192.168.2.4",
+            "sockType" : 3,
+            "threads" : 1
+        },
+		"SMSServer":
+		{
+			"ip":"192.168.2.4",
+			"port":8891,
+			"RtpPort":10000,
+			"RtmpPort":1935,
+			"PlayWait":5
+		}
+    }
+}

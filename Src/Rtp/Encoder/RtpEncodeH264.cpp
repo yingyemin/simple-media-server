@@ -5,7 +5,7 @@
 
 #include "RtpEncodeH264.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 
 using namespace std;
 
@@ -30,7 +30,7 @@ RtpEncodeH264::RtpEncodeH264(const shared_ptr<TrackInfo>& trackInfo)
 
 void RtpEncodeH264::encode(const FrameBuffer::Ptr& frame)
 {
-    if (_first && _lastPts == frame->dts()) {
+    if (_first && _lastPts == frame->pts()) {
         _lastPts += 1;
         _first = false;
     }
@@ -43,15 +43,15 @@ void RtpEncodeH264::encode(const FrameBuffer::Ptr& frame)
     }
 
     if (_enableFastPts) {
-        _lastPts = frame->dts() * _ptsScale;
+        _lastPts = frame->pts() * _ptsScale;
     } else {
-        _lastPts = frame->dts();
+        _lastPts = frame->pts();
     }
 }
 
 void RtpEncodeH264::encodeFuA(const FrameBuffer::Ptr& frame) {
     auto size = frame->size() - frame->startSize();
-    uint64_t pts = _enableFastPts ? frame->dts() * _ptsScale : frame->dts();
+    uint64_t pts = _enableFastPts ? frame->pts() * _ptsScale : frame->pts();
     bool first = true;
     auto frameData = frame->data() + frame->startSize();
     auto fuIndicator = (frameData[0] & (~0x1F)) | 28;
@@ -77,6 +77,7 @@ void RtpEncodeH264::encodeFuA(const FrameBuffer::Ptr& frame) {
         payload[0] = fuIndicator;
         payload[1] = fuHeader;
         memcpy(payload + 2, (uint8_t *) frameData, _maxRtpSize - 2);
+        //rtp->setFrameData(frame, frameData - frame->data(), _maxRtpSize - 2);
         size = size + 2 - _maxRtpSize;
         frameData = frameData + _maxRtpSize - 2;
 
@@ -95,6 +96,7 @@ void RtpEncodeH264::encodeFuA(const FrameBuffer::Ptr& frame) {
         payload[0] = fuIndicator;
         payload[1] = fuHeader;
         memcpy(payload + 2, (uint8_t *) frameData, size);
+		//rtp->setFrameData(frame, frameData - frame->data(), size);
 
         onRtpPacket(rtp, frame->startFrame());
     }
@@ -104,7 +106,7 @@ void RtpEncodeH264::encodeFuA(const FrameBuffer::Ptr& frame) {
 void RtpEncodeH264::encodeSingle(const FrameBuffer::Ptr& frame) {
     auto size = frame->size() - frame->startSize();
     auto frameData = frame->data() + frame->startSize();
-    auto pts = _enableFastPts ? frame->dts() * _ptsScale : frame->dts();
+    auto pts = _enableFastPts ? frame->pts() * _ptsScale : frame->pts();
 
     // if (pts == _lastPts) {
         // logError << "pts == _lastPts, " << _lastPts;
@@ -120,6 +122,7 @@ void RtpEncodeH264::encodeSingle(const FrameBuffer::Ptr& frame) {
     // logInfo << "payload size: " << rtp->getPayloadSize();
     // logInfo << "frameData size: " << size;
     memcpy(payload, (uint8_t *) frameData, size);
+    //rtp->setFrameData(frame, frameData - frame->data(), size);
 
     onRtpPacket(rtp, frame->startFrame());
 }
@@ -128,7 +131,7 @@ void RtpEncodeH264::encodeSingle(const FrameBuffer::Ptr& frame) {
 void RtpEncodeH264::encodeSingle(const FrameBuffer::Ptr& frame) {
     auto size = frame->size() - frame->startSize();
     auto frameData = frame->data() + frame->startSize();
-    auto pts = _enableFastPts ? frame->dts() * _ptsScale : frame->dts();
+    auto pts = _enableFastPts ? frame->pts() * _ptsScale : frame->pts();
 
     // if (pts == _lastPts) {
         // logError << "pts == _lastPts, " << _lastPts;

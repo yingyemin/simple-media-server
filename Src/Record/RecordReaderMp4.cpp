@@ -8,7 +8,7 @@
 #include "Common/Config.h"
 #include "RecordReaderMp4.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "WorkPoller/WorkLoopPool.h"
 
 using namespace std;

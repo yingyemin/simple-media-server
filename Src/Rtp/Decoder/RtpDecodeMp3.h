@@ -10,18 +10,18 @@
 #include "Rtp/RtpPacket.h"
 #include "Common/Track.h"
 
-using namespace std;
+// using namespace std;
 
 class RtpDecodeMp3 : public RtpDecoder
 {
 public:
-    using Ptr = shared_ptr<RtpDecodeMp3>;
-    RtpDecodeMp3(const shared_ptr<TrackInfo>& trackInfo);
+    using Ptr = std::shared_ptr<RtpDecodeMp3>;
+    RtpDecodeMp3(const std::shared_ptr<TrackInfo>& trackInfo);
 
 public:
     static bool isStartGop(const RtpPacket::Ptr& rtp) { return true; };
     void decode(const RtpPacket::Ptr& rtp) override;
-    void setOnDecode(const function<void(const FrameBuffer::Ptr& frame)> cb) override;
+    void setOnDecode(const std::function<void(const FrameBuffer::Ptr& frame)> cb) override;
     void onFrame(const FrameBuffer::Ptr& frame);
 
 private:
@@ -32,9 +32,9 @@ public:
     bool _stage = 0; // 0 : new frame; 1 : part frame; 2 : loss rtp
     uint32_t _lastStamp = 0;
     uint16_t _lastSeq = -1;
-    function<void(const FrameBuffer::Ptr& frame)> _onFrame;
+    std::function<void(const FrameBuffer::Ptr& frame)> _onFrame;
     FrameBuffer::Ptr _frame;
-    shared_ptr<TrackInfo> _trackInfo;
+    std::shared_ptr<TrackInfo> _trackInfo;
 };
 
 

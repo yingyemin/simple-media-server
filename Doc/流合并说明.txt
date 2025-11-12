@@ -1,0 +1,18 @@
+功能：
+    使用a流的视频，和b流的音频，组成全新的c流
+    目前只支持通过rtsp拉流
+
+示例：
+推流a流：
+    ffmpeg -stream_loop -1 -re -i /mnt/hgfs/code/testvideo/h264.ps -c copy -f rtsp rtsp://127.0.0.1/live/test
+
+推流b流
+    ffmpeg -stream_loop -1 -re -i /mnt/hgfs/code/testvideo/h264.ps -c copy -f rtsp rtsp://127.0.0.1/live/test1
+
+拉流c流，用a流的视频，b流的音频
+    ffmpeg -rtsp_transport tcp -i "rtsp://127.0.0.1/live/ttt?type=combine&audio=/live/test1&video=/live/test"
+
+    c流的流id（/live/ttt）自定义，不跟流媒体上的流id重复即可。
+    type=combine，表示这个流是合并的，必须
+    audio=/live/test1 表示用该流的音频
+    video=/live/test 表示用该流的视频

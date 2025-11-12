@@ -111,10 +111,15 @@
 #include "Common/Config.h"
 #include "Util/Thread.h"
 #include "Common/Heartbeat.h"
+#include "Util/Path.h"
 
+#if defined (_WIN32)
+#include "Util/Util.h"
+#else
 #include <unistd.h>
 #include <string.h>
 #include <sys/resource.h>
+#endif
 
 using namespace std;
 
@@ -122,6 +127,8 @@ using namespace std;
 //     "-c" : 1
 // };
 
+#if defined(_WIN32)
+#else
 void setFileLimits()
 {
     struct rlimit limitOld, limitNew;
@@ -150,12 +157,19 @@ void setCoreLimits()
         logInfo << "core文件大小设置为:" << limitNew.rlim_cur;
     }
 }
+#endif
 
 int main(int argc, char** argv)
 {
     Thread::setThreadName("SMS-main");
 
-    string configPath = "./server.json";
+#if defined(_WIN32)
+    std::string dir_path = exeDir(false);
+#else
+    std::string dir_path = Path::exeDir();
+#endif
+
+    string configPath = dir_path + "/server.json";
     for (int i = 0; i < argc; ++i) {
         if (!strcmp(argv[i], "-c")) {
             configPath = argv[++i];
@@ -210,8 +224,21 @@ int main(int argc, char** argv)
 
     Logger::instance()->setLevel((LogLevel)logLevel);
 
+#if defined(_WIN32)
+
+#else
     setFileLimits();
     setCoreLimits();
+#endif
+
+#ifdef ENABLE_RECORD
+    auto task = make_shared<WorkTask>();
+    task->priority_ = 100;
+    task->func_ = [](){
+        RecordReader::loadRecordMenu();
+    };
+    WorkLoopPool::instance()->addTask(task);
+#endif
 
 #ifdef ENABLE_OPENSSL
     auto sslKey = Config::instance()->get("Ssl", "key");
@@ -685,13 +712,14 @@ int main(int argc, char** argv)
 
             if (curRunDuration > 1000 || lastRunDuration > 1000) {
                 logWarn << "thread: looper-" << loop->getEpollFd()
+                        << ", threadId: " << loop->getThreadId()
                         << ", lastWaitDuration: " << lastWaitDuration
                         << ", lastRunDuration: " << lastRunDuration
                         << ", curWaitDuration: " << curWaitDuration
                         << ", curRunDuration: " << curRunDuration;
             }
         });
-        sleep(5);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
 #ifdef ENABLE_SRT
     SrtSocket::uninitSrt();

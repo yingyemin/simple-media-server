@@ -3,14 +3,14 @@
 
 #include "RecordReader.h"
 
-using namespace std;
+// using namespace std;
 
 class RecordReaderRecord : public RecordReader
 {
 public:
-    using Ptr = shared_ptr<RecordReaderRecord>;
+    using Ptr = std::shared_ptr<RecordReaderRecord>;
 
-    RecordReaderRecord(const string& path);
+    RecordReaderRecord(const std::string& path);
     ~RecordReaderRecord();
 
 public:
@@ -34,8 +34,8 @@ private:
     uint64_t _startTime = 0;
     uint64_t _endTime = 0;
     RecordReader::Ptr _reader;
-    vector<RecordReader::Ptr> _vecDemuxer;
-    vector<uint64_t> _vecFileStartTime;
+    std::vector<RecordReader::Ptr> _vecDemuxer;
+    std::vector<uint64_t> _vecFileStartTime;
 };
 
 #endif //RecordReaderRecord_H

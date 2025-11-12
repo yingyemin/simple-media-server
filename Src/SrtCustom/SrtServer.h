@@ -10,12 +10,12 @@
 #include <memory>
 #include <vector>
 
-using namespace std;
+// using namespace std;
 
-class SrtCustomServer : public enable_shared_from_this<SrtCustomServer> {
+class SrtCustomServer : public std::enable_shared_from_this<SrtCustomServer> {
 public:
-    using Ptr = shared_ptr<SrtCustomServer>;
-    using Wptr = weak_ptr<SrtCustomServer>;
+    using Ptr = std::shared_ptr<SrtCustomServer>;
+    using Wptr = std::weak_ptr<SrtCustomServer>;
 
     SrtCustomServer();
     ~SrtCustomServer();
@@ -27,18 +27,18 @@ public:
     // 可多次调用，为了可以动态的增减端口或者线程数
     // 比如想动态换一个监听端口，或者动态加一个监听端口
     // sockType: 1:tcp, 2:udp, 3:both
-    void start(const string& ip, int port, int count, int sockType);
+    void start(const std::string& ip, int port, int count, int sockType);
     void stopByPort(int port, int count);
 
     // 后面考虑增加IP参数
     // void stopByIp(int port, int count);
 
-    void for_each_socket(const function<void(const Socket::Ptr &)> &cb);
+    void for_each_socket(const std::function<void(const Socket::Ptr &)> &cb);
 
 private:
-    mutex _mtx;
+    std::mutex _mtx;
     // int : port
-    unordered_map<int, vector<Socket::Ptr>> _udpSockets;
+    std::unordered_map<int, std::vector<Socket::Ptr>> _udpSockets;
 };
 
 #endif //SrtCustomServer_h

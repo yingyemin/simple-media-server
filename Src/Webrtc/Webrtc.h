@@ -8,7 +8,7 @@
 
 #include "Net/Buffer.h"
 
-using namespace std;
+// using namespace std;
 
 enum { 
     kStunPkt, 

@@ -3,7 +3,7 @@
 #include "HttpPsClient.h"
 #include "Logger.h"
 #include "Common/Config.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Common/Define.h"
 
 using namespace std;
@@ -67,7 +67,7 @@ void HttpPsClient::onHttpRequest()
             }
 
             auto buffer = make_shared<FrameBuffer>();
-            buffer->_buffer.assign(data, len);
+            buffer->_buffer->assign(data, len);
             auto psSource = self->_source.lock();
             if (psSource) {
                 psSource->inputPs(buffer);
@@ -131,7 +131,7 @@ void HttpPsClient::onRecvContent(const char *data, uint64_t len) {
     }
 
     auto buffer = make_shared<FrameBuffer>();
-    buffer->_buffer.assign(data, len);
+    buffer->_buffer->assign(data, len);
     auto psSource = _source.lock();
     if (psSource) {
         psSource->inputPs(buffer);

@@ -1,6 +1,12 @@
 ﻿#ifndef EventLoop_h
 #define EventLoop_h
 
+#ifdef _WIN32
+// #include "sockutil.h"
+#include "Util/Wepoll.h"
+#include "PipeWrap.h"
+#endif
+
 #include <mutex>
 #include <list>
 #include <thread>
@@ -12,15 +18,18 @@
 #include <vector>
 
 #include "Timer.h"
-#include "ReadWriteQueue/atomicops.h"
-#include "ReadWriteQueue/readerwriterqueue.h"
+//#include "ReadWriteQueue/atomicops.h"
+//#include "ReadWriteQueue/readerwriterqueue.h"
 
-using namespace std;
-using namespace moodycamel;
+
+#define USE_EPOLL_WAKEUP 0
+
+// using namespace std;
+//using namespace moodycamel;
 
 class EventHander {
 public:
-    using eventCallback = function<void(int event, void* args)>;
+    using eventCallback = std::function<void(int event, void* args)>;
     eventCallback callback;
     void* args;
 };
@@ -28,9 +37,9 @@ public:
 class EventLoop : public std::enable_shared_from_this<EventLoop> {
 public:
     using Ptr = std::shared_ptr<EventLoop>;
-    using asyncEventFunc = function<void()>;
+    using asyncEventFunc = std::function<void()>;
     using PollCompleteCB = std::function<void(bool success)>;
-    using TaskCompleteCB = std::function<void (bool success, shared_ptr<TimerTask>)>;
+    using TaskCompleteCB = std::function<void (bool success, std::shared_ptr<TimerTask>)>;
 
     EventLoop();
     ~EventLoop();
@@ -40,7 +49,7 @@ public:
 
 public:
     virtual void start();
-    virtual void setThread(thread* thd);
+    virtual void setThread(std::thread* thd);
 
     virtual bool isCurrent();
     virtual void onAsyncEvent();
@@ -55,7 +64,8 @@ public:
     virtual void computeLoad();
     virtual void getLoad(int& lastWaitDuration, int& lastRunDuration, int& curWaitDuration, int& curRunDuration);
 
-    virtual int getEpollFd() {return _epollFd;}
+    virtual int getEpollFd() {return (int)_epollFd;}
+    virtual int getThreadId() {return _threadId;}
     virtual int getFdCount() {return _fdCount;}
     virtual int getTimerTaskCount() {return _timerTaskCount;}
 
@@ -65,9 +75,17 @@ public:
 private:
     bool _quit =false;
     bool _eventRun = false;
-    int _epollFd = -1;
+
+#if USE_EPOLL_WAKEUP
+#ifdef _WIN32
+    PipeWrap _wakeupFd;
+#else
     int _wakeupFd = -1;
+#endif // WIN32_
+#endif // USE_EPOLL_WAKEUP
+    int _epollFd = -1;
     int _epollID = -1;
+    int _threadId= -1;
     
     int _fdCount = 0;
     int _timerTaskCount = 0;
@@ -86,9 +104,9 @@ private:
     std::mutex _mtxEvents;
     Timer::Ptr _timer;
     std::list<asyncEventFunc> _asyncEvents;
-    unordered_map<int, EventHander> _mapHander;
+    std::unordered_map<int, EventHander> _mapHander;
 
-    std::vector<shared_ptr<ReaderWriterQueue<asyncEventFunc>>> _asyncQueues;
+    //std::vector<shared_ptr<ReaderWriterQueue<asyncEventFunc>>> _asyncQueues;
 };
 
 #endif //EventLoop_h

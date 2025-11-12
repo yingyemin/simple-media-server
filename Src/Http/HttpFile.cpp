@@ -2,13 +2,18 @@
 #include "Logger.h"
 #include "HttpFile.h"
 #include "Util/Path.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Common/UrlParser.h"
 #include "Common/Config.h"
 
 #include <sys/stat.h>
 #include <unordered_map>
+#if defined(_WIN32)
+#include "Util/Util.h"
+#else
 #include <dirent.h>
+#endif
+
 #include <iomanip>
 
 using namespace std;

@@ -5,7 +5,7 @@
 
 #include "RtpDecoder.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "RtpDecodeH264.h"
 #include "RtpDecodeH265.h"
 #include "RtpDecodeH266.h"

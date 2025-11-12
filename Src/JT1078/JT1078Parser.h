@@ -4,7 +4,7 @@
 #include "JT1078RtpPacket.h"
 #include <unordered_map>
 
-using namespace std;
+// using namespace std;
 
 class JT1078Parser {
 public:
@@ -12,7 +12,7 @@ public:
     void parse2016(const char *data, size_t len);
     void parse2019(const char *data, size_t len);
 
-    void setOnRtpPacket(const function<void(const JT1078RtpPacket::Ptr& buffer)>& cb);
+    void setOnRtpPacket(const std::function<void(const JT1078RtpPacket::Ptr& buffer)>& cb);
     void onRtpPacket(const JT1078RtpPacket::Ptr& buffer);
 
 private:
@@ -20,7 +20,7 @@ private:
     int _simCodeSize = 6;
     JT1078_VERSION _version = JT1078_0;
     StringBuffer _remainData;
-    function<void(const JT1078RtpPacket::Ptr& buffer)> _onRtpPacket;
+    std::function<void(const JT1078RtpPacket::Ptr& buffer)> _onRtpPacket;
 };
 
 

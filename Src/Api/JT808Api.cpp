@@ -4,7 +4,11 @@
 #include "Logger.h"
 #include "Common/Config.h"
 #include "Http/ApiUtil.h"
-#include "Util/String.h"
+#if defined(_WIN32)
+#include "Util/String.hpp"
+#else
+#include "Util/String.hpp"
+#endif
 #include "JT808/JT808Server.h"
 #include "JT808/JT808Manager.h"
 

@@ -5,7 +5,7 @@
 #include "Http/ApiResponse.h"
 #include "Logger.h"
 #include "Common/Config.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Rtmp/RtmpClient.h"
 #include "Rtmp/RtmpServer.h"
 

@@ -302,7 +302,7 @@ StringBuffer &StringBuffer::insert(size_t pos, const char *s, size_t n)
     return *this;
 }
 
-StringBuffer &StringBuffer::assign(const string& data) 
+StringBuffer &StringBuffer::assign(const std::string& data) 
 {
     return assign(data.data(), data.size());
 }

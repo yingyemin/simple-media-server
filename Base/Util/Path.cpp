@@ -1,6 +1,9 @@
 ﻿#include "Path.h"
-
+#if defined(_WIN32)
+#include "Util/Util.h"
+#else
 #include <unistd.h>
+#endif
 #include <limits.h>
 
 using namespace std;
@@ -15,13 +18,29 @@ string Path::exePath()
 {
     char buffer[PATH_MAX * 2 + 1] = { 0 };
     int n = -1;
-    
+#if defined(_WIN32)
+    n = GetModuleFileNameA(nullptr, buffer, sizeof(buffer));
+#else
     n = readlink("/proc/self/exe", buffer, sizeof(buffer));
+#endif
 
-    string filePath = "./";
-    if (n > 0) {
+    string filePath;
+    if (n <= 0) {
+        filePath = "./";
+    }
+    else {
         filePath = buffer;
     }
+
+#if defined(_WIN32)
+    //windows下把路径统一转换层unix风格，因为后续都是按照unix风格处理的  [AUTO-TRANSLATED:33d86ad3]
+    //Convert paths to Unix style under Windows, as subsequent processing is done in Unix style
+    for (auto& ch : filePath) {
+        if (ch == '\\') {
+            ch = '/';
+        }
+    }
+#endif //defined(_WIN32)
 
     return filePath;
 }

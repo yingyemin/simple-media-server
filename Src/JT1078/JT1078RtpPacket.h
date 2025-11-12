@@ -3,9 +3,11 @@
 
 #include "Buffer.h"
 #include "Common/Track.h"
+#include "Util/Util.h"
+
 #include <unordered_map>
 
-using namespace std;
+// using namespace std;
 
 enum JT1078_SUBMARK
 {
@@ -33,7 +35,7 @@ enum JT1078_VERSION
     JT1078_2019
 };
 
-
+#pragma pack(push, 1)
 class JT1078RtpHeader
 {
 public:
@@ -103,14 +105,15 @@ public:
     // uint16_t            lastFrameInterval;      //与上一帧的时间间隔
     // uint16_t            bodyLen;                //数据体长度
 };
+#pragma pack(pop)
 
 class JT1078RtpPacket
 {
 public:
-    using Ptr = shared_ptr<JT1078RtpPacket>;
+    using Ptr = std::shared_ptr<JT1078RtpPacket>;
     JT1078RtpPacket(const StreamBuffer::Ptr& buffer, JT1078_VERSION version);
 
-    static JT1078RtpPacket::Ptr create(const shared_ptr<TrackInfo>& trackInfo, int len, uint64_t pts, uint32_t ssrc, uint16_t seq, bool mark);
+    static JT1078RtpPacket::Ptr create(const std::shared_ptr<TrackInfo>& trackInfo, int len, uint64_t pts, uint32_t ssrc, uint16_t seq, bool mark);
 
 public:
     // 有效负载，跳过csrc、ext
@@ -120,14 +123,14 @@ public:
     char* data();
     size_t size();
     StreamBuffer::Ptr buffer();
-    string getCodecType();
+    std::string getCodecType();
     JT1078_STREAM_TYPE getStreamType();
     JT1078_SUBMARK getSubMark();
     bool getMark();
-    string getSimCode();
+    std::string getSimCode();
     void setPayloadIndex(int index) {_payloadIndex = index;}
     uint64_t getTimestamp();
-    string getTrackType();
+    std::string getTrackType();
     uint16_t getSeq();
     int getLogicNo();
     JT1078RtpHeader* getHeader() {return _header;}
@@ -141,7 +144,7 @@ public:
 
 public:
     // 音视频类型
-    string type_;
+    std::string type_;
     // 音频为采样率，视频一般为90000
     uint32_t samplerate_;
 
@@ -156,8 +159,8 @@ private:
     uint16_t            _lastFrameInterval;      //与上一帧的时间间隔
     uint16_t            _bodyLen;                //数据体长度
     uint16_t            _payloadIndex;
-    string              _codec;
-    string              _type;
+    std::string              _codec;
+    std::string              _type;
     std::string         _simCode;
     JT1078RtpHeader* _header;
     JT1078RtpHeader2019* _header2019;

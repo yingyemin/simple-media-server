@@ -2,11 +2,14 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
+
+#ifndef _WIN32
 #include <arpa/inet.h>
+#endif
 
 #include "JT1078RtpPacket.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Codec/H264Frame.h"
 #include "Codec/H265Frame.h"
 

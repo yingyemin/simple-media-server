@@ -13,13 +13,13 @@
 #include "Rtp/RtpContext.h"
 
 
-using namespace std;
+// using namespace std;
 
 class Ehome2Connection : public TcpConnection
 {
 public:
-    using Ptr = shared_ptr<Ehome2Connection>;
-    using Wptr = weak_ptr<Ehome2Connection>;
+    using Ptr = std::shared_ptr<Ehome2Connection>;
+    using Wptr = std::weak_ptr<Ehome2Connection>;
 
     Ehome2Connection(const EventLoop::Ptr& loop, const Socket::Ptr& socket);
     ~Ehome2Connection();
@@ -27,7 +27,7 @@ public:
 public:
     // 继承自tcpseesion
     void onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len) override;
-    void onError(const string& msg) override;
+    void onError(const std::string& msg) override;
     void onManager() override;
     void init() override;
     void close() override;

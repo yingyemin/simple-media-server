@@ -110,7 +110,7 @@ uint32_t PacketRecvRateContext::getPacketRecvRate(uint32_t &bytesps) {
 }
 
 std::string PacketRecvRateContext::dump(){
-    stringstream printer;
+    std::stringstream printer;
     printer <<"dur array : ";
     for (size_t i = 0; i < SIZE; i++)
     {

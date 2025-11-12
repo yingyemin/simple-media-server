@@ -7,30 +7,30 @@
 #include "Common/Frame.h"
 #include "RtmpEncode.h"
 
-using namespace std;
+// using namespace std;
 
-class RtmpEncodeAV1 : public RtmpEncode, public enable_shared_from_this<RtmpEncodeAV1> {
+class RtmpEncodeAV1 : public RtmpEncode, public std::enable_shared_from_this<RtmpEncodeAV1> {
 public:
-    using Ptr = shared_ptr<RtmpEncodeAV1>;
-    using Wptr = weak_ptr<RtmpEncodeAV1>;
+    using Ptr = std::shared_ptr<RtmpEncodeAV1>;
+    using Wptr = std::weak_ptr<RtmpEncodeAV1>;
 
-    RtmpEncodeAV1(const shared_ptr<TrackInfo>& trackInfo);
+    RtmpEncodeAV1(const std::shared_ptr<TrackInfo>& trackInfo);
     ~RtmpEncodeAV1();
 
 public:
     void encode(const FrameBuffer::Ptr& frame) override;
-    string getConfig() override;
+    std::string getConfig() override;
 
-    void setOnRtmpPacket(const function<void(const RtmpMessage::Ptr& msg, bool start)>& cb) override;
+    void setOnRtmpPacket(const std::function<void(const RtmpMessage::Ptr& msg, bool start)>& cb) override;
     void onRtmpMessage(const RtmpMessage::Ptr& msg, bool start);
 
 private:
     bool _append = false;
     uint64_t _lastStamp = 0;
     uint64_t _msgLength = 0;
-    shared_ptr<TrackInfo> _trackInfo;
-    function<void(const RtmpMessage::Ptr& msg, bool start)> _onRtmpMessage;
-    vector<FrameBuffer::Ptr> _vecFrame;
+    std::shared_ptr<TrackInfo> _trackInfo;
+    std::function<void(const RtmpMessage::Ptr& msg, bool start)> _onRtmpMessage;
+    std::vector<FrameBuffer::Ptr> _vecFrame;
 };
 
 #endif //RtmpEncodeAV1_h

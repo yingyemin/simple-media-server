@@ -11,12 +11,12 @@
 #include "Util/File.h"
 #include "Util/TimeClock.h"
 
-using namespace std;
+// using namespace std;
 
 class Fmp4Muxer : public MP4Muxer
 {
 public:
-    using Ptr = shared_ptr<Fmp4Muxer>;
+    using Ptr = std::shared_ptr<Fmp4Muxer>;
 
     Fmp4Muxer(int flags);
     ~Fmp4Muxer();
@@ -28,8 +28,8 @@ public:
     size_t tell();
 
     void init();
-    void addAudioTrack(const shared_ptr<TrackInfo>& trackInfo);
-    void addVideoTrack(const shared_ptr<TrackInfo>& trackInfo);
+    void addAudioTrack(const std::shared_ptr<TrackInfo>& trackInfo);
+    void addVideoTrack(const std::shared_ptr<TrackInfo>& trackInfo);
     int inputFrame(int idx, const void* data, size_t bytes, int64_t pts, int64_t dts, int flags);
     int inputFrame_l(int idx, const void* data, size_t bytes, int64_t pts, int64_t dts, int flags, int add_nalu_size);
     
@@ -41,8 +41,8 @@ public:
     void stopEncode();
 
 public:
-    void setOnFmp4Header(const function<void(const Buffer::Ptr& buffer)>& cb);
-    void setOnFmp4Segment(const function<void(const Buffer::Ptr& buffer, bool keyframe)>& cb);
+    void setOnFmp4Header(const std::function<void(const Buffer::Ptr& buffer)>& cb);
+    void setOnFmp4Segment(const std::function<void(const Buffer::Ptr& buffer, bool keyframe)>& cb);
 
 private:
     size_t fmp4_write_mvex();
@@ -89,11 +89,11 @@ private:
     // mov_ftyp_t _ftyp;
     // mov_mvhd_t _mvhd;
     // shared_ptr<mov_track_t> _track; // current stream
-	vector<shared_ptr<mov_track_t>> _tracks;
-    unordered_map<int, int> _mapTrackInfo;
+    std::vector<std::shared_ptr<mov_track_t>> _tracks;
+    std::unordered_map<int, int> _mapTrackInfo;
 
-    function<void(const Buffer::Ptr& buffer, bool keyframe)> _onFmp4Segment;
-    function<void(const Buffer::Ptr& buffer)> _onFmp4Header;
+    std::function<void(const Buffer::Ptr& buffer, bool keyframe)> _onFmp4Segment;
+    std::function<void(const Buffer::Ptr& buffer)> _onFmp4Header;
 };
 
 

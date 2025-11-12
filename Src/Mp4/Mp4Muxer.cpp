@@ -1,8 +1,12 @@
 #include "Mp4Muxer.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Log/Logger.h"
 
+#ifndef _WIN32
 #include <sys/time.h>
+#endif
+
+using namespace std;
 
 int getAudioObject(const string& codec, int samplerate)
 {

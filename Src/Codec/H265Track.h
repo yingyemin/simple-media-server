@@ -10,12 +10,12 @@
 #include "Common/Track.h"
 #include "Common/Frame.h"
 
-using namespace std;
+// using namespace std;
 
 class H265Track : public TrackInfo
 {
 public:
-    using Ptr = shared_ptr<H265Track>;
+    using Ptr = std::shared_ptr<H265Track>;
 
     H265Track();
     virtual ~H265Track() {}
@@ -24,32 +24,31 @@ public:
     static H265Track::Ptr createTrack(int index, int payloadType, int samplerate);
 
 public:
-    void setVps(const FrameBuffer::Ptr& vps) {_vps = vps;}
-    void setSps(const FrameBuffer::Ptr& sps) {_sps = sps;}
-    void setPps(const FrameBuffer::Ptr& pps) {_pps = pps;}
-    string getSdp() override;
-    string getConfig() override;
-    void setConfig(const string& config) override;
+    void setVps(const std::shared_ptr<FrameBuffer>& vps) {_vps = vps;}
+    void setSps(const std::shared_ptr<FrameBuffer>& sps) {_sps = sps;}
+    void setPps(const std::shared_ptr<FrameBuffer>& pps) {_pps = pps;}
+    std::string getSdp() override;
+    std::string getConfig() override;
+    void setConfig(const std::string& config) override;
     void getWidthAndHeight(int& width, int& height, int& fps);
     bool isBFrame(unsigned char* data, int size);
     bool isReady() override {return _vps && _sps && _pps;}
     
-    void getVpsSpsPps(FrameBuffer::Ptr& vps, FrameBuffer::Ptr& sps, FrameBuffer::Ptr& pps) override
+    void getVpsSpsPps(std::shared_ptr<FrameBuffer>& vps, std::shared_ptr<FrameBuffer>& sps, std::shared_ptr<FrameBuffer>& pps) override
     {
         vps = _vps;
         sps = _sps;
         pps = _pps;
     }
     
-    void onFrame(const FrameBuffer::Ptr& frame); 
+    void onFrame(const std::shared_ptr<FrameBuffer>& frame); 
     static void registerTrackInfo();
 
 public:
-    FrameBuffer::Ptr _vps;
-    FrameBuffer::Ptr _sps;
-    FrameBuffer::Ptr _pps;
-    string _hvcc;
+    std::shared_ptr<FrameBuffer> _vps;
+    std::shared_ptr<FrameBuffer> _sps;
+    std::shared_ptr<FrameBuffer> _pps;
+    std::string _hvcc;
 };
 
-
-#endif //H264Track_H
+#endif //H265Track_H

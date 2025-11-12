@@ -5,7 +5,7 @@
 
 #include "RtpEncodeH265.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 
 using namespace std;
 
@@ -28,7 +28,7 @@ RtpEncodeH265::RtpEncodeH265(const shared_ptr<TrackInfo>& trackInfo)
 
 void RtpEncodeH265::encode(const FrameBuffer::Ptr& frame)
 {
-    if (_first && _lastPts == frame->dts()) {
+    if (_first && _lastPts == frame->pts()) {
         _lastPts += 1;
         _first = false;
     }
@@ -41,15 +41,15 @@ void RtpEncodeH265::encode(const FrameBuffer::Ptr& frame)
     }
 
     if (_enableFastPts) {
-        _lastPts = frame->dts() * _ptsScale;
+        _lastPts = frame->pts() * _ptsScale;
     } else {
-        _lastPts = frame->dts();
+        _lastPts = frame->pts();
     }
 }
 
 void RtpEncodeH265::encodeFuA(const FrameBuffer::Ptr& frame) {
     auto size = frame->size() - frame->startSize();
-    auto pts = _enableFastPts ? frame->dts() * _ptsScale : frame->dts();
+    auto pts = _enableFastPts ? frame->pts() * _ptsScale : frame->pts();
     bool first = true;
     auto frameData = frame->data() + frame->startSize();
     auto fuIndicator = frameData[1];
@@ -96,7 +96,7 @@ void RtpEncodeH265::encodeFuA(const FrameBuffer::Ptr& frame) {
 void RtpEncodeH265::encodeSingle(const FrameBuffer::Ptr& frame) {
     auto size = frame->size() - frame->startSize();
     auto frameData = frame->data() + frame->startSize();
-    auto pts = _enableFastPts ? frame->dts() * _ptsScale : frame->dts();
+    auto pts = _enableFastPts ? frame->pts() * _ptsScale : frame->pts();
 
     RtpPacket::Ptr rtp;
     if (frame->metaFrame()) {

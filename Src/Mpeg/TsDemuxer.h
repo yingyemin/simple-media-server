@@ -110,7 +110,7 @@ public:
 class TsDemuxer
 {
 public:
-    using Ptr = shared_ptr<TsDemuxer>;
+    using Ptr = std::shared_ptr<TsDemuxer>;
     TsDemuxer();
     ~TsDemuxer();
 
@@ -118,17 +118,17 @@ public:
     // int64_t  parsePsTimestamp(const uint8_t* p);
     virtual void onTsPacket(char* ps_data, int ps_size, uint32_t timestamp);
 
-    void setOnDecode(const function<void(const FrameBuffer::Ptr& frame)> cb);
+    void setOnDecode(const std::function<void(const FrameBuffer::Ptr& frame)>& cb);
     void onDecode(const char* data, int len, int index, uint64_t pts, uint64_t dts);
-    void addTrackInfo(const shared_ptr<TrackInfo>& trackInfo);
-    void setOnTrackInfo(const function<void(const shared_ptr<TrackInfo>& trackInfo)>& cb);
-    void setOnReady(const function<void()>& cb);
+    void addTrackInfo(const std::shared_ptr<TrackInfo>& trackInfo);
+    void setOnTrackInfo(const std::function<void(const std::shared_ptr<TrackInfo>& trackInfo)>& cb);
+    void setOnReady(const std::function<void()>& cb);
 
-    shared_ptr<TsPidInfo> pidInfo(int16_t pid);
+    std::shared_ptr<TsPidInfo> pidInfo(int16_t pid);
     void pushPidInfo(TSPidTable pidtable, TsPidType type);
-    shared_ptr<TsMessage> message(TSPidTable pidtable);
-    void pushConsumerMessage(shared_ptr<TsMessage> message);
-    void createTrackInfo(const string& codec, int type);
+    std::shared_ptr<TsMessage> message(TSPidTable pidtable);
+    void pushConsumerMessage(std::shared_ptr<TsMessage> message);
+    void createTrackInfo(const std::string& codec, int type);
     void clear();
 
 private:
@@ -143,19 +143,19 @@ private:
     uint8_t _audio_es_type = 0;
     uint8_t _video_es_type = 0;
     int64_t _lastVideoPts = -1;
-    string _audioCodec = "unknwon";
-    string _videoCodec = "unknwon";
+    std::string _audioCodec = "unknwon";
+    std::string _videoCodec = "unknwon";
     TimeClock _timeClock;
     StringBuffer _remainBuffer;
     StringBuffer _videoStream;
-    unordered_map<int, shared_ptr<TrackInfo>> _mapTrackInfo;
-    function<void(const FrameBuffer::Ptr& frame)> _onFrame;
-    function<void(const shared_ptr<TrackInfo>& trackInfo)> _onTrackInfo;
-    function<void()> _onReady;
+    std::unordered_map<int, std::shared_ptr<TrackInfo>> _mapTrackInfo;
+    std::function<void(const FrameBuffer::Ptr& frame)> _onFrame;
+    std::function<void(const std::shared_ptr<TrackInfo>& trackInfo)> _onTrackInfo;
+    std::function<void()> _onReady;
 
     
-    std::unordered_map<int16_t, shared_ptr<TsPidInfo>> pidInfos_;
-    std::unordered_map<int16_t, shared_ptr<TsMessage>> msgs_;
+    std::unordered_map<int16_t, std::shared_ptr<TsPidInfo>> pidInfos_;
+    std::unordered_map<int16_t, std::shared_ptr<TsMessage>> msgs_;
 };
 
 #endif //PsDemuxer_H

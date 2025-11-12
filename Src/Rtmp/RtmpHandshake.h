@@ -26,17 +26,17 @@ public:
 		return _state == HANDSHAKE_COMPLETE;
 	}
 
-    void setOnHandshake(const function<void(const StreamBuffer::Ptr& buffer)>& cb);
+    void setOnHandshake(const std::function<void(const StreamBuffer::Ptr& buffer)>& cb);
     void onHandshake(const StreamBuffer::Ptr& buffer);
 
-	void setOnRtmpChunk(const function<void(const StreamBuffer::Ptr& buffer)>& cb);
+	void setOnRtmpChunk(const std::function<void(const StreamBuffer::Ptr& buffer)>& cb);
 	void onRtmpChunk(const StreamBuffer::Ptr& buffer);
 
 private:
 	State _state;
 	StringBuffer _remainBuffer;
-    function<void(const StreamBuffer::Ptr& buffer)> _onHandshake;
-	function<void(const StreamBuffer::Ptr& buffer)> _onRtmpChunk;
+    std::function<void(const StreamBuffer::Ptr& buffer)> _onHandshake;
+	std::function<void(const StreamBuffer::Ptr& buffer)> _onRtmpChunk;
 };
 
 #endif

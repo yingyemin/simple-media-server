@@ -9,12 +9,12 @@
 
 #include "RtpContext.h"
 
-using namespace std;
+// using namespace std;
 
-class RtpManager : public enable_shared_from_this<RtpManager> {
+class RtpManager : public std::enable_shared_from_this<RtpManager> {
 public:
-    using Ptr = shared_ptr<RtpManager>;
-    using Wptr = weak_ptr<RtpManager>;
+    using Ptr = std::shared_ptr<RtpManager>;
+    using Wptr = std::weak_ptr<RtpManager>;
 
     RtpManager();
     ~RtpManager();
@@ -30,9 +30,9 @@ public:
 
 private:
     bool _isInited = false;
-    mutex _contextLck;
+    std::mutex _contextLck;
     // EventLoop::Ptr _loop;
-    unordered_map<uint32_t, RtpContext::Ptr> _mapContext;
+    std::unordered_map<uint32_t, RtpContext::Ptr> _mapContext;
 };
 
 #endif //RtpManager_h

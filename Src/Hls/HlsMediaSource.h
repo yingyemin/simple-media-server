@@ -11,25 +11,25 @@
 #include "Common/DataQue.h"
 #include "HlsMuxer.h"
 
-using namespace std;
+// using namespace std;
 
 class HlsMediaSource : public MediaSource
 {
 public:
-    using Ptr = shared_ptr<HlsMediaSource>;
-    using Wptr = weak_ptr<HlsMediaSource>;
+    using Ptr = std::shared_ptr<HlsMediaSource>;
+    using Wptr = std::weak_ptr<HlsMediaSource>;
 
     HlsMediaSource(const UrlParser& urlParser, const EventLoop::Ptr& loop = nullptr, bool muxer = false);
     ~HlsMediaSource();
 
 public:
-    void addTrack(const shared_ptr<TrackInfo>& track) override;
+    void addTrack(const std::shared_ptr<TrackInfo>& track) override;
     void onFrame(const FrameBuffer::Ptr& frame) override;
     void onReady() override;
     int playerCount() override;
 
-    string getM3u8(void* key);
-    FrameBuffer::Ptr getTsBuffer(const string& key);
+    std::string getM3u8(void* key);
+    FrameBuffer::Ptr getTsBuffer(const std::string& key);
     void onHlsReady();
 
 private:

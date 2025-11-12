@@ -8,7 +8,7 @@
 
 #include "Common/Frame.h"
 
-using namespace std;
+// using namespace std;
 
 enum H264NalType
 {
@@ -38,7 +38,7 @@ enum H264SliceType
 class H264Frame : public FrameBuffer
 {
 public:
-    using Ptr = shared_ptr<H264Frame>;
+    using Ptr = std::shared_ptr<H264Frame>;
 
     H264Frame()
     {
@@ -49,13 +49,13 @@ public:
 
     bool keyFrame() const override
     {
-        uint8_t type = (uint8_t)(_buffer[_startSize]) & 0x1F;
+        uint8_t type = (uint8_t)((*_buffer)[_startSize]) & 0x1F;
         return type == H264NalType::H264_IDR;
     }
 
     bool metaFrame() const override
     {
-        uint8_t type = (uint8_t)(_buffer[_startSize]) & 0x1F;
+        uint8_t type = (uint8_t)((*_buffer)[_startSize]) & 0x1F;
         switch(type){
             case H264NalType::H264_SPS:
             case H264NalType::H264_PPS:
@@ -67,7 +67,7 @@ public:
 
     bool startFrame() const override
     {
-        uint8_t type = (uint8_t)(_buffer[_startSize]) & 0x1F;
+        uint8_t type = (uint8_t)((*_buffer)[_startSize]) & 0x1F;
         if (type == H264NalType::H264_SPS) {
             return true;
         }
@@ -77,7 +77,7 @@ public:
 
     uint8_t getNalType() override
     {
-        return (uint8_t)(_buffer[_startSize]) & 0x1F;
+        return (uint8_t)((*_buffer)[_startSize]) & 0x1F;
     }
 
     bool isBFrame() override;
@@ -86,7 +86,7 @@ public:
 
     bool isNonPicNalu() override
     {
-        uint8_t type = (uint8_t)(_buffer[_startSize]) & 0x1F;
+        uint8_t type = (uint8_t)((*_buffer)[_startSize]) & 0x1F;
         switch(type){
             // case H264NalType::H264_SPS:
             // case H264NalType::H264_PPS:
@@ -102,7 +102,7 @@ public:
         return nalByte & 0x1F;
     }
 
-    void split(const function<void(const FrameBuffer::Ptr& frame)>& cb) override;
+    void split(const std::function<void(const FrameBuffer::Ptr& frame)>& cb) override;
     
     static FrameBuffer::Ptr createFrame(int startSize, int index, bool addStart);
     

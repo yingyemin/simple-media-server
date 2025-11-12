@@ -5,7 +5,7 @@
 
 #include "AV1Frame.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Common/Config.h"
 
 using namespace std;
@@ -143,12 +143,12 @@ void AV1Frame::split(const function<void(const FrameBuffer::Ptr& frame)>& cb)
         return ;
     }
 
-    auto ptr = _buffer.data();
-    size_t size = _buffer.size();
+    auto ptr = _buffer->data();
+    size_t size = _buffer->size();
 
     aom_av1_annexb_split((uint8_t*)ptr, size, [this, cb](const uint8_t *obu, size_t bytes){
         AV1Frame::Ptr subFrame = make_shared<AV1Frame>(dynamic_pointer_cast<AV1Frame>(shared_from_this()));
-        subFrame->_buffer.assign((char*)obu, bytes);
+        subFrame->_buffer->assign((char*)obu, bytes);
 
         // cb(start - prefix, next_start - start + prefix, prefix);
         cb(subFrame);
@@ -164,7 +164,7 @@ bool AV1Frame::isNewNalu()
 
 uint8_t AV1Frame::getObuType() const
 {
-    auto payload = _buffer.data();
+    auto payload = _buffer->data();
     return (payload[0] >> 3) & 0x0F;
 }
 

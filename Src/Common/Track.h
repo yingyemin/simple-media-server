@@ -5,12 +5,13 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <functional>
 
 #include "Net/Buffer.h"
 #include "Frame.h"
 #include "UrlParser.h"
 
-using namespace std;
+// using namespace std;
 
 enum PayloadType
 {
@@ -46,13 +47,13 @@ enum TrackType
 class TrackInfo
 {
 public:
-    using Ptr = shared_ptr<TrackInfo>;
-    using funcCreateTrackInfo = function<TrackInfo::Ptr(int trackType, int payloadType, int samplerate)>;
+    using Ptr = std::shared_ptr<TrackInfo>;
+    using funcCreateTrackInfo = std::function<TrackInfo::Ptr(int trackType, int payloadType, int samplerate)>;
 
 public:
-    virtual string getSdp() { return "";}
-    virtual string getConfig() {return "";}
-    virtual void setConfig(const string& config) {}
+    virtual std::string getSdp() { return "";}
+    virtual std::string getConfig() {return "";}
+    virtual void setConfig(const std::string& config) {}
     virtual void getWidthAndHeight(int& width, int& height, int& fps) {}
     virtual bool isBFrame(unsigned char* data, int size) {return false;}
     virtual void getVpsSpsPps(FrameBuffer::Ptr& vps, FrameBuffer::Ptr& sps, FrameBuffer::Ptr& pps)
@@ -74,8 +75,8 @@ public:
         _parser = parser;
     }
 
-    static TrackInfo::Ptr createTrackInfo(const string& codecName);
-    static void registerTrackInfo(const string& codecName, const funcCreateTrackInfo& func);
+    static TrackInfo::Ptr createTrackInfo(const std::string& codecName);
+    static void registerTrackInfo(const std::string& codecName, const funcCreateTrackInfo& func);
 
 public:
     bool _hasReady = false;
@@ -94,23 +95,23 @@ public:
     uint8_t _num_extra_slice_header_bits = 0;
     uint32_t _PicSizeInCtbsY = 0;
     uint64_t duration_ = 0;
-    string trackType_;
-    string codec_;
+    std::string trackType_;
+    std::string codec_;
     UrlParser _parser;
 
-    static unordered_map<string, funcCreateTrackInfo> _mapCreateTrack;
+    static std::unordered_map<std::string, funcCreateTrackInfo> _mapCreateTrack;
 };
 
 // class Track : public enable_shared_from_this<Track>
 // {
 // public:
 //     using Ptr = shared_ptr<Track>;
-
+// 
 //     Track();
 //     ~Track() {}
-
+// 
 // public:
-
+// 
 // private:
 // };
 

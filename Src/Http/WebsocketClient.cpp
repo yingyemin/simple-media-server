@@ -1,7 +1,7 @@
 ﻿#include "WebsocketClient.h"
 #include "Logger.h"
 #include "Common/Config.h"
-// #include "Util/String.h"
+// #include "Util/String.hpp"
 #include "Util/Base64.h"
 #include "Ssl/SHA1.h"
 #include "Common/Define.h"
@@ -214,7 +214,7 @@ void WebsocketClient::onGetSource(const MediaSource::Ptr& src)
             if (!self/* || pack->empty()*/) {
                 return;
             }
-            auto buffer = make_shared<StringBuffer>(pack->_buffer);
+            auto buffer = pack->_buffer;
             self->sendData(buffer);
             
         });

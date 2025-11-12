@@ -53,7 +53,7 @@ string RtmpEncodeAV1::getConfig()
     *data++ = 0xff;
     *data++ = 0xff;
 
-    memcpy(data, vpsBuffer.data(), vpsLen); 
+    memcpy(data, vpsBuffer->data(), vpsLen); 
 
     // TODO meta data frame
 

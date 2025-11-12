@@ -31,14 +31,14 @@ void RtmpDecodeAac::decode(const RtmpMessage::Ptr& msg)
         frame->_trackType = AudioTrackType;
         frame->_dts = frame->_pts = msg->abs_timestamp;
 
-        frame->_buffer = _trackInfo->getAdtsHeader(length - 2);
+        frame->_buffer->assign(_trackInfo->getAdtsHeader(length - 2));
 
-        frame->_buffer.append((char*)payload + 2, length - 2);
+        frame->_buffer->append((char*)payload + 2, length - 2);
         onFrame(frame);
     }
 }
 
-void RtmpDecodeAac::setOnFrame(const function<void(const FrameBuffer::Ptr& frame)> cb)
+void RtmpDecodeAac::setOnFrame(const function<void(const FrameBuffer::Ptr& frame)>& cb)
 {
     _onFrame = cb;
 }

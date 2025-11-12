@@ -10,20 +10,20 @@
 #include <memory>
 #include <functional>
 
-using namespace std;
+// using namespace std;  // 去掉这行
 
 class VodApi
 {
 public:
     static void initApi();
     static void start(const HttpParser& parser, const UrlParser& urlParser, 
-                        const function<void(HttpResponse& rsp)>& rspFunc);
+                        const std::function<void(HttpResponse& rsp)>& rspFunc);
 
     static void control(const HttpParser& parser, const UrlParser& urlParser, 
-                        const function<void(HttpResponse& rsp)>& rspFunc);
+                        const std::function<void(HttpResponse& rsp)>& rspFunc);
 
     static void stop(const HttpParser& parser, const UrlParser& urlParser, 
-                        const function<void(HttpResponse& rsp)>& rspFunc);
+                        const std::function<void(HttpResponse& rsp)>& rspFunc);
 };
 
 #endif //VodApi_h

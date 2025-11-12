@@ -28,6 +28,7 @@
 #include <vector>
 #include <sstream>
 #include <memory>
+#include <cstdint>
 
 // SIP methods
 #define SIP_METHOD_REGISTER       "REGISTER"
@@ -35,6 +36,7 @@
 #define SIP_METHOD_INVITE         "INVITE"
 #define SIP_METHOD_ACK            "ACK"
 #define SIP_METHOD_BYE            "BYE"
+#define SIP_METHOD_NOTIFY         "NOTIFY"
 
 #define SIP_CALLID_REGISTER       "20000"
 #define SIP_CALLID_KEEPALIVE      "20001"
@@ -43,6 +45,7 @@
 #define SIP_CALLID_DEVICEINFO     "20004"
 #define SIP_CALLID_RECORDSTATUS   "20005"
 #define SIP_CALLID_DEVICESTATUS   "20006"
+#define SIP_CALLID_NOTIFY         "20007"
 
 // SIP-Version
 #define SIP_VERSION "SIP/2.0"
@@ -116,6 +119,7 @@ public:
     virtual bool is_message();
     virtual bool is_ack();
     virtual bool is_bye();
+    virtual bool is_notify();
    
     virtual void copy(SipRequest* src);
 public:
@@ -139,11 +143,14 @@ protected:
     virtual int do_parse_request(std::shared_ptr<SipRequest> req, const char *recv_msg);
 
 public:
+    // server
     virtual void resp_status(std::stringstream& ss, std::shared_ptr<SipRequest> req);
     virtual void resp_keepalive(std::stringstream& ss, std::shared_ptr<SipRequest> req);
+    virtual void resp_bad_request(std::stringstream& ss, std::shared_ptr<SipRequest> req);
     virtual void resp_ack(std::stringstream& ss, std::shared_ptr<SipRequest> req);
     virtual void resp_401_unauthorized(std::stringstream& ss, std::shared_ptr<SipRequest> req);
-    virtual void req_query_catalog(std::stringstream& ss, std::shared_ptr<SipRequest> req);
+    virtual void req_query_catalog(std::stringstream& ss, std::shared_ptr<SipRequest> req, int sn);
+    virtual void req_query_deviceInfo(std::stringstream& ss, std::shared_ptr<SipRequest> req);
      
     virtual std::string req_invite(std::stringstream& ss, std::shared_ptr<SipRequest> req, std::string ip, int port, uint32_t ssrc);
 	virtual void req_invite_playback(std::stringstream& ss, std::shared_ptr<SipRequest> req, std::string ip, 
@@ -151,6 +158,11 @@ public:
     virtual void req_bye(std::stringstream& ss, std::shared_ptr<SipRequest> req);
     virtual std::string req_record_info(std::stringstream& ss, std::shared_ptr<SipRequest> req, 
                     const std::string& deviceId, const std::string& startTime, const std::string& endTime);
+
+    virtual std::string req_subscribe_catalog(std::stringstream& ss, std::shared_ptr<SipRequest> req, 
+                    const std::string& deviceId, const uint32_t expires, const int sn);
+
+    // client
     virtual void req_register(std::stringstream& ss, std::shared_ptr<SipRequest> req);
     virtual void req_registerWithAuth(std::stringstream& ss, std::shared_ptr<SipRequest> req);
     virtual void req_keepalive(std::stringstream& ss, std::shared_ptr<SipRequest> req);

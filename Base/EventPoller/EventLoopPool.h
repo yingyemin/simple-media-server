@@ -14,7 +14,7 @@ public:
 public:
     static std::shared_ptr<EventLoopPool> instance();
     void init(int size, int priority, bool affinity);
-    void for_each_loop(const function<void(const EventLoop::Ptr &)> &cb, int count = 0);
+    void for_each_loop(const std::function<void(const EventLoop::Ptr &)> &cb, int count = 0);
     EventLoop::Ptr getLoopByCircle();
     int getThreadSize() {return _threadSize;}
     int getStartTime();
@@ -36,7 +36,7 @@ public:
 
     static std::shared_ptr<SrtEventLoopPool> instance();
     void init(int size, int priority, bool affinity);
-    void for_each_loop(const function<void(const SrtEventLoop::Ptr &)> &cb);
+    void for_each_loop(const std::function<void(const SrtEventLoop::Ptr &)> &cb);
     SrtEventLoop::Ptr getLoopByCircle();
 
 protected:

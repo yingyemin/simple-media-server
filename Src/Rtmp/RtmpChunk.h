@@ -11,7 +11,7 @@
 
 // #pragma pack(1)
 
-using namespace std;
+// using namespace std;
 
 class RtmpChunk
 {
@@ -44,7 +44,7 @@ public:
 	int getStreamId() const
 	{ return _streamId; }
 
-    void setOnRtmpChunk(const function<void(const RtmpMessage msg)> cb);
+    void setOnRtmpChunk(const std::function<void(const RtmpMessage msg)> cb);
 
 	void setSocket(const Socket::Ptr& socket) {_socket = socket;}
 
@@ -70,7 +70,7 @@ private:
     StringBuffer _remainBuffer;
 	Socket::Ptr _socket;
 	std::map<int, RtmpMessage> _messages;
-    function<void(const RtmpMessage msg)> _onRtmpChunk;
+    std::function<void(const RtmpMessage msg)> _onRtmpChunk;
 
 	const int kDefaultStreamId = 1;
 	const int kChunkMessageHeaderLen[4] = { 11, 7, 3, 0 };

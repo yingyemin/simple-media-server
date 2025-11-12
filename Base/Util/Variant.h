@@ -4,28 +4,28 @@
 #include <string>
 #include <sstream>
 
-using namespace std;
+// using namespace std;
 
-struct Variant: public string {
+struct Variant: public std::string {
     template<typename T>
-    Variant(const T &t) : Variant(to_string(t))
+    Variant(const T &t) : Variant(std::to_string(t))
     {
     }
 
-    Variant(const bool &t) : Variant(t ? to_string(1) : to_string(0))
+    Variant(const bool &t) : Variant(t ? std::to_string(1) : std::to_string(0))
     {
     }
 
     template<size_t N>
-    Variant(const char (&s)[N]) : string(s, N) 
+    Variant(const char (&s)[N]) : std::string(s, N) 
     {
     }
 
-    Variant(const char *cstr) : string(cstr)
+    Variant(const char *cstr) : std::string(cstr)
     {
     }
 
-    Variant(const string &other = string()) : string(other)
+    Variant(const std::string &other = std::string()) : std::string(other)
     {
     }
 
@@ -33,7 +33,7 @@ struct Variant: public string {
     operator T() const
     {
         T t;
-        stringstream ss;
+        std::stringstream ss;
         return ss << *this && ss >> t ? t : T();
     }
 

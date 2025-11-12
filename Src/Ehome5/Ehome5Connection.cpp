@@ -2,12 +2,16 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
-#include <arpa/inet.h>
 
+#if defined(_WIN32)
+#include "Util.h"
+#else
+#include <arpa/inet.h>
+#endif
 #include "Ehome5Connection.h"
 #include "Rtp/RtpManager.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Common/Define.h"
 
 using namespace std;
@@ -94,7 +98,7 @@ void Ehome5Connection::onEhomePacket(const char* data, int len)
 
     if (_payloadType == "ps") {
         auto frameBuffer = make_shared<FrameBuffer>();
-        frameBuffer->_buffer.assign(data + 4, len - 4);
+        frameBuffer->_buffer->assign(data + 4, len - 4);
 
         auto psSource = _source.lock();
         if (!psSource) {

@@ -1,7 +1,7 @@
-﻿#include "RtmpClient.h"
+#include "RtmpClient.h"
 #include "Rtmp.h"
 #include "Common/Define.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Common/HookManager.h"
 #include "Common/Config.h"
 

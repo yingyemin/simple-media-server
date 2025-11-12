@@ -24,23 +24,23 @@
 #include "GB28181Client.h"
 #include "Log/Logger.h"
 #include "Util/MD5.h"
-#include "tinyxml.h"
+#include "pugixml.hpp"
 #include "Common/Config.h"
 #include "Common/Track.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Rtsp/RtspSdpParser.h"
 #include "Http/HttpClientApi.h"
+#include "XmlParser.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <sys/time.h>
+// #include <sys/time.h>
 #include <iostream>  
 #include <map>
 #include <unistd.h>
 
 using namespace std;
-using namespace tinyxml2;
 
 GB28181Client::GB28181Client()
 {
@@ -121,18 +121,30 @@ void GB28181Client::catalog(shared_ptr<SipRequest> req)
     _sipStack.resp_status(ss, req);
     sendMessage(ss.str());
 
-    XMLDocument doc;
-    if (doc.Parse(req->content.data()) != XML_SUCCESS)
-    {
-        logError << "parse xml error" << endl;
-        return ;
-    }
+    XmlParser parser;
+	pugi::xml_document doc;
+	auto ret = parser.Parse(req->content.data(), (int)req->content.length(), doc);
+	if (!ret)
+	{
+		// SendResponse(username, e->exosip_context, e->exosip_event->tid, SIP_BAD_REQUEST);
+        logError << "Parse xml Failed";
+		return ;
+	}
 
-    XMLElement* root=doc.RootElement();
+	manscdp_msgbody_header_t header;
+	ret = parser.ParseHeader(header, doc);
+	if (!ret)
+	{
+		// SendResponse(username, e->exosip_context, e->exosip_event->tid, SIP_BAD_REQUEST);
+        logError << "Parse Header Failed";
+		return ;
+	}
+
+    auto root = doc.first_child();
     //XMLElement* Query=root->FirstChildElement("Query");
 
     CatalogInfo info;
-    info._sn = root->FirstChildElement("SN")->GetText();
+    info._sn = root.child("SN").text().as_string();
     info._channelNum = _channelNum;
     info._total = _channelNum;
     info._channelStartId = _channelStartId;
@@ -159,17 +171,29 @@ void GB28181Client::sendDeviceInfo(shared_ptr<SipRequest> req)
     _sipStack.resp_status(ss, req);
     sendMessage(ss.str());
 
-    XMLDocument doc;
-    if (doc.Parse(req->content.data()) != XML_SUCCESS)
-    {
-        logError << "parse xml error" << endl;
-        return ;
-    }
+    XmlParser parser;
+	pugi::xml_document doc;
+	auto ret = parser.Parse(req->content.data(), (int)req->content.length(), doc);
+	if (!ret)
+	{
+		// SendResponse(username, e->exosip_context, e->exosip_event->tid, SIP_BAD_REQUEST);
+        logError << "Parse xml Failed";
+		return ;
+	}
 
-    XMLElement* root=doc.RootElement();
+	manscdp_msgbody_header_t header;
+	ret = parser.ParseHeader(header, doc);
+	if (!ret)
+	{
+		// SendResponse(username, e->exosip_context, e->exosip_event->tid, SIP_BAD_REQUEST);
+        logError << "Parse Header Failed";
+		return ;
+	}
+
+    auto root = doc.first_child();
     //XMLElement* Query=root->FirstChildElement("Query");
 
-    string sn = root->FirstChildElement("SN")->GetText();
+    string sn = root.child("SN").text().as_string();
 
     std::stringstream ss1;
     _sipStack.resp_deviceinfo(ss1, _req, sn, _channelNum);
@@ -182,17 +206,29 @@ void GB28181Client::sendDeviceStatus(shared_ptr<SipRequest> req)
     _sipStack.resp_status(ss, req);
     sendMessage(ss.str());
 
-    XMLDocument doc;
-    if (doc.Parse(req->content.data()) != XML_SUCCESS)
-    {
-        logError << "parse xml error" << endl;
-        return ;
-    }
+    XmlParser parser;
+	pugi::xml_document doc;
+	auto ret = parser.Parse(req->content.data(), (int)req->content.length(), doc);
+	if (!ret)
+	{
+		// SendResponse(username, e->exosip_context, e->exosip_event->tid, SIP_BAD_REQUEST);
+        logError << "Parse xml Failed";
+		return ;
+	}
 
-    XMLElement* root=doc.RootElement();
+	manscdp_msgbody_header_t header;
+	ret = parser.ParseHeader(header, doc);
+	if (!ret)
+	{
+		// SendResponse(username, e->exosip_context, e->exosip_event->tid, SIP_BAD_REQUEST);
+        logError << "Parse Header Failed";
+		return ;
+	}
+
+    auto root = doc.first_child();
     //XMLElement* Query=root->FirstChildElement("Query");
 
-    string sn = root->FirstChildElement("SN")->GetText();
+    string sn = root.child("SN").text().as_string();
 
     std::stringstream ss1;
     _sipStack.resp_devicestatus(ss1, _req, sn);

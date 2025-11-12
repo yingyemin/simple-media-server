@@ -10,14 +10,14 @@
 #include "Mp4Demuxer.h"
 #include "Util/File.h"
 
-using namespace std;
+// using namespace std;
 
 class Mp4FileReader : public MP4Demuxer
 {
 public:
-    using Ptr = shared_ptr<Mp4FileReader>;
+    using Ptr = std::shared_ptr<Mp4FileReader>;
 
-    Mp4FileReader(const string& filepath);
+    Mp4FileReader(const std::string& filepath);
     ~Mp4FileReader();
 
 public:
@@ -33,18 +33,18 @@ public:
 
 public:
     void setOnFrame(const std::function<void (const FrameBuffer::Ptr &frame)>& cb);
-    void setOnReady(const function<void()>& cb);
+    void setOnReady(const std::function<void()>& cb);
     void setOnTrackInfo(const std::function<void (const TrackInfo::Ptr &trackInfo)> &cb);
 
 private:
-    string _filepath;
+    std::string _filepath;
     File _file;
 
     std::function<void (const FrameBuffer::Ptr &frame)> _onFrame;
-    function<void()> _onReady;
+    std::function<void()> _onReady;
     std::function<void (const TrackInfo::Ptr &trackInfo)> _onTrackInfo;
 
-    unordered_map<int, shared_ptr<TrackInfo>> _mapTrackInfo;
+    std::unordered_map<int, std::shared_ptr<TrackInfo>> _mapTrackInfo;
 };
 
 

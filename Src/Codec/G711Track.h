@@ -10,12 +10,12 @@
 #include "Common/Track.h"
 #include "Common/Frame.h"
 
-using namespace std;
+// using namespace std;
 
 class G711aTrack : public TrackInfo
 {
 public:
-    using Ptr = shared_ptr<G711aTrack>;
+    using Ptr = std::shared_ptr<G711aTrack>;
 
 public:
     static G711aTrack::Ptr createTrack(int index, int payloadType, int samplerate);
@@ -24,7 +24,7 @@ public:
     virtual ~G711aTrack() {}
 
 public:
-    string getSdp() override;
+    std::string getSdp() override;
     
     static void registerTrackInfo();
 
@@ -34,7 +34,7 @@ private:
 class G711uTrack : public TrackInfo
 {
 public:
-    using Ptr = shared_ptr<G711uTrack>;
+    using Ptr = std::shared_ptr<G711uTrack>;
 
 public:
     static G711uTrack::Ptr createTrack(int index, int payloadType, int samplerate);
@@ -43,7 +43,7 @@ public:
     virtual ~G711uTrack() {}
 
 public:
-    string getSdp() override;
+    std::string getSdp() override;
     
     static void registerTrackInfo();
 

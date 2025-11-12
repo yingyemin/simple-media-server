@@ -16,7 +16,7 @@
 #include <memory>
 #include <vector>
 
-using namespace std;
+// using namespace std;
 
 enum RtspState
 {
@@ -32,33 +32,33 @@ enum RtspState
 class RtspClient : public TcpClient, public MediaClient
 {
 public:
-    using Ptr = shared_ptr<RtspClient>;
-    RtspClient(MediaClientType type, const string& appName, const string& streamName);
+    using Ptr = std::shared_ptr<RtspClient>;
+    RtspClient(MediaClientType type, const std::string& appName, const std::string& streamName);
     ~RtspClient();
 
 public:
     static void init();
 
-    void setUsername(const string& username) {_username = username;}
-    void setPassword(const string& pwd) {_pwd = pwd;}
+    void setUsername(const std::string& username) {_username = username;}
+    void setPassword(const std::string& pwd) {_pwd = pwd;}
 
-    string getPath() {return _localUrlParser.path_;}
-    string getSourceUrl() {return _url;}
+    std::string getPath() {return _localUrlParser.path_;}
+    std::string getSourceUrl() {return _url;}
 
 public:
     // override MediaClient
-    bool start(const string& localIp, int localPort, const string& url, int timeout) override;
+    bool start(const std::string& localIp, int localPort, const std::string& url, int timeout) override;
     void stop() override;
     void pause() override;
-    void setOnClose(const function<void()>& cb) override;
-    void addOnReady(void* key, const function<void()>& onReady) override;
+    void setOnClose(const std::function<void()>& cb) override;
+    void addOnReady(void* key, const std::function<void()>& onReady) override;
     void setTransType(int type) override;
-    void getProtocolAndType(string& protocol, MediaClientType& type) override;
+    void getProtocolAndType(std::string& protocol, MediaClientType& type) override;
 
 protected:
     // override TcpClient
     void onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len);
-    void onError(const string& err);
+    void onError(const std::string& err);
     void close();
     void onConnect();
     void onRtspPacket();
@@ -73,19 +73,19 @@ protected:
     void sendPause(int seekMs = 0);
     void sendTeardown();
 
-    void sendMessage(const string& msg);
+    void sendMessage(const std::string& msg);
     void bindRtxpSocket();
 
 private:
     bool _hasAuth = false;
     int _seq = 0;
     int _setupIndex = 0;
-    string _username;
-    string _pwd;
+    std::string _username;
+    std::string _pwd;
     TransportType _rtpType = Transport_TCP;
     RtspState _state = RTSP_SEND_OPTION;
     MediaClientType _type;
-    string _sessionId;
+    std::string _sessionId;
     UrlParser _localUrlParser;
     UrlParser _peerUrlParser;
     RtspParser _parser;
@@ -96,13 +96,13 @@ private:
     RtspMediaSource::Wptr _source;
     RtspMediaSource::QueType::DataQueReaderT::Ptr _playReader;
     // int : index
-    unordered_map<int, RtspRtpTransport::Ptr> _mapRtpTransport;
+    std::unordered_map<int, RtspRtpTransport::Ptr> _mapRtpTransport;
     // int : index
-    unordered_map<int, RtspRtcpTransport::Ptr> _mapRtcpTransport;
+    std::unordered_map<int, RtspRtcpTransport::Ptr> _mapRtcpTransport;
 
-    function<void()> _onClose;
-    mutex _mtx;
-    unordered_map<void*, function<void()>> _mapOnReady;
+    std::function<void()> _onClose;
+    std::mutex _mtx;
+    std::unordered_map<void*, std::function<void()>> _mapOnReady;
 };
 
 #endif // RtspClient_h

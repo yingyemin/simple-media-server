@@ -1,0 +1,78 @@
+@startuml
+title Rtsp推流时序图
+
+actor RtspClient
+participant RtspService
+participant RtspConnection
+participant TcpServer
+'participant Callback
+participant MediaSource
+note right:全局MediaSource
+participant RtspMediaSource
+participant RtspTrack
+participant RtspDecodeTrack
+participant RtspRtpTransport
+autonumber
+
+activate RtspService
+RtspService -> RtspService: start()
+activate TcpServer
+TcpServer -> TcpServer:setOnCreateSession
+note right: 设置创建RtspConnect回调
+TcpServer->TcpServer:start()
+note right: 内部实现socket创建，绑定，accpet,监听链接
+
+activate RtspConnection
+activate RtspClient
+RtspClient->RtspConnection:OPTIONS
+RtspConnection->RtspClient:OK
+
+RtspConnection->RtspConnection:ANNOUNCE
+note left:携带推流端SDP媒体信息
+
+RtspConnection->RtspConnection:handleAnnounce_l;
+activate MediaSource
+MediaSource->MediaSource:MediaSource::getOrCreate;
+RtspMediaSource->RtspMediaSource:make_shared<RtspMediaSource>
+activate RtspMediaSource
+RtspMediaSource->RtspMediaSource:make_shared<RtspDecodeTrack>
+activate RtspDecodeTrack
+
+RtspMediaSource->RtspMediaSource:rtspSource->addTrack(track)
+RtspMediaSource->RtspMediaSource:_ring = std::make_shared<QueType>
+MediaSource->MediaSource:MediaSource::addTrack
+RtspDecodeTrack->RtspDecodeTrack:track->setOnRtpPacket
+RtspDecodeTrack->RtspDecodeTrack:track->setOnFrame
+RtspDecodeTrack->RtspDecodeTrack:track->startDecode
+RtspMediaSource->RtspMediaSource:_ring->addOnWrite
+RtspConnection->RtspClient:OK
+
+RtspClient->RtspConnection:SETUP
+RtspConnection->RtspConnection: make_shared<RtspRtpTransport>
+activate RtspRtpTransport
+RtspRtpTransport->RtspRtpTransport:start()
+RtpSort->RtpSort:setOnRtpPacket
+RtspRtpTransport->RtspRtpTransport:_socket回调setReadCb
+RtspConnection->RtspClient:OK
+
+RtspClient->RtspConnection:RECORD
+RtspConnection->RtspClient:OK
+
+RtspRtpTransport->RtspRtpTransport:setReadCb流来了
+
+RtspRtpTransport->RtspRtpTransport:onRtpPacket
+RtspRtpTransport->RtspRtpTransport:_sort inputRtp(rtp)
+RtspDecodeTrack->RtspDecodeTrack:onRtpPacket
+RtspDecodeTrack->RtspDecodeTrack:RtpDecodeH264:isStartGop
+RtspMediaSource->RtspMediaSource:strongSelf->_ring->write
+_ring->_ring:onWrite RtspDecod rtp
+RtpDecoderH264->RtpDecoderH264:decode
+RtpDecoderH264->RtpDecoderH264:onFrame
+RtspDecodeTrack->RtspDecodeTrack:onFrame
+RtspMediaSource->RtspMediaSource:setOnFrame
+MediaSource->MediaSource:onFrame
+
+deactivate RtspService
+deactivate TcpServer
+
+@enduml

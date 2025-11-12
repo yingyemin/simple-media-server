@@ -36,7 +36,7 @@ public:
     void decode(AVCodecContext *dec_ctx, AVFrame *frame, AVPacket *pkt);
     int inputFrame(const FrameBuffer::Ptr& frame);
 
-    void setOnPacket(const function<void(const StreamBuffer::Ptr& packet)>& cb);
+    void setOnPacket(const std::function<void(const StreamBuffer::Ptr& packet)>& cb);
     void onPacket(const StreamBuffer::Ptr& packet);
     void setBitrate(int bitrate);
 
@@ -55,7 +55,7 @@ private:
 
     AVCodecID _deVideoCodecId;
 
-    function<void(const StreamBuffer::Ptr& packet)> _onPacket;
+    std::function<void(const StreamBuffer::Ptr& packet)> _onPacket;
 };
 
 #endif

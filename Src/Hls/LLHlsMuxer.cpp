@@ -11,6 +11,8 @@
 #include "Codec/H264Track.h"
 #include "Codec/H265Track.h"
 
+using namespace std;
+
 static int getUid()
 {
 	random_device rd; // 用于获得种子
@@ -71,7 +73,7 @@ void LLHlsMuxer::start()
 	_fmp4Muxer->fmp4_writer_init_segment();
 	_fmp4Muxer->fmp4_writer_save_segment();
 	_fmp4Header = _fmp4Muxer->getFmp4Header();
-	_fmp4Buffer->_buffer.append(_fmp4Header->data(), _fmp4Header->size());
+	_fmp4Buffer->_buffer->append(_fmp4Header->data(), _fmp4Header->size());
 
 	_fmp4Muxer->startEncode();
 	_muxer = true;
@@ -231,7 +233,7 @@ void LLHlsMuxer::onFmp4Packet(const Buffer::Ptr &pkt, bool keyframe)
 		_segClick.update();
 	}
 
-	_fmp4Buffer->_buffer.append(pkt->data(), pkt->size());
+	_fmp4Buffer->_buffer->append(pkt->data(), pkt->size());
 	// _lastPts = pts;
 }
 
@@ -247,7 +249,7 @@ void LLHlsMuxer::updateSeg()
 	iter->second._mapSeg[key] = _fmp4Buffer;
 
 	_fmp4Buffer = make_shared<FrameBuffer>();
-	_fmp4Buffer->_buffer.append(_fmp4Header->data(), _fmp4Header->size());
+	_fmp4Buffer->_buffer->append(_fmp4Header->data(), _fmp4Header->size());
 }
 
 void LLHlsMuxer::updateM3u8()

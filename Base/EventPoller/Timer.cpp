@@ -6,10 +6,14 @@ using namespace std;
 
 static inline uint64_t getTick() {
     uint64_t t;
+#ifndef _WIN32
     struct timespec ti;
     clock_gettime(CLOCK_MONOTONIC, &ti);
     t = (uint64_t)ti.tv_sec * 1000;
     t += ti.tv_nsec / 1000000;
+#else
+    t = GetTickCount64();
+#endif
     return t;
 }
 

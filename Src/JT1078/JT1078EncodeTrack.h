@@ -10,13 +10,13 @@
 #include "Common/Track.h"
 #include "Common/Frame.h"
 
-using namespace std;
+// using namespace std;
 
-class JT1078EncodeTrack : public enable_shared_from_this<JT1078EncodeTrack>
+class JT1078EncodeTrack : public std::enable_shared_from_this<JT1078EncodeTrack>
 {
 public:
-    using Ptr = shared_ptr<JT1078EncodeTrack>;
-    JT1078EncodeTrack(const shared_ptr<TrackInfo>& trackInfo, const string& simCode, int channel);
+    using Ptr = std::shared_ptr<JT1078EncodeTrack>;
+    JT1078EncodeTrack(const std::shared_ptr<TrackInfo>& trackInfo, const std::string& simCode, int channel);
     ~JT1078EncodeTrack()  {}
 
 public:
@@ -25,11 +25,11 @@ public:
     void startEncode();
     void stopEncode();
 
-    void setOnRtpPacket(const function<void(const JT1078RtpPacket::Ptr& rtp)>& cb) {_onRtpPacket = cb;}
+    void setOnRtpPacket(const std::function<void(const JT1078RtpPacket::Ptr& rtp)>& cb) {_onRtpPacket = cb;}
 
     int getTrackIndex()  {return _trackInfo->index_;}
     int getTrackType() {return _type;}
-    shared_ptr<TrackInfo> getTrackInfo() { return _trackInfo;}
+    std::shared_ptr<TrackInfo> getTrackInfo() { return _trackInfo;}
 
 private:
     void createSingleRtp(const FrameBuffer::Ptr& frame);
@@ -43,9 +43,9 @@ private:
     uint16_t _seq = 0;
     uint64_t _lastFrameStamp = 0;
     uint64_t _lastKeyframeStamp = 0;
-    string _simCode;
-    shared_ptr<TrackInfo> _trackInfo;
-    function<void(const JT1078RtpPacket::Ptr& rtp)> _onRtpPacket;
+    std::string _simCode;
+    std::shared_ptr<TrackInfo> _trackInfo;
+    std::function<void(const JT1078RtpPacket::Ptr& rtp)> _onRtpPacket;
 };
 
 

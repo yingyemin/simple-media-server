@@ -11,12 +11,12 @@
 #include "EventPoller/EventLoop.h"
 // #include "WebRtcRtpPacket.h"
 
-using namespace std;
+// using namespace std;
 
-class WebrtcContextManager : public enable_shared_from_this<WebrtcContextManager> {
+class WebrtcContextManager : public std::enable_shared_from_this<WebrtcContextManager> {
 public:
-    using Ptr = shared_ptr<WebrtcContextManager>;
-    using Wptr = weak_ptr<WebrtcContextManager>;
+    using Ptr = std::shared_ptr<WebrtcContextManager>;
+    using Wptr = std::weak_ptr<WebrtcContextManager>;
 
     WebrtcContextManager();
     ~WebrtcContextManager();
@@ -27,9 +27,9 @@ public:
     void init(const EventLoop::Ptr& loop);
     void onUdpPacket(const Socket::Ptr& socket, const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len);
     void heartbeat();
-    void addContext(const string& key, const WebrtcContext::Ptr& context);
-    WebrtcContext::Ptr getContext(const string& key);
-    void delContext(const string& key);
+    void addContext(const std::string& key, const WebrtcContext::Ptr& context);
+    WebrtcContext::Ptr getContext(const std::string& key);
+    void delContext(const std::string& key);
     void delContextByHash(const std::string& hash);
     WebrtcContext::Ptr getContextByHash(const std::string& hash);
 
@@ -41,12 +41,12 @@ private:
 
 private:
     bool _isInited = false;
-    mutex _contextLck;
+    std::mutex _contextLck;
     // EventLoop::Ptr _loop;
-    unordered_map<string, WebrtcContext::Ptr> _mapContext;
+    std::unordered_map<std::string, WebrtcContext::Ptr> _mapContext;
 
-    mutex _addrToContextLck;
-    unordered_map<std::string, WebrtcContext::Ptr> _mapAddrToContext;
+    std::mutex _addrToContextLck;
+    std::unordered_map<std::string, WebrtcContext::Ptr> _mapAddrToContext;
 };
 
 #endif //GB28181Manager_h

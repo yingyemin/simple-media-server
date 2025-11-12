@@ -1,6 +1,8 @@
 ﻿#include "LLHlsManager.h"
 #include "Log/Logger.h"
 
+using namespace std;
+
 LLHlsManager::LLHlsManager()
 {}
 

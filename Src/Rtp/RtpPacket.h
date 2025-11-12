@@ -8,9 +8,11 @@
 
 #include "Net/Buffer.h"
 #include "Common/Track.h"
+#include "Util/Util.h"
 
-using namespace std;
+// using namespace std;
 
+#pragma pack(push, 1)
 class RtpHeader {
 public:
 #if __BYTE_ORDER == __BIG_ENDIAN
@@ -75,18 +77,19 @@ private:
     // 返回padding长度
     size_t getPaddingSize(size_t rtp_size) const;
 };
+#pragma pack(pop)
 
 class RtpPacket
 {
 public:
-    using Ptr = shared_ptr<RtpPacket>;
+    using Ptr = std::shared_ptr<RtpPacket>;
     enum { kRtpVersion = 2, kRtpHeaderSize = 12, kRtpTcpHeaderSize = 4 };
 
     RtpPacket(const StreamBuffer::Ptr& buffer, int rtpOverTcpHeaderSize = 0);
     RtpPacket(const int length, int rtpOverTcpHeaderSize = 0);
     RtpPacket(const StreamBuffer::Ptr& buffer, bool copy, int rtpOverTcpHeaderSize = 0);
 
-    static RtpPacket::Ptr create(const shared_ptr<TrackInfo>& trackInfo, int len, uint64_t pts, uint32_t ssrc, uint16_t seq, bool mark);
+    static RtpPacket::Ptr create(const std::shared_ptr<TrackInfo>& trackInfo, int len, uint64_t pts, uint32_t ssrc, uint16_t seq, bool mark);
 
     virtual void parse() {}
     virtual void setRtxFlag(bool flag) {}
@@ -113,10 +116,12 @@ public:
     virtual size_t size();
     virtual StreamBuffer::Ptr buffer();
     virtual int getStartSize() {return _rtpOverTcpHeaderSize;}
+    virtual void setFrameData(const FrameBuffer::Ptr& frameData, uint64_t offset, uint64_t len);
+    virtual FrameBuffer::Ptr getFrameData(uint64_t& offset, uint64_t& len);
 
 public:
     // 音视频类型
-    string type_;
+    std::string type_;
     // 音频为采样率，视频一般为90000
     uint32_t samplerate_;
     // ntp时间戳
@@ -129,7 +134,11 @@ private:
     uint32_t _size = 0;
     int _rtpOverTcpHeaderSize = 0;
     RtpHeader* _header;
-    StreamBuffer::Ptr _rtpOverTcpHeader;
+
+    uint64_t _offset = 0;
+    uint64_t _len = 0;
+    FrameBuffer::Ptr _frameData;
+
     StreamBuffer::Ptr _data;
 };
 

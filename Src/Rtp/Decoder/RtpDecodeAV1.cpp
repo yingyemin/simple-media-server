@@ -5,7 +5,7 @@
 
 #include "RtpDecodeAV1.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Codec/AV1Frame.h"
 
 using namespace std;
@@ -149,7 +149,7 @@ void RtpDecodeAV1::decode(const RtpPacket::Ptr& rtp)
 		}
 
         _frame->_pts = stamp;
-        _frame->_buffer.append((char *) ptr, obuSize);
+        _frame->_buffer->append((char *) ptr, obuSize);
 	}
 
     if (rtp->getHeader()->mark) {

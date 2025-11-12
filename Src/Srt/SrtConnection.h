@@ -12,15 +12,15 @@
 #include "Mpeg/TsMediaSource.h"
 
 
-using namespace std;
+// using namespace std;
 
 #ifdef ENABLE_SRT
 
-class SrtConnection : public enable_shared_from_this<SrtConnection>
+class SrtConnection : public std::enable_shared_from_this<SrtConnection>
 {
 public:
-    using Ptr = shared_ptr<SrtConnection>;
-    using Wptr = weak_ptr<SrtConnection>;
+    using Ptr = std::shared_ptr<SrtConnection>;
+    using Wptr = std::weak_ptr<SrtConnection>;
 
     SrtConnection(const SrtEventLoop::Ptr& loop, const SrtSocket::Ptr& socket);
     ~SrtConnection();
@@ -30,27 +30,27 @@ public:
     void onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len);
     void close();
     void init();
-    void setOnClose(const function<void()>& cb) {_onClose = cb;}
+    void setOnClose(const std::function<void()>& cb) {_onClose = cb;}
 
 private:
     void handlePull();
     void onPlayTs(const TsMediaSource::Ptr &tsSrc);
     void initPush();
     void handlePush(const StreamBuffer::Ptr& buffer);
-    void onError(const string& err);
+    void onError(const std::string& err);
 
 private:
     bool _inited = false;
     int _index = 0;
     FILE* _fp;
-    string _request = "pull";
+    std::string _request = "pull";
     UrlParser _urlParser;
     SrtEventLoop::Ptr _loop;
     SrtSocket::Ptr _socket;
     TsMediaSource::Wptr _source;
     TsMediaSource::RingType::DataQueReaderT::Ptr _playTsReader;
-    unordered_map<string, string> _mapParam;
-    function<void()> _onClose;
+    std::unordered_map<std::string, std::string> _mapParam;
+    std::function<void()> _onClose;
 };
 
 #endif

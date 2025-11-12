@@ -12,14 +12,14 @@
 #include "TsDemuxer.h"
 #include "Common/DataQue.h"
 
-using namespace std;
+// using namespace std;
 
 class TsMediaSource : public MediaSource
 {
 public:
-    using Ptr = shared_ptr<TsMediaSource>;
-    using Wptr = weak_ptr<TsMediaSource>;
-    using RingDataType = shared_ptr<list<StreamBuffer::Ptr> >;
+    using Ptr = std::shared_ptr<TsMediaSource>;
+    using Wptr = std::weak_ptr<TsMediaSource>;
+    using RingDataType = std::shared_ptr<std::list<StreamBuffer::Ptr> >;
     using RingType = DataQue<RingDataType>;
 
     TsMediaSource(const UrlParser& urlParser, const EventLoop::Ptr& loop = nullptr, bool muxer = false);
@@ -27,16 +27,16 @@ public:
 
 public:
     void addTrack(const TsDemuxer::Ptr& track);
-    void addDecodeTrack(const shared_ptr<TrackInfo>& track);
-    void addTrack(const shared_ptr<TrackInfo>& track) override;
+    void addDecodeTrack(const std::shared_ptr<TrackInfo>& track);
+    void addTrack(const std::shared_ptr<TrackInfo>& track) override;
     void addSink(const MediaSource::Ptr &src) override;
     void delSink(const MediaSource::Ptr &src) override;
     void onFrame(const FrameBuffer::Ptr& frame) override;
     void onReady() override;
     int playerCount() override;
-    void getClientList(const function<void(const list<ClientInfo>& info)>& func) override;
+    void getClientList(const std::function<void(const std::list<ClientInfo>& info)>& func) override;
     uint64_t getBytes() override { return _ring ? _ring->getBytes() : 0;}
-    unordered_map<int/*index*/, TsDemuxer::Ptr> getDecodeTrack()
+    std::unordered_map<int/*index*/, TsDemuxer::Ptr> getDecodeTrack()
     {
         return _mapTsDecodeTrack;
     }
@@ -65,8 +65,8 @@ private:
     RingDataType _cache;
 
     TsMuxer::Ptr _tsEncodeTrack;
-    mutex _mtxTrack;
-    unordered_map<int/*index*/, TsDemuxer::Ptr> _mapTsDecodeTrack;
+    std::mutex _mtxTrack;
+    std::unordered_map<int/*index*/, TsDemuxer::Ptr> _mapTsDecodeTrack;
 };
 
 

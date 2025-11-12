@@ -1,6 +1,7 @@
 #ifndef T8103_H
 #define T8103_H
 
+#include <cstdint>
 #include <map>
 #include <string>
 #include <memory>

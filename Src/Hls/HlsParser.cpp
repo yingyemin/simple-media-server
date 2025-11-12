@@ -2,7 +2,7 @@
 #include <inttypes.h>
 #include <sstream>
 #include "HlsParser.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Log/Logger.h"
 
 using namespace std;

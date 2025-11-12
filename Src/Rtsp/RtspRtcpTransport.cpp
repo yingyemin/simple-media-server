@@ -2,14 +2,20 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
+
+
+#if defined(_WIN32)
+#include "Util/Util.h"
+#else
 #include <sys/time.h>
 #include <unistd.h> 
+#endif
 
 #include "RtspRtcpTransport.h"
 #include "RtspRtpTransport.h"
 #include "Rtp/RtpPacket.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 
 using namespace std;
 
@@ -123,7 +129,7 @@ void RtspRtcpTransport::sendRtcpPacket()
     if (_transType == Transport_TCP) {
         buffer->assign((char*)rtcp_buf, rtcpLen);
         if (_tcpSend) {
-            _tcpSend(buffer, true);
+            _tcpSend(buffer, true, 0, 0);
         } else {
             _socket->send(buffer, true);
         }

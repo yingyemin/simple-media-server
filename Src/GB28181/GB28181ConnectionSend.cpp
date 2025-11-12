@@ -2,12 +2,15 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
+
+#ifndef _WIN32
 #include <arpa/inet.h>
+#endif
 
 #include "GB28181ConnectionSend.h"
 #include "GB28181Manager.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Common/Define.h"
 #include "Common/HookManager.h"
 

@@ -10,16 +10,16 @@
 #include "Socket.h"
 #include "TcpConnection.h"
 
-using namespace std;
+// using namespace std;
 
 
 
 class TcpServer  : public std::enable_shared_from_this<TcpServer> {
 public:
-    using Ptr = shared_ptr<TcpServer>;
-    using Wptr = weak_ptr<TcpServer>;
-    using createSessionCb = function<TcpConnection::Ptr(const EventLoop::Ptr& loop, const Socket::Ptr& socket)>;
-    TcpServer(EventLoop::Ptr loop, const string& host, int port, int maxConns, int threadNum);
+    using Ptr = std::shared_ptr<TcpServer>;
+    using Wptr = std::weak_ptr<TcpServer>;
+    using createSessionCb = std::function<TcpConnection::Ptr(const EventLoop::Ptr& loop, const Socket::Ptr& socket)>;
+    TcpServer(EventLoop::Ptr loop, const std::string& host, int port, int maxConns, int threadNum);
     ~TcpServer();
 
 public:
@@ -32,6 +32,12 @@ public:
     int getPort() {return _port;}
     int getLastAcceptTime() {return _lastAcceptTime;}
     int getCurConnNum() {return _curConns;}
+    void initSession(int connFd);
+    EventLoop::Ptr getLoop() {return _loop;}
+
+    static TcpServer::Ptr getServerByLoop(int port, uint32_t index);
+    static void addServer(int port, const TcpServer::Ptr& server);
+    static void removeServer(int port, const EventLoop::Ptr& loop);
 
 private:
     int _maxConns;
@@ -39,11 +45,15 @@ private:
     int _port;
     int _lastAcceptTime = 0;
     int _curConns = 0;
-    string _ip;
+    uint32_t _serverIndex = 0;
+    std::string _ip;
     EventLoop::Ptr _loop;
     Socket::Ptr _socket;
-    unordered_map<int, TcpConnection::Ptr> _mapSession;
+    std::unordered_map<int, TcpConnection::Ptr> _mapSession;
     createSessionCb _createSessionCb;
+
+    static std::mutex _mutexServer;
+    static std::unordered_map<int /*port*/, std::vector<TcpServer::Ptr>> _mapServer;
 };
 
 #endif //DnsCache_h

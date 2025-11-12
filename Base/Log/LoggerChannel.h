@@ -1,4 +1,4 @@
-﻿#ifndef LoggerChannel_H_
+#ifndef LoggerChannel_H_
 #define LoggerChannel_H_
 
 #include <fstream>
@@ -7,8 +7,8 @@
 #include "Util/Path.h"
 #include "Util/noncopyable.h"
 #include "LoggerStream.h"
-
-using namespace std;
+#include <string.h>
+//using namespace std;
 
 ///////////////////LogChannel///////////////////
 /**
@@ -16,10 +16,10 @@ using namespace std;
  */
 class LogChannel : public noncopyable{
 public:
-    LogChannel(const string& name, LogLevel level = LTrace);
+    LogChannel(const std::string& name, LogLevel level = LTrace);
     virtual ~LogChannel();
-    virtual void write(const shared_ptr<Logger>& logger,const LogContext::Ptr & ctx) = 0;
-    const string &name() const ;
+    virtual void write(const std::shared_ptr<Logger>& logger,const LogContext::Ptr & ctx) = 0;
+    const std::string &name() const ;
     void setLevel(LogLevel level);
     static std::string printTime(const timeval &tv);
 protected:
@@ -29,9 +29,9 @@ protected:
     * @param enableColor 是否启用颜色
     * @param enableDetail 是否打印细节(函数名、源码文件名、源码行)
     */
-    virtual void format(const shared_ptr<Logger> &logger, ostream &ost, const LogContext::Ptr & ctx, bool enableColor = true, bool enableDetail = true);
+    virtual void format(const std::shared_ptr<Logger> &logger, std::ostream &ost, const LogContext::Ptr & ctx, bool enableColor = true, bool enableDetail = true);
 protected:
-    string _name;
+    std::string _name;
     LogLevel _level;
 };
 
@@ -40,9 +40,9 @@ protected:
  */
 class ConsoleChannel : public LogChannel {
 public:
-    ConsoleChannel(const string &name = "ConsoleChannel" , LogLevel level = LTrace) ;
+    ConsoleChannel(const std::string &name = "ConsoleChannel" , LogLevel level = LTrace) ;
     ~ConsoleChannel();
-    void write(const shared_ptr<Logger>& logger , const LogContext::Ptr &logContext) override;
+    void write(const std::shared_ptr<Logger>& logger , const LogContext::Ptr &logContext) override;
 };
 
 /**
@@ -50,19 +50,19 @@ public:
  */
 class FileChannelBase : public LogChannel {
 public:
-    FileChannelBase(const string &name = "FileChannelBase",const string &path = Path::exePath() + ".log", LogLevel level = LTrace);
+    FileChannelBase(const std::string &name = "FileChannelBase",const std::string &path = Path::exePath() + ".log", LogLevel level = LTrace);
     ~FileChannelBase();
 
-    void write(const shared_ptr<Logger> &logger , const LogContext::Ptr &ctx) override;
-    bool setPath(const string &path);
-    const string &path() const;
+    void write(const std::shared_ptr<Logger> &logger , const LogContext::Ptr &ctx) override;
+    bool setPath(const std::string &path);
+    const std::string &path() const;
 protected:
     virtual bool open();
     virtual void close();
     virtual size_t size();
 protected:
-    ofstream _fstream;
-    string _path;
+    std::ofstream _fstream;
+    std::string _path;
 };
 
 /**
@@ -71,8 +71,8 @@ protected:
  */
 class FileChannel : public FileChannelBase {
 public:
-    FileChannel(const string &name = "FileChannel",const string &dir = Path::exeDir() + "log/", 
-                                const string &prefixName = "SimpleMediaServer", LogLevel level = LTrace);
+    FileChannel(const std::string &name = "FileChannel",const std::string &dir = Path::exeDir() + "log/", 
+                                const std::string &prefixName = "SimpleMediaServer", LogLevel level = LTrace);
     ~FileChannel() override;
 
     /**
@@ -80,7 +80,7 @@ public:
      * @param logger
      * @param stream
      */
-    void write(const shared_ptr<Logger> &logger , const LogContext::Ptr &ctx) override;
+    void write(const std::shared_ptr<Logger> &logger , const LogContext::Ptr &ctx) override;
 
     /**
      * 设置日志最大保存天数
@@ -119,10 +119,10 @@ private:
 
 private:
     bool _canWrite = false;
-    string _dir;
-    string _prefixName = "SimpleMediaServer";
+    std::string _dir;
+    std::string _prefixName = "SimpleMediaServer";
     int64_t _last_day = -1;
-    set<string> _log_file_map;
+    std::set<std::string> _log_file_map;
     //日志最大存活时间为30天
     int _log_max_day = 30;
     //单个日志切片默认最大为1024MB
@@ -135,9 +135,9 @@ private:
 
 class SysLogChannel : public LogChannel {
 public:
-    SysLogChannel(const string &name = "SysLogChannel" , LogLevel level = LTrace) ;
+    SysLogChannel(const std::string &name = "SysLogChannel" , LogLevel level = LTrace) ;
     ~SysLogChannel();
-    void write(const shared_ptr<Logger> &logger , const LogContext::Ptr &logContext) override;
+    void write(const std::shared_ptr<Logger> &logger , const LogContext::Ptr &logContext) override;
 };
 
 #endif /* UTIL_LOGGER_H_ */

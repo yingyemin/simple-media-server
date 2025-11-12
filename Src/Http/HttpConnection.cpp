@@ -2,7 +2,7 @@
 #include "Common/Config.h"
 #include "Log/Logger.h"
 #include "HttpUtil.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 
 #ifdef ENABLE_RTMP
 #include "Rtmp/FlvMuxerWithRtmp.h"
@@ -1381,8 +1381,11 @@ void HttpConnection::handleFmp4()
 #ifdef ENABLE_MP4
     HttpResponse rsp;
     rsp._status = 200;
-    rsp.setHeader("Content-Type", HttpUtil::getMimeType(_urlParser.path_));
+    rsp.setHeader("Content-Type", HttpUtil::getMimeType(_urlParser.path_) + "; charset=utf-8");
     rsp.setHeader("Connection", "keep-alive");
+    rsp.setHeader("Transfer-Encoding", "chunked");
+	_isChunked = true;
+    rsp.setHeader("Date", TimeClock::getGmtTime(time(NULL))); 
     writeHttpResponse(rsp);
 
     _urlParser.path_ = trimBack(_urlParser.path_, ".mp4");

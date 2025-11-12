@@ -2,16 +2,33 @@
 #include "Util/Thread.h"
 #include "Util/TimeClock.h"
 #include "Util/File.h"
-#include "Util/String.h"
+
 #include "Logger.h"
 
-#include <string.h>
+
 #include <sys/stat.h>
+#if defined(_WIN32)
+#include "Util/Util.h"
+#include "strptime_win.h"
+#include "Util/String.hpp"
+#else
+#include "Util/String.hpp"
+#include <string.h>
 #include <sys/time.h>
-#include <sys/types.h>
 #include <unistd.h>
-#include <iostream>
 #include <sys/syslog.h>
+#endif
+#include <sys/types.h>
+
+#include <iostream>
+
+using namespace std;
+
+#ifndef _WIN32
+#define start_with(x, y) startWith(x, y)
+#define end_with(x, y) endWith(x, y)
+#endif
+
 
 #define CLEAR_COLOR "\033[0m"
 static const char *LOG_CONST_TABLE[][3] = {
@@ -47,7 +64,7 @@ void ConsoleChannel::write(const Logger::Ptr &logger, const LogContext::Ptr &ctx
 }
 
 ///////////////////SysLogChannel///////////////////
-
+#ifndef _WIN32
 SysLogChannel::SysLogChannel(const string &name, LogLevel level) : LogChannel(name, level) {}
 SysLogChannel::~SysLogChannel() {}
 
@@ -62,7 +79,7 @@ void SysLogChannel::write(const Logger::Ptr &logger, const LogContext::Ptr &ctx)
     syslog(s_syslog_lev[ctx->_level], "## %s %s | %s %s\r\n", printTime(ctx->_tv).data(),
            LOG_CONST_TABLE[ctx->_level][2], ctx->_function.c_str(), ctx->str().c_str());
 }
-
+#endif
 ///////////////////LogChannel///////////////////
 LogChannel::LogChannel(const string &name, LogLevel level) 
     : _name(name)
@@ -195,7 +212,9 @@ struct tm getLocalTime(time_t sec) {
 }
 
 static const auto s_second_per_day = 24 * 60 * 60;
+#ifndef _WIN32
 static long s_gmtoff = getLocalTime(time(NULL)).tm_gmtoff;
+#endif
 
 //根据日志文件名返回GMT UNIX时间戳
 static time_t getLogFileTime(const string &full_path){
@@ -214,7 +233,11 @@ static time_t getLogFileTime(const string &full_path){
 }
 
 static uint64_t getDay(time_t second) {
+#if defined(_WIN32)
+    return (second + getGMTOff()) / s_second_per_day;
+#else
     return (second + s_gmtoff) / s_second_per_day;
+#endif
 }
 
 static string getLogFilePath(const string &dir, const string &prefixName, time_t second, LogLevel level, int32_t index) {
@@ -242,7 +265,7 @@ FileChannel::FileChannel(const string &name, const string& dir, const string &pr
 
     //收集所有日志文件: _log_file_map将存储此文件夹下所有的log,因此即使流媒体重启，也能获取或清除超过max_day的日志
     File::scanDir(_dir, [this](const string &path, bool isDir) -> bool {
-        if (!isDir && endWith(path, ".log")) {
+        if (!isDir && end_with(path, ".log")) {
             _log_file_map.emplace(path);
         }
         return true;

@@ -108,7 +108,7 @@
 #include "Util/Thread.h"
 #include "Common/Heartbeat.h"
 #include "Common/Define.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 
 #include <unistd.h>
 #include <string.h>
@@ -810,7 +810,7 @@ bool CustomInput::onFrame(const uint8_t* data, int size, int64_t pts, int64_t dt
 
     frameBuffer->_dts = dts;
     frameBuffer->_pts = pts;
-    frameBuffer->_buffer.assign((char*)data, size);
+    frameBuffer->_buffer->assign((char*)data, size);
 
     std::weak_ptr<CustomInput> wSelf = shared_from_this();
     _eventLoop->async([wSelf, frameBuffer](){

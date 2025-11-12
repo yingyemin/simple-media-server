@@ -3,7 +3,7 @@
 
 #include <string>
 
-using namespace std;
+// using namespace std;
 
 class Thread
 {
@@ -13,8 +13,8 @@ public:
 
 public:
     static int getThreadId();
-    static string getThreadName();
-    static void setThreadName(const string& name);
+    static std::string getThreadName();
+    static void setThreadName(const std::string& name);
 
 private:
 };

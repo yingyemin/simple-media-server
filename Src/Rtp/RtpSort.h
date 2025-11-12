@@ -12,7 +12,7 @@
 #include "RtpPacket.h"
 #include "Log/Logger.h"
 
-using namespace std;
+// using namespace std;
 
 struct myCompare {
     bool operator()(const uint16_t& l, const uint16_t& r)const
@@ -31,21 +31,21 @@ struct myCompare {
 class RtpSort
 {
 public:
-    using Ptr = shared_ptr<RtpSort>;
+    using Ptr = std::shared_ptr<RtpSort>;
     RtpSort(int maxQueSize = 25);
 
     void inputRtp(const RtpPacket::Ptr& rtp);
     void onRtpPacket(const RtpPacket::Ptr& rtp);
-    void setOnRtpPacket(const function<void(const RtpPacket::Ptr& rtp)>& cb);
-    vector<uint16_t> getLossSeq();
+    void setOnRtpPacket(const std::function<void(const RtpPacket::Ptr& rtp)>& cb);
+    std::vector<uint16_t> getLossSeq();
     
 private:
     bool _firstRtp = true;
     uint16_t _lastRtpSeq = -1;
     int _maxQueSize;
-    set<uint16_t> _setSeq;
-    map<uint16_t, RtpPacket::Ptr, myCompare> _mapRtp;
-    function<void(const RtpPacket::Ptr& rtp)> _onRtpPacket;
+    std::set<uint16_t> _setSeq;
+    std::map<uint16_t, RtpPacket::Ptr, myCompare> _mapRtp;
+    std::function<void(const RtpPacket::Ptr& rtp)> _onRtpPacket;
 };
 
 

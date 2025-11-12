@@ -1,12 +1,14 @@
 ﻿#include "RtspClient.h"
 #include "Common/Define.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Util/MD5.h"
 #include "Common/HookManager.h"
 #include "RtspPsMediaSource.h"
-
+#if defined(_WIN32)
+#include "Util/Util.h"
+#else
 #include <arpa/inet.h>
-
+#endif
 RtspClient::RtspClient(MediaClientType type, const string& appName, const string& streamName)
     :TcpClient(EventLoop::getCurrentLoop())
     ,_type(type)

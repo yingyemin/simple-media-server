@@ -21,15 +21,15 @@
 // 添加io_uring头文件
 #include <liburing.h>
 
-using namespace std;
+// using namespace std;
 using namespace moodycamel;
 
 class UringLoop : public EventLoop {
 public:
     using Ptr = std::shared_ptr<UringLoop>;
-    using asyncEventFunc = function<void()>;
+    using asyncEventFunc = std::function<void()>;
     using PollCompleteCB = std::function<void(bool success)>;
-    using TaskCompleteCB = std::function<void (bool success, shared_ptr<TimerTask>)>;
+    using TaskCompleteCB = std::function<void (bool success, std::shared_ptr<TimerTask>)>;
 
     UringLoop();
     ~UringLoop();
@@ -39,7 +39,7 @@ public:
 
 public:
     virtual void start();
-    virtual void setThread(thread* thd);
+    virtual void setThread(std::thread* thd);
 
     virtual bool isCurrent();
     virtual void onAsyncEvent();
@@ -88,10 +88,10 @@ private:
     std::mutex _mtxEvents;
     Timer::Ptr _timer;
     std::list<asyncEventFunc> _asyncEvents;
-    unordered_map<int, EventHander> _mapHander;
-    unordered_map<int, uint32_t> _fd_to_event;
+    std::unordered_map<int, EventHander> _mapHander;
+    std::unordered_map<int, uint32_t> _fd_to_event;
 
-    std::vector<shared_ptr<ReaderWriterQueue<asyncEventFunc>>> _asyncQueues;
+    std::vector<std::shared_ptr<ReaderWriterQueue<asyncEventFunc>>> _asyncQueues;
 
     // 创建唤醒fd
     static int createEventfd();

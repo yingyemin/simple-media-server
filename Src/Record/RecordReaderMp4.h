@@ -6,14 +6,14 @@
 #include "RecordReader.h"
 #include "Mp4/Mp4FileReader.h"
 
-using namespace std;
+// using namespace std;
 
 class RecordReaderMp4 : public RecordReader
 {
 public:
-    using Ptr = shared_ptr<RecordReaderMp4>;
+    using Ptr = std::shared_ptr<RecordReaderMp4>;
 
-    RecordReaderMp4(const string& path);
+    RecordReaderMp4(const std::string& path);
     ~RecordReaderMp4();
 
 public:

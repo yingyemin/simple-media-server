@@ -47,7 +47,7 @@ void RtmpDecodeAV1::decode(const RtmpMessage::Ptr& msg)
 
         auto frame = FrameBuffer::createFrame("av1", 0, _trackInfo->index_, false);
         frame->_pts = frame->_dts = msg->abs_timestamp;
-        frame->_buffer.append((char*)payload + 9, length - 9);
+        frame->_buffer->append((char*)payload + 9, length - 9);
         _trackInfo->setVps(frame);
         onFrame(frame);
     } else {
@@ -71,14 +71,14 @@ void RtmpDecodeAV1::decode(const RtmpMessage::Ptr& msg)
             auto frame = FrameBuffer::createFrame("av1", 0, _trackInfo->index_, false);
             frame->_pts = frame->_dts = msg->abs_timestamp;
             frame->_pts += cts;
-            frame->_buffer.append((char*)payload, end - payload);
+            frame->_buffer->append((char*)payload, end - payload);
             
             onFrame(frame);
         }
     }
 }
 
-void RtmpDecodeAV1::setOnFrame(const function<void(const FrameBuffer::Ptr& frame)> cb)
+void RtmpDecodeAV1::setOnFrame(const function<void(const FrameBuffer::Ptr& frame)>& cb)
 {
     _onFrame = cb;
 }

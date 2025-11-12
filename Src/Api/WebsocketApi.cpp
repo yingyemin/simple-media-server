@@ -2,7 +2,7 @@
 #include "Http/ApiUtil.h"
 #include "Logger.h"
 #include "Common/Config.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Http/WebsocketClient.h"
 
 using namespace std;

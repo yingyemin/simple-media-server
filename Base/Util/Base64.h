@@ -3,13 +3,13 @@
 
 #include <string>
 
-using namespace std;
+// using namespace std;
 
 class Base64
 {
 public:
-    static string encode(const string& str);
-    static string decode(const string& str);
+    static std::string encode(const std::string& str);
+    static std::string decode(const std::string& str);
     static int indexOfCode(const char c);
 
 };

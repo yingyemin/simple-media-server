@@ -5,7 +5,7 @@
 
 #include "RtpDecodeH266.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 
 using namespace std;
 
@@ -145,8 +145,8 @@ void RtpDecodeH266::decode(const RtpPacket::Ptr& rtp)
 
 void RtpDecodeH266::decodeSingle(const uint8_t *ptr, ssize_t size, uint64_t stamp)
 {
-    _frame->_buffer.assign("\x00\x00\x00\x01", 4);
-    _frame->_buffer.append((char *) ptr, size);
+    _frame->_buffer->assign("\x00\x00\x00\x01", 4);
+    _frame->_buffer->append((char *) ptr, size);
     _frame->_pts = stamp;
 
     onFrame(_frame);
@@ -187,14 +187,14 @@ void RtpDecodeH266::decodeFuA(const RtpPacket::Ptr& rtp)
 
     if (header->start_bit) {
         if (_stage != 0) {
-            _frame->_buffer.clear();
+            _frame->_buffer->clear();
         }
         _stage = 1;
-        _frame->_buffer.assign("\x00\x00\x00\x01", 4);
-        _frame->_buffer.push_back(payload[0]);
-        _frame->_buffer.push_back(((payload[2] & 0x1f) << 3) & (payload[1] & 0x07));
+        _frame->_buffer->assign("\x00\x00\x00\x01", 4);
+        _frame->_buffer->push_back(payload[0]);
+        _frame->_buffer->push_back(((payload[2] & 0x1f) << 3) & (payload[1] & 0x07));
         _frame->_pts = stamp;
-        _frame->_buffer.append((char *) payload + 3, payloadSize - 3);
+        _frame->_buffer->append((char *) payload + 3, payloadSize - 3);
         if (header->end_bit || rtp->getHeader()->mark) {
             _stage = 0;
             onFrame(_frame);
@@ -212,7 +212,7 @@ void RtpDecodeH266::decodeFuA(const RtpPacket::Ptr& rtp)
         return ;
     }
 
-    _frame->_buffer.append((char *) payload + 3, payloadSize - 3);
+    _frame->_buffer->append((char *) payload + 3, payloadSize - 3);
     if (header->end_bit) {
         _stage = 0;
         onFrame(_frame);

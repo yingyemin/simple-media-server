@@ -6,7 +6,7 @@
 #include <memory>
 #include <vector>
 
-using namespace std;
+// using namespace std;
 
 class SdpMedia
 {
@@ -16,31 +16,31 @@ public:
     int channel_;
     int index_;
     int port_;
-    string trackType_;
-    string codec_;
-    string fmtp_;
-    string control_;
-    unordered_map<char, string> mapmedia_;
-    unordered_map<string, string> mapAttr_;
+    std::string trackType_;
+    std::string codec_;
+    std::string fmtp_;
+    std::string control_;
+    std::unordered_map<char, std::string> mapmedia_;
+    std::unordered_map<std::string, std::string> mapAttr_;
 };
 
 class SdpTitle
 {
 public:
-    unordered_map<char, string> mapTitle_;
-    unordered_map<string, string> mapAttr_;
+    std::unordered_map<char, std::string> mapTitle_;
+    std::unordered_map<std::string, std::string> mapAttr_;
 };
 
 class RtspSdpParser {
 public:
-    void parse(const string& sdp);
+    void parse(const std::string& sdp);
 
 public:
     
-    string _sdp;
-    shared_ptr<SdpTitle> _title;
+    std::string _sdp;
+    std::shared_ptr<SdpTitle> _title;
     // index , SdpMedia
-    vector<shared_ptr<SdpMedia>> _vecSdpMedia;
+    std::vector<std::shared_ptr<SdpMedia>> _vecSdpMedia;
 };
 
 

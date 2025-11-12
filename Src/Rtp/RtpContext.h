@@ -10,15 +10,15 @@
 #include <memory>
 #include <unordered_map>
 
-using namespace std;
+// using namespace std;
 
-class RtpContext : public enable_shared_from_this<RtpContext>
+class RtpContext : public std::enable_shared_from_this<RtpContext>
 {
 public:
-    using Ptr = shared_ptr<RtpContext>;
-    using Wptr = weak_ptr<RtpContext>;
+    using Ptr = std::shared_ptr<RtpContext>;
+    using Wptr = std::weak_ptr<RtpContext>;
 
-    RtpContext(const EventLoop::Ptr& loop, const string& uri, const string& vhost, const string& protocol, const string& type);
+    RtpContext(const EventLoop::Ptr& loop, const std::string& uri, const std::string& vhost, const std::string& protocol, const std::string& type);
     ~RtpContext();
 public:
     bool init();
@@ -26,20 +26,20 @@ public:
     void heartbeat();
     bool isAlive() {return _alive;}
 
-    void setPayloadType(const string& payloadType);
-    void createVideoTrack(const string& videoCodec);
-    void createAudioTrack(const string& audioCodec, int channel, int sampleBit, int sampleRate);
+    void setPayloadType(const std::string& payloadType);
+    void createVideoTrack(const std::string& videoCodec);
+    void createAudioTrack(const std::string& audioCodec, int channel, int sampleBit, int sampleRate);
 
 private:
     bool _alive = true;
     int64_t _ssrc = -1;
-    string _uri;
-    string _vhost;
-    string _protocol;
-    string _type;
-    string _payloadType;
+    std::string _uri;
+    std::string _vhost;
+    std::string _protocol;
+    std::string _type;
+    std::string _payloadType;
     TimeClock _timeClock;
-    shared_ptr<sockaddr> _addr;
+    std::shared_ptr<sockaddr> _addr;
     EventLoop::Ptr _loop;
     RtpSort::Ptr _sort;
     RtpDecodeTrack::Ptr _videoTrack;

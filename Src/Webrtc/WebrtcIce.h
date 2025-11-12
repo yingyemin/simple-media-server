@@ -64,7 +64,7 @@ private:
     std::unordered_map<IceCandidateType, Address*> _candidates;
     std::vector<CandidateInfo::Ptr> _peerHost;
     std::unordered_map<IceCandidateType, CandidateInfo::Ptr> _peerCandidates;
-    std::unordered_map<IceCandidateType, pair<Address*, CandidateInfo::Ptr>> _pairAddr;
+    std::unordered_map<IceCandidateType, std::pair<Address*, CandidateInfo::Ptr>> _pairAddr;
 };
 
 #endif //WebrtcIce_H

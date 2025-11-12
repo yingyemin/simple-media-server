@@ -129,7 +129,7 @@ int RtmpHandshake::buildC0C1(char* buf, uint32_t buf_size)
 	return size;
 }
 
-void RtmpHandshake::setOnHandshake(const function<void(const StreamBuffer::Ptr& buffer)>& cb)
+void RtmpHandshake::setOnHandshake(const std::function<void(const StreamBuffer::Ptr& buffer)>& cb)
 {
     _onHandshake = cb;
 }
@@ -141,7 +141,7 @@ void RtmpHandshake::onHandshake(const StreamBuffer::Ptr& buffer)
     }
 }
 
-void RtmpHandshake::setOnRtmpChunk(const function<void(const StreamBuffer::Ptr& buffer)>& cb)
+void RtmpHandshake::setOnRtmpChunk(const std::function<void(const StreamBuffer::Ptr& buffer)>& cb)
 {
     _onRtmpChunk = cb;
 }

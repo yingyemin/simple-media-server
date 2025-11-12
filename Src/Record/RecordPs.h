@@ -17,12 +17,12 @@
 #include "Mpeg/PsMediaSource.h"
 #include "Record.h"
 
-using namespace std;
+// using namespace std;
 
 class RecordPs : public Record
 {
 public:
-    using Ptr = shared_ptr<RecordPs>;
+    using Ptr = std::shared_ptr<RecordPs>;
 
     RecordPs(const UrlParser& urlParser, const RecordTemplate::Ptr& recordTemplate);
     ~RecordPs();
@@ -30,11 +30,11 @@ public:
 public:
     bool start() override;
     void stop() override;
-    void setOnClose(const function<void()>& cb) override;
+    void setOnClose(const std::function<void()>& cb) override;
     std::string getFormat() override {return "ps";}
 
 private:
-    void onError(const string& err);
+    void onError(const std::string& err);
     void onPlayPs(const PsMediaSource::Ptr &psSrc);
     void tryNewSegment(const FrameBuffer::Ptr& frame);
 
@@ -47,7 +47,7 @@ private:
     WorkLoop::Ptr _workLoop;
     PsMediaSource::Wptr _source;
     PsMediaSource::RingType::DataQueReaderT::Ptr _playPsReader;
-    function<void()> _onClose;
+    std::function<void()> _onClose;
 };
 
 #endif

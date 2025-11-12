@@ -4,6 +4,8 @@
 #include "Log/Logger.h"
 #include "Common/Config.h"
 
+using namespace std;
+
 static int verifyCallback(int ok, X509_STORE_CTX *ctx)
 {
     // Always OK, we don't check the certificate of client,

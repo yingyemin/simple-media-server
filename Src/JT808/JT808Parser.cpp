@@ -1,6 +1,8 @@
 ﻿#include "JT808Parser.h"
 #include "Log/Logger.h"
 
+using namespace std;
+
 JT808Parser::JT808Parser() {
     _pkt = make_shared<JT808Packet>();
 }

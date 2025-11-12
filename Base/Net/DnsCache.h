@@ -1,6 +1,13 @@
 ﻿#ifndef DnsCache_h
 #define DnsCache_h
 
+#if defined(_WIN32)
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <iphlpapi.h>
+#pragma comment (lib, "Ws2_32.lib")
+#pragma comment(lib,"Iphlpapi.lib")
+#else
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
@@ -8,13 +15,14 @@
 #include <net/if.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
+#endif // defined(_WIN32)
 
 #include <string>
 #include <unordered_map>
 #include <mutex>
 #include <memory>
 
-using namespace std;
+// using namespace std;
 
 class DnsItem {
 public:
@@ -42,8 +50,8 @@ private:
     struct addrinfo *getPerferredAddress(struct addrinfo *answer, int ai_family, int ai_socktype, int ai_protocol);
 
 private:
-    mutex _mtx;
-    unordered_map<string, DnsItem> _dns_cache;
+    std::mutex _mtx;
+    std::unordered_map<std::string, DnsItem> _dns_cache;
 };
 
 #endif //DnsCache_h

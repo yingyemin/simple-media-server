@@ -35,13 +35,13 @@ private:
     };
 
 public:
-    void setOnSctpAssociationConnecting(const function<void(SctpAssociation* sctpAssociation)>& cb);
-    void setOnSctpAssociationConnected(const function<void(SctpAssociation* sctpAssociation)>& cb);
-    void setOnSctpAssociationFailed(const function<void(SctpAssociation* sctpAssociation)>& cb);
-    void setOnSctpAssociationClosed(const function<void(SctpAssociation* sctpAssociation)>& cb);
+    void setOnSctpAssociationConnecting(const std::function<void(SctpAssociation* sctpAssociation)>& cb);
+    void setOnSctpAssociationConnected(const std::function<void(SctpAssociation* sctpAssociation)>& cb);
+    void setOnSctpAssociationFailed(const std::function<void(SctpAssociation* sctpAssociation)>& cb);
+    void setOnSctpAssociationClosed(const std::function<void(SctpAssociation* sctpAssociation)>& cb);
     void setOnSctpAssociationSendData(
-        const function<void(SctpAssociation* sctpAssociation, const uint8_t* data, size_t len)>& cb);
-    void setOnSctpAssociationMessageReceived(const function<void(
+        const std::function<void(SctpAssociation* sctpAssociation, const uint8_t* data, size_t len)>& cb);
+    void setOnSctpAssociationMessageReceived(const std::function<void(
         SctpAssociation* sctpAssociation,
         uint16_t streamId,
         uint32_t ppid,
@@ -122,14 +122,13 @@ private:
     uint16_t _lastSsnReceived{ 0u }; // Valid for us since no SCTP I-DATA support.
     std::shared_ptr<SctpEnv> _env;
 
-    function<void(SctpAssociation* sctpAssociation)> _onSctpAssociationConnecting;
-    function<void(SctpAssociation* sctpAssociation)> _onSctpAssociationConnected;
-    function<void(SctpAssociation* sctpAssociation)> _onSctpAssociationFailed;
-    function<void(SctpAssociation* sctpAssociation)> _onSctpAssociationClosed;
-    function<void(SctpAssociation* sctpAssociation, const uint8_t* data, size_t len)> _onSctpAssociationSendData;
-    function<void(SctpAssociation* sctpAssociation, uint16_t streamId, uint32_t ppid,
+    std::function<void(SctpAssociation* sctpAssociation)> _onSctpAssociationConnecting;     
+    std::function<void(SctpAssociation* sctpAssociation)> _onSctpAssociationConnected;
+    std::function<void(SctpAssociation* sctpAssociation)> _onSctpAssociationFailed;
+    std::function<void(SctpAssociation* sctpAssociation)> _onSctpAssociationClosed;
+    std::function<void(SctpAssociation* sctpAssociation, const uint8_t* data, size_t len)> _onSctpAssociationSendData;
+    std::function<void(SctpAssociation* sctpAssociation, uint16_t streamId, uint32_t ppid,
                             const uint8_t* msg, size_t len)> _onSctpAssociationMessageReceived;
-;
 };
 
 //保证线程安全

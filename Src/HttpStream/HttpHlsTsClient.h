@@ -7,12 +7,12 @@
 #include <memory>
 #include <functional>
 
-using namespace std;
+// using namespace std;
 
 class HttpHlsTsClient : public HttpClient
 {
 public:
-    using Ptr = shared_ptr<HttpHlsTsClient>;
+    using Ptr = std::shared_ptr<HttpHlsTsClient>;
     HttpHlsTsClient();
     ~HttpHlsTsClient();
 
@@ -24,17 +24,17 @@ public:
     void close() override;
 
 public:
-    bool start(const string& localIp, int localPort, const string& url, int timeout);
+    bool start(const std::string& localIp, int localPort, const std::string& url, int timeout);
     void onTsPacket(const char* tsPacket, int len);
-    void onError(const string& err);
-    void setOnTsPacket(const function<void(const char* tsPacket, int len)>& cb);
+    void onError(const std::string& err);
+    void setOnTsPacket(const std::function<void(const char* tsPacket, int len)>& cb);
 
 private:
     EventLoop::Ptr _loop;
     Socket::Ptr _socket;
 
-    function<void(const char* tsPacket, int len)> _onTsPacket;
-    function<void()> _onClose;
+    std::function<void(const char* tsPacket, int len)> _onTsPacket;
+    std::function<void()> _onClose;
 };
 
 #endif //HttpHlsClient_h

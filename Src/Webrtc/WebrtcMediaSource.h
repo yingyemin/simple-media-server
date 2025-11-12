@@ -14,14 +14,14 @@
 #include "Common/DataQue.h"
 #include "WebrtcRtpPacket.h"
 
-using namespace std;
+// using namespace std;
 
 class WebrtcMediaSource : public MediaSource
 {
 public:
-    using Ptr = shared_ptr<WebrtcMediaSource>;
-    using Wptr = weak_ptr<WebrtcMediaSource>;
-    using DataType = shared_ptr<deque<RtpPacket::Ptr> >;
+    using Ptr = std::shared_ptr<WebrtcMediaSource>;
+    using Wptr = std::weak_ptr<WebrtcMediaSource>;
+    using DataType = std::shared_ptr<deque<RtpPacket::Ptr> >;
     using QueType = DataQue<DataType>;
 
     WebrtcMediaSource(const UrlParser& urlParser, const EventLoop::Ptr& loop = nullptr, bool muxer = false);
@@ -29,13 +29,13 @@ public:
 
 public:
     void addTrack(const WebrtcDecodeTrack::Ptr& track);
-    void addTrack(const shared_ptr<TrackInfo>& track) override;
+    void addTrack(const std::shared_ptr<TrackInfo>& track) override;
     void addSink(const MediaSource::Ptr &src) override;
     void delSink(const MediaSource::Ptr &src) override;
     void onFrame(const FrameBuffer::Ptr& frame) override;
     void onReady() override;
     int playerCount() override;
-    void getClientList(const function<void(const list<ClientInfo>& info)>& func) override;
+    void getClientList(const std::function<void(const std::list<ClientInfo>& info)>& func) override;
     uint64_t getBytes() override { return _ring ? _ring->getBytes() : 0;}
 
     QueType::Ptr getRing() {return _ring;}
@@ -59,9 +59,9 @@ private:
     QueType::Ptr _ring;
     DataType _cache;
 
-    mutex _mtxTrack;
-    unordered_map<int/*index*/, WebrtcEncodeTrack::Ptr> _mapWebrtcEncodeTrack;
-    unordered_map<int/*index*/, WebrtcDecodeTrack::Ptr> _mapWebrtcDecodeTrack;
+    std::mutex _mtxTrack;
+    std::unordered_map<int/*index*/, WebrtcEncodeTrack::Ptr> _mapWebrtcEncodeTrack;
+    std::unordered_map<int/*index*/, WebrtcDecodeTrack::Ptr> _mapWebrtcDecodeTrack;
 };
 
 

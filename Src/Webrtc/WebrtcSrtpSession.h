@@ -4,7 +4,7 @@
 #include <string>
 #include "srtp2/srtp.h"
 
-using namespace std;
+// using namespace std;
 
 
 class SrtpSession 

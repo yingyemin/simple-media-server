@@ -2,13 +2,18 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
+
+#ifndef _WIN32
 #include <arpa/inet.h>
-#include <bitset>
 #include <netinet/in.h>
+#endif
+
+#include <bitset>
+
 
 #include "WebrtcRtcpPacket.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Util/TimeClock.h"
 
 using namespace std;

@@ -15,13 +15,13 @@
 #include <memory>
 #include <vector>
 
-using namespace std;
+// using namespace std;
 
 class RtspConnection : public TcpConnection
 {
 public:
-    using Ptr = shared_ptr<RtspConnection>;
-    using Wptr = weak_ptr<RtspConnection>;
+    using Ptr = std::shared_ptr<RtspConnection>;
+    using Wptr = std::weak_ptr<RtspConnection>;
 
     RtspConnection(const EventLoop::Ptr& loop, const Socket::Ptr& socket, bool enableSsl = false);
     ~RtspConnection();
@@ -29,11 +29,12 @@ public:
 public:
     // 继承自tcpseesion
     void onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len) override;
-    void onError(const string& msg) override;
+    void onError(const std::string& msg) override;
     void onManager() override;
     void init() override;
     void close() override;
     ssize_t send(Buffer::Ptr pkt) override;
+    ssize_t send(Buffer::Ptr pkt, bool flag, size_t offset = 0, size_t len = 0) override;
 
     void onRtspPacket();
 
@@ -56,12 +57,15 @@ private:
     void handleDescribe_l();
     void responseDescribe(const MediaSource::Ptr &src);
 
-    void sendMessage(const string& msg);
-    void sendBadRequst(const string& msg);
+    void sendMessage(const std::string& msg);
+    void sendBadRequst(const std::string& msg);
     void sendUnsupportedTransport();
     void sendNotAcceptable();
     void sendSessionNotFound();
     void sendStreamNotFound();
+
+    void onCombineMediaSource();
+    void onPollingMediaSource();
 
 private:
     bool _isPublish = false;
@@ -69,10 +73,10 @@ private:
     uint64_t _totalSendBytes = 0;
     uint64_t _intervalSendBytes = 0;
     float _lastBitrate = 0;
-    string _baseUrl;
-    string _authNonce;
-    string _sessionId;
-    string _payloadType;
+    std::string _baseUrl;
+    std::string _authNonce;
+    std::string _sessionId;
+    std::string _payloadType;
     EventLoop::Ptr _loop;
     Socket::Ptr _socket;
     RtspParser _parser;
@@ -81,9 +85,9 @@ private:
     RtspMediaSource::Wptr _source;
     RtspMediaSource::QueType::DataQueReaderT::Ptr _playReader;
     // int : index
-    unordered_map<int, RtspRtpTransport::Ptr> _mapRtpTransport;
+    std::unordered_map<int, RtspRtpTransport::Ptr> _mapRtpTransport;
     // int : index
-    unordered_map<int, RtspRtcpTransport::Ptr> _mapRtcpTransport;
+    std::unordered_map<int, RtspRtcpTransport::Ptr> _mapRtcpTransport;
 };
 
 #endif //RtspConnection_h

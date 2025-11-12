@@ -2,11 +2,14 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
+
+#ifndef _WIN32
 #include <arpa/inet.h>
+#endif
 
 #include "JT1078EncodeTrack.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Util/Base64.h"
 // #include "Codec/AacTrack.h"
 #include "Codec/H264Track.h"

@@ -10,18 +10,18 @@
 #include "Common/Track.h"
 #include "Rtp/RtpPacket.h"
 
-using namespace std;
+// using namespace std;
 
-class RtpDecoder : public enable_shared_from_this<RtpDecoder>
+class RtpDecoder : public std::enable_shared_from_this<RtpDecoder>
 {
 public:
-    using Ptr = shared_ptr<RtpDecoder>;
+    using Ptr = std::shared_ptr<RtpDecoder>;
 
-    static RtpDecoder::Ptr creatDecoder(const shared_ptr<TrackInfo>& trackInfo);
+    static RtpDecoder::Ptr creatDecoder(const std::shared_ptr<TrackInfo>& trackInfo);
 
     // virtual bool isStartGop(const RtpPacket::Ptr& rtp) = 0;
     virtual void decode(const RtpPacket::Ptr& rtp) = 0;
-    virtual void setOnDecode(const function<void(const FrameBuffer::Ptr& frame)> cb) = 0;
+    virtual void setOnDecode(const std::function<void(const FrameBuffer::Ptr& frame)> cb) = 0;
 };
 
 

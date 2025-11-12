@@ -15,10 +15,14 @@
 
 #ifdef ENABLE_SRT
 
+#ifndef _WIN32
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
-#include "srt/srt.h"
 #include <unistd.h>
+#endif
+
+#include "srt/srt.h"
+
 
 using namespace std;
 
@@ -27,6 +31,7 @@ using namespace std;
 
 static thread_local std::weak_ptr<SrtEventLoop> gCurrentLoop;
 
+#ifndef _WIN32
 static int createEventfd(){
     int evtfd = eventfd(0, EFD_NONBLOCK);
     if(evtfd < 0){
@@ -34,6 +39,7 @@ static int createEventfd(){
     }
     return evtfd;
 }
+#endif
 
 SrtEventLoop::SrtEventLoop()
 {
@@ -105,7 +111,7 @@ void SrtEventLoop::start()
         _fdCount = _mapHander.size();
         _timerTaskCount = _timer->getTaskSize();
 
-        // logInfo << "ret: " << ret << ", _mapHander.size(): " << _mapHander.size();
+        logInfo << "ret: " << ret << ", _mapHander.size(): " << _mapHander.size();
         for (int i = 0; i < read_len; ++i) {
             // struct epoll_event &ev = events[i];
             int fd = m_read_socks[i];
@@ -252,7 +258,7 @@ inline void SrtEventLoop::onAsyncEvent()
     for (auto& func : _enventSwap) {
         try {
             func();
-            // logInfo << "do a async event";
+            logInfo << "do a async event";
         } catch (std::exception &ex) {
             logWarn << "do async event failed: " << ex.what();
         }
@@ -324,10 +330,10 @@ void SrtEventLoop::modifyEvent(int fd, int event, PollCompleteCB cb) {
         modes |= SRT_EPOLL_ERR;
         ret = srt_epoll_update_usock(_epollFd, fd, &modes);
         if (ret < 0) {
-            logError << "del from epoll failed, fd: " << fd << ", errno: " << srt_getlasterror_str();
+            logError << "del from epoll failed, fd: " << fd;
         }
 
-        // _mapHander.erase(fd);
+        _mapHander.erase(fd);
         cb(true);
 
         return ;

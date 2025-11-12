@@ -2,6 +2,7 @@
 #include "Util/Thread.h"
 #include "Logger.h"
 
+using namespace std;
 
 ///////////////////AsyncLogWriter///////////////////
 AsyncLogWriter::AsyncLogWriter() 

@@ -9,12 +9,12 @@
 
 #include "GB28181Context.h"
 
-using namespace std;
+// using namespace std;
 
-class GB28181Manager : public enable_shared_from_this<GB28181Manager> {
+class GB28181Manager : public std::enable_shared_from_this<GB28181Manager> {
 public:
-    using Ptr = shared_ptr<GB28181Manager>;
-    using Wptr = weak_ptr<GB28181Manager>;
+    using Ptr = std::shared_ptr<GB28181Manager>;
+    using Wptr = std::weak_ptr<GB28181Manager>;
 
     GB28181Manager();
     ~GB28181Manager();
@@ -30,9 +30,9 @@ public:
 
 private:
     bool _isInited = false;
-    mutex _contextLck;
+    std::mutex _contextLck;
     // EventLoop::Ptr _loop;
-    unordered_map<uint32_t, GB28181Context::Ptr> _mapContext;
+    std::unordered_map<uint32_t, GB28181Context::Ptr> _mapContext;
 };
 
 #endif //GB28181Manager_h

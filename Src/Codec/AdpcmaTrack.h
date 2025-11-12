@@ -10,12 +10,12 @@
 #include "Common/Track.h"
 #include "Common/Frame.h"
 
-using namespace std;
+// using namespace std;
 
 class AdpcmaTrack : public TrackInfo
 {
 public:
-    using Ptr = shared_ptr<AdpcmaTrack>;
+    using Ptr = std::shared_ptr<AdpcmaTrack>;
 
 public:
     static AdpcmaTrack::Ptr createTrack(int index, int payloadType, int samplerate);
@@ -24,7 +24,7 @@ public:
     virtual ~AdpcmaTrack() {}
 
 public:
-    string getSdp() override;
+    std::string getSdp() override;
     
     static void registerTrackInfo();
 };

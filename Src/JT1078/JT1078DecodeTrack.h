@@ -1,4 +1,4 @@
-﻿#ifndef JT1078DecodeTrack_H
+#ifndef JT1078DecodeTrack_H
 #define JT1078DecodeTrack_H
 
 #include "Buffer.h"
@@ -11,12 +11,12 @@
 
 #include <unordered_map>
 
-using namespace std;
+// using namespace std;
 
 class JT1078DecodeTrack
 {
 public:
-    using Ptr = shared_ptr<JT1078DecodeTrack>;
+    using Ptr = std::shared_ptr<JT1078DecodeTrack>;
     JT1078DecodeTrack(int trackIndex);
 
 public:
@@ -24,19 +24,19 @@ public:
     void startDecode();
     void stopDecode();
     
-    void setOnReady(const function<void()>& cb) {_onReady = cb;}
-    void setOnRtpPacket(const function<void(const JT1078RtpPacket::Ptr& rtp, bool isStartGop)>& cb) {_onRtpPacket = cb;}
-    void setOnFrame(const function<void(const FrameBuffer::Ptr& frame)>& cb) {_onFrame = cb;}
+    void setOnReady(const std::function<void()>& cb) {_onReady = cb;}
+    void setOnRtpPacket(const std::function<void(const JT1078RtpPacket::Ptr& rtp, bool isStartGop)>& cb) {_onRtpPacket = cb;}
+    void setOnFrame(const std::function<void(const FrameBuffer::Ptr& frame)>& cb) {_onFrame = cb;}
     void onFrame(const FrameBuffer::Ptr& frame);
 
     int getTrackIndex()  {return _index;}
     int getTrackType() {return _type;}
-    shared_ptr<TrackInfo> getTrackInfo() { return _trackInfo;}
+    std::shared_ptr<TrackInfo> getTrackInfo() { return _trackInfo;}
 
     void decodeRtp(const JT1078RtpPacket::Ptr& rtp);
 
-    void setOnTrackInfo(const function<void(const shared_ptr<TrackInfo>& trackInfo)>& cb);
-    void onTrackInfo(const shared_ptr<TrackInfo>& trackInfo);
+    void setOnTrackInfo(const std::function<void(const std::shared_ptr<TrackInfo>& trackInfo)>& cb);
+    void onTrackInfo(const std::shared_ptr<TrackInfo>& trackInfo);
     void createFrame();
     bool isReady() {return _ready;}
 
@@ -49,16 +49,17 @@ private:
     int _index;
     int _type;
     uint16_t _lastSeq = 0;
-    string _originAudioCodec;
+    std::string _originAudioCodec;
     adpcm_state _state;
     g726_state_t _state726;
+    uint8_t _726_pcm_len = 120;
     G711Transcode _g711aEncode;
     FrameBuffer::Ptr _frame;
-    shared_ptr<TrackInfo> _trackInfo;
-    function<void()> _onReady;
-    function<void(const FrameBuffer::Ptr& frame)> _onFrame;
-    function<void(const JT1078RtpPacket::Ptr& rtp, bool isStartGop)> _onRtpPacket;
-    function<void(const shared_ptr<TrackInfo>& trackInfo)> _onTrackInfo;
+    std::shared_ptr<TrackInfo> _trackInfo;
+    std::function<void()> _onReady;
+    std::function<void(const FrameBuffer::Ptr& frame)> _onFrame;
+    std::function<void(const JT1078RtpPacket::Ptr& rtp, bool isStartGop)> _onRtpPacket;
+    std::function<void(const std::shared_ptr<TrackInfo>& trackInfo)> _onTrackInfo;
 };
 
 

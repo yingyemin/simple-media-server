@@ -9,14 +9,14 @@
 
 #include <deque>
 #include <memory>
-#include <netinet/in.h>
+// #include <netinet/in.h>
 
-using namespace std;
+// using namespace std;
 
 class SrtScoketBuffer
 {
 public:
-    using Ptr = shared_ptr<SrtScoketBuffer>;
+    using Ptr = std::shared_ptr<SrtScoketBuffer>;
 
     Buffer::Ptr _buffer;
     int _offset = 0;
@@ -24,11 +24,11 @@ public:
 
 class SrtSocket : public std::enable_shared_from_this<SrtSocket> {
 public:
-    using Ptr = shared_ptr<SrtSocket>;
-    using Wptr = weak_ptr<SrtSocket>;
-    using onReadCb = function<int(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)>;
-    using onWriteCb = function<void()>;
-    using onErrorCb = function<void()>;
+    using Ptr = std::shared_ptr<SrtSocket>;
+    using Wptr = std::weak_ptr<SrtSocket>;
+    using onReadCb = std::function<int(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len)>;
+    using onWriteCb = std::function<void()>;
+    using onErrorCb = std::function<void()>;
     SrtSocket(const SrtEventLoop::Ptr& loop);
     SrtSocket(const SrtEventLoop::Ptr& loop, bool isListen);
     SrtSocket(const SrtEventLoop::Ptr& loop, int fd);
@@ -41,7 +41,7 @@ public:
 public:
     // type: 1:tcp, 2:udp, 3:quic, 4:srt
     // family ipv4 or ipv6
-    sockaddr_storage createSocket(const string& peerIp, int peerPort, int type);
+    sockaddr_storage createSocket(const std::string& peerIp, int peerPort, int type);
     int createSocket(int type);
 
     int setsockopt(int fd, int level, SRT_SOCKOPT optname, const void * optval, int optlen);
@@ -60,14 +60,14 @@ public:
     int bind(const uint16_t port, const char *localIp);
     int listen(int backlog);
     int accept();
-    int connect(const string& peetIp, int port, int timeout = 5);
+    int connect(const std::string& peetIp, int port, int timeout = 5);
 
     int getFd() {return _fd;}
     int getLocalPort();
-    string getLocalIp();
+    std::string getLocalIp();
     
     int getPeerPort();
-    string getPeerIp();
+    std::string getPeerIp();
 
     void handleEvent(int event, void* args);
     void addToEpoll();
@@ -134,9 +134,9 @@ private:
     int _localPort = -1;
     int _peerPort = -1;
     size_t _remainSize = 0;
-    string _localIp;
-    string _peerIp;
-    list<SrtScoketBuffer::Ptr> _readyBuffer;
+    std::string _localIp;
+    std::string _peerIp;
+    std::list<SrtScoketBuffer::Ptr> _readyBuffer;
     SrtEventLoop::Ptr _loop;
     onReadCb _onRead;
     onWriteCb _onWrite;

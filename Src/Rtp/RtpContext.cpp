@@ -2,11 +2,17 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
+
+
+#if defined(_WIN32)
+#include "Util/Util.h"
+#else
 #include <sys/socket.h>
+#endif
 
 #include "RtpContext.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Common/Define.h"
 #include "Common/Config.h"
 #include "Common/HookManager.h"

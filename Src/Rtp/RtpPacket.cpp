@@ -2,11 +2,15 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
+#if defined(_WIN32)
+#include "Util/Util.h"
+#else
 #include <arpa/inet.h>
+#endif
 
 #include "RtpPacket.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 
 using namespace std;
 
@@ -221,6 +225,20 @@ uint8_t *RtpPacket::getPayload() {
 size_t RtpPacket::getPayloadSize() {
     // 需除去rtcp over tcp 4个字节长度
     return _header->getPayloadSize(size() - _rtpOverTcpHeaderSize);
+}
+
+void RtpPacket::setFrameData(const FrameBuffer::Ptr& frameData, uint64_t offset, uint64_t len)
+{
+    _frameData = frameData;
+    _offset = offset;
+    _len = len;
+}
+
+FrameBuffer::Ptr RtpPacket::getFrameData(uint64_t& offset, uint64_t& len)
+{
+    offset = _offset;
+    len = _len;
+    return _frameData;
 }
 
 // RtpPacket::Ptr RtpPacket::create() {

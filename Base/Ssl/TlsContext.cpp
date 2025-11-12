@@ -4,6 +4,8 @@
 
 #include <openssl/err.h>
 
+using namespace std;
+
 string TlsContext::_keyFile;
 string TlsContext::_crtFile;
 

@@ -18,19 +18,19 @@
 #include "Rtp/RtpSort.h"
 #include "SctpAssociation.h"
 
-using namespace std;
+// using namespace std;
 
-class WebrtcContext : public enable_shared_from_this<WebrtcContext> {
+class WebrtcContext : public std::enable_shared_from_this<WebrtcContext> {
 public:
-    using Ptr = shared_ptr<WebrtcContext>;
-    using Wptr = weak_ptr<WebrtcContext>;
+    using Ptr = std::shared_ptr<WebrtcContext>;
+    using Wptr = std::weak_ptr<WebrtcContext>;
 
     WebrtcContext();
     ~WebrtcContext();
 
 public:
-    void initPlayer(const string& appName, const string& streamName, const string& sdp);
-    void initPublisher(const string& appName, const string& streamName, const string& sdp);
+    void initPlayer(const std::string& appName, const std::string& streamName, const std::string& sdp);
+    void initPublisher(const std::string& appName, const std::string& streamName, const std::string& sdp);
     void onRtpPacket(const Socket::Ptr& socket, const RtpPacket::Ptr& rtp, struct sockaddr* addr, int len);
     bool isAlive();
     void setDtls(int dtls) {_enbaleDtls = dtls;}
@@ -45,14 +45,14 @@ public:
     void changeLoop(const EventLoop::Ptr& loop);
     void close();
 
-    string getLocalSdp();
+    std::string getLocalSdp();
 
     static void initDtlsCert();
-    static string getFingerprint();
-    static shared_ptr<DtlsCertificate> getDtlsCertificate();
+    static std::string getFingerprint();
+    static std::shared_ptr<DtlsCertificate> getDtlsCertificate();
 
 private:
-    void negotiatePlayValid(const shared_ptr<TrackInfo>& videoInfo, const shared_ptr<TrackInfo>& audioInfo);
+    void negotiatePlayValid(const std::shared_ptr<TrackInfo>& videoInfo, const std::shared_ptr<TrackInfo>& audioInfo);
     void initPlayerLocalSdp(int trackNum);
     void nackHeartBeat();
     void handleRtcp(char* buf, int size);
@@ -112,11 +112,11 @@ private:
     int _localChannelPort = 0;
     int _peerChannelPort = 0;
 
-    string _path;
-    string _params;
-    string _iceUfrag;
-    string _icePwd;
-    string _username;
+    std::string _path;
+    std::string _params;
+    std::string _iceUfrag;
+    std::string _icePwd;
+    std::string _username;
     TimeClock _timeClock;
     TimeClock _lastPktClock;
     UrlParser _urlParser;
@@ -129,10 +129,10 @@ private:
     WebrtcPtInfo::Ptr _audioPtInfo;
     WebrtcDecodeTrack::Ptr _videoDecodeTrack;
     WebrtcDecodeTrack::Ptr _audioDecodeTrack;
-    shared_ptr<WebrtcSdp> _localSdp;
-    shared_ptr<WebrtcSdp> _remoteSdp;
-    shared_ptr<DtlsSession> _dtlsSession;
-    shared_ptr<SrtpSession> _srtpSession;
+    std::shared_ptr<WebrtcSdp> _localSdp;
+    std::shared_ptr<WebrtcSdp> _remoteSdp;
+    std::shared_ptr<DtlsSession> _dtlsSession;
+    std::shared_ptr<SrtpSession> _srtpSession;
     WebrtcMediaSource::Wptr _source;
     WebrtcMediaSource::QueType::DataQueReaderT::Ptr _playReader;
     

@@ -2,13 +2,17 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
+
+#ifndef _WIN32
 #include <arpa/inet.h>
+#endif
+
 #include <sstream>
 #include <iomanip>
 
 #include "WebrtcClient.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Common/Define.h"
 #include "EventPoller/EventLoopPool.h"
 #include "Common/Track.h"
@@ -101,7 +105,7 @@ bool WebrtcClient::start(const string& localIp, int localPort, const string& url
     });
 
     shared_ptr<HttpClientApi> client = make_shared<HttpClientApi>(EventLoop::getCurrentLoop());
-    // client->addHeader("Content-Type", "application/json;charset=UTF-8");
+    client->addHeader("Content-Type", "application/sdp;charset=UTF-8");
     client->setMethod("GET");
     client->setContent(localSdp);
     client->setOnHttpResponce([wSelf, client](const HttpParser &parser){
@@ -651,7 +655,7 @@ void WebrtcClient::onConnected()
 	// stunReq.setMappedAddress(ntohl(inet_addr(_socket->getLocalIp().c_str())));
 	// stunReq.setMappedPort(ntohs(_socket->getLocalPort()));
 	// stunReq.setMappedPort(_socket->getLocalPort());
-    if (_addr->sa_family == AF_INET) {
+    if (_socket->getFamily() == AF_INET) {
 	    stunReq.setMappedAddress((sockaddr *)_socket->getPeerAddr4());
     } else {
         stunReq.setMappedAddress((sockaddr *)_socket->getPeerAddr6());
@@ -760,13 +764,58 @@ void WebrtcClient::onStunPacket(const StreamBuffer::Ptr& buffer)
 		return;
 	}
 
+    // if (stunRsp.getType() == BindingRequest) {
+    //     WebrtcStun stunResp;
+    //     stunResp.setType(BindingResponse);
+    //     stunResp.setLocalUfrag(stunRsp.getRemoteUfrag());
+    //     stunResp.setRemoteUfrag(stunRsp.getLocalUfrag());
+    //     stunResp.setTranscationId(stunRsp.getTranscationId());
+
+    //     // struct sockaddr_in* peer_addr = (struct sockaddr_in*)_addr;
+    //     if (_addr->sa_family == AF_INET) {
+    //         stunResp.setMappedAddress(_addr);
+    //     } else {
+    //         stunResp.setMappedAddress(_addr);
+    //     }
+    //     // stunResp.setMappedPort(ntohs(peer_addr->sin_port));
+
+    //     // char buf[kRtpPacketSize];
+    //     // SrsBuffer* stream = new SrsBuffer(buf, sizeof(buf));
+    //     // SrsAutoFree(SrsBuffer, stream);
+
+    //     auto buffer = make_shared<StringBuffer>();
+    //     // char buf[1500];
+    //     // SrsBuffer* stream = new SrsBuffer(buf, sizeof(buf));
+    //     // SrsAutoFree(SrsBuffer, stream);
+    //     if (0 != stunResp.toBuffer(_icePwd, buffer)) {
+    //         logError << "encode stun response failed";
+    //         return ;
+    //     }
+
+    //     logInfo << "send a stun responce";
+
+    //     if (_socket->getSocketType() == SOCKET_TCP) {
+    //         uint8_t payload_ptr[2];
+    //         payload_ptr[0] = buffer->size() >> 8;
+    //         payload_ptr[1] = buffer->size() & 0x00FF;
+
+    //         _socket->send((char*)payload_ptr, 2);
+            
+    //         _socket->send(buffer->data(), buffer->size(), 1);
+    //         return;
+    //     }
+        
+    //     _socket->send(buffer->data(), buffer->size(), 1, _addr, sizeof(struct sockaddr));
+    //     return;
+    // }
+
     if (_enableDtls) {
         if (!_sendDtls) {
             weak_ptr<WebrtcClient> wSelf = shared_from_this();
             _dtlsSession->setOnHandshakeDone([wSelf](){
                 logInfo << "start to publish";
                 auto self = wSelf.lock();
-                if (!self) {
+                if (!self || self->_dtlsHandshakeDone) {
                     return ;
                 }
                 self->_dtlsHandshakeDone = true;
@@ -1037,8 +1086,10 @@ void WebrtcClient::sendMedia(const RtpPacket::Ptr& rtp)
             payload_ptr[1] = nb_cipher & 0x00FF;
 
             _socket->send((char*)payload_ptr, 2);
+            _socket->send(buffer, 1, 0, nb_cipher);
+        } else {
+		    _socket->send(buffer, 1, 0, nb_cipher, _addr, _addrLen);
         }
-		_socket->send(buffer, 1, 0, nb_cipher, _addr, _addrLen);
 		// _sendRtpPack_10s++;
 		// lastest_packet_send_time_ = time(nullptr);
 	// }

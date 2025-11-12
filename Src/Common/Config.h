@@ -5,17 +5,19 @@
 #include <memory>
 #include <mutex>
 #include <unordered_map>
+#include <vector>
+#include <functional>
 
 #include "json.hpp"
 #include "Util/Variant.h"
 
 using json = nlohmann::json;
-using namespace std;
+// using namespace std;
 
-class Config : public enable_shared_from_this<Config>
+class Config : public std::enable_shared_from_this<Config>
 {
 public:
-    using Ptr = shared_ptr<Config>;
+    using Ptr = std::shared_ptr<Config>;
 
     Config() {}
     ~Config() {}
@@ -23,35 +25,35 @@ public:
 public:
     static Config::Ptr instance();
 
-    void load(const string& file);
+    void load(const std::string& file);
 
     json& getConfig();
 
     // 更新多级配置时，如json[key1][key2].此时参数key=key1_key2
-    void update(const string& key1, const string& key2 = "", 
-                                const string& key3 = "", const string& key4 = "");
-    void addUpdateFunc(const string& key, const function<void(const json& config)>& func);
+    void update(const std::string& key1, const std::string& key2 = "", 
+                                const std::string& key3 = "", const std::string& key4 = "");
+    void addUpdateFunc(const std::string& key, const std::function<void(const json& config)>& func);
 
-    Variant get(const string& key1, const string& key2 = "", const string& key3 = "", 
-                const string& key4 = "", const string& value = "");
+    Variant get(const std::string& key1, const std::string& key2 = "", const std::string& key3 = "", 
+                const std::string& key4 = "", const std::string& value = "");
 
-    Variant getAndListen(const function<void(const json& config)>& func, const string& key1, const string& key2 = "", 
-                        const string& key3 = "", const string& key4 = "", const string& value = "");
+    Variant getAndListen(const std::function<void(const json& config)>& func, const std::string& key1, const std::string& key2 = "", 
+                        const std::string& key3 = "", const std::string& key4 = "", const std::string& value = "");
 
-    void set(const Variant& value, const string& key1, const string& key2 = "", 
-                const string& key3 = "", const string& key4 = "");
+    void set(const Variant& value, const std::string& key1, const std::string& key2 = "", 
+                const std::string& key3 = "", const std::string& key4 = "");
 
     
-    void setAndUpdate(const Variant& value, const string& key1, const string& key2 = "", 
-                const string& key3 = "", const string& key4 = "");
+    void setAndUpdate(const Variant& value, const std::string& key1, const std::string& key2 = "", 
+                const std::string& key3 = "", const std::string& key4 = "");
 
     void set(json& jValue, const Variant& value);
     Variant get(json& value);
 
 private:
     json _config;
-    mutex _updateMtx;
-    unordered_map<string, vector<function<void(const json& config)>>> _mapUpdate;
+    std::mutex _updateMtx;
+    std::unordered_map<std::string, std::vector<std::function<void(const json& config)>>> _mapUpdate;
 };
 
 

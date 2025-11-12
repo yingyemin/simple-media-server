@@ -15,12 +15,12 @@
 #include "RtspTrack.h"
 #include "Mpeg/PsMuxer.h"
 
-using namespace std;
+// using namespace std;
 
-class RtspPsEncodeTrack : public RtspTrack, public enable_shared_from_this<RtspPsEncodeTrack>
+class RtspPsEncodeTrack : public RtspTrack, public std::enable_shared_from_this<RtspPsEncodeTrack>
 {
 public:
-    using Ptr = shared_ptr<RtspPsEncodeTrack>;
+    using Ptr = std::shared_ptr<RtspPsEncodeTrack>;
     RtspPsEncodeTrack(int trackIndex);
     virtual ~RtspPsEncodeTrack()  {}
 
@@ -32,12 +32,12 @@ public:
 
     void setEnableHuge(bool enabled) override;
 
-    void setOnRtpPacket(const function<void(const RtpPacket::Ptr& rtp, bool start)>& cb) override {_onRtpPacket = cb;}
+    void setOnRtpPacket(const std::function<void(const RtpPacket::Ptr& rtp, bool start)>& cb) override {_onRtpPacket = cb;}
 
     int getTrackIndex()  override {return _index;}
     int getTrackType() {return _type;}
-    shared_ptr<TrackInfo> getTrackInfo() override { return _trackInfo;}
-    void addTrackInfo(const shared_ptr<TrackInfo>& track) {_mapTrackInfo[track->index_] = track;}
+    std::shared_ptr<TrackInfo> getTrackInfo() override { return _trackInfo;}
+    void addTrackInfo(const std::shared_ptr<TrackInfo>& track) {_mapTrackInfo[track->index_] = track;}
 
     bool hasSetup() {return _setup;}
     void setup(bool flag) {_setup = flag;}
@@ -51,10 +51,10 @@ private:
     int _interleavedRtp;
     RtpEncoder::Ptr _encoder;
     PsMuxer::Ptr _muxer;
-    shared_ptr<SdpMedia> _media;
-    shared_ptr<TrackInfo> _trackInfo;
-    unordered_map<int, shared_ptr<TrackInfo>> _mapTrackInfo;
-    function<void(const RtpPacket::Ptr& rtp, bool start)> _onRtpPacket;
+    std::shared_ptr<SdpMedia> _media;
+    std::shared_ptr<TrackInfo> _trackInfo;
+    std::unordered_map<int, std::shared_ptr<TrackInfo>> _mapTrackInfo;
+    std::function<void(const RtpPacket::Ptr& rtp, bool start)> _onRtpPacket;
 };
 
 

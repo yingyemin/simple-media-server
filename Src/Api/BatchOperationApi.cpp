@@ -5,8 +5,11 @@
 #include "Logger.h"
 #include "Common/MediaSource.h"
 #include "Common/MediaClient.h"
-#include "Util/String.h"
-
+#if defined(_WIN32)
+#include "Util/String.hpp"
+#else
+#include "Util/String.hpp"
+#endif
 using namespace std;
 
 extern unordered_map<string, function<void(const HttpParser& parser, const UrlParser& urlParser,

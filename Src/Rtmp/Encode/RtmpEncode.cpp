@@ -4,8 +4,8 @@
 #include <cctype>
 
 #include "RtmpEncode.h"
-#include "Logger.h"
-#include "Util/String.h"
+#include "Log/Logger.h"
+#include "Util/String.hpp"
 #include "RtmpEncodeAac.h"
 #include "RtmpEncodeCommon.h"
 #include "RtmpEncodeH264.h"

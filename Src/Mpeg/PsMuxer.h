@@ -22,7 +22,7 @@
 
 class PsMuxer
 {public:
-    using Ptr = shared_ptr<PsMuxer>;
+    using Ptr = std::shared_ptr<PsMuxer>;
     PsMuxer();
     ~PsMuxer();
 
@@ -30,9 +30,9 @@ public:
     void onFrame(const FrameBuffer::Ptr& frame);
     void startEncode();
     void stopEncode();
-    void addTrackInfo(const shared_ptr<TrackInfo>& trackInfo);
+    void addTrackInfo(const std::shared_ptr<TrackInfo>& trackInfo);
 
-    void setOnPsFrame(const function<void(const FrameBuffer::Ptr& rtp)>& cb) {_onPsFrame = cb;}
+    void setOnPsFrame(const std::function<void(const FrameBuffer::Ptr& rtp)>& cb) {_onPsFrame = cb;}
 
 private:
     int encode(const FrameBuffer::Ptr& frame);
@@ -50,10 +50,10 @@ private:
     int _audioCodec = 0;
     int _videoCodec = 0;
     FrameBuffer::Ptr _psFrame;
-    unordered_map<int, int> _mapStreamId;
-    unordered_map<int, shared_ptr<TrackInfo>> _mapTrackInfo;
-    unordered_map<int, shared_ptr<StampAdjust>> _mapStampAdjust;
-    function<void(const FrameBuffer::Ptr& rtp)> _onPsFrame;
+    std::unordered_map<int, int> _mapStreamId;
+    std::unordered_map<int, std::shared_ptr<TrackInfo>> _mapTrackInfo;
+    std::unordered_map<int, std::shared_ptr<StampAdjust>> _mapStampAdjust;
+    std::function<void(const FrameBuffer::Ptr& rtp)> _onPsFrame;
 };
 
 #endif //PsMuxer_H

@@ -10,6 +10,8 @@
 #include "Log/Logger.h"
 #include "Mpeg.h"
 
+using namespace std;
+
 PsMuxer::PsMuxer()
 {
     logInfo << "PsMuxer";
@@ -164,7 +166,7 @@ int PsMuxer::encode(const FrameBuffer::Ptr& frame)
         // 添加pes头
         nSizePos += makePesHeader(streamId, nSize, frame->pts(), frame->dts(), nSizePos);
 
-        _psFrame->_buffer.append(pBuff, nSize);
+        _psFrame->_buffer->append(pBuff, nSize);
         if (_onPsFrame) {
             _psFrame->_isKeyframe = frame->metaFrame();
             _onPsFrame(_psFrame);
@@ -221,7 +223,7 @@ int PsMuxer::makePsHeader(int dts, int index)
     bits_write(&bitsBuffer, 5,  0x1f);          /*reserved(reserved for future use)*/
     bits_write(&bitsBuffer, 3,  0);           /*stuffing length*/
 
-    _psFrame->_buffer.append((char*)pData, PS_HDR_LEN);
+    _psFrame->_buffer->append((char*)pData, PS_HDR_LEN);
     
     return PS_HDR_LEN;
 }
@@ -268,7 +270,7 @@ int PsMuxer::makeSysHeader(int index)
     bits_write( &bitsBuffer, 1,  1);          /*PSTD_buffer_bound_scale*/
     bits_write( &bitsBuffer, 13, 2048);       /*PSTD_buffer_size_bound*/
 
-    _psFrame->_buffer.append((char*)pData, SYS_HDR_LEN);
+    _psFrame->_buffer->append((char*)pData, SYS_HDR_LEN);
     
     return SYS_HDR_LEN;
 }
@@ -328,7 +330,7 @@ int PsMuxer::makePsmHeader(int index)
     bits_write(&bitsBuffer, 8, 0xF4);   /*crc (0~7) bits*/
 
     // if (bothFlag) {
-        _psFrame->_buffer.append((char*)pData, dataLen);
+        _psFrame->_buffer->append((char*)pData, dataLen);
         return dataLen; 
     // } else {
     //     _psFrame->_buffer.append((char*)pData, PSM_HDR_LEN - 4);
@@ -398,7 +400,7 @@ int PsMuxer::makePesHeader(int stream_id, int payload_len,
     // bits_write( &bitsBuffer, 15,(dts)&0x7FFF);          /*DTS[14..0]*/
     // bits_write( &bitsBuffer, 1, 1 );
 
-    _psFrame->_buffer.append((char*)pData, PES_HDR_LEN);
+    _psFrame->_buffer->append((char*)pData, PES_HDR_LEN);
 
     return PES_HDR_LEN;
 }

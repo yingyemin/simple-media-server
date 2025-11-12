@@ -5,22 +5,21 @@
 #include <string>
 #include <memory>
 #include <vector>
-
 #include "Rtmp/RtmpMessage.h"
 #include "Common/Frame.h"
 #include "Common/Track.h"
 
-using namespace std;
+// using namespace std;
 
 class RtmpEncode // : public enable_shared_from_this<RtmpEncode>
 {
 public:
-    using Ptr = shared_ptr<RtmpEncode>;
+    using Ptr = std::shared_ptr<RtmpEncode>;
 
-    static RtmpEncode::Ptr create(const shared_ptr<TrackInfo>& trackInfo);
+    static RtmpEncode::Ptr create(const std::shared_ptr<TrackInfo>& trackInfo);
 
-    virtual string getConfig() {return "";}
-    virtual void setOnRtmpPacket(const function<void(const RtmpMessage::Ptr& packet, bool start)>& cb) = 0;
+    virtual std::string getConfig() {return "";}
+    virtual void setOnRtmpPacket(const std::function<void(const RtmpMessage::Ptr& packet, bool start)>& cb) = 0;
     virtual void encode(const FrameBuffer::Ptr& frame) = 0;
     void setEnhanced(bool enhanced) {_enhanced = enhanced;}
     void setFastPts(bool enabled) {_enableFastPts = enabled;}

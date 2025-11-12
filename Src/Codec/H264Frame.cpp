@@ -5,7 +5,7 @@
 
 #include "H264Frame.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Common/Config.h"
 #include "H264Nal.h"
 #include "Log/Logger.h"
@@ -26,7 +26,7 @@ H264Frame::H264Frame(const H264Frame::Ptr& frame)
 
 bool H264Frame::isBFrame()
 {
-    if (_buffer.size() <= 5) {
+    if (_buffer->size() <= 5) {
         return false;
     }
 
@@ -35,8 +35,8 @@ bool H264Frame::isBFrame()
         return false;
     }
     
-    auto data = _buffer.data() + 5;
-    auto len = _buffer.size() - 5;
+    auto data = _buffer->data() + 5;
+    auto len = _buffer->size() - 5;
 
     uint32_t startBit = 0;
     auto first_mb_in_slice = Ue((unsigned char*)data, len, startBit);
@@ -93,11 +93,11 @@ void H264Frame::split(const function<void(const FrameBuffer::Ptr& frame)>& cb)
         return ;
     }
 
-    auto ptr = _buffer.data();
+    auto ptr = _buffer->data();
     auto prefix = _startSize;
     
     const char* start = ptr;
-    auto end = ptr + _buffer.size();
+    auto end = ptr + _buffer->size();
     size_t next_prefix;
 
     static int alwaysSplit = Config::instance()->getAndListen([](const json &config){
@@ -119,7 +119,7 @@ void H264Frame::split(const function<void(const FrameBuffer::Ptr& frame)>& cb)
             // TODO 目前先拷贝内存，后续直接复用frame的内存，只是改一下offset和length
             H264Frame::Ptr subFrame = make_shared<H264Frame>(dynamic_pointer_cast<H264Frame>(shared_from_this()));
             subFrame->_startSize = prefix;
-            subFrame->_buffer.assign(start, next_start - start);
+            subFrame->_buffer->assign(start, next_start - start);
 
             // cb(start - prefix, next_start - start + prefix, prefix);
             cb(subFrame);
@@ -145,7 +145,7 @@ void H264Frame::split(const function<void(const FrameBuffer::Ptr& frame)>& cb)
     //未找到下一帧,这是最后一帧
     H264Frame::Ptr subFrame = make_shared<H264Frame>(dynamic_pointer_cast<H264Frame>(shared_from_this()));
     subFrame->_startSize = prefix;
-    subFrame->_buffer.assign(start, end - start);
+    subFrame->_buffer->assign(start, end - start);
 
     cb(subFrame);
 }
@@ -160,7 +160,7 @@ FrameBuffer::Ptr H264Frame::createFrame(int startSize, int index, bool addStart)
     frame->_trackType = 0;//VideoTrackType;
 
     if (addStart) {
-        frame->_buffer.assign("\x00\x00\x00\x01", 4);
+        frame->_buffer->assign("\x00\x00\x00\x01", 4);
         frame->_startSize = 4;
     };
 

@@ -11,12 +11,12 @@
 #include <memory>
 #include <functional>
 
-using namespace std;
+// using namespace std;
 
 class HttpHlsClient : public HttpClient
 {
 public:
-    using Ptr = shared_ptr<HttpHlsClient>;
+    using Ptr = std::shared_ptr<HttpHlsClient>;
     HttpHlsClient();
     ~HttpHlsClient();
 
@@ -28,15 +28,15 @@ public:
     void close() override;
 
 public:
-    bool start(const string& localIp, int localPort, const string& url, int timeout);
+    bool start(const std::string& localIp, int localPort, const std::string& url, int timeout);
     void onHttpResponce();
-    void onError(const string& err);
-    void setOnHttpResponce(const function<void(const HttpParser& parser)>& cb);
+    void onError(const std::string& err);
+    void setOnHttpResponce(const std::function<void(const HttpParser& parser)>& cb);
 
 public:
-    string _m3u8;
+    std::string _m3u8;
     
-    shared_ptr<HlsParser> _hlsParser;
+    std::shared_ptr<HlsParser> _hlsParser;
 
 private:
     UrlParser _localUrlParser;
@@ -45,8 +45,8 @@ private:
     Socket::Ptr _socket;
     FrameMediaSource::Wptr _source;
 
-    function<void(const HttpParser& parser)> _onHttpResponce;
-    function<void()> _onClose;
+    std::function<void(const HttpParser& parser)> _onHttpResponce;
+    std::function<void()> _onClose;
 };
 
 #endif

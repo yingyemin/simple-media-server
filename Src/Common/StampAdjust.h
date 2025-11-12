@@ -5,10 +5,11 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <cstdint>
 
 #include "Net/Buffer.h"
 
-using namespace std;
+// using namespace std;
 
 enum StampMode
 {
@@ -20,23 +21,23 @@ enum StampMode
 class StampAdjust
 {
 public:
-    using Ptr = shared_ptr<StampAdjust>;
+    using Ptr = std::shared_ptr<StampAdjust>;
     virtual void inputStamp(uint64_t& pts, uint64_t& dts, int samples) {}
-    virtual void setCodec(const string& codec) {}
+    virtual void setCodec(const std::string& codec) {}
     virtual void setStampMode(StampMode mode) {}
 };
 
-class AudioStampAdjust : public StampAdjust, public enable_shared_from_this<AudioStampAdjust>
+class AudioStampAdjust : public StampAdjust, public std::enable_shared_from_this<AudioStampAdjust>
 {
 public:
-    using Ptr = shared_ptr<AudioStampAdjust>;
+    using Ptr = std::shared_ptr<AudioStampAdjust>;
 
     AudioStampAdjust(int samplerate = 8000);
     ~AudioStampAdjust();
 
 public:
     void inputStamp(uint64_t& pts, uint64_t& dts, int samples) override;
-    void setCodec(const string& codec) override {_codec = codec;}
+    void setCodec(const std::string& codec) override {_codec = codec;}
     void setStampMode(StampMode mode) {_stampMode = mode;}
 
 private:
@@ -51,13 +52,13 @@ private:
 
     uint64_t _adjustPts;
 
-    string _codec;
+    std::string _codec;
 };
 
-class VideoStampAdjust : public StampAdjust, public enable_shared_from_this<VideoStampAdjust>
+class VideoStampAdjust : public StampAdjust, public std::enable_shared_from_this<VideoStampAdjust>
 {
 public:
-    using Ptr = shared_ptr<VideoStampAdjust>;
+    using Ptr = std::shared_ptr<VideoStampAdjust>;
 
     VideoStampAdjust(int fps = 0);
     ~VideoStampAdjust();

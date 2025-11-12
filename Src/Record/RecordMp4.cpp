@@ -10,6 +10,7 @@
 #include "Common/Config.h"
 #include "RecordMp4.h"
 #include "Common/HookManager.h"
+#include "RecordReader.h"
 
 using namespace std;
 
@@ -211,6 +212,10 @@ void RecordMp4::tryNewSegment(const FrameBuffer::Ptr& frame)
                     + to_string(nowTm.tm_year) + "/" + to_string(nowTm.tm_mon) 
                     + "/" + to_string(nowTm.tm_mday) + "/" + to_string(time(nullptr)) + ".mp4";
         logInfo << "get record path: " << abpath;
+
+        RecordReader::addRecordInfo(_urlParser.path_, to_string(nowTm.tm_year), 
+                                    to_string(nowTm.tm_mon), to_string(nowTm.tm_mday), abpath);
+
         // if (!_file.open(abpath, "wb+")) {
         //     return false;
         // }

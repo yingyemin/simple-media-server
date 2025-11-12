@@ -5,7 +5,7 @@
 
 #include "RtpDecodeAac.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 
 using namespace std;
 
@@ -76,10 +76,10 @@ void RtpDecodeAac::decode(const RtpPacket::Ptr& rtp)
 
         if (size) {
             //设置aac数据
-            if (_frame->_buffer.empty()) {
-                _frame->_buffer.assign((char *) payload, size);
+            if (_frame->_buffer->empty()) {
+                _frame->_buffer->assign((char *) payload, size);
             } else {
-                _frame->_buffer.append((char *) payload, size);
+                _frame->_buffer->append((char *) payload, size);
             }
             //设置当前audio unit时间戳
             _frame->_pts = _lastStamp + i * step;
@@ -104,7 +104,7 @@ void RtpDecodeAac::onFrame(const FrameBuffer::Ptr& frame)
 {
     // TODO aac_cfg
     auto adts = _trackInfo->getAdtsHeader(frame->size());
-    frame->_buffer.insert(0, adts.data(), adts.size());
+    frame->_buffer->insert(0, adts.data(), adts.size());
     frame->_dts = frame->_pts;
     frame->_index = _trackInfo->index_;
     if (_onFrame) {

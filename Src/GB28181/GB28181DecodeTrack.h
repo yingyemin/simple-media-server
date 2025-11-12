@@ -11,12 +11,12 @@
 #include "Rtp/RtpPacket.h"
 #include "Mpeg/PsDemuxer.h"
 
-using namespace std;
+// using namespace std;
 
-class GB28181DecodeTrack : public enable_shared_from_this<GB28181DecodeTrack>
+class GB28181DecodeTrack : public std::enable_shared_from_this<GB28181DecodeTrack>
 {
 public:
-    using Ptr = shared_ptr<GB28181DecodeTrack>;
+    using Ptr = std::shared_ptr<GB28181DecodeTrack>;
     GB28181DecodeTrack(int trackIndex);
     GB28181DecodeTrack(int trackIndex, bool isPs);
     virtual ~GB28181DecodeTrack()  {}
@@ -28,15 +28,15 @@ public:
     bool isStart() {return _startdecode;}
 
     void onRtpPacket(const RtpPacket::Ptr& rtp);
-    void setOnRtpPacket(const function<void(const RtpPacket::Ptr& rtp)>& cb) {_onRtpPacket = cb;}
-    void setOnFrame(const function<void(const FrameBuffer::Ptr& frame)>& cb) {_onFrame = cb;}
+    void setOnRtpPacket(const std::function<void(const RtpPacket::Ptr& rtp)>& cb) {_onRtpPacket = cb;}
+    void setOnFrame(const std::function<void(const FrameBuffer::Ptr& frame)>& cb) {_onFrame = cb;}
     void onFrame(const FrameBuffer::Ptr& frame);
-    void setOnPsFrame(const function<void(const FrameBuffer::Ptr& frame)>& cb) {_onPsFrame = cb;}
+    void setOnPsFrame(const std::function<void(const FrameBuffer::Ptr& frame)>& cb) {_onPsFrame = cb;}
     void onPsFrame(const FrameBuffer::Ptr frame);
 
     int getTrackIndex()  {return _index;}
     int getTrackType() {return _type;}
-    shared_ptr<TrackInfo> getTrackInfo() { return _trackInfo;}
+    std::shared_ptr<TrackInfo> getTrackInfo() { return _trackInfo;}
 
     bool hasSetup() {return _setup;}
     void setup(bool flag) {_setup = flag;}
@@ -45,11 +45,11 @@ public:
 
     void decodeRtp(const RtpPacket::Ptr& rtp);
 
-    void setOnTrackInfo(const function<void(const shared_ptr<TrackInfo>& trackInfo)>& cb);
-    void setOnReady(const function<void()>& cb);
+    void setOnTrackInfo(const std::function<void(const std::shared_ptr<TrackInfo>& trackInfo)>& cb);
+    void setOnReady(const std::function<void()>& cb);
 
-    void createVideoTrack(const string& videoCodec);
-    void createAudioTrack(const string& audioCodec, int channel, int sampleBit, int sampleRate);
+    void createVideoTrack(const std::string& videoCodec);
+    void createAudioTrack(const std::string& audioCodec, int channel, int sampleBit, int sampleRate);
 
 private:
     bool _startDemuxer = false;
@@ -66,14 +66,14 @@ private:
     int _index;
     int _type;
     int _interleavedRtp;
-    shared_ptr<PsDemuxer> _demuxer;
+    std::shared_ptr<PsDemuxer> _demuxer;
     RtpDecoder::Ptr _decoder;
-    shared_ptr<TrackInfo> _trackInfo;
-    function<void(const RtpPacket::Ptr& rtp)> _onRtpPacket;
-    function<void(const FrameBuffer::Ptr& frame)> _onFrame;
-    function<void(const FrameBuffer::Ptr& frame)> _onPsFrame;
-    function<void(const shared_ptr<TrackInfo>& trackInfo)> _onTrackInfo;
-    function<void()> _onReady;
+    std::shared_ptr<TrackInfo> _trackInfo;
+    std::function<void(const RtpPacket::Ptr& rtp)> _onRtpPacket;
+    std::function<void(const FrameBuffer::Ptr& frame)> _onFrame;
+    std::function<void(const FrameBuffer::Ptr& frame)> _onPsFrame;
+    std::function<void(const std::shared_ptr<TrackInfo>& trackInfo)> _onTrackInfo;
+    std::function<void()> _onReady;
 };
 
 

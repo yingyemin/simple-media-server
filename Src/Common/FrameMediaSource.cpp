@@ -159,7 +159,7 @@ void FrameMediaSource::onFrame(const FrameBuffer::Ptr& frame)
                         _videoStampAdjust->inputStamp(frame->_pts, frame->_dts, 1);
                     _frame = frame;
                 } else {
-                    _frame->_buffer.append(frame->_buffer);
+                    _frame->_buffer->append(*frame->_buffer);
                 }
             }
         } else {

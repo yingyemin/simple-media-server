@@ -11,26 +11,26 @@
 #include "Common/Track.h"
 #include "Rtp/RtpPacket.h"
 
-using namespace std;
+// using namespace std;
 
 class RtpEncodeAac : public RtpEncoder
 {
 public:
-    using Ptr = shared_ptr<RtpEncodeAac>;
-    RtpEncodeAac(const shared_ptr<TrackInfo>& trackInfo);
+    using Ptr = std::shared_ptr<RtpEncodeAac>;
+    RtpEncodeAac(const std::shared_ptr<TrackInfo>& trackInfo);
 
 public:
     void encode(const FrameBuffer::Ptr& frame);
     void makeRtp(const char *data, size_t len, size_t total_len, bool mark, uint64_t stamp, bool start);
 
-    void setOnRtpPacket(const function<void(const RtpPacket::Ptr& packet, bool start)>& cb);
+    void setOnRtpPacket(const std::function<void(const RtpPacket::Ptr& packet, bool start)>& cb);
     void onRtpPacket(const RtpPacket::Ptr& packet, bool start);
 
 private:
     uint64_t _lastPts = 0;
     uint16_t _lastSeq = 0;
-    shared_ptr<TrackInfo> _trackInfo;
-    function<void(const RtpPacket::Ptr& packet, bool start)> _onRtpPacket;
+    std::shared_ptr<TrackInfo> _trackInfo;
+    std::function<void(const RtpPacket::Ptr& packet, bool start)> _onRtpPacket;
 };
 
 

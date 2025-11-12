@@ -2,12 +2,12 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
-#include <arpa/inet.h>
+// #include <arpa/inet.h>
 
 #include "GB28181SIPConnection.h"
 #include "GB28181SIPManager.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Common/Define.h"
 
 using namespace std;
@@ -63,10 +63,10 @@ void GB28181SIPConnection::onRead(const StreamBuffer::Ptr& buffer, struct sockad
     _parser.parse(buffer->data(), buffer->size());
 }
 
-void GB28181SIPConnection::onError()
+void GB28181SIPConnection::onError(const std::string& err)
 {
     close();
-    logWarn << "get a error: ";
+    logWarn << "get a error: " << err;
 }
 
 ssize_t GB28181SIPConnection::send(Buffer::Ptr pkt)

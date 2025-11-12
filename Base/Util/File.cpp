@@ -1,14 +1,106 @@
-﻿#include <dirent.h>
+﻿#if defined(_WIN32)
+#include "Util.h"
+#include <io.h>   
+#include <direct.h>
+#include <windows.h>
+#include <shlobj.h> // For IShellLink
+#include <comdef.h> // For COM error handling
+#else
+#include <dirent.h>
+#include <unistd.h>
+#endif // WIN32
 
 #include <stdlib.h>
-#include <unistd.h>
 #include <sys/stat.h>
 #include <string>
 #include <cstring>
 #include "File.h"
 #include "Log/Logger.h"
-#include "String.h"
+#include "String.hpp"
 #include "Path.h"
+
+
+#if !defined(_WIN32)
+#define    _unlink    unlink
+#define    _rmdir    rmdir
+#define    _access    access
+#endif
+
+#if defined(_WIN32)
+
+int mkdir(const char* path, int mode) {
+    return _mkdir(path);
+}
+
+DIR* opendir(const char* name) {
+    char namebuf[512];
+    snprintf(namebuf, sizeof(namebuf), "%s\\*.*", name);
+
+    WIN32_FIND_DATAA FindData;
+    auto hFind = FindFirstFileA(namebuf, &FindData);
+    if (hFind == INVALID_HANDLE_VALUE) {
+        return nullptr;
+    }
+    DIR* dir = (DIR*)malloc(sizeof(DIR));
+    memset(dir, 0, sizeof(DIR));
+    dir->dd_fd = 0;   // simulate return  
+    dir->handle = hFind;
+    return dir;
+}
+
+struct dirent* readdir(DIR* d) {
+    HANDLE hFind = d->handle;
+    WIN32_FIND_DATAA FileData;
+    //fail or end  
+    if (!FindNextFileA(hFind, &FileData)) {
+        return nullptr;
+    }
+    struct dirent* dir = (struct dirent*)malloc(sizeof(struct dirent) + sizeof(FileData.cFileName));
+    strcpy(dir->d_name, (char*)FileData.cFileName);
+    dir->d_reclen = (uint16_t)strlen(dir->d_name);
+    //check there is file or directory  
+    if (FileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+        dir->d_type = 2;
+    }
+    else {
+        dir->d_type = 1;
+    }
+    if (d->index) {
+        //覆盖前释放内存  [AUTO-TRANSLATED:1cb478a1]
+        //Release memory before covering
+        free(d->index);
+        d->index = nullptr;
+    }
+    d->index = dir;
+    return dir;
+}
+
+int closedir(DIR* d) {
+    if (!d) {
+        return -1;
+    }
+    //关闭句柄  [AUTO-TRANSLATED:ec4f562d]
+    //Close handle
+    if (d->handle != INVALID_HANDLE_VALUE) {
+        FindClose(d->handle);
+        d->handle = INVALID_HANDLE_VALUE;
+    }
+    //释放内存  [AUTO-TRANSLATED:0f4046dc]
+    //Release memory
+    if (d->index) {
+        free(d->index);
+        d->index = nullptr;
+    }
+    free(d);
+    return 0;
+}
+// 定义 Windows 文件类型常量
+#define S_ISREG(fileAttributes) (fileAttributes & FILE_ATTRIBUTE_NORMAL || fileAttributes & FILE_ATTRIBUTE_ARCHIVE || \
+                                 fileAttributes & FILE_ATTRIBUTE_HIDDEN || fileAttributes & FILE_ATTRIBUTE_SYSTEM || \
+                                 fileAttributes & FILE_ATTRIBUTE_TEMPORARY || fileAttributes & FILE_ATTRIBUTE_COMPRESSED)
+#define S_ISLNK(fileAttributes) (fileAttributes & FILE_ATTRIBUTE_REPARSE_POINT)
+
+#endif // defined(_WIN32)
 
 using namespace std;
 
@@ -57,6 +149,14 @@ bool File::createDir(const char *file, unsigned int mod) {
 
 //判断是否为目录
 bool File::isDir(const char *path) {
+#if defined(_WIN32)
+    auto dir = opendir(path);
+    if (!dir) {
+        return false;
+    }
+    closedir(dir);
+    return true;
+#else
     struct stat statbuf;
     if (stat(path, &statbuf) == 0) {
         //lstat返回文件的信息，文件信息存放在stat结构中
@@ -73,8 +173,104 @@ bool File::isDir(const char *path) {
         }
     }
     return false;
+#endif
+}
+#if defined(_WIN32)
+// 将 const char * 转换为 LPCOLESTR（宽字符）
+std::wstring MultiByteToWideString(const char* path)
+{
+    if (path == nullptr)
+        return std::wstring();
+
+    int len = MultiByteToWideChar(CP_ACP, 0, path, -1, nullptr, 0);
+    if (len == 0)
+        return std::wstring(); // 转换失败
+
+    std::wstring widePath(len, 0);
+    MultiByteToWideChar(CP_ACP, 0, path, -1, &widePath[0], len);
+
+    return widePath;
 }
 
+bool File::isFile(const char* path)
+{
+    // 使用 GetFileAttributes 获取文件属性
+    DWORD attributes = GetFileAttributesA(path);
+
+    if (attributes == INVALID_FILE_ATTRIBUTES)
+    {
+        // 路径不存在或无法访问
+        return false;
+    }
+
+    // 判断文件类型是否为普通文件
+    if (S_ISREG(attributes))
+    {
+        return true;
+    }
+
+    // 如果是链接（快捷方式），尝试解析到目标路径
+    if (S_ISLNK(attributes))
+    {
+        char realFile[MAX_PATH] = { 0 };
+        HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+
+        if (SUCCEEDED(hr))
+        {
+            IShellLink* pShellLink = nullptr;
+            hr = CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID*)&pShellLink);
+
+            if (SUCCEEDED(hr))
+            {
+                IPersistFile* pPersistFile = nullptr;
+                hr = pShellLink->QueryInterface(IID_IPersistFile, (LPVOID*)&pPersistFile);
+
+                if (SUCCEEDED(hr))
+                {
+                    std::wstring widePath = MultiByteToWideString(path);
+                    LPCOLESTR olePath = widePath.c_str();
+                    // 设置代码页为 CP_UTF8 以支持 UTF-8 路径
+                    hr = pPersistFile->Load(olePath, STGM_READ);
+
+                    if (SUCCEEDED(hr))
+                    {
+                        WIN32_FIND_DATA findData = { 0 };
+                        hr = pShellLink->Resolve(nullptr, 0); // Resolve the link
+
+                        if (SUCCEEDED(hr))
+                        {
+                            // 获取目标路径
+                            hr = pShellLink->GetPath(realFile, MAX_PATH, &findData, 0);
+
+                            if (SUCCEEDED(hr))
+                            {
+                                // 数量化目标路径
+                                char resolvedPath[MAX_PATH] = { 0 };
+                                GetLongPathNameA(realFile, resolvedPath, MAX_PATH);
+
+                                // 递归调用 isFile 函数判断目标路径是否是文件
+                                return File::isFile(resolvedPath);
+                            }
+                        }
+                    }
+
+                    pPersistFile->Release();
+                }
+
+                pShellLink->Release();
+            }
+
+            CoUninitialize();
+        }
+
+        // 如果解析失败或快捷方式无效，返回 false
+        return false;
+    }
+
+    // 不是普通文件或快捷方式
+    return false;
+}
+#else
 //判断是否为常规文件
 bool File::isFile(const char *path) {
     struct stat statbuf;
@@ -93,7 +289,7 @@ bool File::isFile(const char *path) {
     }
     return false;
 }
-
+#endif
 //判断是否是特殊目录
 bool File::isSpecialDir(const char *path) {
     return strcmp(path, ".") == 0 || strcmp(path, "..") == 0;
@@ -422,4 +618,38 @@ int File::getFileSize()
     }
 
     return 0;
+}
+bool File::isEnd()
+{
+    return feof(_fp);
+}
+
+
+void File::rewind()
+{
+    fseek(_fp, 0, SEEK_SET);
+}
+
+bool File::seek_end()
+{
+    if (fseek(_fp, 0, SEEK_END) != 0) {
+        return false;
+    }
+    return true;
+}
+bool File::seek_from_end(int64_t size)
+{
+    if (fseek(_fp, size, SEEK_END) != 0)
+    {
+        return false;
+    }
+    return true;
+}
+bool File::seek_from_cur(int64_t size)
+{
+    if (fseek(_fp, size, SEEK_CUR) != 0)
+    {
+        return false;
+    }
+    return true;
 }

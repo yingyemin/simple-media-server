@@ -1,13 +1,19 @@
-﻿#include <sys/socket.h>
+#if defined(_WIN32)
+#include "Util/Util.h"
+#else
+#include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#endif
 
 #include "RtspConnection.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "RtspAuth.h"
 #include "Common/Define.h"
 #include "RtspPsMediaSource.h"
+#include "RtspCombineMediaSource.h"
+#include "RtspPollingMediaSource.h"
 #include "Common/Config.h"
 #include "Common/HookManager.h"
 
@@ -108,6 +114,12 @@ ssize_t RtspConnection::send(Buffer::Ptr pkt)
     return TcpConnection::send(pkt);
 }
 
+ssize_t RtspConnection::send(Buffer::Ptr pkt, bool flag, size_t offset, size_t len)
+{
+    // logInfo << "pkt size: " << pkt->size();
+    return TcpConnection::send(pkt, flag, offset, len);
+}
+
 void RtspConnection::onRtspPacket()
 {
     if (_baseUrl.empty()) {
@@ -200,9 +212,121 @@ void RtspConnection::responseDescribe(const MediaSource::Ptr &src)
     sendMessage(ss.str());
 }
 
+void RtspConnection::onCombineMediaSource()
+{
+    weak_ptr<RtspConnection> wSelf = dynamic_pointer_cast<RtspConnection>(shared_from_this());
+    auto src = MediaSource::getOrCreate(_urlParser.path_, _urlParser.vhost_, _urlParser.protocol_, _urlParser.type_,
+    [this](){
+        return make_shared<RtspCombineMediaSource>(_urlParser, nullptr, true);
+    });
+
+    if (!src) {
+        src = MediaSource::get(_urlParser.path_, _urlParser.vhost_, _urlParser.protocol_, _urlParser.type_);
+    }
+
+    if (!src) {
+        sendStreamNotFound();
+        return ;
+    }
+
+    auto rtspSrc = dynamic_pointer_cast<RtspCombineMediaSource>(src);
+    if (!rtspSrc) {
+        sendStreamNotFound();
+        return ;
+    }
+    auto videoPath = _urlParser.vecParam_["video"];
+    auto audioPath = _urlParser.vecParam_["audio"];
+
+    UrlParser videoUrlParser;
+    videoUrlParser.path_ = videoPath;
+    videoUrlParser.vhost_ = _urlParser.vhost_;
+    videoUrlParser.protocol_ = PROTOCOL_FRAME;
+    videoUrlParser.type_ = "combine_video";
+
+    UrlParser audioUrlParser;
+    audioUrlParser.path_ = audioPath;
+    audioUrlParser.vhost_ = _urlParser.vhost_;
+    audioUrlParser.protocol_ = PROTOCOL_FRAME;
+    audioUrlParser.type_ = "combine_audio";
+
+    rtspSrc->setVideoMediaSource(videoUrlParser);
+    rtspSrc->setAudioMediaSource(audioUrlParser);
+    rtspSrc->setLoop(EventLoop::getCurrentLoop());
+    rtspSrc->start([wSelf, src](){
+        auto self = wSelf.lock();
+        if (!self) {
+            return ;
+        }
+        self->responseDescribe(src);
+    });
+}
+
+void RtspConnection::onPollingMediaSource()
+{
+    weak_ptr<RtspConnection> wSelf = dynamic_pointer_cast<RtspConnection>(shared_from_this());
+    auto src = MediaSource::getOrCreate(_urlParser.path_, _urlParser.vhost_, _urlParser.protocol_, _urlParser.type_,
+    [this](){
+        return make_shared<RtspPollingMediaSource>(_urlParser, nullptr, true);
+    });
+
+    if (!src) {
+        src = MediaSource::get(_urlParser.path_, _urlParser.vhost_, _urlParser.protocol_, _urlParser.type_);
+    }
+
+    if (!src) {
+        sendStreamNotFound();
+        return ;
+    }
+
+    auto rtspSrc = dynamic_pointer_cast<RtspPollingMediaSource>(src);
+    if (!rtspSrc) {
+        sendStreamNotFound();
+        return ;
+    }
+
+    if (rtspSrc->getLoop() != nullptr) {
+        responseDescribe(src);
+        return ;
+    }
+
+    auto streamList = _urlParser.vecParam_["streamList"];
+    if (streamList.empty()) {
+        sendStreamNotFound();
+        return ;
+    }
+
+    auto vecStreamList = split(streamList, ",");
+    vector<UrlParser> vecUrlParser;
+    for (auto &stream : vecStreamList) {
+        UrlParser urlParser;
+        urlParser.path_ = stream;
+        urlParser.vhost_ = _urlParser.vhost_;
+        urlParser.protocol_ = PROTOCOL_FRAME;
+        urlParser.type_ = "polling";
+        vecUrlParser.push_back(urlParser);
+    }
+
+    rtspSrc->setStreamList(vecUrlParser);
+    rtspSrc->setLoop(EventLoop::getCurrentLoop());
+    rtspSrc->start([wSelf, src](){
+        auto self = wSelf.lock();
+        if (!self) {
+            return ;
+        }
+        self->responseDescribe(src);
+    });
+}
+
 void RtspConnection::handleDescribe_l()
 {
     weak_ptr<RtspConnection> wSelf = dynamic_pointer_cast<RtspConnection>(shared_from_this());
+    if (_urlParser.type_ == "combine") {
+        onCombineMediaSource();
+        return ;
+    } else if (_urlParser.type_ == "polling") {
+        onPollingMediaSource();
+        return ;
+    }
     MediaSource::getOrCreateAsync(_urlParser.path_, _urlParser.vhost_, _urlParser.protocol_, _urlParser.type_, 
     [wSelf](const MediaSource::Ptr &src){
         auto self = wSelf.lock();
@@ -603,6 +727,7 @@ void RtspConnection::handleSetup()
     auto rtspSrc = _source.lock();
     if (!rtspSrc) {
         sendBadRequst("source is offline");
+        return ;
     }
     int index = -1;
     string codec = "unknwon";
@@ -653,11 +778,11 @@ void RtspConnection::handleSetup()
         auto rtpTrans = make_shared<RtspRtpTransport>(Transport_TCP, TransportData_Media, track, _socket);
         auto rtcpTrans = make_shared<RtspRtcpTransport>(Transport_TCP, TransportData_Data, track, _socket);
         rtpTrans->setRtcp(rtcpTrans);
-        rtpTrans->setOnTcpSend([this](const Buffer::Ptr& pkt, int flag) {
-            send(pkt);
+        rtpTrans->setOnTcpSend([this](const Buffer::Ptr& pkt, int flag, size_t offset, size_t len) {
+            send(pkt, flag, offset, len);
         });
-        rtcpTrans->setOnTcpSend([this](const Buffer::Ptr& pkt, int flag) {
-            send(pkt);
+        rtcpTrans->setOnTcpSend([this](const Buffer::Ptr& pkt, int flag, size_t offset, size_t len) {
+            send(pkt, flag, offset, len);
         });
 
         auto vecTrans = split(_parser._mapHeaders["transport"], ";", "=");
@@ -936,7 +1061,7 @@ void RtspConnection::handlePlay()
                 int index = (*it)->trackIndex_;
                 auto transport = strong_self->_mapRtpTransport[index * 2];
                 if (transport) {
-                    int bytes = transport->sendRtpPacket(*it, it == pack->end());
+                    int bytes = transport->sendRtpPacket(*it, it + 1 == pack->end());
                     strong_self->_intervalSendBytes += bytes;
                     strong_self->_totalSendBytes += bytes;
                 }

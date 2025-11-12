@@ -5,15 +5,15 @@
 #include "RtpContext.h"
 #include "RtpParser.h"
 
-using namespace std;
+// using namespace std;
 
 class RtpClientPull : public RtpClient {
 public:
-    using Ptr = shared_ptr<RtpClientPull>;
-    using Wptr = weak_ptr<RtpClientPull>;
+    using Ptr = std::shared_ptr<RtpClientPull>;
+    using Wptr = std::weak_ptr<RtpClientPull>;
 
-    RtpClientPull(const string& app, 
-                    const string& stream, int ssrc, int sockType);
+    RtpClientPull(const std::string& app, 
+                    const std::string& stream, int ssrc, int sockType);
     ~RtpClientPull();
 
 private:
@@ -23,12 +23,12 @@ private:
 private:
     // bool _firstWrite = true;
     bool _sendFlag = true;
-    string _peerIp;
+    std::string _peerIp;
     int _peerPort;
     int _sockType;
     int _ssrc;
-    string _streamName;
-    string _appName;
+    std::string _streamName;
+    std::string _appName;
 
     Socket::Ptr _socket;
     sockaddr _addr;

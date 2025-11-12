@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <cstdint>
 
 /**
  * 对应版本 -1 和 0 的 T0102 消息类

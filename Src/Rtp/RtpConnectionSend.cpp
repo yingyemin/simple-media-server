@@ -2,12 +2,15 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
+#if defined(_WIN32)
+#include "Util/Util.h"
+#else
 #include <arpa/inet.h>
-
+#endif
 #include "RtpConnectionSend.h"
 #include "RtpManager.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Common/Define.h"
 #include "Common/HookManager.h"
 

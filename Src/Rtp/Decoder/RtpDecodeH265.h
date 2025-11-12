@@ -10,18 +10,18 @@
 #include "Rtp/RtpPacket.h"
 #include "Codec/H265Frame.h"
 
-using namespace std;
+// using namespace std;
 
 class RtpDecodeH265 : public RtpDecoder
 {
 public:
-    using Ptr = shared_ptr<RtpDecodeH265>;
-    RtpDecodeH265(const shared_ptr<TrackInfo>& trackInfo);
+    using Ptr = std::shared_ptr<RtpDecodeH265>;
+    RtpDecodeH265(const std::shared_ptr<TrackInfo>& trackInfo);
 
 public:
     static bool isStartGop(const RtpPacket::Ptr& rtp);
     void decode(const RtpPacket::Ptr& rtp) override;
-    void setOnDecode(const function<void(const FrameBuffer::Ptr& frame)> cb) override;
+    void setOnDecode(const std::function<void(const FrameBuffer::Ptr& frame)> cb) override;
     void onFrame(const FrameBuffer::Ptr& frame);
 
 private:
@@ -35,9 +35,9 @@ public:
     bool _firstRtp = true;
     uint32_t _lastStamp = -1;
     uint16_t _lastSeq = -1;
-    function<void(const FrameBuffer::Ptr& frame)> _onFrame;
+    std::function<void(const FrameBuffer::Ptr& frame)> _onFrame;
     H265Frame::Ptr _frame;
-    shared_ptr<TrackInfo> _trackInfo;
+    std::shared_ptr<TrackInfo> _trackInfo;
 };
 
 

@@ -2,7 +2,7 @@
 #include "Logger.h"
 #include "Common/Config.h"
 #include "Common/Define.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Util/Base64.h"
 #include "Ssl/SHA1.h"
 #include "Codec/G711Track.h"
@@ -126,7 +126,7 @@ void WebsocketConnection::onWebsocketFrame(const char* data, int len)
 
     // wavToG711a
     auto frame = FrameBuffer::createFrame("g711a", 0, AudioTrackType, false);
-    frame->_buffer.assign((char*)data, len);
+    frame->_buffer->assign((char*)data, len);
     frame->_pts = frame->_dts = _bytes / 8;
     _bytes += len;
 

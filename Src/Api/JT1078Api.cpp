@@ -5,7 +5,7 @@
 #include "Logger.h"
 #include "Common/Config.h"
 #include "Common/Define.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "JT1078/JT1078Connection.h"
 #include "JT1078/JT1078Server.h"
 #include "JT1078/JT1078Client.h"

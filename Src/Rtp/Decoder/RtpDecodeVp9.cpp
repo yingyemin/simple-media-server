@@ -5,7 +5,7 @@
 
 #include "RtpDecodeVp9.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Codec/VP9Frame.h"
 
 using namespace std;
@@ -354,7 +354,7 @@ void RtpDecodeVP9::decode(const RtpPacket::Ptr& rtp)
 	}
 
     _frame->_pts = stamp;
-    _frame->_buffer.append((char *) ptr, pend - ptr);
+    _frame->_buffer->append((char *) ptr, pend - ptr);
 
     if (rtp->getHeader()->mark) {
         onFrame(_frame);

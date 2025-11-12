@@ -1,28 +1,33 @@
-﻿#include <cstdlib>
+#include <cstdlib>
 #include <string>
 #include <algorithm>
 #include <cctype>
 
 #include "RtpDecodeH264.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
+#include "Common/Config.h"
 
 using namespace std;
+
+#pragma pack(push, 1)
 
 class FuHeader {
 public:
 #if __BYTE_ORDER == __BIG_ENDIAN
-    uint8_t start_bit: 1;
-    uint8_t end_bit: 1;
-    uint8_t reserved: 1;
-    uint8_t nal_type: 5;
+    unsigned char start_bit: 1;
+    unsigned char end_bit: 1;
+    unsigned char reserved: 1;
+    unsigned char nal_type: 5;
 #else
-    uint8_t nal_type: 5;
-    uint8_t reserved: 1;
-    uint8_t end_bit: 1;
-    uint8_t start_bit: 1;
+    unsigned char nal_type: 5;
+    unsigned char reserved: 1;
+    unsigned char end_bit: 1;
+    unsigned char start_bit: 1;
 #endif
 };
+
+#pragma pack(pop)
 
 RtpDecodeH264::RtpDecodeH264(const shared_ptr<TrackInfo>& trackInfo)
     :_trackInfo(trackInfo)
@@ -85,15 +90,12 @@ bool RtpDecodeH264::isStartGop(const RtpPacket::Ptr& rtp)
         case 28 : {
             // fu A
             auto payload = rtp->getPayload();
-            FuHeader header;
-            header.start_bit = (payload[1] & 0b10000000) >> 7;
-            header.end_bit = (payload[1] & 0b01000000) >> 6;
-            header.reserved = (payload[1] & 0b00100000) >> 5;
-            header.nal_type = payload[1] & 0b00011111;
-            if (header.start_bit && header.nal_type == H264_IDR) {
+            FuHeader* header = (FuHeader*)(&payload[1]);
+            if (header->start_bit && header->nal_type == H264_IDR) {
                 start = true;
             }
             break;
+
         }
         default : {
             // logInfo << "unknown nal type";
@@ -157,8 +159,8 @@ void RtpDecodeH264::decode(const RtpPacket::Ptr& rtp)
 
 void RtpDecodeH264::decodeSingle(const uint8_t *ptr, ssize_t size, uint64_t stamp)
 {
-    _frame->_buffer.assign("\x00\x00\x00\x01", 4);
-    _frame->_buffer.append((char *) ptr, size);
+    _frame->_buffer->assign("\x00\x00\x00\x01", 4);
+    _frame->_buffer->append((char *) ptr, size);
     _frame->_pts = stamp;
 
     onFrame(_frame);
@@ -207,14 +209,14 @@ void RtpDecodeH264::decodeFuA(const RtpPacket::Ptr& rtp)
 
     if (header.start_bit || _lastStamp != stamp) {
         if (_stage != 0) {
-            _frame->_buffer.clear();
+            _frame->_buffer->clear();
         }
         // logInfo << "start a frame: " << (int)header->nal_type;
         _stage = 1;
-        _frame->_buffer.assign("\x00\x00\x00\x01", 4);
-        _frame->_buffer.push_back(indicator | header.nal_type);
+        _frame->_buffer->assign("\x00\x00\x00\x01", 4);
+        _frame->_buffer->push_back(indicator | header.nal_type);
         _frame->_pts = stamp;
-        _frame->_buffer.append((char *) payload + 2, payloadSize - 2);
+        _frame->_buffer->append((char *) payload + 2, payloadSize - 2);
         if (header.end_bit || rtp->getHeader()->mark) {
             _stage = 0;
             onFrame(_frame);
@@ -232,7 +234,7 @@ void RtpDecodeH264::decodeFuA(const RtpPacket::Ptr& rtp)
         return ;
     }
 
-    _frame->_buffer.append((char *) payload + 2, payloadSize - 2);
+    _frame->_buffer->append((char *) payload + 2, payloadSize - 2);
     if (header.end_bit) {
         _stage = 0;
         onFrame(_frame);
@@ -252,7 +254,15 @@ void RtpDecodeH264::onFrame(const FrameBuffer::Ptr& frame)
     // logInfo << "decode a h264 frame type: " << (int)(payload[0] & 0x1F);
     // logInfo << "decode a h264 frame size: " << frame->size();
     // logInfo << "decode a h264 frame time: " << frame->pts();
-    frame->_dts = frame->_pts;
+    static int enableDtsGenerator = Config::instance()->getAndListen([](const json &config){
+        enableDtsGenerator = Config::instance()->get("Rtp", "enableDtsGenerator");
+    }, "Rtp", "enableDtsGenerator");
+    
+    if (enableDtsGenerator) {
+        _dtsGenerator.getDts(frame->_pts, frame->_dts);
+    } else {
+        frame->_dts = frame->_pts;
+    }
     if (_onFrame) {
         _onFrame(frame);
     }

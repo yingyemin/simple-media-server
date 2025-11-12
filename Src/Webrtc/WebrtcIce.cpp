@@ -1,8 +1,10 @@
 ﻿#include "WebrtcIce.h"
 #include "WebrtcStun.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Common/UrlParser.h"
 #include "Log/Logger.h"
+
+using namespace std;
 
 WebrtcIce::WebrtcIce(const std::vector<std::string>& urls)
 {

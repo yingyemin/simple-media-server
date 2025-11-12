@@ -8,27 +8,27 @@
 #include "RtmpDecode.h"
 #include "Codec/H265Frame.h"
 
-using namespace std;
+// using namespace std;
 
-class RtmpDecodeH265 : public RtmpDecode, public enable_shared_from_this<RtmpDecodeH265> {
+class RtmpDecodeH265 : public RtmpDecode, public std::enable_shared_from_this<RtmpDecodeH265> {
 public:
-    using Ptr = shared_ptr<RtmpDecodeH265>;
-    using Wptr = weak_ptr<RtmpDecodeH265>;
+    using Ptr = std::shared_ptr<RtmpDecodeH265>;
+    using Wptr = std::weak_ptr<RtmpDecodeH265>;
 
-    RtmpDecodeH265(const shared_ptr<TrackInfo>& trackInfo);
+    RtmpDecodeH265(const std::shared_ptr<TrackInfo>& trackInfo);
     ~RtmpDecodeH265();
 
 public:
     H265Frame::Ptr createFrame();
     void decode(const RtmpMessage::Ptr& msg) override;
 
-    void setOnFrame(const function<void(const FrameBuffer::Ptr& frame)> cb) override;
+    void setOnFrame(const std::function<void(const FrameBuffer::Ptr& frame)>& cb) override;
     void onFrame(const FrameBuffer::Ptr& frame);
 
 private:
     bool _first = true;
     H265Track::Ptr _trackInfo;
-    function<void(const FrameBuffer::Ptr& frame)> _onFrame;
+    std::function<void(const FrameBuffer::Ptr& frame)> _onFrame;
 };
 
 #endif //RtmpDecodeH265_h

@@ -1,5 +1,5 @@
 #include "Fmp4Demuxer.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Codec/AacTrack.h"
 #include "Codec/G711Track.h"
 #include "Codec/H264Frame.h"
@@ -8,8 +8,11 @@
 #include "Codec/H266Frame.h"
 #include "Codec/H265Track.h"
 #include "Log/Logger.h"
-
+#if defined (_WIN32)
+#include "Util/Util.h"
+#else
 #include <arpa/inet.h>
+#endif
 #include <functional>
 
 using namespace std;
@@ -78,8 +81,8 @@ void Fmp4Demuxer::onFrame(const StreamBuffer::Ptr& buffer, int trackIndex, int p
             } else if (trackInfo->codec_ == "h266") {
                 frame = make_shared<H266Frame>();
             }
-            frame->_buffer.assign("\x0\x0\x0\x1", 4);
-            frame->_buffer.append(data + offset + 4, frame_len);
+            frame->_buffer->assign("\x0\x0\x0\x1", 4);
+            frame->_buffer->append(data + offset + 4, frame_len);
             frame->_trackType = VideoTrackType;
             frame->_startSize = 4;
             frame->_pts = pts;
@@ -117,8 +120,8 @@ void Fmp4Demuxer::onFrame(const StreamBuffer::Ptr& buffer, int trackIndex, int p
     } else if (trackInfo->codec_ == "aac") {
         auto aacTrack = dynamic_pointer_cast<AacTrack>(trackInfo);
         frame = make_shared<FrameBuffer>();
-        frame->_buffer.assign(aacTrack->getAacInfo());
-        frame->_buffer.append(buffer->data(), buffer->size());
+        frame->_buffer->assign(aacTrack->getAacInfo());
+        frame->_buffer->append(buffer->data(), buffer->size());
         frame->_trackType = AudioTrackType;
         frame->_startSize = 7;
         frame->_pts = pts;
@@ -127,7 +130,7 @@ void Fmp4Demuxer::onFrame(const StreamBuffer::Ptr& buffer, int trackIndex, int p
         frame->_codec = trackInfo->codec_;
     } else if (trackInfo->codec_ == "g711a" || trackInfo->codec_ == "g711u" || trackInfo->codec_ == "mp3") {
         frame = make_shared<FrameBuffer>();
-        frame->_buffer.assign(buffer->data(), buffer->size());
+        frame->_buffer->assign(buffer->data(), buffer->size());
         frame->_trackType = AudioTrackType;
         frame->_startSize = 0;
         frame->_pts = pts;

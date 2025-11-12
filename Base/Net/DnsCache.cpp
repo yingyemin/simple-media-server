@@ -8,7 +8,7 @@ using namespace std;
 
 struct sockaddr_storage makeSockaddr(const char *host, uint16_t port) {
     struct sockaddr_storage storage;
-    bzero(&storage, sizeof(storage));
+    memset(&storage, 0,sizeof(storage));
 
     struct in_addr addr;
     struct in6_addr addr6;

@@ -12,14 +12,14 @@
 #include "GB28181EncodeTrack.h"
 #include "Common/DataQue.h"
 
-using namespace std;
+// using namespace std;
 
 class GB28181MediaSource : public MediaSource
 {
 public:
-    using Ptr = shared_ptr<GB28181MediaSource>;
-    using Wptr = weak_ptr<GB28181MediaSource>;
-    using RingDataType = shared_ptr<list<RtpPacket::Ptr> >;
+    using Ptr = std::shared_ptr<GB28181MediaSource>;
+    using Wptr = std::weak_ptr<GB28181MediaSource>;
+    using RingDataType = std::shared_ptr<std::list<RtpPacket::Ptr> >;
     using RingType = DataQue<RingDataType>;
 
     GB28181MediaSource(const UrlParser& urlParser, const EventLoop::Ptr& loop = nullptr, bool muxer = false);
@@ -27,16 +27,16 @@ public:
 
 public:
     void addTrack(const GB28181DecodeTrack::Ptr& track);
-    void addDecodeTrack(const shared_ptr<TrackInfo>& track);
-    void addTrack(const shared_ptr<TrackInfo>& track) override;
+    void addDecodeTrack(const std::shared_ptr<TrackInfo>& track);
+    void addTrack(const std::shared_ptr<TrackInfo>& track) override;
     void addSink(const MediaSource::Ptr &src) override;
     void delSink(const MediaSource::Ptr &src) override;
     void onFrame(const FrameBuffer::Ptr& frame) override;
     void onReady() override;
     int playerCount() override;
-    void getClientList(const function<void(const list<ClientInfo>& info)>& func) override;
+    void getClientList(const std::function<void(const std::list<ClientInfo>& info)>& func) override;
     uint64_t getBytes() override { return _ring ? _ring->getBytes() : 0;}
-    unordered_map<int/*index*/, GB28181DecodeTrack::Ptr> getDecodeTrack()
+    std::unordered_map<int/*index*/, GB28181DecodeTrack::Ptr> getDecodeTrack()
     {
         return _mapGB28181DecodeTrack;
     }
@@ -55,15 +55,15 @@ private:
     int _ringSize = 512;
     uint32_t _ssrc = 0;
 
-    mutex _mtxSdp;
-    string _sdp;
+    std::mutex _mtxSdp;
+    std::string _sdp;
 
     RingType::Ptr _ring;
     RingDataType _cache;
 
     GB28181EncodeTrack::Ptr _gB28181EncodeTrack;
-    mutex _mtxTrack;
-    unordered_map<int/*index*/, GB28181DecodeTrack::Ptr> _mapGB28181DecodeTrack;
+    std::mutex _mtxTrack;
+    std::unordered_map<int/*index*/, GB28181DecodeTrack::Ptr> _mapGB28181DecodeTrack;
 };
 
 

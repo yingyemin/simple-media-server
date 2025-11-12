@@ -10,7 +10,7 @@
 #include "Common/Track.h"
 #include "Rtp/RtpPacket.h"
 
-using namespace std;
+// using namespace std;
 
 enum RtpExtType
 {
@@ -46,15 +46,15 @@ enum RtpExtType
 class RtpExtTypeMap
 {
 public:
-    using Ptr = shared_ptr<RtpExtTypeMap>;
+    using Ptr = std::shared_ptr<RtpExtTypeMap>;
 
-    void addId(int id, const string& uri);
+    void addId(int id, const std::string& uri);
     int getTypeById(int id);
     int getIdByType(int type);
 
 private:
-    unordered_map<int, int> _mapTypeToId;
-    unordered_map<int, int> _mapIdToType;
+    std::unordered_map<int, int> _mapTypeToId;
+    std::unordered_map<int, int> _mapIdToType;
 };
 
 // class WebrtcRtpHeader {
@@ -136,7 +136,7 @@ private:
 class WebrtcRtpExt
 {
 public:
-    using Ptr = shared_ptr<WebrtcRtpExt>;
+    using Ptr = std::shared_ptr<WebrtcRtpExt>;
 
     int getId() {return id_;}
     int getType() {return type_;}
@@ -146,16 +146,16 @@ public:
     int size() const { return length_;}
     bool isOneByte() {return isOneByte_;}
     void setOneByte(bool flag) {isOneByte_ = flag;}
-    string getUri() {return uri_;}
+    std::string getUri() {return uri_;}
 
 public:
     void checkValid(int type, int minSize) const;
     void getAudioLevel(int& vad, int level) const;
     uint32_t getAbsSendTime() const;
     uint16_t getTransportCCSeq()const;
-    string getSdesMid()const;
-    string getRtpStreamId()const;
-    string getRepairedRtpStreamId()const;
+    std::string getSdesMid()const;
+    std::string getRtpStreamId()const;
+    std::string getRepairedRtpStreamId()const;
     void getVideoTiming(uint8_t &flags,
                             uint16_t &encode_start,
                             uint16_t &encode_finish,
@@ -176,13 +176,13 @@ public:
     int type_;
     int length_;
     uint8_t* value_;
-    string uri_;
+    std::string uri_;
 };
 
 class WebrtcRtpPacket : public RtpPacket
 {
 public:
-    using Ptr = shared_ptr<WebrtcRtpPacket>;
+    using Ptr = std::shared_ptr<WebrtcRtpPacket>;
     enum { kRtpVersion = 2, kRtpHeaderSize = 12, kRtpTcpHeaderSize = 4 };
 
     WebrtcRtpPacket(const StreamBuffer::Ptr& buffer, int rtpOverTcpHeaderSize = 0);
@@ -239,8 +239,8 @@ private:
     RtpExtTypeMap::Ptr _rtpExtTypeMap;
     StreamBuffer::Ptr _rtpOverTcpHeader;
     StreamBuffer::Ptr _data;
-    unordered_map<int, WebrtcRtpExt::Ptr> _mapRtpExtOneByte;
-    unordered_map<int, WebrtcRtpExt::Ptr> _mapRtpExtTwoByte;
+    std::unordered_map<int, WebrtcRtpExt::Ptr> _mapRtpExtOneByte;
+    std::unordered_map<int, WebrtcRtpExt::Ptr> _mapRtpExtTwoByte;
 };
 
 

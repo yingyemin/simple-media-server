@@ -64,7 +64,7 @@ public:
     uint64_t payloadLen;
     uint64_t exPayloadLen;
 
-    string maskKey;
+    std::string maskKey;
     char* payload;
 };
 
@@ -75,7 +75,7 @@ public:
     void encodeHeader(const WebsocketFrame& frame, StringBuffer::Ptr& header);
     void encodePayload(const WebsocketFrame& frame, Buffer::Ptr& payload);
 
-    void setOnWebsocketFrame(const function<void(const char* data, int len)>& cb);
+    void setOnWebsocketFrame(const std::function<void(const char* data, int len)>& cb);
     void onWebsocketFrame(const char* data, int len);
 
 public:
@@ -86,7 +86,7 @@ private:
     int _otherHeaderSize = 0;
     uint32_t _maskIndex = 0;
     StringBuffer _remainData;
-    function<void(const char* data, int len)> _onWebsocketFrame;
+    std::function<void(const char* data, int len)> _onWebsocketFrame;
 };
 
 

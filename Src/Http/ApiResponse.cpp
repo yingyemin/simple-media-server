@@ -1,5 +1,7 @@
 #include "ApiResponse.h"
 
+using namespace std;
+
 void ApiResponse::success(const function<void(HttpResponse& rsp)>& rspFunc, const json& data)
 {
     success(rspFunc, data, "操作成功");

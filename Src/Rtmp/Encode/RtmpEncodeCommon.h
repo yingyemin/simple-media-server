@@ -7,27 +7,27 @@
 #include "Common/Frame.h"
 #include "RtmpEncode.h"
 
-using namespace std;
+// using namespace std;
 
-class RtmpEncodeCommon : public RtmpEncode, public enable_shared_from_this<RtmpEncodeCommon> {
+class RtmpEncodeCommon : public RtmpEncode, public std::enable_shared_from_this<RtmpEncodeCommon> {
 public:
-    using Ptr = shared_ptr<RtmpEncodeCommon>;
-    using Wptr = weak_ptr<RtmpEncodeCommon>;
+    using Ptr = std::shared_ptr<RtmpEncodeCommon>;
+    using Wptr = std::weak_ptr<RtmpEncodeCommon>;
 
-    RtmpEncodeCommon(const shared_ptr<TrackInfo>& trackInfo);
+    RtmpEncodeCommon(const std::shared_ptr<TrackInfo>& trackInfo);
     ~RtmpEncodeCommon();
 
 public:
     void encode(const FrameBuffer::Ptr& frame) override;
-    string getConfig() override;
+    std::string getConfig() override;
 
-    void setOnRtmpPacket(const function<void(const RtmpMessage::Ptr& msg, bool start)>& cb) override;
+    void setOnRtmpPacket(const std::function<void(const RtmpMessage::Ptr& msg, bool start)>& cb) override;
     void onRtmpMessage(const RtmpMessage::Ptr& msg, bool start);
 
 private:
     int _audioFlag = 0;
-    shared_ptr<TrackInfo> _trackInfo;
-    function<void(const RtmpMessage::Ptr& msg, bool start)> _onRtmpMessage;
+    std::shared_ptr<TrackInfo> _trackInfo;
+    std::function<void(const RtmpMessage::Ptr& msg, bool start)> _onRtmpMessage;
 };
 
 #endif //RtmpEncodeH265_h

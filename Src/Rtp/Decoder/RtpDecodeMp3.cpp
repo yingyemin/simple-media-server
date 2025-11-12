@@ -5,7 +5,7 @@
 
 #include "RtpDecodeMp3.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 
 using namespace std;
 
@@ -42,7 +42,7 @@ void RtpDecodeMp3::decode(const RtpPacket::Ptr& rtp)
 
     if (_firstRtp) {
         _frame->_pts = stamp;
-        _frame->_buffer.assign((char *) payload, payloadSize);
+        _frame->_buffer->assign((char *) payload, payloadSize);
         _firstRtp = false;
         _lastStamp = stamp;
         _lastSeq = seq;
@@ -63,7 +63,7 @@ void RtpDecodeMp3::decode(const RtpPacket::Ptr& rtp)
         }
 
         _frame->_pts = stamp;
-        _frame->_buffer.assign((char *) payload, payloadSize);
+        _frame->_buffer->assign((char *) payload, payloadSize);
         _stage = 1;
         
         _lastStamp = stamp;
@@ -88,7 +88,7 @@ void RtpDecodeMp3::decode(const RtpPacket::Ptr& rtp)
 
     _lastStamp = stamp;
     _lastSeq = seq;
-    _frame->_buffer.append((char *) payload, payloadSize);
+    _frame->_buffer->append((char *) payload, payloadSize);
 
     if (rtp->getHeader()->mark) {
         onFrame(_frame);
@@ -105,7 +105,7 @@ void RtpDecodeMp3::onFrame(const FrameBuffer::Ptr& frame)
     if (frame->size() > 4) {
         frame->_dts = frame->_pts;
         frame->_index = _trackInfo->index_;
-        frame->_buffer.substr(4);
+        frame->_buffer->substr(4);
         if (_onFrame) {
             _onFrame(frame);
         }

@@ -8,7 +8,10 @@
 #include <cstring> // std::memset(), std::memcpy()
 #include <string>
 #include <memory>
+
+#ifndef _WIN32
 #include <error.h>
+#endif
 
 using namespace std;
 

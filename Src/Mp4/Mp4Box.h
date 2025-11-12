@@ -7,7 +7,7 @@
 #include <string>
 #include <functional>
 
-using namespace std;
+// using namespace std;
 
 #define N_BRAND	8
 
@@ -228,7 +228,7 @@ struct mov_parse_t
 {
 	uint32_t type;
 	uint32_t parent;
-	function<int(const mov_box_t* box, MP4Demuxer* self)> parse;
+	std::function<int(const mov_box_t* box, MP4Demuxer* self)> parse;
 };
 
 // A.4 Temporal structure of the media (p148)
@@ -297,7 +297,7 @@ struct mov_sample_entry_t
     uint16_t data_reference_index; // ref [dref] Data Reference Boxes
     uint8_t object_type_indication; // H.264/AAC MOV_OBJECT_XXX (DecoderConfigDescriptor)
     uint8_t stream_type; // MP4_STREAM_XXX
-	string extra_data; // H.264 sps/pps
+	std::string extra_data; // H.264 sps/pps
 	int extra_data_size;
 
     union
@@ -342,8 +342,8 @@ struct mov_sample_entry_t
 
 struct mov_stsd_t
 {
-    shared_ptr<mov_sample_entry_t> current; // current entry, read only
-    vector<shared_ptr<mov_sample_entry_t>> entries;
+	std::shared_ptr<mov_sample_entry_t> current; // current entry, read only
+    std::vector<std::shared_ptr<mov_sample_entry_t>> entries;
     uint32_t entry_count;
 };
 
@@ -390,19 +390,19 @@ struct mov_tfhd_t
 
 struct mov_stbl_t
 {
-	vector<shared_ptr<mov_stsc_t>> stsc;
+	std::vector<std::shared_ptr<mov_stsc_t>> stsc;
 	size_t stsc_count = 0;
 
-	vector<uint64_t> stco;
+	std::vector<uint64_t> stco;
 	uint32_t stco_count = 0;
 
-	vector<shared_ptr<mov_stts_t>> stts;
+	std::vector<std::shared_ptr<mov_stts_t>> stts;
 	size_t stts_count = 0;
 
-	vector<shared_ptr<mov_stts_t>> ctts;
+	std::vector<std::shared_ptr<mov_stts_t>> ctts;
 	size_t ctts_count = 0;
 
-	vector<uint32_t> stss;
+	std::vector<uint32_t> stss;
 	size_t stss_count = 0;
 };
 
@@ -444,15 +444,15 @@ public:
 	// 8.8 Movie Fragments
 	struct mov_trex_t trex;
 	struct mov_tfhd_t tfhd;
-	vector<shared_ptr<mov_fragment_t>> frags;
+	std::vector<std::shared_ptr<mov_fragment_t>> frags;
 	uint32_t frag_count, frag_capacity;
 
 	struct mov_stsd_t stsd;
 
-	vector<shared_ptr<mov_elst_t>> elst;
+	std::vector<std::shared_ptr<mov_elst_t>> elst;
 	size_t elst_count = 0;
 	
-	vector<shared_ptr<mov_sample_t>> samples;
+	std::vector<std::shared_ptr<mov_sample_t>> samples;
 	uint32_t sample_count = 0;
 	size_t sample_offset; // sample_capacity
 

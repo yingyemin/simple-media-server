@@ -6,7 +6,7 @@
 #include "RtspRtpTransport.h"
 #include "Rtp/RtpPacket.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Rtp/Decoder/RtpDecodeH264.h"
 
 using namespace std;
@@ -84,6 +84,7 @@ void RtspRtpTransport::onRtpPacket(const StreamBuffer::Ptr& buffer)
 int RtspRtpTransport::sendRtpPacket(const RtpPacket::Ptr &packet, bool flag)
 {
     // static int lastStamp = 0;
+    // logInfo << "flag: " << flag;
     int bytes = 0;
     switch (_transType) {
         case Transport_TCP: {
@@ -123,10 +124,23 @@ int RtspRtpTransport::sendRtpPacket(const RtpPacket::Ptr &packet, bool flag)
                     // if (++i == len) {
                     //     _socket->send(packet->buffer(), 1);
                     // } else {
+                        uint64_t offset = 0;
+                        uint64_t len = 0;
+                        auto frame = packet->getFrameData(offset, len);
                         if (_tcpSend) {
-                            _tcpSend(packet->buffer(), flag);
+                            if (frame) {
+                                _tcpSend(packet->buffer(), false, 0, 0);
+                                _tcpSend(frame->_buffer, flag, offset, len);
+                            } else {
+                                _tcpSend(packet->buffer(), flag, 0, 0);
+                            }
                         } else {
-                            _socket->send(packet->buffer(), flag);
+                            if (frame) {
+                                _socket->send(packet->buffer(), false, 0, 0);
+                                _socket->send(frame->_buffer, flag, offset, len);
+                            } else {
+                                _socket->send(packet->buffer(), flag, 0, 0);
+                            }
                         }
                         bytes += packet->size();
                         if (_rtcp) {

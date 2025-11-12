@@ -8,33 +8,33 @@
 #include "Net/Buffer.h"
 #include "Net/Socket.h"
 
-using namespace std;
+// using namespace std;
 
-class TlsContext : public enable_shared_from_this<TlsContext>
+class TlsContext : public std::enable_shared_from_this<TlsContext>
 {
 public:
-    using Ptr = shared_ptr<TlsContext>;
+    using Ptr = std::shared_ptr<TlsContext>;
     
     TlsContext(bool server, const Socket::Ptr& socket);
     ~TlsContext();
 
 public:
-    static void setKeyFile(const string& keyFile, const string& crtFile);
+    static void setKeyFile(const std::string& keyFile, const std::string& crtFile);
     void initSsl();
     void onRead(const StreamBuffer::Ptr& buffer);
     ssize_t send(Buffer::Ptr pkt);
-    string getSslError();
+    std::string getSslError();
     void shutdown();
     void unprotect();
     void protect();
     void handshake();
 
-    void setOnConnRead(const function<void(const StreamBuffer::Ptr& buffer)>& cb);
-    void setOnConnSend(const function<void(const Buffer::Ptr& buffer)>& cb);
+    void setOnConnRead(const std::function<void(const StreamBuffer::Ptr& buffer)>& cb);
+    void setOnConnSend(const std::function<void(const Buffer::Ptr& buffer)>& cb);
 
 private:
-    static string _keyFile;
-    static string _crtFile;
+    static std::string _keyFile;
+    static std::string _crtFile;
 
     bool _server = true;
     bool _hasHandshake = false;
@@ -42,13 +42,13 @@ private:
 
     BIO* _bioIn = nullptr;
     BIO* _bioOut = nullptr;
-    shared_ptr<SSL_CTX> _sslCtx;
-    shared_ptr<SSL> _ssl;
+    std::shared_ptr<SSL_CTX> _sslCtx;
+    std::shared_ptr<SSL> _ssl;
     Socket::Ptr _socket;
 
-    deque<Buffer::Ptr> _bufferSend;
-    function<void(const StreamBuffer::Ptr& buffer)> _onConnRead;
-    function<void(const Buffer::Ptr& buffer)> _onConnSend;
+    std::deque<Buffer::Ptr> _bufferSend;
+    std::function<void(const StreamBuffer::Ptr& buffer)> _onConnRead;
+    std::function<void(const Buffer::Ptr& buffer)> _onConnSend;
 };
 
 #endif //TlsContext_H_

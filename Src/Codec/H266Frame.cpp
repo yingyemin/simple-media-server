@@ -5,7 +5,7 @@
 
 #include "H266Frame.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Common/Config.h"
 
 using namespace std;
@@ -33,11 +33,11 @@ void H266Frame::split(const function<void(const FrameBuffer::Ptr& frame)>& cb)
         return ;
     }
 
-    auto ptr = _buffer.data();
+    auto ptr = _buffer->data();
     auto prefix = _startSize;
     
     const char* start = ptr;
-    auto end = ptr + _buffer.size();
+    auto end = ptr + _buffer->size();
     size_t next_prefix;
 
     static int alwaysSplit = Config::instance()->getAndListen([](const json &config){
@@ -61,7 +61,7 @@ void H266Frame::split(const function<void(const FrameBuffer::Ptr& frame)>& cb)
             // TODO 目前先拷贝内存，后续直接复用frame的内存，只是改一下offset和length
             H266Frame::Ptr subFrame = make_shared<H266Frame>(dynamic_pointer_cast<H266Frame>(shared_from_this()));
             subFrame->_startSize = prefix;
-            subFrame->_buffer.assign(start, next_start - start);
+            subFrame->_buffer->assign(start, next_start - start);
 
             // cb(start - prefix, next_start - start + prefix, prefix);
             cb(subFrame);
@@ -83,7 +83,7 @@ void H266Frame::split(const function<void(const FrameBuffer::Ptr& frame)>& cb)
     //未找到下一帧,这是最后一帧
     H266Frame::Ptr subFrame = make_shared<H266Frame>(dynamic_pointer_cast<H266Frame>(shared_from_this()));
     subFrame->_startSize = prefix;
-    subFrame->_buffer.assign(start, end - start);
+    subFrame->_buffer->assign(start, end - start);
 
     cb(subFrame);
 }
@@ -133,7 +133,7 @@ FrameBuffer::Ptr H266Frame::createFrame(int startSize, int index, bool addStart)
     frame->_trackType = 0;//VideoTrackType;
 
     if (addStart) {
-        frame->_buffer.assign("\x00\x00\x00\x01", 4);
+        frame->_buffer->assign("\x00\x00\x00\x01", 4);
         frame->_startSize = 4;
     };
 

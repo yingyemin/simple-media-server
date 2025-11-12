@@ -7,9 +7,9 @@
 
 #include <memory>
 
-using namespace std;
+// using namespace std;
 
-class MP4Demuxer : public enable_shared_from_this<MP4Demuxer>
+class MP4Demuxer : public std::enable_shared_from_this<MP4Demuxer>
 {
 public:
     MP4Demuxer();
@@ -133,10 +133,10 @@ private:
     uint64_t _implicit_offset = 0;
     
     mov_track_t* _track; // current stream
-	vector<shared_ptr<mov_track_t>> _tracks;
+    std::vector<std::shared_ptr<mov_track_t>> _tracks;
 	int _track_count = 0;
 
-    unordered_map<int, shared_ptr<TrackInfo>> _mapTrackInfo;
+    std::unordered_map<int, std::shared_ptr<TrackInfo>> _mapTrackInfo;
 };
 
 #endif //Mp4Demuxer_H

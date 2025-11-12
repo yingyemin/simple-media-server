@@ -209,7 +209,7 @@ uint32_t SrtRecvQueue::getExpectedSeq() {
 // 生成队列的状态信息字符串
 // 返回值: 队列状态信息字符串
 std::string SrtRecvQueue::dump() {
-    stringstream ss;
+    std::stringstream ss;
     if (_pkt_map.empty()) {
         ss << " expected seq :" << _pkt_expected_seq;
     } else {

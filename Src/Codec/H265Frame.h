@@ -8,7 +8,7 @@
 
 #include "Common/Frame.h"
 
-using namespace std;
+// using namespace std;
 
 enum H265NalType
 {
@@ -46,7 +46,7 @@ enum H265NalType
 class H265Frame : public FrameBuffer
 {
 public:
-    using Ptr = shared_ptr<H265Frame>;
+    using Ptr = std::shared_ptr<H265Frame>;
 
     H265Frame()
     {
@@ -59,13 +59,13 @@ public:
 
     bool keyFrame() const override
     {
-        uint8_t type = ((uint8_t)(_buffer[_startSize]) >> 1) & 0x3f;
+        uint8_t type = ((uint8_t)((*_buffer)[_startSize]) >> 1) & 0x3f;
         return type >= H265NalType::H265_BLA_W_LP && type <= H265NalType::H265_RSV_IRAP_VCL23;
     }
 
     bool metaFrame() const override
     {
-        uint8_t type = ((uint8_t)(_buffer[_startSize]) >> 1) & 0x3f;
+        uint8_t type = ((uint8_t)((*_buffer)[_startSize]) >> 1) & 0x3f;
         switch(type){
             case H265NalType::H265_VPS:
             case H265NalType::H265_SPS:
@@ -76,7 +76,7 @@ public:
 
     bool startFrame() const override
     {
-        uint8_t type = ((uint8_t)(_buffer[_startSize]) >> 1) & 0x3f;
+        uint8_t type = ((uint8_t)((*_buffer)[_startSize]) >> 1) & 0x3f;
         if (type == H265NalType::H265_VPS) {
             return true;
         }
@@ -86,12 +86,12 @@ public:
 
     uint8_t getNalType() override
     {
-        return ((uint8_t)(_buffer[_startSize]) >> 1) & 0x3f;
+        return ((uint8_t)((*_buffer)[_startSize]) >> 1) & 0x3f;
     }
 
     bool isNonPicNalu() override
     {
-        uint8_t type = ((uint8_t)(_buffer[_startSize]) >> 1) & 0x3f;
+        uint8_t type = ((uint8_t)((*_buffer)[_startSize]) >> 1) & 0x3f;
         switch(type){
             // case H265NalType::H265_VPS:
             // case H265NalType::H265_SPS:
@@ -109,7 +109,7 @@ public:
         return nalByte >> 1 & 0x3f;
     }
 
-    void split(const function<void(const FrameBuffer::Ptr& frame)>& cb) override;
+    void split(const std::function<void(const FrameBuffer::Ptr& frame)>& cb) override;
     static FrameBuffer::Ptr createFrame(int startSize, int index, bool addStart);
     
     static void registerFrame();

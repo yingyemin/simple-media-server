@@ -5,7 +5,7 @@
 
 #include "WebrtcEncodeTrack.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Util/Base64.h"
 
 using namespace std;

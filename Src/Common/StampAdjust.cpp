@@ -5,7 +5,7 @@
 
 #include "StampAdjust.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Util/TimeClock.h"
 #include "Common/Config.h"
 
@@ -142,7 +142,7 @@ void VideoStampAdjust::inputStamp(uint64_t& pts, uint64_t& dts, int samples)
     // 增量太大或者太小或者为0，认为不合理，通过计算的帧率重新算一下
     if ((step < -500 || step > 500 || step == 0) && _guessFps) {
         // step = (samples * 1.0 / _guessFps) * 1000;
-        step = 1;
+        step = 40;
         // logInfo << "step: " << step;
     }
     

@@ -4,7 +4,7 @@
 #include <cctype>
 
 #include "RtmpDecodeTrack.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Util/Base64.h"
 #include "Log/Logger.h"
 #include "Codec/AacTrack.h"
@@ -182,6 +182,7 @@ void RtmpDecodeTrack::onRtmpPacket(const RtmpMessage::Ptr& pkt)
 void RtmpDecodeTrack::decodeRtmp(const RtmpMessage::Ptr& pkt)
 {
     if (_decoder && pkt) {
+        logTrace << "_decoder->decode";
         _decoder->decode(pkt);
     }
 }

@@ -32,7 +32,7 @@
 #include "GB28181SIPParser.h"
 #include "Net/TcpClient.h"
 
-using namespace std;
+// using namespace std;
 
 // The gb28181 client.
 class GB28181TcpClient : public TcpClient, public GB28181Client
@@ -43,13 +43,13 @@ public:
 public:
     //for GB28181Client override
     void start() override;
-    void sendMessage(const string& message) override;
+    void sendMessage(const std::string& message) override;
     void addTimerTask() override;
     
     //for Tcpclient override
     void onRead(const StreamBuffer::Ptr &buf, struct sockaddr* addr, int len) override;
     void onConnect() override;
-    void onError(const string &ex) override;
+    void onError(const std::string &ex) override;
 
     //for HttpRequestSplitter override
     // int64_t onRecvHeader(const char *data,uint64_t len) override;

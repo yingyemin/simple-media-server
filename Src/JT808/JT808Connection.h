@@ -12,13 +12,13 @@
 #include "Util/TimeClock.h"
 #include "JT808Context.h"
 
-using namespace std;
+// using namespace std;
 
 class JT808Connection : public TcpConnection
 {
 public:
-    using Ptr = shared_ptr<JT808Connection>;
-    using Wptr = weak_ptr<JT808Connection>;
+    using Ptr = std::shared_ptr<JT808Connection>;
+    using Wptr = std::weak_ptr<JT808Connection>;
 
     JT808Connection(const EventLoop::Ptr& loop, const Socket::Ptr& socket);
     ~JT808Connection();
@@ -26,14 +26,14 @@ public:
 public:
     // 继承自tcpseesion
     void onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len) override;
-    void onError(const string& msg) override;
+    void onError(const std::string& msg) override;
     void onManager() override;
     void init() override;
     void close() override;
     ssize_t send(Buffer::Ptr pkt) override;
 
     void onJT808Packet(const JT808Packet::Ptr& buffer);
-    void setOnClose(const function<void()>& cb) {_onClose = cb;}
+    void setOnClose(const std::function<void()>& cb) {_onClose = cb;}
 
 private:
     void packHeader(const JT808Packet::Ptr& buffer, JT808Header& header);
@@ -115,14 +115,14 @@ private:
     void handleTerminalUploadPassengerFlow(const JT808Packet::Ptr& buffer);
 
 private:
-    string _simCode;
-    string _key;
+    std::string _simCode;
+    std::string _key;
     JT808Parser _parser;
     TimeClock _timeClock;
     JT808Context::Ptr _context;
     EventLoop::Ptr _loop;
     Socket::Ptr _socket;
-    function<void()> _onClose;
+    std::function<void()> _onClose;
 };
 
 

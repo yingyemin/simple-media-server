@@ -2,11 +2,14 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
+#if defined(_WIN32)
+#include "Util/Util.h"
+#else
 #include <arpa/inet.h>
-
+#endif
 #include "Mp4FileReader.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Codec/H264Frame.h"
 #include "Codec/H265Frame.h"
 #include "Codec/H266Frame.h"
@@ -83,8 +86,8 @@ void Mp4FileReader::onFrame(const StreamBuffer::Ptr& buffer, int trackIndex, int
             } else if (trackInfo->codec_ == "h266") {
                 frame = make_shared<H266Frame>();
             }
-            frame->_buffer.assign("\x0\x0\x0\x1", 4);
-            frame->_buffer.append(data + offset + 4, frame_len);
+            frame->_buffer->assign("\x0\x0\x0\x1", 4);
+            frame->_buffer->append(data + offset + 4, frame_len);
             frame->_trackType = VideoTrackType;
             frame->_startSize = 4;
             frame->_pts = pts;
@@ -127,8 +130,8 @@ void Mp4FileReader::onFrame(const StreamBuffer::Ptr& buffer, int trackIndex, int
             logWarn << "get aac adts header failed";
         }
         frame = make_shared<FrameBuffer>();
-        frame->_buffer.assign(adts);
-        frame->_buffer.append(buffer->data(), buffer->size());
+        frame->_buffer->assign(adts);
+        frame->_buffer->append(buffer->data(), buffer->size());
         frame->_trackType = AudioTrackType;
         frame->_startSize = adts.size();
         frame->_pts = pts;
@@ -137,7 +140,7 @@ void Mp4FileReader::onFrame(const StreamBuffer::Ptr& buffer, int trackIndex, int
         frame->_codec = trackInfo->codec_;
     } else if (trackInfo->codec_ == "g711a" || trackInfo->codec_ == "g711u" || trackInfo->codec_ == "mp3") {
         frame = make_shared<FrameBuffer>();
-        frame->_buffer.assign(buffer->data(), buffer->size());
+        frame->_buffer->assign(buffer->data(), buffer->size());
         frame->_trackType = AudioTrackType;
         frame->_startSize = 0;
         frame->_pts = pts;

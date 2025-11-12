@@ -4,7 +4,7 @@
 #include <string>
 #include <unordered_map>
 
-using namespace std;
+// using namespace std;
 
 // 统一错误码定义
 enum class ApiErrorCode {
@@ -74,10 +74,10 @@ public:
     static int getHttpStatus(ApiErrorCode code);
 
     // 获取错误码对应的消息
-    static string getErrorMessage(ApiErrorCode code);
+    static std::string getErrorMessage(ApiErrorCode code);
 
     // 获取错误码的字符串表示
-    static string getErrorCodeString(ApiErrorCode code);
+    static std::string getErrorCodeString(ApiErrorCode code);
 
     // 判断是否为成功状态
     static bool isSuccess(ApiErrorCode code);
@@ -89,7 +89,7 @@ public:
     static bool isServerError(ApiErrorCode code);
 
 private:
-    static unordered_map<ApiErrorCode, string> errorMessages;
+    static std::unordered_map<ApiErrorCode, std::string> errorMessages;
     static void initErrorMessages();
 };
 

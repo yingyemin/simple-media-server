@@ -22,13 +22,14 @@ H264Frame::Ptr RtmpDecodeH264::createFrame()
     frame->_index = _trackInfo->index_;
     frame->_trackType = VideoTrackType;
 
-    frame->_buffer.assign("\x00\x00\x00\x01", 4);
+    frame->_buffer->assign("\x00\x00\x00\x01", 4);
 
     return frame;
 }
 
 void RtmpDecodeH264::decode(const RtmpMessage::Ptr& msg)
 {
+    logTrace << "decode rtmp h264";
     uint8_t *payload = (uint8_t *)msg->payload->data();
     int stamp = msg->abs_timestamp;
 
@@ -49,7 +50,7 @@ void RtmpDecodeH264::decode(const RtmpMessage::Ptr& msg)
             int spsLen =(payload[index] & 0x000000FF) << 8 | (payload[index+1] & 0x000000FF);
             index += 2;
             auto frame = createFrame();
-            frame->_buffer.append((char*)payload + index, spsLen);
+            frame->_buffer->append((char*)payload + index, spsLen);
             frame->_pts = frame->_dts = stamp;
             _trackInfo->setSps(frame);
 
@@ -67,7 +68,7 @@ void RtmpDecodeH264::decode(const RtmpMessage::Ptr& msg)
             int ppsLen =(payload[index] & 0x000000FF) << 8 | (payload[index+1] & 0x000000FF);
             index += 2;
             auto frame = createFrame();
-            frame->_buffer.append((char*)payload + index, ppsLen);
+            frame->_buffer->append((char*)payload + index, ppsLen);
             frame->_pts = frame->_dts = stamp;
 
             _trackInfo->setPps(frame);
@@ -94,7 +95,7 @@ void RtmpDecodeH264::decode(const RtmpMessage::Ptr& msg)
             num += 4;
 
             auto frame = createFrame();
-            frame->_buffer.append((char*)payload + num, len);
+            frame->_buffer->append((char*)payload + num, len);
             frame->_dts = stamp;
             frame->_pts = stamp + cts;
             onFrame(frame);
@@ -106,7 +107,7 @@ void RtmpDecodeH264::decode(const RtmpMessage::Ptr& msg)
     }
 }
 
-void RtmpDecodeH264::setOnFrame(const function<void(const FrameBuffer::Ptr& frame)> cb)
+void RtmpDecodeH264::setOnFrame(const function<void(const FrameBuffer::Ptr& frame)>& cb)
 {
     _onFrame = cb;
 }

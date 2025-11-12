@@ -5,7 +5,7 @@
 
 #include "WebrtcMediaSource.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 
 using namespace std;
 
@@ -257,7 +257,7 @@ void WebrtcMediaSource::onFrame(const FrameBuffer::Ptr& frame)
     }
 
     if (frame->isBFrame()) {
-        logInfo << "drop a b frame";
+        logDebug << "drop a b frame";
         return ;
     }
 
@@ -298,7 +298,7 @@ void WebrtcMediaSource::processG711(const FrameBuffer::Ptr& frame, const WebrtcE
         //     _cacheFrame->_pts = frame->pts() - dur;
         // }
     }
-    _cacheFrame->_buffer.append(frame->data(), frame->size());
+    _cacheFrame->_buffer->append(frame->data(), frame->size());
     _frameDur = 40;
 
     auto stamp = _cacheFrame->pts();
@@ -318,7 +318,7 @@ void WebrtcMediaSource::processG711(const FrameBuffer::Ptr& frame, const WebrtcE
         subFrame->_startSize = _cacheFrame->_startSize;
         subFrame->_codec = _cacheFrame->_codec;
         subFrame->_pts = stamp;
-        subFrame->_buffer.assign(ptr, frame_size);
+        subFrame->_buffer->assign(ptr, frame_size);
 
         // logInfo << "get a pts: " << stamp << ", size: " << frame_size;
 
@@ -329,7 +329,7 @@ void WebrtcMediaSource::processG711(const FrameBuffer::Ptr& frame, const WebrtcE
         ptr += frame_size;
         remain_size -= frame_size;
     }
-    _cacheFrame->_buffer.erase(0, n * max_size);
+    _cacheFrame->_buffer->erase(0, n * max_size);
     _cacheFrame->_pts += (uint64_t)_frameDur * n;
 }
 

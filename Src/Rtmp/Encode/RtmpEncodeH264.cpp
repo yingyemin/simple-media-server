@@ -40,22 +40,22 @@ string RtmpEncodeH264::getConfig()
     *data++ = 0x00; //composit time
     *data++ = 0x00; //composit time
     *data++ = 0x01;   //configurationversion
-    *data++ = spsBuffer[spsSize + 1]; //avcprofileindication
-    *data++ = spsBuffer[spsSize + 2]; //profilecompatibilty
-    *data++ = spsBuffer[spsSize + 3]; //avclevelindication
+    *data++ = spsBuffer->data()[spsSize + 1]; //avcprofileindication
+    *data++ = spsBuffer->data()[spsSize + 2]; //profilecompatibilty
+    *data++ = spsBuffer->data()[spsSize + 3]; //avclevelindication
     *data++ = 0xff;   //reserved + lengthsizeminusone
     *data++ = 0xe1;   //num of sps
     *data++ = (uint8_t)(spsLen >> 8); //sequence parameter set length high 8 bits
     *data++ = (uint8_t)(spsLen); //sequence parameter set  length low 8 bits
     // data length 13
-    memcpy(data, spsBuffer.data() + spsSize, spsLen); //H264 sequence parameter set
+    memcpy(data, spsBuffer->data() + spsSize, spsLen); //H264 sequence parameter set
     data += spsLen; // 13 + spsLen
 
     *data++ = 0x01; //num of pps
     *data++ = (uint8_t)(ppsLen >> 8); //picture parameter set length high 8 bits
     *data++ = (uint8_t)(ppsLen); //picture parameter set length low 8 bits
     // 16 + spsLen + ppsLen
-    memcpy(data, ppsBuffer.data() + ppsSize, ppsLen); //H264 picture parameter set
+    memcpy(data, ppsBuffer->data() + ppsSize, ppsLen); //H264 picture parameter set
 
     return config;
 }

@@ -10,12 +10,12 @@
 #include "SrtContext.h"
 #include "Net/Socket.h"
 
-using namespace std;
+// using namespace std;
 
-class SrtManager : public enable_shared_from_this<SrtManager> {
+class SrtManager : public std::enable_shared_from_this<SrtManager> {
 public:
-    using Ptr = shared_ptr<SrtManager>;
-    using Wptr = weak_ptr<SrtManager>;
+    using Ptr = std::shared_ptr<SrtManager>;
+    using Wptr = std::weak_ptr<SrtManager>;
 
     SrtManager();
     ~SrtManager();
@@ -31,9 +31,9 @@ public:
 
 private:
     bool _isInited = false;
-    mutex _contextLck;
+    std::mutex _contextLck;
     // EventLoop::Ptr _loop;
-    unordered_map<uint32_t, SrtContext::Ptr> _mapContext;
+    std::unordered_map<uint32_t, SrtContext::Ptr> _mapContext;
 };
 
 #endif //SrtManager_h

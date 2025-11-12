@@ -12,13 +12,13 @@
 #include "GB28181SIPContext.h"
 
 
-using namespace std;
+// using namespace std;
 
 class GB28181SIPConnection : public TcpConnection
 {
 public:
-    using Ptr = shared_ptr<GB28181SIPConnection>;
-    using Wptr = weak_ptr<GB28181SIPConnection>;
+    using Ptr = std::shared_ptr<GB28181SIPConnection>;
+    using Wptr = std::weak_ptr<GB28181SIPConnection>;
 
     GB28181SIPConnection(const EventLoop::Ptr& loop, const Socket::Ptr& socket);
     ~GB28181SIPConnection();
@@ -26,7 +26,7 @@ public:
 public:
     // 继承自tcpseesion
     void onRead(const StreamBuffer::Ptr& buffer, struct sockaddr* addr, int len) override;
-    void onError() override;
+    void onError(const std::string& err) override;
     void onManager() override;
     void init() override;
     void close() override;
@@ -36,7 +36,7 @@ public:
 
 private:
     bool _isClose = false;
-    string _deviceId;
+    std::string _deviceId;
     GB28181SIPParser _parser;
     SipStack _sipStack;
     GB28181SIPContext::Ptr _context;

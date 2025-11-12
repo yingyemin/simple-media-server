@@ -2,11 +2,16 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
+#if !defined(_WIN32)
 #include <arpa/inet.h>
-
+#include "Util/String.hpp"
+#else
+#include "Util/Util.h"
+#include "Util/String.hpp"
+#endif
 #include "Ehome2VodConnection.h"
 #include "Logger.h"
-#include "Util/String.h"
+
 #include "Common/Define.h"
 #include "Common/Config.h"
 
@@ -100,7 +105,7 @@ void Ehome2VodConnection::onRead(const StreamBuffer::Ptr& buffer, struct sockadd
     }
 
     auto frameBuffer = make_shared<FrameBuffer>();
-    frameBuffer->_buffer.assign(buffer->data(), buffer->size());
+    frameBuffer->_buffer->assign(buffer->data(), buffer->size());
     psSource->inputPs(frameBuffer);
 }
 

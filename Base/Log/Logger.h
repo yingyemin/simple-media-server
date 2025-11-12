@@ -10,7 +10,7 @@
 #include "LoggerChannel.h"
 #include "LoggerWriter.h"
 
-using namespace std;
+// using namespace std;
 
 /**
  * 日志类
@@ -18,7 +18,7 @@ using namespace std;
 class Logger : public std::enable_shared_from_this<Logger> , public noncopyable {
 public:
     // friend class AsyncLogWriter;
-    using Ptr = shared_ptr<Logger>;
+    using Ptr = std::shared_ptr<Logger>;
 
     /**
      * 获取日志单例
@@ -26,7 +26,7 @@ public:
      */
     static Logger::Ptr instance();
 
-    Logger(const string &loggerName);
+    Logger(const std::string &loggerName);
     ~Logger();
 
     /**
@@ -39,14 +39,14 @@ public:
      * 删除日志通道，非线程安全的
      * @param name log通道名
      */
-    void delChannel(const string &name);
+    void delChannel(const std::string &name);
 
     /**
      * 获取日志通道，非线程安全的
      * @param name log通道名
      * @return 线程通道
      */
-    std::shared_ptr<LogChannel> getChannel(const string &name);
+    std::shared_ptr<LogChannel> getChannel(const std::string &name);
 
     /**
      * 设置写log器，非线程安全的
@@ -66,25 +66,25 @@ public:
      * 获取logger名
      * @return logger名
      */
-    const string &getName() const;
+    const std::string &getName() const;
 
     /**
      * 写日志
      * @param ctx 日志信息
      */
-    void write(const shared_ptr<LogContext> &ctx);
+    void write(const std::shared_ptr<LogContext> &ctx);
 
     /**
      * 写日志到各channel，仅供AsyncLogWriter调用
      * @param ctx 日志信息
      */
-    void writeToChannels(const shared_ptr<LogContext> &ctx);
+    void writeToChannels(const std::shared_ptr<LogContext> &ctx);
     
 private:
     LogLevel _level;
-    unordered_map<string, std::shared_ptr<LogChannel> > _channels;
+    std::unordered_map<std::string, std::shared_ptr<LogChannel> > _channels;
     std::shared_ptr<LogWriter> _writer;
-    string _loggerName;
+    std::string _loggerName;
 };
 
 //可重置默认值

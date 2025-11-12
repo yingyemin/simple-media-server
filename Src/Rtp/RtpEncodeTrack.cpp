@@ -5,7 +5,7 @@
 
 #include "RtpEncodeTrack.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Util/Base64.h"
 // #include "Codec/AacTrack.h"
 #include "Codec/H264Track.h"
@@ -64,7 +64,7 @@ void RtpEncodeTrack::startEncode()
             }
 
             auto frame = make_shared<FrameBuffer>();
-            frame->_buffer.assign(buffer->data(), buffer->size());
+            frame->_buffer->assign(buffer->data(), buffer->size());
             frame->_pts = pts;
             frame->_dts = dts;
             frame->_trackType = self->_trackInfo->trackType_ == "video" ? VideoTrackType : AudioTrackType;

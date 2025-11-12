@@ -7,23 +7,24 @@
  * LICENSE file in the root of the source tree. All contributing project authors
  * may be found in the AUTHORS file in the root of the source tree.
  */
-
 #include "EventLoop.h"
 #include "Log/Logger.h"
 #include "Util/TimeClock.h"
 #include "Util/Thread.h"
 
+#ifndef _WIN32
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
 #include <unistd.h>
+#endif
 
 using namespace std;
 
 #define EPOLL_SIZE 1024
-#define USE_EPOLL_WAKEUP 0
 
 static thread_local std::weak_ptr<EventLoop> gCurrentLoop;
 
+#ifndef _WIN32
 static int createEventfd(){
     int evtfd = eventfd(0, EFD_NONBLOCK);
     if(evtfd < 0){
@@ -31,33 +32,61 @@ static int createEventfd(){
     }
     return evtfd;
 }
+#endif
+
+#if defined(_WIN32)
+int setNoBlocked(int fd, bool noblock) {
+#if defined(_WIN32)
+    unsigned long ul = noblock;
+#else
+    int ul = noblock;
+#endif //defined(_WIN32)
+    int ret = ioctlsocket(fd, FIONBIO, &ul); //设置为非阻塞模式
+    if (ret == -1) {
+        logTrace << "ioctl FIONBIO failed";
+    }
+
+    return ret;
+}
+#endif
 
 EventLoop::EventLoop()
 {
     _epollFd = epoll_create(EPOLL_SIZE);
-#if USE_EPOLL_WAKEUP
-    _wakeupFd = createEventfd();
-#endif
 
-    // for (int i = 0; i < 10; i++) {
-    //     shared_ptr<ReaderWriterQueue<asyncEventFunc>> que = make_shared<ReaderWriterQueue<asyncEventFunc>>(10);
-    //     _asyncQueues.push_back(que);
-    // }
+#if USE_EPOLL_WAKEUP
+#ifdef _WIN32
+    setNoBlocked(_wakeupFd.readFD());
+    setNoBlocked(_wakeupFd.writeFD());
+#else
+    _wakeupFd = createEventfd();
     logInfo << "_wakeupFd: " << _wakeupFd;
+#endif
+#endif // USE_EPOLL_WAKEUP
+    /*for (int i = 0; i < 10; i++) {
+        shared_ptr<ReaderWriterQueue<asyncEventFunc>> que = make_shared<ReaderWriterQueue<asyncEventFunc>>(10);
+        _asyncQueues.push_back(que);
+    }*/
 }
 
 EventLoop::~EventLoop()
 {
+#ifdef _WIN32
+    if (_epollFd)
+        epoll_close(_epollFd);
+#else
+#if USE_EPOLL_WAKEUP
     if (_wakeupFd != -1) {
         close(_wakeupFd);
         _wakeupFd = -1;
     }
+#endif // USE_EPOLL_WAKEUP
     
     if (_epollFd != -1) {
         close(_epollFd);
         _epollFd = -1;
     }
-
+#endif
     if (_loopThread) {
         delete _loopThread;
     }
@@ -72,14 +101,20 @@ EventLoop::Ptr EventLoop::getCurrentLoop()
 
 void EventLoop::start()
 {
-    Thread::setThreadName("looper-" + to_string(_epollFd));
+    Thread::setThreadName("looper-" + std::to_string(_epollFd));
+    _threadId = Thread::getThreadId();
     int loopStrat = 0;
 
     gCurrentLoop = shared_from_this();
     logInfo << "EventLoop::start(): " << gCurrentLoop.lock();
+
 #if USE_EPOLL_WAKEUP
+#ifndef _WIN32
     addEvent(_wakeupFd, EPOLLIN, [this](int event, void* args){ onAsyncEvent(); }, nullptr);
+#else
+    addEvent(_wakeupFd.readFD(), EPOLLIN, [this](int event, void* args) { onAsyncEvent(); }, nullptr);
 #endif
+#endif // USE_EPOLL_WAKEUP
     _timer = make_shared<Timer>();
 
     _runTime = TimeClock::now();
@@ -152,7 +187,7 @@ void EventLoop::computeLoad()
         _curRunDuration = now - _runTime;
         if (_curRunDuration > 1000) {
             // 大于1秒
-            logWarn << "current loop(" << _epollFd << ") take time : " << _curRunDuration;
+            logWarn << "current loop(" << (int)_epollFd << ") take time : " << _curRunDuration;
         }
     }
 
@@ -183,7 +218,7 @@ void EventLoop::setThread(thread* thd)
 
 bool EventLoop::isCurrent()
 {
-    return !_loopThread || _loopThread->get_id() == this_thread::get_id();
+    return !_loopThread || _loopThread->get_id() == std::this_thread::get_id();
 }
 
 void EventLoop::addTimerTask(uint64_t ms, const TimerTask::timerHander &handler, TaskCompleteCB cb)
@@ -231,30 +266,34 @@ void EventLoop::async(asyncEventFunc func, bool sync, bool front)
 #endif
 
 #if USE_EPOLL_WAKEUP
-    // 写数据到管道,唤醒主线程
     uint64_t  one = 1111;
+#ifndef _WIN32
+    // 写数据到管道,唤醒主线程
     ssize_t n = write(_wakeupFd, &one, sizeof(one));
-    if(n != sizeof(one)) {
+    if (n != sizeof(one)) {
         logWarn << "write wakeup Fd failed, n: " << n << ", _wakeupFd: " << _wakeupFd;
     }
+#else
+    ssize_t n = _wakeupFd.write(&one, sizeof(one));
+    if (n != sizeof(one)) {
+        logWarn << "write wakeup Fd failed, n: " << n << ", _wakeupFd: " << _wakeupFd.writeFD();
+    }
 #endif
+#endif // USE_EPOLL_WAKEUP
 }
 
 inline void EventLoop::onAsyncEvent()
 {
     uint64_t  startTime = TimeClock::now();
     uint64_t  one;
-    // ssize_t size = 0;
-    // while (true) {
-    //     if ((size = read(_wakeupFd, &one, sizeof(one))) == sizeof(one)) {
-    //         // 读到管道数据,继续读,直到读空为止
-    //         logInfo << "read epoll fd";
-    //         continue;
-    //     }
-    // }
+
 #if USE_EPOLL_WAKEUP
+#ifndef _WIN32
     read(_wakeupFd, &one, sizeof(one));
+#else
+    _wakeupFd.read(&one, sizeof(one));
 #endif
+#endif // USE_EPOLL_WAKEUP
 
 #if 1
     decltype(_asyncEvents) _enventSwap;
@@ -306,6 +345,8 @@ int EventLoop::addEvent(int fd, int event, EventHander::eventCallback cb, void* 
             _mapHander[fd].callback = cb;
             _mapHander[fd].args = args;
         }
+        logDebug << "ret=" << ret << ", fd=" << fd;
+       // printf("ret=%d",ret);
         return ret;
     }
     

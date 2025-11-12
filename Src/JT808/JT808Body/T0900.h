@@ -1,6 +1,7 @@
 #ifndef T0900_H
 #define T0900_H
 
+#include <cstdint>
 #include <memory>
 #include <utility>
 #include <map>

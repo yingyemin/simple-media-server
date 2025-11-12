@@ -1,12 +1,18 @@
 ﻿#include <fstream>
-#include <unistd.h>
-
+#if defined(_WIN32)
+    #include "Util/Util.h"
+#else
+    #include <unistd.h>
+#endif
 #include "Heartbeat.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Common/MediaSource.h"
 #include "Common/Config.h"
 #include "EventPoller/EventLoopPool.h"
+
+#include <chrono>
+#include <thread>
 
 using namespace std;
 
@@ -54,7 +60,8 @@ float get_cpu_usage() {
     long total_diff = total - (idle + user);  // 用户态和系统态的CPU时间总和
     long total_idle = idle;                   // 初始的空闲时间
  
-    sleep(1);  // 等待一秒
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    //sleep(1);  // 等待一秒
  
     std::ifstream file2("/proc/stat");
     std::getline(file2, line);

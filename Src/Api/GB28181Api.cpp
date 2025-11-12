@@ -3,7 +3,7 @@
 #include "GB28181Api.h"
 #include "Logger.h"
 #include "Common/Config.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "GB28181/GB28181Server.h"
 #include "GB28181/GB28181ClientPull.h"
 #include "GB28181/GB28181ClientPush.h"

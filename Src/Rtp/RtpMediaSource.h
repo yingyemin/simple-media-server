@@ -12,14 +12,14 @@
 #include "RtpEncodeTrack.h"
 #include "Common/DataQue.h"
 
-using namespace std;
+// using namespace std;
 
 class RtpMediaSource : public MediaSource
 {
 public:
-    using Ptr = shared_ptr<RtpMediaSource>;
-    using Wptr = weak_ptr<RtpMediaSource>;
-    using RingDataType = shared_ptr<list<RtpPacket::Ptr> >;
+    using Ptr = std::shared_ptr<RtpMediaSource>;
+    using Wptr = std::weak_ptr<RtpMediaSource>;
+    using RingDataType = std::shared_ptr<std::list<RtpPacket::Ptr> >;
     using RingType = DataQue<RingDataType>;
 
     RtpMediaSource(const UrlParser& urlParser, const EventLoop::Ptr& loop = nullptr, bool muxer = false);
@@ -27,16 +27,16 @@ public:
 
 public:
     void addTrack(const RtpDecodeTrack::Ptr& track);
-    void addDecodeTrack(const shared_ptr<TrackInfo>& track);
-    void addTrack(const shared_ptr<TrackInfo>& track) override;
+    void addDecodeTrack(const std::shared_ptr<TrackInfo>& track);
+    void addTrack(const std::shared_ptr<TrackInfo>& track) override;
     void addSink(const MediaSource::Ptr &src) override;
     void delSink(const MediaSource::Ptr &src) override;
     void onFrame(const FrameBuffer::Ptr& frame) override;
     void onReady() override;
     int playerCount() override;
-    void getClientList(const function<void(const list<ClientInfo>& info)>& func) override;
+    void getClientList(const std::function<void(const std::list<ClientInfo>& info)>& func) override;
     uint64_t getBytes() override { return _ring ? _ring->getBytes() : 0;}
-    unordered_map<int/*index*/, RtpDecodeTrack::Ptr> getDecodeTrack()
+    std::unordered_map<int/*index*/, RtpDecodeTrack::Ptr> getDecodeTrack()
     {
         return _mapRtpDecodeTrack;
     }
@@ -48,7 +48,7 @@ public:
     void setSsrc(uint32_t ssrc) {_ssrc = ssrc;}
 
     RingType::Ptr getRing() {return _ring;}
-    void setPayloadType(const string& payloadType) {_payloadType = payloadType;}
+    void setPayloadType(const std::string& payloadType) {_payloadType = payloadType;}
 
 private:
     bool _muxer;
@@ -56,18 +56,18 @@ private:
     int _ringSize = 512;
     uint32_t _ssrc = 0;
 
-    mutex _mtxSdp;
-    string _sdp;
+    std::mutex _mtxSdp;
+    std::string _sdp;
 
-    string _payloadType;
+    std::string _payloadType;
 
     RingType::Ptr _ring;
     RingDataType _cache;
 
     // RtpEncodeTrack::Ptr _rtpEncodeTrack;
-    unordered_map<int/*index*/, RtpEncodeTrack::Ptr> _mapRtpEncodeTrack;
-    mutex _mtxTrack;
-    unordered_map<int/*index*/, RtpDecodeTrack::Ptr> _mapRtpDecodeTrack;
+    std::unordered_map<int/*index*/, RtpEncodeTrack::Ptr> _mapRtpEncodeTrack;
+    std::mutex _mtxTrack;
+    std::unordered_map<int/*index*/, RtpDecodeTrack::Ptr> _mapRtpDecodeTrack;
 };
 
 

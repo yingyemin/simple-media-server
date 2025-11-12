@@ -3,13 +3,13 @@
 
 #include <string>
 
-using namespace std;
+// using namespace std;
 
 class HttpUtil
 {
 public:
-    static string getStatusDesc(int status);
-    static string getMimeType(const std::string& filename);
+    static std::string getStatusDesc(int status);
+    static std::string getMimeType(const std::string& filename);
 
 private:
 };

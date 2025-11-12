@@ -1,4 +1,4 @@
-﻿#include <cstdlib>
+#include <cstdlib>
 #include <string>
 #include <algorithm>
 #include <cctype>
@@ -6,7 +6,8 @@
 #include "Common/Config.h"
 #include "RecordReaderPs.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
+#include "Mpeg/PsDemuxer.h"
 #include "WorkPoller/WorkLoopPool.h"
 
 using namespace std;

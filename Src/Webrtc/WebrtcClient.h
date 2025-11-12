@@ -18,15 +18,15 @@
 #include "WebrtcParser.h"
 
 
-using namespace std;
+// using namespace std;
 
-class WebrtcClient : public MediaClient, public enable_shared_from_this<WebrtcClient>
+class WebrtcClient : public MediaClient, public std::enable_shared_from_this<WebrtcClient>
 {
 public:
-    using Ptr = shared_ptr<WebrtcClient>;
-    using Wptr = weak_ptr<WebrtcClient>;
+    using Ptr = std::shared_ptr<WebrtcClient>;
+    using Wptr = std::weak_ptr<WebrtcClient>;
 
-    WebrtcClient(MediaClientType type, const string& appName, const string& streamName);
+    WebrtcClient(MediaClientType type, const std::string& appName, const std::string& streamName);
     ~WebrtcClient();
 
 public:
@@ -34,31 +34,31 @@ public:
 
 public:
     // override MediaClient
-    bool start(const string& localIp, int localPort, const string& param, int timeout) override;
+    bool start(const std::string& localIp, int localPort, const std::string& param, int timeout) override;
     void stop() override;
     void pause() override;
-    void setOnClose(const function<void()>& cb) override;
-    void addOnReady(void* key, const function<void()>& onReady) override;
-    void getProtocolAndType(string& protocol, MediaClientType& type) override;
+    void setOnClose(const std::function<void()>& cb) override;
+    void addOnReady(void* key, const std::function<void()>& onReady) override;
+    void getProtocolAndType(std::string& protocol, MediaClientType& type) override;
 
 public:
-    string getPath() {return _urlParser.path_;}
-    string getSourceUrl() {return _sourceUrl;}
+    std::string getPath() {return _urlParser.path_;}
+    std::string getSourceUrl() {return _sourceUrl;}
 
 public:
     void close();
-    string getLocalSdp();
-    void setRemoteSdp(const string& sdp);
+    std::string getLocalSdp();
+    void setRemoteSdp(const std::string& sdp);
 
 private:
-    void onError(const string& err);
+    void onError(const std::string& err);
     void onConnected();
     void onRead(const StreamBuffer::Ptr& buffer);
     void initPuller();
     void initPusher();
-    void initLocalSdpTitle(stringstream& ss, int trackNum);
-    void initPusherLocalSdpMedia(stringstream& ss, const shared_ptr<TrackInfo>& videoInfo, const shared_ptr<TrackInfo>& audioInfo);
-    void initPullerLocalSdpMedia(stringstream& ss);
+    void initLocalSdpTitle(std::stringstream& ss, int trackNum);
+    void initPusherLocalSdpMedia(std::stringstream& ss, const std::shared_ptr<TrackInfo>& videoInfo, const std::shared_ptr<TrackInfo>& audioInfo);
+    void initPullerLocalSdpMedia(std::stringstream& ss);    
     void onRtcPacket(const char* data, int len);
 
     void onStunPacket(const StreamBuffer::Ptr& buffer);
@@ -77,11 +77,11 @@ private:
     bool _sendDtls = false;
     bool _enableDtls = true;
     bool _enableSrtp = true;
-    string _request = "pull";
-    string _iceUfrag;
-    string _icePwd;
-    string _username;
-    string _sourceUrl;
+    std::string _request = "pull";
+    std::string _iceUfrag;
+    std::string _icePwd;
+    std::string _username;
+    std::string _sourceUrl;
     UrlParser _urlParser;
     UrlParser _peerUrlParser;
     WebrtcParser _parser;
@@ -95,16 +95,16 @@ private:
     struct sockaddr* _addr = nullptr;
 	int _addrLen = 0;
     WebrtcMediaSource::Wptr _source;
-    shared_ptr<WebrtcSdp> _localSdp;
-    shared_ptr<WebrtcSdp> _remoteSdp;
-    shared_ptr<DtlsSession> _dtlsSession;
-    shared_ptr<SrtpSession> _srtpSession;
-    shared_ptr<TimerTask> _dtlsTimeTask;
+    std::shared_ptr<WebrtcSdp> _localSdp;
+    std::shared_ptr<WebrtcSdp> _remoteSdp;
+    std::shared_ptr<DtlsSession> _dtlsSession;
+    std::shared_ptr<SrtpSession> _srtpSession;
+    std::shared_ptr<TimerTask> _dtlsTimeTask;
     WebrtcMediaSource::QueType::DataQueReaderT::Ptr _playReader;
-    function<void()> _onClose;
-    mutex _mtx;
-    unordered_map<void*, function<void()>> _mapOnReady;
-    unordered_map<string, string> _mapParam;
+    std::function<void()> _onClose;
+    std::mutex _mtx;
+    std::unordered_map<void*, std::function<void()>> _mapOnReady;
+    std::unordered_map<std::string, std::string> _mapParam;
 };
 
 

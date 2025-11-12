@@ -8,7 +8,7 @@
 
 #include "Common/Frame.h"
 
-using namespace std;
+// using namespace std;
 
 enum AV1OBUType
 {
@@ -38,7 +38,7 @@ uint8_t* leb128_write(int64_t size, uint8_t* data, size_t bytes);
 class AV1Frame : public FrameBuffer
 {
 public:
-    using Ptr = shared_ptr<AV1Frame>;
+    using Ptr = std::shared_ptr<AV1Frame>;
 
     AV1Frame();
     
@@ -57,7 +57,7 @@ public:
 
     bool isNonPicNalu() override;
 
-    void split(const function<void(const FrameBuffer::Ptr& frame)>& cb) override;
+    void split(const std::function<void(const FrameBuffer::Ptr& frame)>& cb) override;
 
     static uint8_t getNalType(uint8_t nalByte) {return AV1_KEYFRAME;}
     static FrameBuffer::Ptr createFrame(int startSize, int index, bool addStart);

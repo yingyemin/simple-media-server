@@ -7,7 +7,7 @@
 #include "Rtmp.h"
 #include "Net/Buffer.h"
 
-using namespace std;
+// using namespace std;
 
 #pragma pack(1)
 
@@ -23,7 +23,7 @@ struct RtmpMessageHeader
 class RtmpMessage
 {
 public:
-    using Ptr = shared_ptr<RtmpMessage>;
+    using Ptr = std::shared_ptr<RtmpMessage>;
     void clear()
     {
         index = 0;

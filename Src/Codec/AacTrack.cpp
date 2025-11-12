@@ -7,7 +7,7 @@
 
 #include "AacTrack.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 
 using namespace std;
 
@@ -123,7 +123,7 @@ FrameBuffer::Ptr AacADTSHeader::toFrame()
 
 	auto frame = make_shared<FrameBuffer>();
 	frame->_startSize = 7;
-	frame->_buffer.resize(7);
+	frame->_buffer->resize(7);
 	auto data = frame->data();
 	// data[0] = 0xFF;
 	// data[1] = 0xF9;

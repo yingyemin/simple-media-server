@@ -1,6 +1,9 @@
 #ifndef T0100_H
 #define T0100_H
 
+#include <cstdint>
+#include <string>
+
 #include "Net/Buffer.h"
 
 /**

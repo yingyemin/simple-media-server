@@ -6,7 +6,7 @@
 #include "MediaSource.h"
 #include "EventPoller/SrtEventLoop.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Define.h"
 #include "FrameMediaSource.h"
 #include "HookManager.h"

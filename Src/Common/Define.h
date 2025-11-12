@@ -17,6 +17,7 @@
 #define PROTOCOL_TS "ts"
 #define PROTOCOL_PS "ps"
 #define PROTOCOL_MP4 "mp4"
+#define PROTOCOL_FLV "flv"
 #define PROTOCOL_SRT "srt"
 #define PROTOCOL_WEBSOCKET "websocket"
 

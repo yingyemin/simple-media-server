@@ -13,13 +13,13 @@
 #include "Timer.h"
 #include "EventLoop.h"
 
-using namespace std;
+// using namespace std;
 
 #ifdef ENABLE_SRT
 
 class SrtEventHander {
 public:
-    using eventCallback = function<void(int event, void* args)>;
+    using eventCallback = std::function<void(int event, void* args)>;
     eventCallback callback;
     void* args;
 };
@@ -27,9 +27,9 @@ public:
 class SrtEventLoop : public EventLoop {
 public:
     using Ptr = std::shared_ptr<SrtEventLoop>;
-    using asyncEventFunc = function<void()>;
+    using asyncEventFunc = std::function<void()>;
     using PollCompleteCB = std::function<void(bool success)>;
-    using TaskCompleteCB = std::function<void (bool success, shared_ptr<TimerTask>)>;
+    using TaskCompleteCB = std::function<void (bool success, std::shared_ptr<TimerTask>)>;
 
     SrtEventLoop();
     ~SrtEventLoop();
@@ -39,7 +39,7 @@ public:
 
 public:
     void start() override;
-    void setThread(thread* thd) override;
+    void setThread(std::thread* thd) override;
 
     bool isCurrent() override;
     void onAsyncEvent() override;
@@ -80,7 +80,7 @@ private:
     std::mutex _mtxEvents;
     Timer::Ptr _timer;
     std::list<asyncEventFunc> _asyncEvents;
-    unordered_map<int, SrtEventHander> _mapHander;
+    std::unordered_map<int, SrtEventHander> _mapHander;
 };
 
 #endif

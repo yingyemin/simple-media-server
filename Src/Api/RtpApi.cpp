@@ -1,7 +1,9 @@
-﻿#include "RtpApi.h"
+﻿#ifdef ENABLE_RTP
+
+#include "RtpApi.h"
 #include "Logger.h"
 #include "Common/Config.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Rtp/RtpServer.h"
 #include "Rtp/RtpManager.h"
 #include "Rtp/RtpClientPull.h"
@@ -304,3 +306,4 @@ void RtpApi::stopRtpSender(const HttpParser& parser, const UrlParser& urlParser,
     rspFunc(rsp);
 }
 
+#endif

@@ -1,10 +1,13 @@
-﻿#include <sys/socket.h>
+#if defined(_WIN32)
+#include <Util/Util.h>
+#else
+#include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-
+#endif
 #include "RtmpConnection.h"
 #include "Logger.h"
-#include "Util/String.h"
+#include "Util/String.hpp"
 #include "Util/TimeClock.h"
 #include "Common/Define.h"
 #include "Rtmp.h"
